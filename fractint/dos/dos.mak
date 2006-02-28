@@ -4,7 +4,7 @@
 # available for the compiler.  NMK would not trigger subsequent recompiles
 # due to a rebuild of helpdefs.h file if we used a single step.
 
-OBJ = sound.obj tplus.obj uclock.obj \
+OBJ = sound.obj uclock.obj \
 bignuma.obj calcmand.obj calmanp5.obj calmanfp.obj fpu087.obj fpu387.obj \
 fr8514a.obj fracsuba.obj general.obj hgcfra.obj lsysa.obj lsysaf.obj \
 lyapunov.obj mpmath_a.obj newton.obj parsera.obj tplus_a.obj video.obj
@@ -21,18 +21,24 @@ all : $(OBJ)
 # for Quick Assembler
 #       $(AS) $*.asm
 
+!ifndef DEBUG
 .c.obj:
-	  $(CC) /I$(HFD) $(OptT) $*.c >> f_errs.txt
+	  $(CC) /AM /W4 /FPi /c /I$(HFD) $(OptT) $*.c >> f_errs.txt
 
-Optsize = $(CC) /I$(HFD) $(OptS) $*.c >> f_errs.txt
+Optsize = $(CC) /AM /W4 /FPi /c /I$(HFD) $(OptS) $*.c >> f_errs.txt
 
-Optnoalias = $(CC) /I$(HFD) $(OptN) $*.c >> f_errs.txt
+Optnoalias = $(CC) /AM /W4 /FPi /c /I$(HFD) $(OptN) $*.c >> f_errs.txt
+!else
+.c.obj:
+	  $(CC) /Zi /AM /W4 /FPi /c /I$(HFD) $(OptT) $*.c >> f_errs.txt
 
+Optsize = $(CC) /Zi /AM /W4 /FPi /c /I$(HFD) $(OptS) $*.c >> f_errs.txt
+
+Optnoalias = $(CC) /Zi /AM /W4 /FPi /c /I$(HFD) /DTESTFP $(OptN) $*.c >> f_errs.txt
+!endif
 
 sound.obj  : sound.c
 	$(Optnoalias)
-
-tplus.obj : tplus.c $(HFD)\tplus.h
 
 uclock.obj  : uclock.c $(HFD)\uclock.h
 

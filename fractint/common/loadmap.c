@@ -32,7 +32,7 @@ char    temp[FILE_MAX_PATH+1];
 char    temp_fn[FILE_MAX_PATH];
         strcpy(temp,MAP_name);
         strcpy(temp_fn,fn);
-        merge_pathnames(temp,temp_fn,3);
+        merge_pathnames(temp,temp_fn,0);
         if (has_ext(temp) == NULL) /* Did name have an extension? */
                 strcat(temp,".map");  /* No? Then add .map */
         findpath( temp, line);        /* search the dos path */
@@ -69,7 +69,7 @@ int SetColorPaletteName( char * fn )
 {
         if( ValidateLuts( fn ) != 0)
                 return 1;
-        if( mapdacbox == NULL && (mapdacbox = (char far *)farmemalloc(768L)) == NULL) {
+        if( mapdacbox == NULL && (mapdacbox = farmemalloc(768L)) == NULL) {
                 static FCODE o_msg[]={"Insufficient memory for color map."};
                 char msg[sizeof(o_msg)];
                 far_strcpy(msg,o_msg);

@@ -1,19 +1,19 @@
 @echo off
-if exist hc.exe del hc.exe
-if exist hc.obj del hc.obj
-if exist foo del foo
-if exist .\headers\helpdefs.h del .\headers\helpdefs.h
-if exist fractint.hlp del fractint.hlp
-if exist fractint.map del fractint.map
-if exist fractint.exe del fractint.exe
+del hc.exe
+del hc.obj
+del foo
+del .\headers\helpdefs.h
+del fractint.hlp
+del fractint.map
+del fractint.exe
 cd common
 del *.obj
-if exist f_errs.txt del f_errs.txt
+del f_errs.txt
 cd ..
 cd dos
-if exist sound.obj del sound.obj
-if exist uclock.obj del uclock.obj
-if exist f_errs.txt del f_errs.txt
+del sound.obj
+del uclock.obj
+del f_errs.txt
 cd ..
 
 

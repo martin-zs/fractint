@@ -194,10 +194,7 @@
         typedef long           S32;
         typedef unsigned char  BYTE;
         typedef char           CHAR;
-
-#ifndef __cdecl
 #define __cdecl
-#endif
 
 #ifdef __SVR4
   typedef void          *VOIDPTR;
@@ -302,11 +299,6 @@ typedef int sigfunc(int);
 #else
 #define DO_NOT_USE_LONG_DOUBLE
 #endif
-#endif
-
-/* This should not be neccessary, but below appears to not work */
-#ifdef CYGWIN
-#define DO_NOT_USE_LONG_DOUBLE
 #endif
 
 #ifndef DO_NOT_USE_LONG_DOUBLE

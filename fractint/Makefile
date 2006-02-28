@@ -37,7 +37,6 @@ DEBUG =
 #     may have to change the "#elif !defined(__386BSD__)" at the top of
 #     prompts2.c to "#else".
 # For Red Hat Linux, uncomment the NOBSTRING line.
-# For Cygwin, uncomment the NOBSTRING and HAVESTRI lines below.
 #
 
 NOBSTRING = -DNOBSTRING
@@ -63,9 +62,6 @@ DEFINES = -DXFRACT $(NOBSTRING) $(HAVESTRI) $(DEBUG)
 # bundled with Sun C.
 #DEFINES += -DUSE_SUNMATH
 
-# Uncomment this for Cygwin
-#DEFINES += -DCYGWIN -DDIRENT
-
 # For using nasm, set:
 #AS = /usr/bin/nasm
 # Note that because of the differences between the assembler syntaxes,
@@ -89,14 +85,14 @@ AFLAGS = -f elf -w+orphan-labels
 ifeq ($(AS),/usr/bin/nasm)
 
 #CFLAGS = -I. -D_CONST $(DEFINES)
-CFLAGS = -I$(HFD) $(DEFINES) -g -DBIG_ANSI_C -DLINUX -O2 \
-         -march=pentium -DNASM -fno-builtin
+CFLAGS = -I$(HFD) $(DEFINES) -g -DBIG_ANSI_C -DLINUX -Os \
+         -mcpu=pentium -DNASM -fno-builtin
 #CFLAGS = -I. $(DEFINES) -g -DBIG_ANSI_C -DLINUX -Os -DNASM -fno-builtin
 
 else
 
-CFLAGS = -I$(HFD) $(DEFINES) -g -DBIG_ANSI_C -DLINUX -O2 \
-         -march=pentium -fno-builtin
+CFLAGS = -I$(HFD) $(DEFINES) -g -DBIG_ANSI_C -DLINUX -Os \
+         -mcpu=pentium -fno-builtin
 #CFLAGS = -I. $(DEFINES) -g -DBIG_ANSI_C -DLINUX -Os -fno-builtin
 
 endif
@@ -140,10 +136,10 @@ intro.c jb.c jiim.c line3d.c loadfdos.c loadfile.c loadmap.c lorenz.c \
 lsys.c lsysf.c memory.c miscfrac.c miscovl.c miscres.c \
 mpmath_c.c parser.c parserfp.c plot3d.c printer.c prompts1.c \
 prompts2.c realdos.c rotate.c slideshw.c soi.c soi1.c stereo.c \
-targa.c testpt.c tgaview.c zoom.c Makefile
+targa.c testpt.c tgaview.c tplus.c zoom.c Makefile
 
 NEWSRC = calcmand.c calmanfp.c diskvidu.c \
-fpu087.c fracsuba.c general.c \
+fpu087.c fracsuba.c general.c tplus_a.c \
 video.c unix.c unixscr.c unix.h Makefile xfract_a.inc \
 calmanfx.asm
 
@@ -207,14 +203,14 @@ $(COMDIR)/plot3d.o $(COMDIR)/printer.o $(COMDIR)/prompts1.o \
 $(COMDIR)/prompts2.o $(COMDIR)/realdos.o $(COMDIR)/rotate.o \
 $(COMDIR)/slideshw.o $(COMDIR)/soi.o $(COMDIR)/soi1.o $(COMDIR)/stereo.o \
 $(COMDIR)/targa.o $(COMDIR)/testpt.o $(COMDIR)/tgaview.o \
-$(COMDIR)/zoom.o
+$(COMDIR)/tplus.o $(COMDIR)/zoom.o
 
 
 ifeq ($(AS),/usr/bin/nasm)
 
 U_OBJS = \
 $(UDIR)/calcmand.o $(UDIR)/calmanfp.o $(UDIR)/diskvidu.o $(UDIR)/fpu087.o \
-$(UDIR)/fracsuba.o $(UDIR)/general.o $(UDIR)/unix.o \
+$(UDIR)/fracsuba.o $(UDIR)/general.o $(UDIR)/tplus_a.o $(UDIR)/unix.o \
 $(UDIR)/unixscr.o $(UDIR)/video.o \
 $(UDIR)/calmanfx.o
 
@@ -222,7 +218,7 @@ else
 
 U_OBJS = \
 $(UDIR)/calcmand.o $(UDIR)/calmanfp.o $(UDIR)/diskvidu.o $(UDIR)/fpu087.o \
-$(UDIR)/fracsuba.o $(UDIR)/general.o $(UDIR)/unix.o \
+$(UDIR)/fracsuba.o $(UDIR)/general.o $(UDIR)/tplus_a.o $(UDIR)/unix.o \
 $(UDIR)/unixscr.o $(UDIR)/video.o
 
 endif

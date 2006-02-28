@@ -111,16 +111,13 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
             setvideomode(axmode,bxmode,cxmode,dxmode); /* switch video modes */
             if (goodmode == 0) {
                static FCODE msg[] = {"That video mode is not available with your adapter."};
-#ifndef XFRACT
                static FCODE TPlusStr[] = "This video mode requires 'noninterlaced=yes'";
 
                if(TPlusErr) {
                   stopmsg(0, TPlusStr);
                   TPlusErr = 0;
                   }
-               else
-#endif	       
-	       if(dotmode == 11) {
+               else if(dotmode == 11) {
                   askvideo = TRUE;
                   }
                else {
@@ -1931,7 +1928,7 @@ static int call_line3d(BYTE *pixels, int linelen)
 static void note_zoom()
 {
    if (boxcount) { /* save zoombox stuff in far mem before encode (mem reused) */
-      if ((savezoom = (char far *)farmemalloc((long)(5*boxcount))) == NULL)
+      if ((savezoom = farmemalloc((long)(5*boxcount))) == NULL)
          clear_zoombox(); /* not enuf mem so clear the box */
       else {
          reset_zoom_corners(); /* reset these to overall image, not box */
@@ -2452,7 +2449,7 @@ void checkfreemem(int secondpass)
    static FCODE msg[] =
       {" I'm sorry, but you don't have enough free memory \n to run this program.\n\n"};
    static FCODE msg2[] = {"To save memory, reduced maxhistory to "};
-   tmp = (char far *)farmemalloc(4096L);
+   tmp = farmemalloc(4096L);
    oldmaxhistory = maxhistory;
    if(secondpass && !history)
    {

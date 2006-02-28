@@ -12,7 +12,7 @@ jb.obj jiim.obj line3d.obj loadfile.obj loadfdos.obj loadmap.obj \
 lorenz.obj lsys.obj lsysf.obj memory.obj miscfrac.obj miscovl.obj \
 miscres.obj mpmath_c.obj parser.obj parserfp.obj plot3d.obj printer.obj \
 prompts1.obj prompts2.obj realdos.obj rotate.obj slideshw.obj soi.obj \
-soi1.obj stereo.obj targa.obj testpt.obj tgaview.obj \
+soi1.obj stereo.obj targa.obj testpt.obj tgaview.obj tplus.obj \
 yourvid.obj zoom.obj
 
 HFD = ..\headers
@@ -22,13 +22,21 @@ HFD = ..\headers
 
 all : $(OBJ)
 
+!ifndef DEBUG
 .c.obj:
-	$(CC) /I$(HFD) $(OptT) $*.c >> f_errs.txt
+	  $(CC) /AM /W4 /FPi /c /I$(HFD) $(OptT) $*.c >> f_errs.txt
 
-Optsize = $(CC) /I$(HFD) $(OptS) $*.c >> f_errs.txt
+Optsize = $(CC) /AM /W4 /FPi /c /I$(HFD) $(OptS) $*.c >> f_errs.txt
 
-Optnoalias = $(CC) /I$(HFD) $(OptN) $*.c >> f_errs.txt
+Optnoalias = $(CC) /AM /W4 /FPi /c /I$(HFD) $(OptN) $*.c >> f_errs.txt
+!else
+.c.obj:
+	  $(CC) /Zi /AM /W4 /FPi /c /I$(HFD) $(OptT) $*.c >> f_errs.txt
 
+Optsize = $(CC) /Zi /AM /W4 /FPi /c /I$(HFD) $(OptS) $*.c >> f_errs.txt
+
+Optnoalias = $(CC) /Zi /AM /W4 /FPi /c /I$(HFD) /DTESTFP $(OptN) $*.c >> f_errs.txt
+!endif
 
 3d.obj : 3d.c $(HFD)\fractint.h
 
@@ -164,6 +172,8 @@ targa.obj : targa.c $(HFD)\targa.h $(HFD)\fractint.h
 testpt.obj: testpt.c $(HFD)\fractint.h
 
 tgaview.obj : tgaview.c $(HFD)\fractint.h $(HFD)\targa_lc.h $(HFD)\port.h
+
+tplus.obj : tplus.c $(HFD)\tplus.h
 
 yourvid.obj : yourvid.c
 
