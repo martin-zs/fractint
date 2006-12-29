@@ -1,5 +1,5 @@
 /***********************************************************************/
-/* These routines are called by getakey to allow keystrokes to control */
+/* These routines are called by driver_get_key to allow keystrokes to control */
 /* Fractint to be read from a file.                                    */
 /***********************************************************************/
 
@@ -13,48 +13,49 @@
   /* see Fractint.c for a description of the "include"  hierarchy */
 #include "port.h"
 #include "prototyp.h"
+#include "drivers.h"
 
 static void sleep_secs(int);
 static int  showtempmsg_txt(int,int,int,int,char *);
-static void message(int secs, char far *buf);
-static void slideshowerr(char far *msg);
+static void message(int secs, char *buf);
+static void slideshowerr(char *msg);
 static int  get_scancode(char *mn);
 static void get_mnemonic(int code, char *mnemonic);
 
-static FCODE s_ENTER     [] = "ENTER"     ;
-static FCODE s_INSERT    [] = "INSERT"    ;
-static FCODE s_DELETE    [] = "DELETE"    ;
-static FCODE s_ESC       [] = "ESC"       ;
-static FCODE s_TAB       [] = "TAB"       ;
-static FCODE s_PAGEUP    [] = "PAGEUP"    ;
-static FCODE s_PAGEDOWN  [] = "PAGEDOWN"  ;
-static FCODE s_HOME      [] = "HOME"      ;
-static FCODE s_END       [] = "END"       ;
-static FCODE s_LEFT      [] = "LEFT"      ;
-static FCODE s_RIGHT     [] = "RIGHT"     ;
-static FCODE s_UP        [] = "UP"        ;
-static FCODE s_DOWN      [] = "DOWN"      ;
-static FCODE s_F1        [] = "F1"        ;
-static FCODE s_CTRL_RIGHT[] = "CTRL_RIGHT";
-static FCODE s_CTRL_LEFT [] = "CTRL_LEFT" ;
-static FCODE s_CTRL_DOWN [] = "CTRL_DOWN" ;
-static FCODE s_CTRL_UP   [] = "CTRL_UP"   ;
-static FCODE s_CTRL_END  [] = "CTRL_END"  ;
-static FCODE s_CTRL_HOME [] = "CTRL_HOME" ;
+static char s_ENTER     [] = "ENTER"     ;
+static char s_INSERT    [] = "INSERT"    ;
+static char s_DELETE    [] = "DELETE"    ;
+static char s_ESC       [] = "ESC"       ;
+static char s_TAB       [] = "TAB"       ;
+static char s_PAGEUP    [] = "PAGEUP"    ;
+static char s_PAGEDOWN  [] = "PAGEDOWN"  ;
+static char s_HOME      [] = "HOME"      ;
+static char s_END       [] = "END"       ;
+static char s_LEFT      [] = "LEFT"      ;
+static char s_RIGHT     [] = "RIGHT"     ;
+static char s_UP        [] = "UP"        ;
+static char s_DOWN      [] = "DOWN"      ;
+static char s_F1        [] = "F1"        ;
+static char s_CTRL_RIGHT[] = "CTRL_RIGHT";
+static char s_CTRL_LEFT [] = "CTRL_LEFT" ;
+static char s_CTRL_DOWN [] = "CTRL_DOWN" ;
+static char s_CTRL_UP   [] = "CTRL_UP"   ;
+static char s_CTRL_END  [] = "CTRL_END"  ;
+static char s_CTRL_HOME [] = "CTRL_HOME" ;
 
 #define MAX_MNEMONIC    20   /* max size of any mnemonic string */
 
 struct scancodes
 {
    int code;
-   FCODE *mnemonic;
+   char *mnemonic;
 };
 
-static struct scancodes far scancodes[] =
+static struct scancodes scancodes[] =
 {
    {  ENTER,         s_ENTER     },
    {  INSERT,        s_INSERT    },
-   {  DELETE,        s_DELETE    },
+   {  FIK_DELETE,    s_DELETE    },
    {  ESC,           s_ESC       },
    {  TAB,           s_TAB       },
    {  PAGE_UP,       s_PAGEUP    },
@@ -81,7 +82,7 @@ static int get_scancode(char *mn)
    int i;
    i = 0;
    for(i=0;i< stop;i++)
-      if(far_strcmp((char far *)mn,scancodes[i].mnemonic)==0)
+      if(strcmp((char *)mn,scancodes[i].mnemonic)==0)
          break;
    return(scancodes[i].code);
 }
@@ -94,7 +95,7 @@ static void get_mnemonic(int code,char *mnemonic)
    for(i=0;i< stop;i++)
       if(code == scancodes[i].code)
       {
-         far_strcpy(mnemonic,scancodes[i].mnemonic);
+         strcpy(mnemonic,scancodes[i].mnemonic);
          break;
       }   
 }
@@ -109,35 +110,35 @@ static unsigned int quotes;
 static char calcwait = 0;
 static int repeats = 0;
 static int last1 = 0;
-static FCODE smsg[] = "MESSAGE";
-static FCODE sgoto[] = "GOTO";
-static FCODE scalcwait[] = "CALCWAIT";
-static FCODE swait[] = "WAIT";
+static char smsg[] = "MESSAGE";
+static char sgoto[] = "GOTO";
+static char scalcwait[] = "CALCWAIT";
+static char swait[] = "WAIT";
 
 /* places a temporary message on the screen in text mode */
 static int showtempmsg_txt(int row, int col, int attr,int secs,char *txt)
 {
    int savescrn[80];
    int i;
-   if(text_type > 1)
+   if(g_text_type > 1)
       return(1);
    for(i=0;i<80;i++)
    {
-      movecursor(row,i);
-      savescrn[i] = get_a_char();
+      driver_move_cursor(row,i);
+      savescrn[i] = driver_get_char_attr();
    }
-   putstring(row,col,attr,txt);
-   movecursor(25,80);
+   driver_put_string(row,col,attr,txt);
+   driver_hide_text_cursor();
    sleep_secs(secs);
    for(i=0;i<80;i++)
    {
-      movecursor(row,i);
-      put_a_char(savescrn[i]);
+      driver_move_cursor(row,i);
+      driver_put_char_attr(savescrn[i]);
    }
    return(0);
 }
 
-static void message(int secs, char far *buf)
+static void message(int secs, char *buf)
 {
    int i;
    char nearbuf[41];
@@ -145,7 +146,7 @@ static void message(int secs, char far *buf)
    while(buf[++i] && i< 40)
       nearbuf[i] = buf[i];
    nearbuf[i] = 0;
-   if(text_type < 2)
+   if(g_text_type < 2)
       showtempmsg_txt(0,0,7,secs,nearbuf);
    else if (showtempmsg(nearbuf) == 0)
       {
@@ -214,7 +215,7 @@ start:
          if (fscanf(fpss,"%d",&repeats) != 1
            || repeats <= 1 || repeats >= 256 || feof(fpss))
          {
-            static FCODE msg[] = "error in * argument";
+            static char msg[] = "error in * argument";
             slideshowerr(msg);
             last1 = repeats = 0;
          }
@@ -236,13 +237,13 @@ start:
    out = -12345;
    if(isdigit(buffer[0]))       /* an arbitrary scan code number - use it */
          out=atoi(buffer);
-   else if(far_strcmp((char far *)buffer,smsg)==0)
+   else if(strcmp((char *)buffer,smsg)==0)
       {
          int secs;
          out = 0;
          if (fscanf(fpss,"%d",&secs) != 1)
          {
-            static FCODE msg[] = "MESSAGE needs argument";
+            static char msg[] = "MESSAGE needs argument";
             slideshowerr(msg);
          }
          else
@@ -251,17 +252,17 @@ start:
             char buf[41];
             buf[40] = 0;
             fgets(buf,40,fpss);
-            len = strlen(buf);
+            len = (int) strlen(buf);
             buf[len-1]=0; /* zap newline */
-            message(secs,(char far *)buf);
+            message(secs,(char *)buf);
          }
          out = 0;
       }
-   else if(far_strcmp((char far *)buffer,sgoto)==0)
+   else if(strcmp((char *)buffer,sgoto)==0)
       {
          if (fscanf(fpss,"%s",buffer) != 1)
          {
-            static FCODE msg[] = "GOTO needs target";
+            static char msg[] = "GOTO needs target";
             slideshowerr(msg);
             out = 0;
          }
@@ -276,7 +277,7 @@ start:
             } while( err == 1 && strcmp(buffer1,buffer) != 0);
             if(feof(fpss))
             {
-               static FCODE msg[] = "GOTO target not found";
+               static char msg[] = "GOTO target not found";
                slideshowerr(msg);
                return(0);
             }
@@ -285,7 +286,7 @@ start:
       }
    else if((i = get_scancode(buffer)) > 0)
          out = i;
-   else if(far_strcmp(swait,(char far *)buffer)==0)
+   else if(strcmp(swait,(char *)buffer)==0)
       {
          float fticks;
          err = fscanf(fpss,"%f",&fticks); /* how many ticks to wait */
@@ -297,12 +298,12 @@ start:
          }
          else
          {
-            static FCODE msg[] = "WAIT needs argument";
+            static char msg[] = "WAIT needs argument";
             slideshowerr(msg);
          }
          slowcount = out = 0;
       }
-   else if(far_strcmp(scalcwait,(char far *)buffer)==0) /* wait for calc to finish */
+   else if(strcmp(scalcwait,(char *)buffer)==0) /* wait for calc to finish */
       {
          calcwait = 1;
          slowcount = out = 0;
@@ -398,12 +399,12 @@ static void sleep_secs(int secs)
    while(clock_ticks() < stop && kbhit() == 0) { } /* bailout if key hit */
 }
 
-static void slideshowerr(char far *msg)
+static void slideshowerr(char *msg)
 {
    char msgbuf[300];
-   static FCODE errhdg[] = "Slideshow error:\n";
+   static char errhdg[] = "Slideshow error:\n";
    stopslideshow();
-   far_strcpy(msgbuf,errhdg);
-   far_strcat(msgbuf,msg);
+   strcpy(msgbuf,errhdg);
+   strcat(msgbuf,msg);
    stopmsg(0,msgbuf);
 }

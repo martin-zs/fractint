@@ -1,3 +1,4 @@
+#include <string.h>
 #include "port.h"
 #include "prototyp.h"
 #include "fractype.h"
@@ -9,7 +10,7 @@ U16 gene_handle = 0;
 /* evolving = flag, gridsz = dimensions of image grid (gridsz x gridsz) */
 int px,py,evolving,gridsz;
 #define MAXGRIDSZ 51  /* This is arbitrary, = 1024/20 */
-static int far ecountbox[MAXGRIDSZ][MAXGRIDSZ];
+static int ecountbox[MAXGRIDSZ][MAXGRIDSZ];
 
 unsigned int this_gen_rseed;
 /* used to replay random sequences to obtain correct values when selecting a
@@ -90,27 +91,27 @@ void initgene(void) /* set up pointers and mutation params for all usable image
  /* 0 = dont vary, 1= with x axis, 2 = with y */
  /* 3 = with x+y, 4 = with x-y, 5 = random, 6 = weighted random */
  /* Use only 15 letters below: 123456789012345 */
-  static FCODE s_Param0[] =  {"Param 1 real"};
-  static FCODE s_Param1[] =  {"Param 1 imag"};
-  static FCODE s_Param2[] =  {"Param 2 real"};
-  static FCODE s_Param3[] =  {"Param 2 imag"};
-  static FCODE s_Param4[] =  {"Param 3 real"};
-  static FCODE s_Param5[] =  {"Param 3 imag"};
-  static FCODE s_Param6[] =  {"Param 4 real"};
-  static FCODE s_Param7[] =  {"Param 4 imag"};
-  static FCODE s_Param8[] =  {"Param 5 real"};
-  static FCODE s_Param9[] =  {"Param 5 imag"};
-  static FCODE s_inside[] =  {"inside colour"};
-  static FCODE s_outside[] = {"outside colour"};
-  static FCODE s_decomp[] =  {"decomposition"};
-  static FCODE s_trigfn1[] = {"trig function 1"};
-  static FCODE s_trigfn2[] = {"trig fn 2"};
-  static FCODE s_trigfn3[] = {"trig fn 3"};
-  static FCODE s_trigfn4[] = {"trig fn 4"};
-  static FCODE s_botest[]  = {"bailout test"};
-  static FCODE s_invertr[] = {"invert radius"};
-  static FCODE s_invertx[] = {"invert center x"};
-  static FCODE s_inverty[] = {"invert center y"};
+  static char s_Param0[] =  {"Param 1 real"};
+  static char s_Param1[] =  {"Param 1 imag"};
+  static char s_Param2[] =  {"Param 2 real"};
+  static char s_Param3[] =  {"Param 2 imag"};
+  static char s_Param4[] =  {"Param 3 real"};
+  static char s_Param5[] =  {"Param 3 imag"};
+  static char s_Param6[] =  {"Param 4 real"};
+  static char s_Param7[] =  {"Param 4 imag"};
+  static char s_Param8[] =  {"Param 5 real"};
+  static char s_Param9[] =  {"Param 5 imag"};
+  static char s_inside[] =  {"inside colour"};
+  static char s_outside[] = {"outside colour"};
+  static char s_decomp[] =  {"decomposition"};
+  static char s_trigfn1[] = {"trig function 1"};
+  static char s_trigfn2[] = {"trig fn 2"};
+  static char s_trigfn3[] = {"trig fn 3"};
+  static char s_trigfn4[] = {"trig fn 4"};
+  static char s_botest[]  = {"bailout test"};
+  static char s_invertr[] = {"invert radius"};
+  static char s_invertx[] = {"invert center x"};
+  static char s_inverty[] = {"invert center y"};
 
   GENEBASE gene[NUMGENES] = {
     { &param[0],   varydbl,     5, "",1 },
@@ -136,30 +137,31 @@ void initgene(void) /* set up pointers and mutation params for all usable image
     { &bailoutest, varybotest,  0, "",6 }
   };
   i = -1;
-  far_strcpy(gene[++i].name, s_Param0); /* name of var for menus */
-  far_strcpy(gene[++i].name, s_Param1);
-  far_strcpy(gene[++i].name, s_Param2);
-  far_strcpy(gene[++i].name, s_Param3);
-  far_strcpy(gene[++i].name, s_Param4);
-  far_strcpy(gene[++i].name, s_Param5);
-  far_strcpy(gene[++i].name, s_Param6);
-  far_strcpy(gene[++i].name, s_Param7);
-  far_strcpy(gene[++i].name, s_Param8);
-  far_strcpy(gene[++i].name, s_Param9);
-  far_strcpy(gene[++i].name, s_inside);
-  far_strcpy(gene[++i].name, s_outside);
-  far_strcpy(gene[++i].name, s_decomp);
-  far_strcpy(gene[++i].name, s_invertr);
-  far_strcpy(gene[++i].name, s_invertx);
-  far_strcpy(gene[++i].name, s_inverty);
-  far_strcpy(gene[++i].name, s_trigfn1);
-  far_strcpy(gene[++i].name, s_trigfn2);
-  far_strcpy(gene[++i].name, s_trigfn3);
-  far_strcpy(gene[++i].name, s_trigfn4);
-  far_strcpy(gene[++i].name, s_botest);
+  strcpy(gene[++i].name, s_Param0); /* name of var for menus */
+  strcpy(gene[++i].name, s_Param1);
+  strcpy(gene[++i].name, s_Param2);
+  strcpy(gene[++i].name, s_Param3);
+  strcpy(gene[++i].name, s_Param4);
+  strcpy(gene[++i].name, s_Param5);
+  strcpy(gene[++i].name, s_Param6);
+  strcpy(gene[++i].name, s_Param7);
+  strcpy(gene[++i].name, s_Param8);
+  strcpy(gene[++i].name, s_Param9);
+  strcpy(gene[++i].name, s_inside);
+  strcpy(gene[++i].name, s_outside);
+  strcpy(gene[++i].name, s_decomp);
+  strcpy(gene[++i].name, s_invertr);
+  strcpy(gene[++i].name, s_invertx);
+  strcpy(gene[++i].name, s_inverty);
+  strcpy(gene[++i].name, s_trigfn1);
+  strcpy(gene[++i].name, s_trigfn2);
+  strcpy(gene[++i].name, s_trigfn3);
+  strcpy(gene[++i].name, s_trigfn4);
+  strcpy(gene[++i].name, s_botest);
 
+  /* TODO: MemoryAlloc, MoveToMemory */
   if (gene_handle == 0)
-     gene_handle = MemoryAlloc((U16)sizeof(gene),1L,FARMEM);
+     gene_handle = MemoryAlloc((U16)sizeof(gene),1L,MEMORY);
   MoveToMemory((BYTE *)&gene, (U16)sizeof(gene), 1L, 0L, gene_handle);
 }
 
@@ -169,8 +171,9 @@ void param_history(int mode)
 
    PARAMHIST oldhistory;
 
+   /* TODO: MemoryAlloc */
    if (oldhistory_handle == 0)
-      oldhistory_handle = MemoryAlloc((U16)sizeof(oldhistory),1L,FARMEM);
+      oldhistory_handle = MemoryAlloc((U16)sizeof(oldhistory),1L,MEMORY);
 
    if (mode == 0) { /* save the old parameter history */
       oldhistory.param0 = param[0];
@@ -357,8 +360,8 @@ void varyinv(GENEBASE gene[], int randval, int i)
   }
 
 #define LOADCHOICES(X)     {\
-   static FCODE tmp[] = { X };\
-   far_strcpy(ptr,(char far *)tmp);\
+   static char tmp[] = { X };\
+   strcpy(ptr,(char *)tmp);\
    choices[++k]= ptr;\
    ptr += sizeof(tmp);\
    }
@@ -374,16 +377,17 @@ void varyinv(GENEBASE gene[], int randval, int i)
 int get_the_rest(void)
 {
   char *evolvmodes[]={s_no,s_x,s_y,s_xplusy,s_xminusy,s_random,s_spread};
-  static FCODE o_hdg[]={"Variable tweak central 2 of 2"};
+  static char o_hdg[]={"Variable tweak central 2 of 2"};
   int i,k,num, numtrig;
   char hdg[sizeof(o_hdg)];
-  char far *choices[20];
-  char far *ptr;
+  char *choices[20];
+  char *ptr;
   struct fullscreenvalues uvalues[20];
   GENEBASE gene[NUMGENES];
 
-  far_strcpy(hdg,o_hdg);
-  ptr = (char far *)MK_FP(extraseg,0);
+  strcpy(hdg,o_hdg);
+   /* TODO: allocate real memory, not reuse shared segment */
+  ptr = (char *) extraseg;
 
    MoveFromMemory((BYTE *)&gene, (U16)sizeof(gene), 1L, 0L, gene_handle);
 
@@ -472,19 +476,20 @@ choose_vars_restart:
 int get_variations(void)
 {
   char *evolvmodes[]={s_no,s_x,s_y,s_xplusy,s_xminusy,s_random,s_spread};
-  static FCODE o_hdg[]={"Variable tweak central 1 of 2"};
+  static char o_hdg[]={"Variable tweak central 1 of 2"};
   int i,k,num, numparams;
   char hdg[sizeof(o_hdg)];
-  char far *choices[20];
-  char far *ptr;
+  char *choices[20];
+  char *ptr;
   struct fullscreenvalues uvalues[20];
   GENEBASE gene[NUMGENES];
   int firstparm = 0;
   int lastparm  = MAXPARAMS;
   int chngd = -1;
 
-  far_strcpy(hdg,o_hdg);
-  ptr = (char far *)MK_FP(extraseg,0);
+  strcpy(hdg,o_hdg);
+   /* TODO: allocate real memory, not reuse shared segment */
+  ptr = (char *) extraseg;
 
    MoveFromMemory((BYTE *)&gene, (U16)sizeof(gene), 1L, 0L, gene_handle);
 
@@ -598,7 +603,7 @@ void set_mutation_level(int strength)
 /* are suitable for this level of mutation */
  int i;
  GENEBASE gene[NUMGENES];
- /* get the gene array from far memory */
+ /* get the gene array from memory */
  MoveFromMemory((BYTE *)&gene, (U16)sizeof(gene), 1L, 0L, gene_handle);
 
  for (i=0;i<NUMGENES;i++) {
@@ -607,17 +612,17 @@ void set_mutation_level(int strength)
    else
       gene[i].mutate = 0;
  }
- /* now put the gene array back in far memory */
+ /* now put the gene array back in memory */
  MoveToMemory((BYTE *)&gene, (U16)sizeof(gene), 1L, 0L, gene_handle);
  return;
 }
 
 int get_evolve_Parms(void)
 {
-   static FCODE o_hdg[]={"Evolution Mode Options"};
+   static char o_hdg[]={"Evolution Mode Options"};
    char hdg[sizeof(o_hdg)];
-   char far *choices[20];
-   char far *ptr;
+   char *choices[20];
+   char *ptr;
    int oldhelpmode;
    struct fullscreenvalues uvalues[20];
    int i,j, k, tmp;
@@ -636,8 +641,9 @@ int get_evolve_Parms(void)
 
 get_evol_restart:
 
-   far_strcpy(hdg,o_hdg);
-   ptr = (char far *)MK_FP(extraseg,0);
+   strcpy(hdg,o_hdg);
+   /* TODO: allocate real memory, not reuse shared segment */
+   ptr = (char *) extraseg;
    if ((evolving & RANDWALK)||(evolving & RANDPARAM)) {
    /* adjust field param to make some sense when changing from random modes*/
    /* maybe should adjust for aspect ratio here? */
@@ -828,10 +834,11 @@ void SetupParamBox(void)
 /* need to allocate 2 int arrays for boxx and boxy plus 1 byte array for values */  
    vidsize = (xdots+ydots) * 4 * sizeof(int) ;
    vidsize = vidsize + xdots + ydots + 2 ;
+   /* TODO: MemoryAlloc */
    if (prmboxhandle == 0)
-      prmboxhandle = MemoryAlloc((U16)(vidsize),1L,FARMEM);
+      prmboxhandle = MemoryAlloc((U16)(vidsize),1L,MEMORY);
    if (prmboxhandle == 0 ) {
-     static FCODE msg[] = {"Sorry...can't allocate mem for parmbox"};
+     static char msg[] = {"Sorry...can't allocate mem for parmbox"};
      texttempmsg(msg);
      evolving=0;
    }
@@ -839,10 +846,11 @@ void SetupParamBox(void)
 
 /* vidsize = (vidsize / gridsz)+3 ; */ /* allocate less mem for smaller box */
 /* taken out above as *all* pixels get plotted in small boxes */
+   /* TODO: MemoryAlloc */
    if (imgboxhandle == 0)
-      imgboxhandle = MemoryAlloc((U16)(vidsize),1L,FARMEM);
+      imgboxhandle = MemoryAlloc((U16)(vidsize),1L,MEMORY);
    if (!imgboxhandle) {
-     static FCODE msg[] = {"Sorry...can't allocate mem for imagebox"};
+     static char msg[] = {"Sorry...can't allocate mem for imagebox"};
      texttempmsg(msg);
    }
 }

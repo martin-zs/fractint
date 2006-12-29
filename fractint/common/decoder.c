@@ -28,7 +28,7 @@
  == 3) The 'out_line()' external function has been changed to reference
  ==    '*outln()' for flexibility (in particular, 3D transformations)
  ==
- == 4) A call to 'keypressed()' has been added after the 'outln()' calls
+ == 4) A call to 'driver_key_pressed()' has been added after the 'outln()' calls
  ==    to check for the presenc of a key-press as a bail-out signal
  ==
  == (Bert Tyler and Timothy Wegner)
@@ -45,6 +45,7 @@
   /* see Fractint.c for a description of the "include"  hierarchy */
 #include "port.h"
 #include "prototyp.h"
+#include "drivers.h"
 
 /***** Application Function Prototypes **********************************/
 static short get_next_code(void);
@@ -138,17 +139,17 @@ BYTE decoderline[2];            /* decoded line goes here */
 
 /* avoid using fixed near arrays by enabling next */
 #if 0
-BYTE far dstack1[MAX_CODES + 1];     /* Stack for storing pixels */
+BYTE dstack1[MAX_CODES + 1];     /* Stack for storing pixels */
 #define dstack dstack1
 #endif
 
 #if 0 /* remove this when suffix no longer used in diskvid.c */
-BYTE far suffix1[MAX_CODES + 1];     /* Suffix table */
+BYTE suffix1[MAX_CODES + 1];     /* Suffix table */
 #define suffix suffix1
 #endif
 
 #if 0
-unsigned short far prefix1[MAX_CODES + 1];   /* Prefix linked list */
+unsigned short prefix1[MAX_CODES + 1];   /* Prefix linked list */
 #define prefix prefix1
 #endif
 
@@ -186,14 +187,14 @@ extern BYTE *decoderline1;
  */
 
 /* moved sizeofstring here for possible re-use elsewhere */
-short far sizeofstring[MAX_CODES + 1];  /* size of string list */
+short sizeofstring[MAX_CODES + 1];  /* size of string list */
 
 short decoder(short linewidth)
 {
-#ifdef XFRACT
+#if defined(XFRACT) || defined(_WIN32)
    U16 prefix[MAX_CODES+1];     /* Prefix linked list */
 #endif
-   BYTE far *sp;
+   BYTE *sp;
    short code;
    short old_code;
    short ret;
@@ -332,11 +333,11 @@ short decoder(short linewidth)
                {
                   if (--yskip < 0)
                   {
-                     if ((ret = (short) ((*outln) (decoderline, bufptr - decoderline))) < 0)
+                     if ((ret = (short) ((*outln) (decoderline, (int) (bufptr - decoderline)))) < 0)
                         return (ret);
                      yskip = skipydots;
                   }
-                  if (keypressed())
+                  if (driver_key_pressed())
                      return (-1);
                   bufptr = decoderline;
                   bufcnt = linewidth;
@@ -385,11 +386,11 @@ short decoder(short linewidth)
          {
             if (--yskip < 0)
             {
-               if ((ret = (short) ((*outln) (decoderline, bufptr - decoderline))) < 0)
+               if ((ret = (short) ((*outln) (decoderline, (int) (bufptr - decoderline)))) < 0)
                   return (ret);
                yskip = skipydots;
             }
-            if (keypressed())
+            if (driver_key_pressed())
                return (-1);
             bufptr = decoderline;
             bufcnt = linewidth;

@@ -26,6 +26,7 @@
 #include "prototyp.h"
 #include "fractype.h"
 #include "helpdefs.h"
+#include "drivers.h"
 
 /* routines in this module      */
 
@@ -40,48 +41,56 @@ char s_cantfind[]       = {"Can't find %s"};
 
 #ifndef XFRACT
 
-void findpath(char far *filename, char *fullpathname) /* return full pathnames */
+void findpath(char *filename, char *fullpathname) /* return full pathnames */
 {
-   char fname[FILE_MAX_FNAME];
-   char ext[FILE_MAX_EXT];
-   char temp_path[FILE_MAX_PATH];
+	char fname[FILE_MAX_FNAME];
+	char ext[FILE_MAX_EXT];
+	char temp_path[FILE_MAX_PATH];
 
-   splitpath(filename ,NULL,NULL,fname,ext);
-   makepath(temp_path,""   ,"" ,fname,ext);
+	splitpath(filename ,NULL,NULL,fname,ext);
+	makepath(temp_path,""   ,"" ,fname,ext);
 
-   if(checkcurdir != 0 && access(temp_path,0)==0) {   /* file exists */
-      strcpy(fullpathname,temp_path);
-      return;
-   }
+	if (checkcurdir != 0 && access(temp_path,0) == 0)   /* file exists */
+	{
+		strcpy(fullpathname,temp_path);
+		return;
+	}
 
-   far_strcpy(temp_path,filename);   /* avoid side effect changes to filename */
+	strcpy(temp_path,filename);   /* avoid side effect changes to filename */
 
-   if (temp_path[0] == SLASHC || (temp_path[0] && temp_path[1] == ':')) {
-      if(access(temp_path,0)==0) {   /* file exists */
-         strcpy(fullpathname,temp_path);
-         return;
-         }
-      else {
-         splitpath(temp_path ,NULL,NULL,fname,ext);
-         makepath(temp_path,""   ,"" ,fname,ext);
-         }
-      }
-   fullpathname[0] = 0;                         /* indicate none found */
+	if (temp_path[0] == SLASHC || (temp_path[0] && temp_path[1] == ':'))
+	{
+		if (access(temp_path,0) == 0)   /* file exists */
+		{
+			strcpy(fullpathname,temp_path);
+			return;
+		}
+		else
+		{
+		splitpath(temp_path ,NULL,NULL,fname,ext);
+		makepath(temp_path,""   ,"" ,fname,ext);
+		}
+	}
+	fullpathname[0] = 0;                         /* indicate none found */
 /* #ifdef __TURBOC__ */                         /* look for the file */
 /*   strcpy(fullpathname,searchpath(temp_path)); */
 /* #else */
-   _searchenv(temp_path,"PATH",fullpathname);
+	_searchenv(temp_path,"PATH",fullpathname);
 /* #endif */
-   if (fullpathname[0] != 0)                    /* found it! */
-      if (strncmp(&fullpathname[2],SLASHSLASH,2) == 0) /* stupid klooge! */
-         strcpy(&fullpathname[3],temp_path);
+	if (fullpathname[0] != 0)                    /* found it! */
+	{
+		if (strncmp(&fullpathname[2],SLASHSLASH,2) == 0) /* stupid klooge! */
+		{
+			strcpy(&fullpathname[3],temp_path);
+		}
+	}
 }
 #endif
 
 
 void notdiskmsg()
 {
-static FCODE sorrymsg[]={
+static char sorrymsg[]={
 "This type may be slow using a real-disk based 'video' mode, but may not \n\
 be too bad if you have enough expanded or extended memory. Press <Esc> to \n\
 abort if it appears that your disk drive is working too hard."};
@@ -95,13 +104,13 @@ abort if it appears that your disk drive is working too hard."};
 /* color   -- attribute (same as for putstring)                           */
 /* maxrow -- max number of rows to write                                 */
 /* returns 0 if success, 1 if hit maxrow before done                      */
-int putstringwrap(int *row,int col1,int col2,int color,char far *str,int maxrow)
+int putstringwrap(int *row,int col1,int col2,int color,char *str,int maxrow)
 {
     char save1, save2;
     int length, decpt, padding, startrow, done;
     done = 0;
     startrow = *row;
-    length = far_strlen(str);
+    length = (int) strlen(str);
     padding = 3; /* space between col1 and decimal. */
     /* find decimal point */
     for(decpt=0;decpt < length; decpt++)
@@ -130,7 +139,7 @@ int putstringwrap(int *row,int col1,int col2,int color,char far *str,int maxrow)
           else
              str[col2-col1+1]   = '\\';
           str[col2-col1+2] = 0;
-          putstring(*row,col1,color,str);
+          driver_put_string(*row,col1,color,str);
           if(done == 1)
              break;
           str[col2-col1+1] = save1;
@@ -138,7 +147,7 @@ int putstringwrap(int *row,int col1,int col2,int color,char far *str,int maxrow)
           str += col2-col1;
           (*row)++;
        } else
-          putstring(*row,col1,color,str);
+          driver_put_string(*row,col1,color,str);
        length -= col2-col1;
        col1 = decpt; /* align with decimal */
     }
@@ -575,7 +584,7 @@ nextname:
       return 0;
     }
    /* file already exists */
-   if (overwrite == 0) {
+   if (fract_overwrite == 0) {
       updatesavename(name);
       goto nextname;
       }
@@ -586,7 +595,7 @@ nextname:
 /* ('timer()'     was moved to FRACTINT.C for MSC7-overlay speed purposes) */
 
 BYTE trigndx[] = {SIN,SQR,SINH,COSH};
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void (*ltrig0)(void) = lStkSin;
 void (*ltrig1)(void) = lStkSqr;
 void (*ltrig2)(void) = lStkSinh;
@@ -666,28 +675,28 @@ void set_trig_pointers(int which)
    switch(which)
    {
    case 0:
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
       ltrig0 = trigfn[trigndx[0]].lfunct;
       mtrig0 = trigfn[trigndx[0]].mfunct;
 #endif
       dtrig0 = trigfn[trigndx[0]].dfunct;
       break;
    case 1:
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
       ltrig1 = trigfn[trigndx[1]].lfunct;
       mtrig1 = trigfn[trigndx[1]].mfunct;
 #endif
       dtrig1 = trigfn[trigndx[1]].dfunct;
       break;
    case 2:
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
       ltrig2 = trigfn[trigndx[2]].lfunct;
       mtrig2 = trigfn[trigndx[2]].mfunct;
 #endif
       dtrig2 = trigfn[trigndx[2]].dfunct;
       break;
    case 3:
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
       ltrig3 = trigfn[trigndx[3]].lfunct;
       mtrig3 = trigfn[trigndx[3]].mfunct;
 #endif
@@ -700,56 +709,56 @@ void set_trig_pointers(int which)
    }
 }
 
-static FCODE sfractal_type[] =     {"Fractal type:"};
-static FCODE sitem_name[] =        {"Item name:"};
-static FCODE sitem_file[] =        {"Item file:"};
-static FCODE s3D_transform[] =     {"3D Transform"};
-static FCODE syou_are_cycling[] =  {"You are in color-cycling mode"};
-static FCODE sfloating_point[] =   {"Floating-point"};
-static FCODE ssolid_guessing[] =   {"Solid Guessing"};
-static FCODE sboundary_tracing[] = {"Boundary Tracing"};
-static FCODE stesseral[] =         {"Tesseral"};
-static FCODE sdiffusion[] =        {"Diffusion"};
-static FCODE sorbits[] =           {"Orbits"};
-static FCODE scalculation_time[] = {"Calculation time:"};
-static FCODE siterations[] =       {" 1000's of points:"};
-static FCODE scornersxy[] =        {"Corners:                X                     Y"};
-static FCODE stop_left[] =         {"Top-l"};
-static FCODE sbottom_right[] =     {"Bot-r"};
-static FCODE sbottom_left[] =      {"Bot-l"};
-static FCODE scenter[] =           {"Ctr"};
-static FCODE struncate[] =         {"(Center values shown truncated to 320 decimals)"};
-static FCODE smag[] =              {"Mag"};
-static FCODE sxmag[] =             {"X-Mag-Factor"};
-static FCODE srot[] =              {"Rotation"};
-static FCODE sskew[] =             {"Skew"};
-static FCODE sparams[] =           {"Params "};
-static FCODE siteration_maximum[] ={"Current (Max) Iteration: "};
-static FCODE seffective_bailout[] ={"     Effective bailout: "};
-static FCODE scurrent_rseed[] =    {"Current 'rseed': "};
-static FCODE sinversion_radius[] = {"Inversion radius: "};
-static FCODE sxcenter[] =          {"  xcenter: "};
-static FCODE sycenter[] =          {"  ycenter: "};
-static FCODE sparms_chgd[] = {"Parms chgd since generated"};
-static FCODE sstill_being[] = {"Still being generated"};
-static FCODE sinterrupted_resumable[] = {"Interrupted, resumable"};
-static FCODE sinterrupted_non_resumable[] = {"Interrupted, non-resumable"};
-static FCODE simage_completed[] = {"Image completed"};
-static FCODE sflag_is_activated[] = {" flag is activated"};
-static FCODE sinteger_math[]      = {"Integer math is in use"};
-static FCODE sin_use_required[] = {" in use (required)"};
-static FCODE sarbitrary_precision[] = {"Arbitrary precision "};
+static char sfractal_type[] =     {"Fractal type:"};
+static char sitem_name[] =        {"Item name:"};
+static char sitem_file[] =        {"Item file:"};
+static char s3D_transform[] =     {"3D Transform"};
+static char syou_are_cycling[] =  {"You are in color-cycling mode"};
+static char sfloating_point[] =   {"Floating-point"};
+static char ssolid_guessing[] =   {"Solid Guessing"};
+static char sboundary_tracing[] = {"Boundary Tracing"};
+static char stesseral[] =         {"Tesseral"};
+static char sdiffusion[] =        {"Diffusion"};
+static char sorbits[] =           {"Orbits"};
+static char scalculation_time[] = {"Calculation time:"};
+static char siterations[] =       {" 1000's of points:"};
+static char scornersxy[] =        {"Corners:                X                     Y"};
+static char stop_left[] =         {"Top-l"};
+static char sbottom_right[] =     {"Bot-r"};
+static char sbottom_left[] =      {"Bot-l"};
+static char scenter[] =           {"Ctr"};
+static char struncate[] =         {"(Center values shown truncated to 320 decimals)"};
+static char smag[] =              {"Mag"};
+static char sxmag[] =             {"X-Mag-Factor"};
+static char srot[] =              {"Rotation"};
+static char sskew[] =             {"Skew"};
+static char sparams[] =           {"Params "};
+static char siteration_maximum[] ={"Current (Max) Iteration: "};
+static char seffective_bailout[] ={"     Effective bailout: "};
+static char scurrent_rseed[] =    {"Current 'rseed': "};
+static char sinversion_radius[] = {"Inversion radius: "};
+static char sxcenter[] =          {"  xcenter: "};
+static char sycenter[] =          {"  ycenter: "};
+static char sparms_chgd[] = {"Parms chgd since generated"};
+static char sstill_being[] = {"Still being generated"};
+static char sinterrupted_resumable[] = {"Interrupted, resumable"};
+static char sinterrupted_non_resumable[] = {"Interrupted, non-resumable"};
+static char simage_completed[] = {"Image completed"};
+static char sflag_is_activated[] = {" flag is activated"};
+static char sinteger_math[]      = {"Integer math is in use"};
+static char sin_use_required[] = {" in use (required)"};
+static char sarbitrary_precision[] = {"Arbitrary precision "};
 #ifdef XFRACT
-static FCODE spressanykey[] = {"Press any key to continue, F6 for area, F7 for next page"};
+static char spressanykey[] = {"Press any key to continue, F6 for area, F7 for next page"};
 #else
-static FCODE spressanykey[] = {"Press any key to continue, F6 for area, CTRL-TAB for next page"};
+static char spressanykey[] = {"Press any key to continue, F6 for area, CTRL-TAB for next page"};
 #endif
-static FCODE spressanykey1[] = {"Press Esc to continue, Backspace for first screen"};
-static FCODE sbatch[] = {" (Batch mode)"};
-static FCODE ssavename[] = {"Savename: "};
-static FCODE sstopsecret[] = {"Top Secret Developer's Screen"};
-static FCODE sthreepass[] = {" (threepass)"};
-static FCODE sreallylongtime[] = {"A long time! (> 24.855 days)"};
+static char spressanykey1[] = {"Press Esc to continue, Backspace for first screen"};
+static char sbatch[] = {" (Batch mode)"};
+static char ssavename[] = {"Savename: "};
+static char sstopsecret[] = {"Top Secret Developer's Screen"};
+static char sthreepass[] = {" (threepass)"};
+static char sreallylongtime[] = {"A long time! (> 24.855 days)"};
 
 void get_calculation_time(char *msg, long ctime)
 {
@@ -759,7 +768,7 @@ void get_calculation_time(char *msg, long ctime)
 	     (ctime%360000L)/6000, (ctime%6000)/100, ctime%100);
    }
    else
-      far_strcpy(msg,sreallylongtime);
+      strcpy(msg,sreallylongtime);
 }
 
 static void show_str_var(char *name, char *var, int *row, char *msg)
@@ -769,7 +778,7 @@ static void show_str_var(char *name, char *var, int *row, char *msg)
    if(*var != 0)
    {
       sprintf(msg,"%s=%s",name,var);
-      putstring((*row)++,2,C_GENERAL_HI,msg);
+      driver_put_string((*row)++,2,C_GENERAL_HI,msg);
    }
 }
 
@@ -778,25 +787,25 @@ int tab_display_2(char *msg)
    extern long maxptr, maxstack, startstack;
    int s_row,key,ret=0;
    helptitle();
-   setattr(1,0,C_GENERAL_MED,24*80); /* init rest to background */
+   driver_set_attr(1,0,C_GENERAL_MED,24*80); /* init rest to background */
 
    s_row = 1;
    putstringcenter(s_row++,0,80,C_PROMPT_HI, sstopsecret);
-   sprintf(msg,"Version %d patch %d",release, patchlevel);
-   putstring(++s_row,2,C_GENERAL_HI,msg);
+   sprintf(msg,"Version %d patch %d",g_release, g_patchlevel);
+   driver_put_string(++s_row,2,C_GENERAL_HI,msg);
    sprintf(msg,"%lu bytes conventional stack free",stackavail());
-   putstring(++s_row,2,C_GENERAL_HI,msg);
+   driver_put_string(++s_row,2,C_GENERAL_HI,msg);
    sprintf(msg,"%ld of %ld bignum memory used",maxptr,maxstack);
-   putstring(++s_row,2,C_GENERAL_HI,msg);
+   driver_put_string(++s_row,2,C_GENERAL_HI,msg);
    sprintf(msg,"   %ld used for bignum globals", startstack);
-   putstring(++s_row,2,C_GENERAL_HI,msg);
+   driver_put_string(++s_row,2,C_GENERAL_HI,msg);
    sprintf(msg,"   %ld stack used == %ld variables of length %d",
          maxptr-startstack,(long)((maxptr-startstack)/(rbflength+2)),rbflength+2);
-   putstring(++s_row,2,C_GENERAL_HI,msg);
+   driver_put_string(++s_row,2,C_GENERAL_HI,msg);
    if(bf_math)
    {
       sprintf(msg,"intlength %-d bflength %-d ",intlength, bflength);
-      putstring(++s_row,2,C_GENERAL_HI,msg);
+      driver_put_string(++s_row,2,C_GENERAL_HI,msg);
    }
    s_row++;
    show_str_var(s_tempdir,    tempdir,      &s_row, msg);
@@ -812,17 +821,17 @@ int tab_display_2(char *msg)
    show_str_var(s_map,        MAP_name,     &s_row, msg);
    sprintf(msg,"Sizeof fractalspecific array %d",
       num_fractal_types*(int)sizeof(struct fractalspecificstuff));
-   putstring(s_row++,2,C_GENERAL_HI,msg);
+   driver_put_string(s_row++,2,C_GENERAL_HI,msg);
    sprintf(msg,"calc_status %d pixel [%d,%d]",calc_status,col,row);
-   putstring(s_row++,2,C_GENERAL_HI,msg);
+   driver_put_string(s_row++,2,C_GENERAL_HI,msg);
    if(fractype==FORMULA || fractype==FFORMULA)
    {
    sprintf(msg,"total_formula_mem %ld Max_Ops (posp) %u Max_Args (vsp) %u Used_extra %u",
       total_formula_mem,posp,vsp,used_extra);
-   putstring(s_row++,2,C_GENERAL_HI,msg);
+   driver_put_string(s_row++,2,C_GENERAL_HI,msg);
    sprintf(msg,"   Store ptr %d Loadptr %d Max_Ops var %u Max_Args var %u LastInitOp %d",
       StoPtr,LodPtr,Max_Ops,Max_Args,LastInitOp);
-   putstring(s_row++,2,C_GENERAL_HI,msg);
+   driver_put_string(s_row++,2,C_GENERAL_HI,msg);
    }
    else if(rhombus_stack[0])
    {
@@ -838,7 +847,7 @@ int tab_display_2(char *msg)
       rhombus_stack[7],
       rhombus_stack[8],
       rhombus_stack[9]);
-   putstring(s_row++,2,C_GENERAL_HI,msg);
+   driver_put_string(s_row++,2,C_GENERAL_HI,msg);
    }
    
 /*
@@ -847,13 +856,13 @@ int tab_display_2(char *msg)
 */
    sprintf(msg,"xxstart %d xxstop %d yystart %d yystop %d %s uses_ismand %d",
       xxstart,xxstop,yystart,yystop,
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
       curfractalspecific->orbitcalc == fFormula?"fast parser":
 #endif
       curfractalspecific->orbitcalc ==  Formula?"slow parser":
       curfractalspecific->orbitcalc ==  BadFormula?"bad formula":
       "",uses_ismand);
-   putstring(s_row++,2,C_GENERAL_HI,msg);
+   driver_put_string(s_row++,2,C_GENERAL_HI,msg);
 /*
    sprintf(msg,"ixstart %d ixstop %d iystart %d iystop %d bitshift %d",
       ixstart,ixstop,iystart,iystop,bitshift);
@@ -862,11 +871,11 @@ int tab_display_2(char *msg)
       sprintf(msg,"minstackavail %d llimit2 %ld use_grid %d",
          minstackavail,llimit2,use_grid);
    }
-   putstring(s_row++,2,C_GENERAL_HI,msg);
+   driver_put_string(s_row++,2,C_GENERAL_HI,msg);
    putstringcenter(24,0,80,C_GENERAL_LO,spressanykey1);
    *msg = 0;
 again:
-   putstring(s_row,2,C_GENERAL_HI,msg);
+   driver_put_string(s_row,2,C_GENERAL_HI,msg);
    key=getakeynohelp();
    if(key != ESC && key != BACKSPACE && key != TAB)
    {
@@ -880,428 +889,492 @@ again:
 
 int tab_display()       /* display the status of the current image */
 {
-   int s_row, i, j, addrow=0;
-   double Xctr, Yctr;
-   LDBL Magnification;
-   double Xmagfactor, Rotation, Skew;
-   bf_t bfXctr=NULL, bfYctr=NULL;
-   char msg[350];
-   char far *msgptr;
-   int key;
-   int saved=0;
-   int dec;
-   int k;
-   U16 save_extra_handle = 0;
-   BYTE far *ptr_to_extraseg = NULL;
-   int hasformparam = 0;
+	int s_row, i, j, addrow = 0;
+	double Xctr, Yctr;
+	LDBL Magnification;
+	double Xmagfactor, Rotation, Skew;
+	bf_t bfXctr = NULL, bfYctr = NULL;
+	char msg[350];
+	char *msgptr;
+	int key;
+	int saved=0;
+	int dec;
+	int k;
+	U16 save_extra_handle = 0;
+	BYTE *ptr_to_extraseg = NULL;
+	int hasformparam = 0;
 
-   if (calc_status < 0) {       /* no active fractal image */
-      return(0);                /* (no TAB on the credits screen) */
-   }
-   if (calc_status == 1)        /* next assumes CLK_TCK is 10^n, n>=2 */
-      calctime += (clock_ticks() - timer_start) / (CLK_TCK/100);
-   stackscreen();
-   if(bf_math)
-   {
-   /* Save memory from the beginning of extraseg to ENDVID=22400 */
-   /* This is so the bf_math manipulations here don't corrupt */
-   /* the video modes or screen prompts. */
-      ptr_to_extraseg = MK_FP(extraseg,0);
-      save_extra_handle = MemoryAlloc((U16)22400, 1L, FARMEM);
-      MoveToMemory(ptr_to_extraseg,(U16)22400,1L,0L,save_extra_handle);
-      saved = save_stack();
-      bfXctr = alloc_stack(bflength+2);
-      bfYctr = alloc_stack(bflength+2);
-   }
-   if (fractype == FORMULA || fractype == FFORMULA)
-      for (i = 0; i < MAXPARAMS; i += 2)
-          if (!paramnotused(i))
-             hasformparam++;
+	if (calc_status < 0)        /* no active fractal image */
+	{
+		return 0;                /* (no TAB on the credits screen) */
+	}
+	if (calc_status == 1)        /* next assumes CLK_TCK is 10^n, n>=2 */
+	{
+		calctime += (clock_ticks() - timer_start) / (CLK_TCK/100);
+	}
+	driver_stack_screen();
+	if (bf_math)
+	{
+		/* Save memory from the beginning of extraseg to ENDVID=22400 */
+		/* This is so the bf_math manipulations here don't corrupt */
+		/* the video modes or screen prompts. */
+		/* TODO: allocate real memory, not reuse shared segment */
+		ptr_to_extraseg = extraseg;
+		/* TODO: MemoryAlloc */
+		save_extra_handle = MemoryAlloc((U16)22400, 1L, MEMORY);
+		MoveToMemory(ptr_to_extraseg, (U16)22400, 1L, 0L, save_extra_handle);
+		saved = save_stack();
+		bfXctr = alloc_stack(bflength+2);
+		bfYctr = alloc_stack(bflength+2);
+	}
+	if (fractype == FORMULA || fractype == FFORMULA)
+	{
+		for (i = 0; i < MAXPARAMS; i += 2)
+		{
+			if (!paramnotused(i))
+			{
+				hasformparam++;
+			}
+		}
+	}
+
 top:
-   k = 0; /* initialize here so parameter line displays correctly on return
-             from control-tab */
-   helptitle();
-   setattr(1,0,C_GENERAL_MED,24*80); /* init rest to background */
-   s_row = 2;
-   putstring(s_row,2,C_GENERAL_MED,sfractal_type);
-   if (display3d > 0)
-      putstring(s_row,16,C_GENERAL_HI,s3D_transform);
-   else {
-      putstring(s_row,16,C_GENERAL_HI,
-           curfractalspecific->name[0] == '*' ?
-             &curfractalspecific->name[1] :
-             curfractalspecific->name);
-      i = 0;
-      if (fractype == FORMULA || fractype == FFORMULA)
-      {
-         putstring(s_row+1,3,C_GENERAL_MED,sitem_name);
-         putstring(s_row+1,16,C_GENERAL_HI,FormName);
-         i = strlen(FormName)+1;
-         putstring(s_row+2,3,C_GENERAL_MED,sitem_file);
-         if((int)strlen(FormFileName) >= 29)
-            addrow = 1;
-         putstring(s_row+2+addrow,16,C_GENERAL_HI,FormFileName);
-      }
-      trigdetails(msg);
-      putstring(s_row+1,16+i,C_GENERAL_HI,msg);
-      if (fractype == LSYSTEM)
-      {
-         putstring(s_row+1,3,C_GENERAL_MED,sitem_name);
-         putstring(s_row+1,16,C_GENERAL_HI,LName);
-         putstring(s_row+2,3,C_GENERAL_MED,sitem_file);
-         if((int)strlen(LFileName) >= 28)
-            addrow = 1;
-         putstring(s_row+2+addrow,16,C_GENERAL_HI,LFileName);
-      }
-      if (fractype == IFS || fractype == IFS3D)
-      {
-         putstring(s_row+1,3,C_GENERAL_MED,sitem_name);
-         putstring(s_row+1,16,C_GENERAL_HI,IFSName);
-         putstring(s_row+2,3,C_GENERAL_MED,sitem_file);
-         if((int)strlen(IFSFileName) >= 28)
-            addrow = 1;
-         putstring(s_row+2+addrow,16,C_GENERAL_HI,IFSFileName);
-      }
-   }
+	k = 0; /* initialize here so parameter line displays correctly on return
+				from control-tab */
+	helptitle();
+	driver_set_attr(1, 0, C_GENERAL_MED, 24*80); /* init rest to background */
+	s_row = 2;
+	driver_put_string(s_row, 2, C_GENERAL_MED, sfractal_type);
+	if (display3d > 0)
+	{
+		driver_put_string(s_row, 16, C_GENERAL_HI, s3D_transform);
+	}
+	else
+	{
+		driver_put_string(s_row, 16, C_GENERAL_HI,
+			curfractalspecific->name[0] == '*' ?
+				&curfractalspecific->name[1] : curfractalspecific->name);
+		i = 0;
+		if (fractype == FORMULA || fractype == FFORMULA)
+		{
+			driver_put_string(s_row+1, 3, C_GENERAL_MED, sitem_name);
+			driver_put_string(s_row+1, 16, C_GENERAL_HI, FormName);
+			i = (int) strlen(FormName)+1;
+			driver_put_string(s_row+2, 3, C_GENERAL_MED, sitem_file);
+			if ((int) strlen(FormFileName) >= 29)
+			{
+				addrow = 1;
+			}
+			driver_put_string(s_row+2+addrow, 16, C_GENERAL_HI, FormFileName);
+		}
+		trigdetails(msg);
+		driver_put_string(s_row+1, 16+i, C_GENERAL_HI, msg);
+		if (fractype == LSYSTEM)
+		{
+			driver_put_string(s_row+1, 3, C_GENERAL_MED, sitem_name);
+			driver_put_string(s_row+1, 16, C_GENERAL_HI, LName);
+			driver_put_string(s_row+2, 3, C_GENERAL_MED, sitem_file);
+			if ((int) strlen(LFileName) >= 28)
+			{
+				addrow = 1;
+			}
+			driver_put_string(s_row+2+addrow, 16, C_GENERAL_HI, LFileName);
+		}
+		if (fractype == IFS || fractype == IFS3D)
+		{
+			driver_put_string(s_row+1, 3, C_GENERAL_MED, sitem_name);
+			driver_put_string(s_row+1, 16, C_GENERAL_HI, IFSName);
+			driver_put_string(s_row+2, 3, C_GENERAL_MED, sitem_file);
+			if ((int) strlen(IFSFileName) >= 28)
+			{
+				addrow = 1;
+			}
+			driver_put_string(s_row+2+addrow, 16, C_GENERAL_HI, IFSFileName);
+		}
+	}
 
-   switch (calc_status) {
-      case 0:  msgptr = sparms_chgd;
-               break;
-      case 1:  msgptr = sstill_being;
-               break;
-      case 2:  msgptr = sinterrupted_resumable;
-               break;
-      case 3:  msgptr = sinterrupted_non_resumable;
-               break;
-      case 4:  msgptr = simage_completed;
-               break;
-      default: msgptr = "";
-      }
-   putstring(s_row,45,C_GENERAL_HI,msgptr);
-   if(initbatch && calc_status != 0)
-      putstring(-1,-1,C_GENERAL_HI,sbatch);
+	switch (calc_status)
+	{
+	case 0:  msgptr = sparms_chgd;
+		break;
+	case 1:  msgptr = sstill_being;
+		break;
+	case 2:  msgptr = sinterrupted_resumable;
+		break;
+	case 3:  msgptr = sinterrupted_non_resumable;
+		break;
+	case 4:  msgptr = simage_completed;
+		break;
+	default: msgptr = "";
+	}
+	driver_put_string(s_row, 45, C_GENERAL_HI, msgptr);
+	if (initbatch && calc_status != 0)
+	{
+		driver_put_string(-1, -1, C_GENERAL_HI, sbatch);
+	}
 
-   if (helpmode == HELPCYCLING)
-      putstring(s_row+1,45,C_GENERAL_HI,syou_are_cycling);
-   ++s_row;
-   /* if(bf_math == 0) */
-     ++s_row;
+	if (helpmode == HELPCYCLING)
+	{
+		driver_put_string(s_row+1, 45, C_GENERAL_HI, syou_are_cycling);
+	}
+	++s_row;
+	/* if (bf_math == 0) */
+	++s_row;
 
-    i = j = 0;
-    if (display3d > 0) {
-       if (usr_floatflag)
-          j = 1;
-       }
-    else
-       if (floatflag)
-          j = (usr_floatflag) ? 1 : 2;
-    if(bf_math==0)
-    {
-    if (j) {
-       putstring(s_row,45,C_GENERAL_HI,sfloating_point);
+	i = j = 0;
+	if (display3d > 0)
+	{
+		if (usr_floatflag)
+		{
+			j = 1;
+		}
+	}
+	else if (floatflag)
+	{
+		j = (usr_floatflag) ? 1 : 2;
+	}
 
-       putstring(-1,-1,C_GENERAL_HI,(j == 1) ? sflag_is_activated
-                                             : sin_use_required );
-      i = 1;
-      }
-      else
-      {
-       putstring(s_row,45,C_GENERAL_HI,sinteger_math);
-      i = 1;
-      }
-   } else
-   {
-       sprintf(msg,"(%-d decimals)",decimals /*getprecbf(CURRENTREZ)*/);
-       putstring(s_row,45,C_GENERAL_HI,sarbitrary_precision);
-       putstring(-1,-1,C_GENERAL_HI,msg);
+	if (bf_math == 0)
+	{
+		if (j)
+		{
+			driver_put_string(s_row, 45, C_GENERAL_HI, sfloating_point);
+			driver_put_string(-1, -1, C_GENERAL_HI,
+				(j == 1) ? sflag_is_activated : sin_use_required);
+		}
+		else
+		{
+			driver_put_string(s_row, 45, C_GENERAL_HI, sinteger_math);
+		}
+	}
+	else
+	{
+		sprintf(msg, "(%-d decimals)", decimals /*getprecbf(CURRENTREZ)*/);
+		driver_put_string(s_row, 45, C_GENERAL_HI, sarbitrary_precision);
+		driver_put_string(-1, -1, C_GENERAL_HI, msg);
+	}
+	i = 1;
 
-      i = 1;
-   }
+	s_row += i;
 
-   s_row += i;
+	if (calc_status == 1 || calc_status == 2)
+	{
+		if (curfractalspecific->flags&NORESUME)
+		{
+			driver_put_string(s_row++, 2, C_GENERAL_HI,
+				"Note: can't resume this type after interrupts other than <tab> and <F1>");
+		}
+	}
+	s_row += addrow;
+	driver_put_string(s_row, 2, C_GENERAL_MED, ssavename);
+	driver_put_string(s_row, -1, C_GENERAL_HI, savename);
 
-   if (calc_status == 1 || calc_status == 2)
-      if (curfractalspecific->flags&NORESUME)
-      {
-         static FCODE msg[] = {"Note: can't resume this type after interrupts other than <tab> and <F1>"};
-         putstring(s_row++,2,C_GENERAL_HI,msg);
-      }
-   s_row += addrow;
-   putstring(s_row,2,C_GENERAL_MED,ssavename);
-   putstring(s_row,-1,C_GENERAL_HI,savename);
+	++s_row;
 
-   /* if(bf_math == 0) */
-     ++s_row;
+	if (got_status >= 0 && (calc_status == 1 || calc_status == 2))
+	{
+		switch (got_status)
+		{
+		case 0:
+			sprintf(msg, "%d Pass Mode", totpasses);
+			driver_put_string(s_row, 2, C_GENERAL_HI, msg);
+			if (usr_stdcalcmode == '3')
+			{
+				driver_put_string(s_row, -1, C_GENERAL_HI, sthreepass);
+			}
+			break;
+		case 1:
+			driver_put_string(s_row, 2, C_GENERAL_HI, ssolid_guessing);
+			if (usr_stdcalcmode == '3')
+			{
+				driver_put_string(s_row, -1, C_GENERAL_HI, sthreepass);
+			}
+			break;
+		case 2:
+			driver_put_string(s_row, 2, C_GENERAL_HI, sboundary_tracing);
+			break;
+		case 3:
+			sprintf(msg, "Processing row %d (of %d) of input image", currow, fileydots);
+			driver_put_string(s_row, 2, C_GENERAL_HI, msg);
+			break;
+		case 4:
+			driver_put_string(s_row, 2, C_GENERAL_HI, stesseral);
+			break;
+		case 5:		
+			driver_put_string(s_row, 2, C_GENERAL_HI, sdiffusion);
+			break;
+		case 6:
+			driver_put_string(s_row, 2, C_GENERAL_HI, sorbits);
+			break;
+		}
+		++s_row;
+		if (got_status == 5 )
+		{
+			sprintf(msg, "%2.2f%% done, counter at %lu of %lu (%u bits)",
+					(100.0 * dif_counter)/dif_limit,
+					dif_counter, dif_limit, bits);
+			driver_put_string(s_row, 2, C_GENERAL_MED, msg);
+			++s_row;
+		}
+		else
+		if (got_status != 3)
+		{
+			sprintf(msg, "Working on block (y, x) [%d, %d]...[%d, %d], ",
+					yystart, xxstart, yystop, xxstop);
+			driver_put_string(s_row, 2, C_GENERAL_MED, msg);
+			if (got_status == 2 || got_status == 4)  /* btm or tesseral */
+			{
+				driver_put_string(-1, -1, C_GENERAL_MED, "at ");
+				sprintf(msg, "[%d, %d]", currow, curcol);
+				driver_put_string(-1, -1, C_GENERAL_HI, msg);
+			}
+			else
+			{
+				if (totpasses > 1)
+				{
+					driver_put_string(-1, -1, C_GENERAL_MED, "pass ");
+					sprintf(msg, "%d", curpass);
+					driver_put_string(-1, -1, C_GENERAL_HI, msg);
+					driver_put_string(-1, -1, C_GENERAL_MED, " of ");
+					sprintf(msg, "%d", totpasses);
+					driver_put_string(-1, -1, C_GENERAL_HI, msg);
+					driver_put_string(-1, -1, C_GENERAL_MED, ", ");
+				}
+				driver_put_string(-1, -1, C_GENERAL_MED, "at row ");
+				sprintf(msg, "%d", currow);
+				driver_put_string(-1, -1, C_GENERAL_HI, msg);
+				driver_put_string(-1, -1, C_GENERAL_MED, " col ");
+				sprintf(msg, "%d", col);
+				driver_put_string(-1, -1, C_GENERAL_HI, msg);
+			}
+			++s_row;
+		}
+	}
+	driver_put_string(s_row, 2, C_GENERAL_MED, scalculation_time);
+	get_calculation_time(msg, calctime);
+	driver_put_string(-1, -1, C_GENERAL_HI, msg);
+	if ((got_status == 5) && (calc_status == 1))  /* estimate total time */
+	{
+		driver_put_string(-1, -1, C_GENERAL_MED, " estimated total time: ");
+		get_calculation_time( msg, (long)(calctime*((dif_limit*1.0)/dif_counter)) );
+		driver_put_string(-1, -1, C_GENERAL_HI, msg);
+	}
 
-   if (got_status >= 0 && (calc_status == 1 || calc_status == 2)) {
-      switch (got_status) {
-         case 0:
-            sprintf(msg,"%d Pass Mode",totpasses);
-            putstring(s_row,2,C_GENERAL_HI,msg);
-            if(usr_stdcalcmode=='3')
-               putstring(s_row,-1,C_GENERAL_HI,sthreepass);
-            break;
-         case 1:
-            putstring(s_row,2,C_GENERAL_HI,ssolid_guessing);
-            if(usr_stdcalcmode=='3')
-               putstring(s_row,-1,C_GENERAL_HI,sthreepass);
-            break;
-         case 2:
-            putstring(s_row,2,C_GENERAL_HI,sboundary_tracing);
-            break;
-         case 3:
-            sprintf(msg,"Processing row %d (of %d) of input image",currow,fileydots);
-            putstring(s_row,2,C_GENERAL_HI,msg);
-            break;
-         case 4:
-            putstring(s_row,2,C_GENERAL_HI,stesseral);
-            break;
-         case 5:		
-            putstring(s_row,2,C_GENERAL_HI,sdiffusion);
-            break;
-         case 6:
-            putstring(s_row,2,C_GENERAL_HI,sorbits);
-            break;
-         }
-      ++s_row;
-      if (got_status == 5 ) {
-         sprintf(msg,"%2.2f%% done, counter at %lu of %lu (%u bits)",
-                 (100.0 * dif_counter)/dif_limit,
-                 dif_counter,dif_limit,bits);
-         putstring(s_row,2,C_GENERAL_MED,msg);
-         ++s_row;
-      } else
-      if (got_status != 3) {
-         sprintf(msg,"Working on block (y,x) [%d,%d]...[%d,%d], ",
-                yystart,xxstart,yystop,xxstop);
-         putstring(s_row,2,C_GENERAL_MED,msg);
-         if (got_status == 2 || got_status == 4) { /* btm or tesseral */
-            putstring(-1,-1,C_GENERAL_MED,"at ");
-            sprintf(msg,"[%d,%d]",currow,curcol);
-            putstring(-1,-1,C_GENERAL_HI,msg);
-            }
-         else {
-            if (totpasses > 1) {
-               putstring(-1,-1,C_GENERAL_MED,"pass ");
-               sprintf(msg,"%d",curpass);
-               putstring(-1,-1,C_GENERAL_HI,msg);
-               putstring(-1,-1,C_GENERAL_MED," of ");
-               sprintf(msg,"%d",totpasses);
-               putstring(-1,-1,C_GENERAL_HI,msg);
-               putstring(-1,-1,C_GENERAL_MED,", ");
-               }
-            putstring(-1,-1,C_GENERAL_MED,"at row ");
-            sprintf(msg,"%d",currow);
-            putstring(-1,-1,C_GENERAL_HI,msg);
-            putstring(-1,-1,C_GENERAL_MED," col ");
-            sprintf(msg,"%d",col);
-            putstring(-1,-1,C_GENERAL_HI,msg);
-            }
-         ++s_row;
-         }
-      }
-   putstring(s_row,2,C_GENERAL_MED,scalculation_time);
-   get_calculation_time(msg,calctime);
-   putstring(-1,-1,C_GENERAL_HI,msg);
-   if ((got_status == 5) && (calc_status == 1)) { /* estimate total time */
-      putstring(-1,-1,C_GENERAL_MED," estimated total time: ");
-      get_calculation_time( msg,(long)(calctime*((dif_limit*1.0)/dif_counter)) );
-   putstring(-1,-1,C_GENERAL_HI,msg);
-   }
+	if ((curfractalspecific->flags&INFCALC) && (coloriter != 0))
+	{
+		driver_put_string(s_row, -1, C_GENERAL_MED, siterations);
+		sprintf(msg, " %ld of %ld", coloriter-2, maxct);
+		driver_put_string(s_row, -1, C_GENERAL_HI, msg);
+	}
 
-   if ((curfractalspecific->flags&INFCALC) && (coloriter != 0)) {
-      putstring(s_row,-1,C_GENERAL_MED,siterations);
-      sprintf(msg," %ld of %ld",coloriter-2,maxct);
-      putstring(s_row,-1,C_GENERAL_HI,msg);
-   }
-
-   ++s_row;
-   if(bf_math == 0)
-     ++s_row;
-   if (videoentry.xdots && bf_math==0) {
-      sprintf(msg,"Video: %dx%dx%d %s %s",
-              videoentry.xdots, videoentry.ydots, videoentry.colors,
-              videoentry.name, videoentry.comment);
-      putstring(s_row++,2,C_GENERAL_MED,msg);
-      }
-   if(!(curfractalspecific->flags&NOZOOM))
-   {
-   adjust_corner(); /* make bottom left exact if very near exact */
-   if(bf_math)
-   {
-      int truncate, truncaterow;
-      dec = min(320,decimals);
-      adjust_cornerbf(); /* make bottom left exact if very near exact */
-      cvtcentermagbf(bfXctr, bfYctr, &Magnification, &Xmagfactor, &Rotation, &Skew);
-      /* find alignment information */
-      msg[0] = 0;
-      truncate = 0;
-      if(dec < decimals)
-         truncate = 1;
-      truncaterow = row;
-      putstring(++s_row,2,C_GENERAL_MED,scenter);
-      putstring(s_row,8,C_GENERAL_MED,s_x);
-      bftostr(msg,dec,bfXctr);
-      if(putstringwrap(&s_row,10,78,C_GENERAL_HI,msg,5)==1)
-         truncate = 1;
-      putstring(++s_row,8,C_GENERAL_MED,s_y);
-      bftostr(msg,dec,bfYctr);
-      if(putstringwrap(&s_row,10,78,C_GENERAL_HI,msg,5)==1 || truncate)
-         putstring(truncaterow,2,C_GENERAL_MED,struncate);
-      putstring(++s_row,2,C_GENERAL_MED,smag);
+	++s_row;
+	if (bf_math == 0)
+	{
+		++s_row;
+	}
+	_snprintf(msg, NUM_OF(msg), "Driver: %s, %s", g_driver->name, g_driver->description);
+	driver_put_string(s_row++, 2, C_GENERAL_MED, msg);
+	if (g_video_entry.xdots && bf_math == 0)
+	{
+		sprintf(msg, "Video: %dx%dx%d %s %s",
+				g_video_entry.xdots, g_video_entry.ydots, g_video_entry.colors,
+				g_video_entry.name, g_video_entry.comment);
+		driver_put_string(s_row++, 2, C_GENERAL_MED, msg);
+	}
+	if (!(curfractalspecific->flags&NOZOOM))
+	{
+		adjust_corner(); /* make bottom left exact if very near exact */
+		if (bf_math)
+		{
+			int truncate, truncaterow;
+			dec = min(320, decimals);
+			adjust_cornerbf(); /* make bottom left exact if very near exact */
+			cvtcentermagbf(bfXctr, bfYctr, &Magnification, &Xmagfactor, &Rotation, &Skew);
+			/* find alignment information */
+			msg[0] = 0;
+			truncate = 0;
+			if (dec < decimals)
+			{
+				truncate = 1;
+			}
+			truncaterow = row;
+			driver_put_string(++s_row, 2, C_GENERAL_MED, scenter);
+			driver_put_string(s_row, 8, C_GENERAL_MED, s_x);
+			bftostr(msg, dec, bfXctr);
+			if (putstringwrap(&s_row, 10, 78, C_GENERAL_HI, msg, 5) == 1)
+			{
+				truncate = 1;
+			}
+			driver_put_string(++s_row, 8, C_GENERAL_MED, s_y);
+			bftostr(msg, dec, bfYctr);
+			if (putstringwrap(&s_row, 10, 78, C_GENERAL_HI, msg, 5) == 1 || truncate)
+			{
+				driver_put_string(truncaterow, 2, C_GENERAL_MED, struncate);
+			}
+			driver_put_string(++s_row, 2, C_GENERAL_MED, smag);
 #ifdef USE_LONG_DOUBLE
-      sprintf(msg,"%10.8Le",Magnification);
+			sprintf(msg, "%10.8Le", Magnification);
 #else
-      sprintf(msg,"%10.8le",Magnification);
+			sprintf(msg, "%10.8le", Magnification);
 #endif
-      putstring(-1,11,C_GENERAL_HI,msg);
-      putstring(++s_row,2,C_GENERAL_MED,sxmag);
-      sprintf(msg,"%11.4f   ",Xmagfactor);
-      putstring(-1,-1,C_GENERAL_HI,msg);
-      putstring(-1,-1,C_GENERAL_MED,srot);
-      sprintf(msg,"%9.3f   ",Rotation);
-      putstring(-1,-1,C_GENERAL_HI,msg);
-      putstring(-1,-1,C_GENERAL_MED,sskew);
-      sprintf(msg,"%9.3f",Skew);
-      putstring(-1,-1,C_GENERAL_HI,msg);
-   }
-   else /* bf != 1 */
-   {
-      putstring(s_row,2,C_GENERAL_MED,scornersxy);
-      putstring(++s_row,3,C_GENERAL_MED,stop_left);
-      sprintf(msg,"%20.16f  %20.16f",xxmin,yymax);
-      putstring(-1,17,C_GENERAL_HI,msg);
-      putstring(++s_row,3,C_GENERAL_MED,sbottom_right);
-      sprintf(msg,"%20.16f  %20.16f",xxmax,yymin);
-      putstring(-1,17,C_GENERAL_HI,msg);
+			driver_put_string(-1, 11, C_GENERAL_HI, msg);
+			driver_put_string(++s_row, 2, C_GENERAL_MED, sxmag);
+			sprintf(msg, "%11.4f   ", Xmagfactor);
+			driver_put_string(-1, -1, C_GENERAL_HI, msg);
+			driver_put_string(-1, -1, C_GENERAL_MED, srot);
+			sprintf(msg, "%9.3f   ", Rotation);
+			driver_put_string(-1, -1, C_GENERAL_HI, msg);
+			driver_put_string(-1, -1, C_GENERAL_MED, sskew);
+			sprintf(msg, "%9.3f", Skew);
+			driver_put_string(-1, -1, C_GENERAL_HI, msg);
+		}
+		else /* bf != 1 */
+		{
+			driver_put_string(s_row, 2, C_GENERAL_MED, scornersxy);
+			driver_put_string(++s_row, 3, C_GENERAL_MED, stop_left);
+			sprintf(msg, "%20.16f  %20.16f", xxmin, yymax);
+			driver_put_string(-1, 17, C_GENERAL_HI, msg);
+			driver_put_string(++s_row, 3, C_GENERAL_MED, sbottom_right);
+			sprintf(msg, "%20.16f  %20.16f", xxmax, yymin);
+			driver_put_string(-1, 17, C_GENERAL_HI, msg);
 
-      if (xxmin != xx3rd || yymin != yy3rd)
-      {
-         putstring(++s_row,3,C_GENERAL_MED,sbottom_left);
-         sprintf(msg,"%20.16f  %20.16f",xx3rd,yy3rd);
-         putstring(-1,17,C_GENERAL_HI,msg);
-      }
-      cvtcentermag(&Xctr, &Yctr, &Magnification, &Xmagfactor, &Rotation, &Skew);
-      putstring(s_row+=2,2,C_GENERAL_MED,scenter);
-      sprintf(msg,"%20.16f %20.16f  ",Xctr,Yctr);
-      putstring(-1,-1,C_GENERAL_HI,msg);
-      putstring(-1,-1,C_GENERAL_MED,smag);
+			if (xxmin != xx3rd || yymin != yy3rd)
+			{
+				driver_put_string(++s_row, 3, C_GENERAL_MED, sbottom_left);
+				sprintf(msg, "%20.16f  %20.16f", xx3rd, yy3rd);
+				driver_put_string(-1, 17, C_GENERAL_HI, msg);
+			}
+			cvtcentermag(&Xctr, &Yctr, &Magnification, &Xmagfactor, &Rotation, &Skew);
+			driver_put_string(s_row += 2, 2, C_GENERAL_MED, scenter);
+			sprintf(msg, "%20.16f %20.16f  ", Xctr, Yctr);
+			driver_put_string(-1, -1, C_GENERAL_HI, msg);
+			driver_put_string(-1, -1, C_GENERAL_MED, smag);
 #ifdef USE_LONG_DOUBLE
-      sprintf(msg," %10.8Le",Magnification);
+			sprintf(msg, " %10.8Le", Magnification);
 #else
-      sprintf(msg," %10.8le",Magnification);
+			sprintf(msg, " %10.8le", Magnification);
 #endif
-      putstring(-1,-1,C_GENERAL_HI,msg);
-      putstring(++s_row,2,C_GENERAL_MED,sxmag);
-      sprintf(msg,"%11.4f   ",Xmagfactor);
-      putstring(-1,-1,C_GENERAL_HI,msg);
-      putstring(-1,-1,C_GENERAL_MED,srot);
-      sprintf(msg,"%9.3f   ",Rotation);
-      putstring(-1,-1,C_GENERAL_HI,msg);
-      putstring(-1,-1,C_GENERAL_MED,sskew);
-      sprintf(msg,"%9.3f",Skew);
-      putstring(-1,-1,C_GENERAL_HI,msg);
+			driver_put_string(-1, -1, C_GENERAL_HI, msg);
+			driver_put_string(++s_row, 2, C_GENERAL_MED, sxmag);
+			sprintf(msg, "%11.4f   ", Xmagfactor);
+			driver_put_string(-1, -1, C_GENERAL_HI, msg);
+			driver_put_string(-1, -1, C_GENERAL_MED, srot);
+			sprintf(msg, "%9.3f   ", Rotation);
+			driver_put_string(-1, -1, C_GENERAL_HI, msg);
+			driver_put_string(-1, -1, C_GENERAL_MED, sskew);
+			sprintf(msg, "%9.3f", Skew);
+			driver_put_string(-1, -1, C_GENERAL_HI, msg);
+		}
+	}
 
-   }
-   }
+	if (typehasparm(fractype, 0, msg) || hasformparam)
+	{
+		for (i = 0; i < MAXPARAMS; i++)
+		{
+			int col;
+			char p[50];
+			if (typehasparm(fractype, i, p))
+			{
+				if (k%4 == 0)
+				{
+					s_row++;
+					col = 9;
+				}
+				else
+					col = -1;
+				if (k == 0) /* only true with first displayed parameter */
+					driver_put_string(++s_row, 2, C_GENERAL_MED, sparams);
+				sprintf(msg, "%3d: ", i+1);
+				driver_put_string(s_row, col, C_GENERAL_MED, msg);
+				if (*p == '+')
+					sprintf(msg, "%-12d", (int)param[i]);
+				else if (*p == '#')
+					sprintf(msg, "%-12lu", (U32)param[i]);
+				else
+					sprintf(msg, "%-12.9f", param[i]);
+				driver_put_string(-1, -1, C_GENERAL_HI, msg);
+				k++;
+			}
+		}
+	}
+	driver_put_string(s_row += 2, 2, C_GENERAL_MED, siteration_maximum);
+	sprintf(msg, "%ld (%ld)", coloriter, maxit);
+	driver_put_string(-1, -1, C_GENERAL_HI, msg);
+	driver_put_string(-1, -1, C_GENERAL_MED, seffective_bailout);
+	sprintf(msg, "%f", rqlim);
+	driver_put_string(-1, -1, C_GENERAL_HI, msg);
 
-   if(typehasparm(fractype,0,msg) || hasformparam)
-    for (i = 0; i < MAXPARAMS; i++)
-   {
-      int col;
-      char p[50];
-      if(typehasparm(fractype,i,p))
-      {
-         if(k%4 == 0)
-         {
-            s_row++;
-            col = 9;
-         }
-         else
-            col = -1;
-         if(k == 0) /* only true with first displayed parameter */
-            putstring(++s_row,2,C_GENERAL_MED,sparams);
-         sprintf(msg,"%3d: ",i+1);
-         putstring(s_row,col,C_GENERAL_MED,msg);
-         if(*p == '+')
-            sprintf(msg,"%-12d",(int)param[i]);
-         else if(*p == '#')
-            sprintf(msg,"%-12lu",(U32)param[i]);
-         else
-            sprintf(msg,"%-12.9f",param[i]);
-         putstring(-1,-1,C_GENERAL_HI,msg);
-         k++;
-      }
-   }
-   putstring(s_row+=2,2,C_GENERAL_MED,siteration_maximum);
-   sprintf(msg,"%ld (%ld)",coloriter,maxit);
-   putstring(-1,-1,C_GENERAL_HI,msg);
-   putstring(-1,-1,C_GENERAL_MED,seffective_bailout);
-   sprintf(msg,"%f",rqlim);
-   putstring(-1,-1,C_GENERAL_HI,msg);
+	if (fractype == PLASMA || fractype == ANT || fractype == CELLULAR)
+	{
+		driver_put_string(++s_row, 2, C_GENERAL_MED, scurrent_rseed);
+		sprintf(msg, "%d", rseed);
+		driver_put_string(-1, -1, C_GENERAL_HI, msg);
+	}
 
-   if (fractype == PLASMA || fractype == ANT || fractype == CELLULAR) {
-      putstring(++s_row,2,C_GENERAL_MED,scurrent_rseed);
-      sprintf(msg,"%d",rseed);
-      putstring(-1,-1,C_GENERAL_HI,msg);
-      }
+	if (invert)
+	{
+		driver_put_string(++s_row, 2, C_GENERAL_MED, sinversion_radius);
+		sprintf(msg, "%12.9f", f_radius);
+		driver_put_string(-1, -1, C_GENERAL_HI, msg);
+		driver_put_string(-1, -1, C_GENERAL_MED, sxcenter);
+		sprintf(msg, "%12.9f", f_xcenter);
+		driver_put_string(-1, -1, C_GENERAL_HI, msg);
+		driver_put_string(-1, -1, C_GENERAL_MED, sycenter);
+		sprintf(msg, "%12.9f", f_ycenter);
+		driver_put_string(-1, -1, C_GENERAL_HI, msg);
+	}
 
-   if(invert) {
-      putstring(++s_row,2,C_GENERAL_MED,sinversion_radius);
-      sprintf(msg,"%12.9f",f_radius);
-      putstring(-1,-1,C_GENERAL_HI,msg);
-      putstring(-1,-1,C_GENERAL_MED,sxcenter);
-      sprintf(msg,"%12.9f",f_xcenter);
-      putstring(-1,-1,C_GENERAL_HI,msg);
-      putstring(-1,-1,C_GENERAL_MED,sycenter);
-      sprintf(msg,"%12.9f",f_ycenter);
-      putstring(-1,-1,C_GENERAL_HI,msg);
-      }
-
-   if ((s_row += 2) < 23) ++s_row;
-/*waitforkey:*/
-   putstringcenter(/*s_row*/24,0,80,C_GENERAL_LO,spressanykey);
-   movecursor(25,80);
+	if ((s_row += 2) < 23)
+	{
+		++s_row;
+	}
+	/*waitforkey:*/
+	putstringcenter(/*s_row*/24, 0, 80, C_GENERAL_LO, spressanykey);
+	driver_hide_text_cursor();
 #ifdef XFRACT
-   while (keypressed()) {
-       getakey();
-   }
+	while (driver_key_pressed())
+	{
+		driver_get_key();
+	}
 #endif
-   key = getakeynohelp();
-   if (key==F6) {
-       unstackscreen();
-       area();
-       stackscreen();
-/*       goto waitforkey;*/
-        goto top;
-   }
-   else if(key==CTL_TAB || key==BACK_TAB || key==F7) {
-      if(tab_display_2(msg))
-         goto top;
-   }
-   unstackscreen();
-   timer_start = clock_ticks(); /* tab display was "time out" */
-   if(bf_math)
-   {
-      restore_stack(saved);
-      MoveFromMemory(ptr_to_extraseg,(U16)22400,1L,0L,save_extra_handle);
-      MemoryRelease(save_extra_handle);
-      save_extra_handle = 0;
-   }
-   return(0);
+	key = getakeynohelp();
+	if (key == F6)
+	{
+		driver_stack_screen();
+		area();
+		driver_unstack_screen();
+		goto top;
+	}
+	else if (key == CTL_TAB || key == BACK_TAB || key == F7)
+	{
+		if (tab_display_2(msg))
+		{
+			goto top;
+		}
+	}
+	driver_unstack_screen();
+	timer_start = clock_ticks(); /* tab display was "time out" */
+	if (bf_math)
+	{
+		restore_stack(saved);
+		MoveFromMemory(ptr_to_extraseg, (U16)22400, 1L, 0L, save_extra_handle);
+		MemoryRelease(save_extra_handle);
+		save_extra_handle = 0;
+	}
+	return 0;
 }
 
 static void area(void)
 {
     /* apologies to UNIX folks, we PC guys have to save near space */
-    static FCODE warning[] = {"Warning: inside may not be unique\n"};
-    static FCODE total_area[] = {".  Total area "};
-    char far *msg;
+    static char warning[] = {"Warning: inside may not be unique\n"};
+    static char total_area[] = {".  Total area "};
+    char *msg;
     int x,y;
     char buf[160];
     long cnt=0;
     if (inside<0) {
-      static FCODE msg[] = {"Need solid inside to compute area"};
+      static char msg[] = {"Need solid inside to compute area"};
       stopmsg(0,msg);
       return;
     }
@@ -1315,24 +1388,24 @@ static void area(void)
     if (inside>0 && outside<0 && maxit>inside) {
       msg = warning;
     } else {
-      msg = (char far *)"";
+      msg = (char *)"";
     }
 #ifndef XFRACT
       sprintf(buf,"%Fs%ld inside pixels of %ld%Fs%f",
-              msg,cnt,(long)xdots*(long)ydots,(char far *)total_area,
+              msg,cnt,(long)xdots*(long)ydots,(char *)total_area,
               cnt/((float)xdots*(float)ydots)*(xxmax-xxmin)*(yymax-yymin));
 #else
       sprintf(buf,"%s%ld inside pixels of %ld%s%f",
               msg,cnt,(long)xdots*(long)ydots,total_area,
               cnt/((float)xdots*(float)ydots)*(xxmax-xxmin)*(yymax-yymin));
 #endif
-    stopmsg(4,buf);
+    stopmsg(STOPMSG_NO_BUZZER,buf);
 }
 
-int endswithslash(char far *fl)
+int endswithslash(char *fl)
 {
    int len;
-   len = far_strlen(fl);
+   len = (int) strlen(fl);
    if(len)
       if(fl[--len] == SLASHC)
          return(1);
@@ -1358,7 +1431,7 @@ char *get_ifs_token(char *buf,FILE *ifsfile)
    }
 }
 
-FCODE insufficient_ifs_mem[]={"Insufficient memory for IFS"};
+char insufficient_ifs_mem[]={"Insufficient memory for IFS"};
 int numaffine;
 int ifsload()                   /* read in IFS parameters */
 {
@@ -1369,7 +1442,7 @@ int ifsload()                   /* read in IFS parameters */
    int ret,rowsize;
 
    if (ifs_defn) { /* release prior parms */
-      farmemfree((char far *)ifs_defn);
+      free((char *)ifs_defn);
       ifs_defn = NULL;
       }
 
@@ -1402,7 +1475,7 @@ int ifsload()                   /* read in IFS parameters */
          break ;
       if (++i >= NUMIFS*rowsize)
       {
-         static FCODE msg[]={"IFS definition has too many lines"};
+         static char msg[]={"IFS definition has too many lines"};
             stopmsg(0,msg);
             ret = -1;
             break;
@@ -1422,12 +1495,12 @@ int ifsload()                   /* read in IFS parameters */
    }
 
    if ((i % rowsize) != 0 || *bufptr != '}') {
-      static FCODE msg[]={"invalid IFS definition"};
+      static char msg[]={"invalid IFS definition"};
       stopmsg(0,msg);
       ret = -1;
       }
    if (i == 0 && ret == 0) {
-      static FCODE msg[]={"Empty IFS definition"};
+      static char msg[]={"Empty IFS definition"};
       stopmsg(0,msg);
       ret = -1;
       }
@@ -1435,7 +1508,7 @@ int ifsload()                   /* read in IFS parameters */
 
    if (ret == 0) {
       numaffine = i/rowsize;
-      if ((ifs_defn = (float far *)farmemalloc(
+      if ((ifs_defn = (float *)malloc(
                         (long)((NUMIFS+1)*IFS3DPARM*sizeof(float)))) == NULL) {
      stopmsg(0,insufficient_ifs_mem);
          ret = -1;
@@ -1559,7 +1632,7 @@ int find_file_item(char *filename,char *itemname,FILE **fileptr, int itemtype)
          if(!(DTA.attribute & SUBDIR) &&
              strcmp(DTA.filename,".")&&
              strcmp(DTA.filename,"..")) {
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
             strlwr(DTA.filename);
 #endif
             splitpath(DTA.filename,NULL,NULL,fname,ext);
@@ -1653,6 +1726,7 @@ int file_gets(char *buf,int maxlen,FILE *infile)
 
 int matherr_ct = 0;
 
+#if !defined(_WIN32)
 #ifndef XFRACT
 #ifdef WINFRACT
 /* call this something else to dodge the QC4WIN bullet... */
@@ -1664,7 +1738,7 @@ int _cdecl _matherr( struct exception *except )
     if(debugflag != 0)
     {
        static FILE *fp=NULL;
-       static FCODE msg[]={"Math error, but we'll try to keep going"};
+       static char msg[]={"Math error, but we'll try to keep going"};
        if(matherr_ct++ == 0)
           if(debugflag == 4000 || debugflag == 3200)
              stopmsg(0,msg);
@@ -1724,6 +1798,7 @@ int _cdecl _matherr( struct exception *except )
     except->retval = 1.0;
     return(1);
 }
+#endif
 #endif
 
 void roundfloatd(double *x) /* make double converted from float look ok */

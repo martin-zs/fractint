@@ -11,27 +11,11 @@ typedef BYTE BOOLEAN;
 #endif
 #endif
 
-#ifndef XFRACT
-#define ftimex ftime
-typedef int SEGTYPE;
-typedef unsigned USEGTYPE;
-#ifdef __TURBOC__
-#   define _bios_printer(a,b,c)   biosprint((a),(c),(b))
-#   define _bios_serialcom(a,b,c) bioscom((a),(c),(b))
-#else
-#ifndef __WATCOMC__
-#ifndef MK_FP
-#   define MK_FP(seg,off) (VOIDFARPTR )( (((long)(seg))<<16) | \
-                                          ((unsigned)(off)) )
-#endif
-#endif
-#endif
-#else
-typedef char * SEGTYPE;
-typedef char * USEGTYPE;
-#   define MK_FP(seg,off) (VOIDFARPTR )(seg+off)
-#include <sys/types.h> /* need size_t */
-#endif
+/* Returns the number of items in an array declared of fixed size, i.e:
+	int stuff[100];
+	NUM_OF(stuff) returns 100.
+*/
+#define NUM_OF(ary_) (sizeof(ary_)/sizeof(ary_[0]))
 
 #ifndef XFRACT
 #define clock_ticks() clock()
@@ -41,11 +25,63 @@ typedef char * USEGTYPE;
 #define difftime(now,then) ((now)-(then))
 #endif
 
+/* stopmsg() flags */
+#define STOPMSG_NO_STACK	1
+#define STOPMSG_CANCEL		2
+#define STOPMSG_NO_BUZZER	4
+#define STOPMSG_FIXED_FONT	8
+#define STOPMSG_INFO_ONLY	16
+
+/* g_video_type video types */
+#define VIDEO_TYPE_HGC		1
+#define VIDEO_TYPE_EGA		3
+#define VIDEO_TYPE_CGA		2
+#define VIDEO_TYPE_MCGA		4
+#define VIDEO_TYPE_VGA		5
+
 /* for gotos in former FRACTINT.C pieces */
 #define RESTART           1
 #define IMAGESTART        2
 #define RESTORESTART      3
 #define CONTINUE          4
+
+/* values for dotmode */
+#define DOTMODE_SLOW_BIOS		1
+#define DOTMODE_PRETEND_EGA		2
+#define DOTMODE_PRETEND_MCGA	3
+#define DOTMODE_VGA_TSENG		4
+#define DOTMODE_VGA_PARADISE	5
+#define DOTMODE_VGA_VIDEO7		6
+#define DOTMODE_VGA_NONSTANDARD	7
+#define DOTMODE_VGA_EVEREX		8
+#define DOTMODE_TARGA			9
+#define DOTMODE_HERCULES		10
+#define DOTMODE_RAMDISK			11
+#define DOTMODE_8514A			12
+#define DOTMODE_CGA				13
+#define DOTMODE_TANDY_1000		14
+#define DOTMODE_SVGA_TRIDENT	15
+#define DOTMODE_SVGA_CHIPSTECH	16
+#define DOTMODE_SVGA_VGAWONDER	17
+#define DOTMODE_SVGA_EVEREX		18
+#define DOTMODE_ROLL_YOUR_OWN	19
+#define DOTMODE_XGA_VGAWONDER	20
+#define DOTMODE_XGA_TSENG		21
+#define DOTMODE_XGA_TRIDENT		22
+#define DOTMODE_XGA_VIDEO7		23
+#define DOTMODE_XGA_PARADISE	24
+#define DOTMODE_XGA_CHIPSTECH	25
+#define DOTMODE_XGA_EVEREX		26
+#define DOTMODE_SVGA_AUTO		27
+#define DOTMODE_VESA			28
+#define DOTMODE_TRUECOLOR_AUTO	29
+
+/* fullscreen_choice options */
+#define CHOICE_RETURN_KEY	1
+#define CHOICE_MENU			2
+#define CHOICE_HELP			4
+#define CHOICE_CRUNCH		16
+#define CHOICE_NOT_SORTED	32
 
 /* these are used to declare arrays for file names */
 #ifdef XFRACT
@@ -116,7 +152,7 @@ struct videoinfo {              /* All we need to know about a Video Adapter */
         int     colors;         /* number of colors available           */
         };
 
-typedef struct videoinfo far        VIDEOINFO;
+typedef struct videoinfo VIDEOINFO;
 #define INFO_ID         "Fractal"
 typedef    struct fractal_info FRACTAL_INFO;
 
@@ -383,26 +419,12 @@ struct formula_info         /*  for saving formula data in GIF file     */
     short future[6];       /* for stuff we haven't thought of, yet */
 };
 
-#ifndef XFRACT
 enum stored_at_values
-   {
+{
    NOWHERE,
-   EXTRA,
-   FARMEM,
-   EXPANDED,
-   EXTENDED,
+   MEMORY,
    DISK
-   };
-#endif
-
-#ifdef XFRACT
-enum stored_at_values
-   {
-   NOWHERE,
-   FARMEM,
-   DISK
-   };
-#endif
+};
 
 #define NUMGENES 21
 
@@ -494,17 +516,17 @@ extern  double   f_at_rad;      /* finite attractor radius  */
 struct moreparams
 {
    int      type;                       /* index in fractalname of the fractal */
-   char     far *param[MAXPARAMS-4];    /* name of the parameters */
+   char     *param[MAXPARAMS-4];    /* name of the parameters */
    double   paramvalue[MAXPARAMS-4];    /* default parameter values */
 };
 
-typedef struct moreparams far       MOREPARAMS;
+typedef struct moreparams MOREPARAMS;
 
 struct fractalspecificstuff
 {
    char  *name;                         /* name of the fractal */
                                         /* (leading "*" supresses name display) */
-   char  far *param[4];                 /* name of the parameters */
+   char  *param[4];                 /* name of the parameters */
    double paramvalue[4];                /* default parameter values */
    int   helptext;                      /* helpdefs.h HT_xxxx, -1 for none */
    int   helpformula;                   /* helpdefs.h HF_xxxx, -1 for none */
@@ -554,7 +576,7 @@ struct alternatemathstuff
    int (*per_image)(void);      /* once-per-image setup */
 };
 
-typedef struct alternatemathstuff ALTERNATE;
+typedef struct alternatemathstuff AlternateMath;
 
 /* defines for symmetry */
 #define  NOSYM          0
@@ -623,8 +645,8 @@ enum Minor  {left_first, right_first};
 #define NOGROUT         8    /* no gaps between images                                   */
 
 
-extern struct fractalspecificstuff far fractalspecific[];
-extern struct fractalspecificstuff far *curfractalspecific;
+extern struct fractalspecificstuff fractalspecific[];
+extern struct fractalspecificstuff *curfractalspecific;
 
 #define DEFAULTFRACTALTYPE      ".gif"
 #define ALTERNATEFRACTALTYPE    ".fra"
@@ -823,9 +845,12 @@ extern  void   (_fastcall *plot)(int, int, int);
 /* nonalpha tests if we have a control character */
 #define nonalpha(c) ((c)<32 || (c)>127)
 
-/* keys */
+/* keys; FIK = "FractInt Key"
+ * Use this prefix to disambiguate key name symbols used in the fractint source
+ * from symbols defined by the external environment, i.e. "DELETE" on Win32
+ */
 #define   INSERT         1082
-#define   DELETE         1083
+#define   FIK_DELETE     1083
 #define   PAGE_UP        1073
 #define   PAGE_DOWN      1081
 #define   CTL_HOME       1119
@@ -861,13 +886,20 @@ extern  void   (_fastcall *plot)(int, int, int);
 #define   F8             1066
 #define   F9             1067
 #define   F10            1068
+#define   CONTROL_A		 1
+#define   CONTROL_B		 2
+#define   CONTROL_E		 5
+#define   CONTROL_F		 6
+#define   CONTROL_G		 7
 #define   BACKSPACE      8
 #define   TAB            9
+#define	  CONTROL_P		 16
+#define   CONTROL_S		 19
 #define   CTL_TAB        1148
 #define   ALT_TAB        1165
 #define   BACK_TAB       1015  /* shift tab */
 #define   ESC            27
-#define   SPACE          32
+#define   FIK_SPACE      32
 #define   SF1            1084
 #define   SF2            1085
 #define   SF3            1086
@@ -961,7 +993,7 @@ struct fullscreenvalues
       int    ival;      /* when type is 'i'      */
       long   Lval;      /* when type is 'L'      */
       char   sval[16];  /* when type is 's'      */
-      char  far *sbuf;  /* when type is 0x100+n  */
+      char  *sbuf;  /* when type is 0x100+n  */
       struct {          /* when type is 'l'      */
          int  val;      /*   selected choice     */
          int  vlen;     /*   char len per choice */
@@ -976,14 +1008,14 @@ struct fullscreenvalues
 #define   SYSTEM         4
 #define   SUBDIR         16
 
-struct DIR_SEARCH               /* Allocate DTA and define structure */
+struct DIR_SEARCH				/* Allocate	DTA	and	define structure */
 {
-     char path[21];             /* DOS path and filespec */
-     char attribute;            /* File attributes wanted */
-     int  ftime;                /* File creation time */
-     int  fdate;                /* File creation date */
-     long size;                 /* File size in bytes */
-     char filename[13];         /* Filename and extension */
+	char path[_MAX_PATH];		/* DOS path	and	filespec */
+	char attribute;				/* File	attributes wanted */
+	int	 ftime;					/* File	creation time */
+	int	 fdate;					/* File	creation date */
+	long size;					/* File	size in bytes */
+	char filename[_MAX_PATH];	/* Filename	and	extension */
 };
 
 extern struct DIR_SEARCH DTA;   /* Disk Transfer Area */
@@ -1034,13 +1066,13 @@ struct ext_blk_3 {
 struct ext_blk_4 {
    char got_data;
    int length;
-   int far *range_data;
+   int *range_data;
    };
 
 struct ext_blk_5 {
    char got_data;
    int length;
-   char far *apm_data;
+   char *apm_data;
    };
 
 /* parameter evolution stuff */
@@ -1113,75 +1145,6 @@ typedef struct baseunit    GENEBASE;
 
 #define sign(x) (((x) < 0) ? -1 : ((x) != 0)  ? 1 : 0)
 
-/* 
- * The following typedefs allow declaring based data
- * types that are stored in the code segment under MSC,
- * and thus may be overlaid. Use only for constant data.
- * Be sure to use the data right away, since arrays thus
- * declared do not exist when the overlay they belong to
- * is swapped out.
- */
-
-#if (_MSC_VER >= 700 && !defined(WINFRACT))
-typedef char __based(__segname("_CODE")) FCODE;
-#else
-typedef char far FCODE;
-#endif
-
-/* pointer to FCODE */
-#if (_MSC_VER >= 700 && !defined(WINFRACT))
-typedef FCODE * __based(__segname("_CODE")) PFCODE;
-#else
-typedef FCODE * PFCODE;
-#endif
-
-#if (_MSC_VER >= 700 && !defined(WINFRACT))
-typedef BYTE __based(__segname("_CODE")) BFCODE;
-#else
-typedef BYTE far BFCODE;
-#endif
-
-#if (_MSC_VER >= 700 && !defined(WINFRACT))
-typedef short __based(__segname("_CODE")) SIFCODE;
-#else
-typedef short far SIFCODE;
-#endif
-
-#if (_MSC_VER >= 700 && !defined(WINFRACT))
-typedef short __based(__segname("_CODE")) USFCODE;
-#else
-typedef short far USFCODE;
-#endif
-
-#if (_MSC_VER >= 700 && !defined(WINFRACT))
-typedef int __based(__segname("_CODE")) IFCODE;
-#else
-typedef int far IFCODE;
-#endif
-
-#if (_MSC_VER >= 700 && !defined(WINFRACT))
-typedef unsigned int __based(__segname("_CODE")) UIFCODE;
-#else
-typedef unsigned int far UIFCODE;
-#endif
-
-#if (_MSC_VER >= 700 && !defined(WINFRACT))
-typedef long __based(__segname("_CODE")) LFCODE;
-#else
-typedef long far LFCODE;
-#endif
-
-#if (_MSC_VER >= 700 && !defined(WINFRACT))
-typedef unsigned long __based(__segname("_CODE")) ULFCODE;
-#else
-typedef unsigned long far ULFCODE;
-#endif
-
-#if (_MSC_VER >= 700 && !defined(WINFRACT))
-typedef double __based(__segname("_CODE")) DFCODE;
-#else
-typedef double far DFCODE;
-#endif
 #endif
 
 

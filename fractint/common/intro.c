@@ -13,6 +13,7 @@
 #include "port.h"
 #include "prototyp.h"
 #include "helpdefs.h"
+#include "drivers.h"
 
 /* stuff from fractint */
 
@@ -24,15 +25,15 @@ void intro(void)
    {
    /* following overlayed data safe if "putstrings" are resident */
 #ifdef XFRACT
-   static FCODE PRESS_ENTER[] = {"Press ENTER for main menu, Shift-1 for help."};
+   static char PRESS_ENTER[] = {"Press ENTER for main menu, Shift-1 for help."};
 #else
-   static FCODE PRESS_ENTER[] = {"Press ENTER for main menu, F1 for help."};
+   static char PRESS_ENTER[] = {"Press ENTER for main menu, F1 for help."};
 #endif
    int       toprow, botrow, i, j, delaymax;
    char      oldchar;
    int       authors[100];              /* this should be enough for awhile */
-   char far *credits;
-   char far *screen_text;
+   char *credits;
+   char *screen_text;
    int       oldlookatmouse;
    int       oldhelpmode;
 
@@ -41,7 +42,8 @@ void intro(void)
    oldhelpmode = helpmode;
    lookatmouse = 0;                     /* de-activate full mouse checking */
 
-   screen_text = MK_FP(extraseg, 0);
+   /* TODO: allocate real memory, not reuse shared segment */
+   screen_text = extraseg;
 
    i = 32767 + read_help_topic(INTRO_AUTHORS, 0, 32767, screen_text);
    screen_text[i++] = '\0';
@@ -67,55 +69,51 @@ void intro(void)
    "Unix/X port of fractint by Ken Shirriff");
 #endif
    putstringcenter(1,0,80,C_TITLE, PRESS_ENTER);
-   putstring(2,0,C_CONTRIB,screen_text);
-   setattr(2,0,C_AUTHDIV1,80);
-   setattr(END_MAIN_AUTHOR,0,C_AUTHDIV1,80);
-   setattr(22,0,C_AUTHDIV2,80);
-   setattr(3,0,C_PRIMARY,80*(END_MAIN_AUTHOR-3));
-   setattr(23,0,C_TITLE_LOW,160);
+   driver_put_string(2,0,C_CONTRIB,screen_text);
+   driver_set_attr(2,0,C_AUTHDIV1,80);
+   driver_set_attr(END_MAIN_AUTHOR,0,C_AUTHDIV1,80);
+   driver_set_attr(22,0,C_AUTHDIV2,80);
+   driver_set_attr(3,0,C_PRIMARY,80*(END_MAIN_AUTHOR-3));
+   driver_set_attr(23,0,C_TITLE_LOW,160);
    for (i = 3; i < END_MAIN_AUTHOR; ++i)
-      setattr(i,21,C_CONTRIB,58);
-   setattr(toprow,0,C_CONTRIB,(21-END_MAIN_AUTHOR)*80);
+      driver_set_attr(i,21,C_CONTRIB,58);
+   driver_set_attr(toprow,0,C_CONTRIB,(21-END_MAIN_AUTHOR)*80);
    i = botrow - toprow;
    srand((unsigned int)clock_ticks());
    j = rand()%(j-(botrow-toprow)); /* first to use */
    i = j+botrow-toprow; /* last to use */
    oldchar = credits[authors[i+1]];
    credits[authors[i+1]] = 0;
-   putstring(toprow,0,C_CONTRIB,credits+authors[j]);
+   driver_put_string(toprow,0,C_CONTRIB,credits+authors[j]);
    credits[authors[i+1]] = oldchar;
    delaymax = 10;
-   movecursor(25,80); /* turn it off */
+   driver_hide_text_cursor();
    helpmode = HELPMENU;
-   while (! keypressed())
+   while (! driver_key_pressed())
       {
 #ifdef XFRACT
       if (slowdisplay) delaymax *= 15;
 #endif
-      for (j = 0; j < delaymax && !(keypressed()); j++)
+      for (j = 0; j < delaymax && !(driver_key_pressed()); j++)
          delay(100);
-      if (keypressed() == 32)
+      if (driver_key_pressed() == FIK_SPACE)
          {      /* spacebar pauses */
-         getakey();
-#ifndef XFRACT
-         while (!keypressed()) ;
-#else
-         waitkeypressed(0);
-#endif
-         if (keypressed() == 32)
-            getakey();
+         driver_get_key();
+         driver_wait_key_pressed(0);
+         if (driver_key_pressed() == FIK_SPACE)
+            driver_get_key();
          }
       delaymax = 15;
-      scrollup(toprow, botrow);
+      driver_scroll_up(toprow, botrow);
       i++;
       if (credits[authors[i]] == 0)
          i = 0;
       oldchar = credits[authors[i+1]];
       credits[authors[i+1]] = 0;
-      putstring(botrow,0,C_CONTRIB,&credits[authors[i]]);
-      setattr(botrow,0,C_CONTRIB,80);
+      driver_put_string(botrow,0,C_CONTRIB,&credits[authors[i]]);
+      driver_set_attr(botrow,0,C_CONTRIB,80);
       credits[authors[i+1]] = oldchar;
-      movecursor(25,80); /* turn it off */
+      driver_hide_text_cursor(); /* turn it off */
       }
 
    lookatmouse = oldlookatmouse;                /* restore the mouse-checking */
