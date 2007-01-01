@@ -2,6 +2,7 @@
 FRACSUBR.C contains subroutines which belong primarily to CALCFRAC.C and
 FRACTALS.C, i.e. which are non-fractal-specific fractal engine subroutines.
 */
+#include <memory.h>
 
 #ifndef USE_VARARGS
 #include <stdarg.h>
@@ -18,7 +19,12 @@ FRACTALS.C, i.e. which are non-fractal-specific fractal engine subroutines.
 #include "port.h"
 #include "prototyp.h"
 #include "fractype.h"
+#include "drivers.h"
 
+#if defined(_WIN32)
+#define ftimex ftime
+#define timebx timeb
+#endif
 
 /* routines in this module      */
 
@@ -41,9 +47,10 @@ static int    resume_offset;            /* offset in resume info gets */
 
 void set_grid_pointers()
 {
-   dx0 = MK_FP(extraseg,0);
+   /* TODO: allocate real memory, not reuse shared segment */
+   dx0 = (double *) extraseg;
    dy1 = (dx1 = (dy0 = dx0 + xdots) + ydots) + ydots;
-   lx0 = (long far *) dx0;
+   lx0 = (long *) dx0;
    ly1 = (lx1 = (ly0 = lx0 + xdots) + ydots) + ydots;
    set_pixel_calc_functions();
 }
@@ -431,7 +438,7 @@ expand_retry:
                by using the magnification.  */
             if(++tries < 2) /* for safety */
             {
-            static FCODE err[] = {"precision-detection error"};
+            static char err[] = {"precision-detection error"};
             if(tries > 1) stopmsg(0, err);
             /* Previously there were four tests of distortions in the
                zoom box used to detect precision limitations. In some
@@ -516,9 +523,10 @@ expand_retry:
    {
       /* zap all of extraseg except high area to flush out bugs */
       /* in production version this code can be deleted */
-      char far *extra;
-      extra = (char far *)MK_FP(extraseg,0);
-      far_memset(extra,0,(unsigned int)(0x10000l-(bflength+2)*22U));
+      char *extra;
+   /* TODO: allocate real memory, not reuse shared segment */
+      extra = (char *) extraseg;
+      memset(extra,0,(unsigned int)(0x10000l-(bflength+2)*22U));
    }
 }
 
@@ -1055,7 +1063,7 @@ static int _fastcall ratio_bad(double actual, double desired)
          get_resume(sizeof(parmarray),parmarray,0);
       end_resume();
 
-   Engines which allocate a large far memory chunk of their own might
+   Engines which allocate a large memory chunk of their own might
    directly set resume_info, resume_len, calc_status to avoid doubling
    transient memory needs by using these routines.
 
@@ -1092,7 +1100,7 @@ va_dcl
    while (len)
    {
       source_ptr = (BYTE *)va_arg(arg_marker,char *);
-/*      far_memcpy(resume_info+resume_len,source_ptr,len); */
+/*      memcpy(resume_info+resume_len,source_ptr,len); */
       MoveToMemory(source_ptr,(U16)1,(long)len,resume_len,resume_info);
       resume_len += len;
       len = va_arg(arg_marker,int);
@@ -1105,9 +1113,10 @@ int alloc_resume(int alloclen, int version)
 { /* WARNING! if alloclen > 4096B, problems may occur with GIF save/restore */
    if (resume_info != 0) /* free the prior area if there is one */
       MemoryRelease(resume_info);
-   if ((resume_info = MemoryAlloc((U16)sizeof(alloclen), (long)alloclen, FARMEM)) == 0)
+   /* TODO: MemoryAlloc */
+   if ((resume_info = MemoryAlloc((U16)sizeof(alloclen), (long)alloclen, MEMORY)) == 0)
    {
-      static FCODE msg[] = {"\
+      static char msg[] = {"\
 Warning - insufficient free memory to save status.\n\
 You will not be able to resume calculating this image."};
       stopmsg(0,msg);
@@ -1144,7 +1153,7 @@ va_dcl
    while (len)
    {
       dest_ptr = (BYTE *)va_arg(arg_marker,char *);
-/*      far_memcpy(dest_ptr,resume_info+resume_offset,len); */
+/*      memcpy(dest_ptr,resume_info+resume_offset,len); */
       MoveFromMemory(dest_ptr,(U16)1,(long)len,resume_offset,resume_info);
       resume_offset += len;
       len = va_arg(arg_marker,int);
@@ -1213,7 +1222,7 @@ void sleepms_old(long ms)
            10000 per sec independent of CPU speed */
         int i,elapsed;
         scalems = 1L;
-        if(keypressed()) /* check at start, hope to get start of timeslice */
+        if (driver_key_pressed()) /* check at start, hope to get start of timeslice */
            goto sleepexit;
         /* calibrate, assume slow computer first */
         showtempmsg("Calibrating timer");
@@ -1227,7 +1236,7 @@ void sleepms_old(long ms)
             while (t2.time == t1.time && t2.millitm == t1.millitm);
            sleepms_old(10L * SLEEPINIT); /* about 1/4 sec */
            ftimex(&t2);
-           if(keypressed()) {
+           if (driver_key_pressed()) {
               scalems = 0L;
               cleartempmsg();
               goto sleepexit;
@@ -1251,13 +1260,13 @@ void sleepms_old(long ms)
         ms /= 10;
         ftimex(&t1);
         for(;;) {
-           if(keypressed()) break;
+           if (driver_key_pressed()) break;
            ftimex(&t2);
            if ((long)((t2.time-t1.time)*1000 + t2.millitm-t1.millitm) >= ms) break;
         }
     }
     else
-        if(!keypressed()) {
+        if (!driver_key_pressed()) {
            ms *= scalems;
            while(ms-- >= 0);
         }
@@ -1272,7 +1281,7 @@ static void sleepms_new(long ms)
    uclock_t now = usec_clock();
    next_time = now + ms*100;
    while ((now = usec_clock()) < next_time)
-     if(keypressed()) break;
+     if (driver_key_pressed()) break;
 }
 
 void sleepms(long ms)
@@ -1297,7 +1306,7 @@ void wait_until(int index, uclock_t wait_time)
    {   
       uclock_t now;
       while ( (now = usec_clock()) < next_time[index])
-         if(keypressed()) break;
+         if (driver_key_pressed()) break;
       next_time[index] = now + wait_time*100; /* wait until this time next call */
    }
 }
@@ -1323,7 +1332,7 @@ int snd_open(void)
    {
       if((snd_fp = fopen(soundname,"w"))==NULL)
       {
-         static FCODE msg[] = {"Can't open SOUND*.TXT"};
+         static char msg[] = {"Can't open SOUND*.TXT"};
          stopmsg(0,msg);
       }
       else
@@ -1344,14 +1353,14 @@ void w_snd(int tone)
          fprintf(snd_fp,"%-d\n",tone);
    }
    taborhelp = 0;
-   if(!keypressed()) { /* keypressed calls mute() if TAB or F1 pressed */
+   if (!driver_key_pressed()) { /* driver_key_pressed calls driver_sound_off() if TAB or F1 pressed */
                /* must not then call soundoff(), else indexes out of synch */
 /*   if(20 < tone && tone < 15000)  better limits? */
 /*   if(10 < tone && tone < 5000)  better limits? */
-      if(soundon(tone)) {
+      if (driver_sound_on(tone)) {
          wait_until(0,orbit_delay);
-         if(!taborhelp) /* kludge because wait_until() calls keypressed */
-            soundoff();
+         if(!taborhelp) /* kludge because wait_until() calls driver_key_pressed */
+            driver_sound_off();
       }
    }
 }
@@ -1435,7 +1444,7 @@ void scrub_orbit(void)
 {
    int i,j,c;
    int save_sxoffs,save_syoffs;
-   mute();
+   driver_mute();
    save_sxoffs = sxoffs;
    save_syoffs = syoffs;
    sxoffs = syoffs = 0;
@@ -1586,7 +1595,7 @@ void get_julia_attractor (double real, double imag)
       if (integerfractal)   /* remember where it went to */
          lresult = lnew;
       else
-         result =  new;
+         result =  g_new;
      for (i=0;i<10;i++) {
       overflow = 0;
       if(!curfractalspecific->orbitcalc() && !overflow) /* if it stays in the lake */
@@ -1604,10 +1613,10 @@ void get_julia_attractor (double real, double imag)
          }
          else
          {
-            if(fabs(result.x-new.x) < closenuff
-                && fabs(result.y-new.y) < closenuff)
+            if(fabs(result.x-g_new.x) < closenuff
+                && fabs(result.y-g_new.y) < closenuff)
             {
-               attr[attractors] = new;
+               attr[attractors] = g_new;
                attrperiod[attractors] = i+1;
                attractors++;   /* another attractor - coloured lakes ! */
                break;

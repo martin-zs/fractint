@@ -364,23 +364,9 @@ readticker(void)
 ; ************************* Far Segment RAM Support **************************
 ;
 ;
-;       farptr = (char far *)farmemalloc(long bytestoalloc);
-;       (void)farmemfree(farptr);
+;       farptr = (char *)malloc(long bytestoalloc);
+;       (void)free(farptr);
 */
-
-VOIDPTR 
-farmemalloc(len)
-long len;
-{
-    return (VOIDPTR )malloc((unsigned)len);
-}
-
-void
-farmemfree(addr)
-VOIDPTR addr;
-{
-    free((char *)addr);
-}
 
 void erasesegment(segaddress,segvalue)
 int segaddress;
@@ -389,110 +375,11 @@ int segvalue;
 }
 
 
-int
-farread(handle, buf, len)
-int handle;
-VOIDPTR buf;
-unsigned len;
-{
-    return read(handle, buf, len);
-}
-
-int
-farwrite(handle, buf, len)
-int handle;
-VOIDPTR buf;
-unsigned len;
-{
-    return write(handle,buf,len);
-}
-
-
 long
 normalize(ptr)
 char *ptr;
 {
     return (long) ptr;
-}
-
-/*
-; *************** Far string/memory functions *********
-*/
-int
-far_strlen (a)
-char *a;
-{
-    return strlen(a);
-}
-
-
-void
-far_strcpy (a,b)
-char *a,*b;
-{
-    strcpy(a,b);
-}
-
-int
-far_strcmp (a,b)
-char *a, *b;
-{
-    return strcmp(a,b);
-}
-
-int
-far_stricmp(a,b)
-char *a,*b;
-{
-   return stricmp(a,b);
-}
-
-int
-far_strnicmp(a,b,n)
-char *a,*b;
-int n;
-{
-    return strnicmp(a,b,n);
-}
-
-void
-far_strcat (a,b)
-char *a,*b;
-{
-    strcat(a,b);
-}
-
-void
-far_memset ( a,c,len)
-VOIDFARPTR a;
-int c;
-unsigned int len;
-{
-    memset(a,c,len);
-}
-
-void
-far_memcpy ( a,b,len)
-VOIDFARPTR a,b;
-int len;
-{
-    memcpy(a,b,len);
-}
-
-int
-far_memcmp (a,b,len)
-VOIDFARPTR a,b;
-int len;
-{
-    return memcmp(a,b,len);
-}
-
-void
-far_memicmp(a,b,len)
-VOIDFARPTR a,b;
-int len;
-{
-    memicmp(a,b,len);
 }
 
 /* --------------------------------------------------------------------

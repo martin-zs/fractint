@@ -1,9 +1,9 @@
-
-  /* see Fractint.c for a description of the "include"  hierarchy */
+/* see Fractint.c for a description of the "include"  hierarchy */
 #include "port.h"
 #include "prototyp.h"
 #include "helpdefs.h"
 #include "fractype.h"
+#include "drivers.h"
 
 /* these need to be accessed elsewhere for saving data */
 double mxminfp = -.83;
@@ -70,7 +70,7 @@ JulibrotSetup(void)
 #ifndef XFRACT
    if (colors < 255)
    {
-      static FCODE msg[] =
+      static char msg[] =
       {"Sorry, but Julibrots require a 256-color video mode"};
       stopmsg(0, msg);
       return (0);
@@ -103,8 +103,8 @@ JulibrotSetup(void)
       long jxmin, jxmax, jymin, jymax, mxmax, mymax;
       if (fractalspecific[neworbittype].isinteger == 0)
       {
-         static FCODE msg[] = {"Julibrot orbit type isinteger mismatch"};
-         stopmsg(0, (char far *)msg);
+         static char msg[] = {"Julibrot orbit type isinteger mismatch"};
+         stopmsg(0, (char *)msg);
       }
       if (fractalspecific[neworbittype].isinteger > 1)
          bitshift = fractalspecific[neworbittype].isinteger;
@@ -235,7 +235,7 @@ zline(long x, long y)
       lold.y = jy;
       jbc.x = mx;
       jbc.y = my;
-      if (keypressed())
+      if (driver_key_pressed())
          return (-1);
       ltempsqrx = multiply(lold.x, lold.x, bitshift);
       ltempsqry = multiply(lold.y, lold.y, bitshift);
@@ -335,11 +335,11 @@ zlinefp(double x, double y)
       if (keychk++ > 500)
       {
          keychk = 0;
-         if (keypressed())
+         if (driver_key_pressed())
             return (-1);
       }
 #else
-      if (keypressed())
+      if (driver_key_pressed())
          return (-1);
 #endif
       tempsqrx = sqr(old.x);

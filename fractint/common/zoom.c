@@ -44,10 +44,10 @@ void dispbox(void)
    int boxc = (colors-1)&boxcolor;
    unsigned char *values = (unsigned char *)boxvalues;
    int rgb[3];
-   xorTARGA = 1;
+   //xorTARGA = 1;
    for(i=0;i<boxcount;i++)
    {
-      if(istruecolor && truemode)
+      if(g_is_true_color && truemode)
       {
          gettruecolor(boxx[i]-sxoffs,boxy[i]-syoffs,&rgb[0],&rgb[1],&rgb[2]);
          puttruecolor(boxx[i]-sxoffs,boxy[i]-syoffs,
@@ -57,7 +57,7 @@ void dispbox(void)
          values[i] = (unsigned char)getcolor(boxx[i]-sxoffs,boxy[i]-syoffs);
    }
 /* There is an interaction between getcolor and putcolor, so separate them */
-   if (!(istruecolor && truemode)) /* don't need this for truecolor with truemode set */
+   if (!(g_is_true_color && truemode)) /* don't need this for truecolor with truemode set */
       for(i=0;i<boxcount;i++)
       {
          if (colors == 2)
@@ -65,14 +65,14 @@ void dispbox(void)
          else
             putcolor(boxx[i]-sxoffs,boxy[i]-syoffs,boxc);
       }
-   xorTARGA = 0;
+   //xorTARGA = 0;
 }
 
 void clearbox(void)
 {
    int i;
-   xorTARGA = 1;
-   if(istruecolor && truemode)
+   //xorTARGA = 1;
+   if(g_is_true_color && truemode)
    {
       dispbox();
    }
@@ -84,7 +84,7 @@ void clearbox(void)
          putcolor(boxx[i]-sxoffs,boxy[i]-syoffs,values[i]);
       }
    }
-   xorTARGA = 0;
+   //xorTARGA = 0;
 }
 #endif
 
@@ -306,7 +306,7 @@ void moveboxf(double dx, double dy)
             zby = (double)row/dysize; }
         }
 #ifndef XFRACT
-    if (video_scroll != 0) {  /* scroll screen center to the box center */
+    if (g_video_scroll != 0) {  /* scroll screen center to the box center */
         col = (int)((zbx + zwidth/2)*(dxsize + PIXELROUND)) + sxoffs;
         row = (int)((zby + zdepth/2)*(dysize + PIXELROUND)) + syoffs;
         switch (zscroll) {
@@ -314,9 +314,9 @@ void moveboxf(double dx, double dy)
                 scroll_center(col,row);
                 break;
             case 1:  /* relaxed - as the zoombox center leaves the screen */
-                if ((col -= video_startx) > 0 && (col -= vesa_xres - 1) < 0)
+                if ((col -= g_video_start_x) > 0 && (col -= g_vesa_x_res - 1) < 0)
                     col = 0;
-                if ((row -= video_starty) > 0 && (row -= vesa_yres - 1) < 0)
+                if ((row -= g_video_start_y) > 0 && (row -= g_vesa_y_res - 1) < 0)
                     row = 0;
                 if (col != 0 || row != 0)
                     scroll_relative(col, row);
@@ -664,10 +664,10 @@ int init_pan_or_recalc(int do_zoomout) /* decide to recalc, or to chg worklist &
     if (col > 0)
         listfull |= add_worklist(xdots-col,xdots-1,xdots-col,i,j,i,0,0);
     if (listfull != 0) {
-    static FCODE msg[] = {"\
+    static char msg[] = {"\
 Tables full, can't pan current image.\n\
 Cancel resumes old image, continue pans and calculates a new one."};
-        if (stopmsg(2,msg)) {
+        if (stopmsg(STOPMSG_CANCEL,msg)) {
             zwidth = 0; /* cancel the zoombox */
             drawbox(1); }
         else

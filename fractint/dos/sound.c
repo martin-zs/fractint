@@ -303,7 +303,7 @@ int initfm(void)
 int k;
    k = ReadBlasterEnv(&IOport);
    if (k == 1) { /* BLASTER environment variable not set */
-      static FCODE msg[] = {"No sound hardware or Blaster variable not set"};
+      static char msg[] = {"No sound hardware or Blaster variable not set"};
       soundflag = (soundflag & 0xef); /* 1110 1111 */
       stopmsg(0,msg);
       return(0); /* no card found */
@@ -482,8 +482,8 @@ void buzzer(int tone)
 }
 
 #define LOADCHOICES(X)     {\
-   static FCODE tmp[] = { X };\
-   far_strcpy(ptr,(char far *)tmp);\
+   static char tmp[] = { X };\
+   strcpy(ptr,(char *)tmp);\
    choices[++k]= ptr;\
    ptr += sizeof(tmp);\
    }
@@ -491,12 +491,12 @@ void buzzer(int tone)
 int get_sound_params(void)
 {
 /* routine to get sound settings  */
-static FCODE o_hdg[] = {"Sound Control Screen"};
+static char o_hdg[] = {"Sound Control Screen"};
 char *soundmodes[] = {s_off,s_beep,s_x,s_y,s_z};
 int old_soundflag,old_orbit_delay;
 char hdg[sizeof(o_hdg)];
-char far *choices[15];
-char far *ptr;
+char *choices[15];
+char *ptr;
 struct fullscreenvalues uvalues[15];
 int k;
 int i;
@@ -519,8 +519,8 @@ old_start_showorbit = start_showorbit;
 get_sound_restart:
    menu2 = 0;
    k = -1;
-   far_strcpy(hdg,o_hdg);
-   ptr = (char far *)MK_FP(extraseg,0);
+   strcpy(hdg,o_hdg);
+   ptr = (char *)extraseg;
 
    LOADCHOICES("Sound (off, beep, x, y, z)");
    uvalues[k].type = 'l';
@@ -619,11 +619,11 @@ get_sound_restart:
 
 static int get_scale_map(void)
 {
-static FCODE o_hdg[] = {"Scale Mapping Screen"};
+static char o_hdg[] = {"Scale Mapping Screen"};
 int oldhelpmode;
 char hdg[sizeof(o_hdg)];
-char far *choices[15];
-char far *ptr;
+char *choices[15];
+char *ptr;
 struct fullscreenvalues uvalues[15];
 int k;
 int i, j;
@@ -631,8 +631,8 @@ int i, j;
    menu2++;
 get_map_restart:
    k = -1;
-   far_strcpy(hdg,o_hdg);
-   ptr = (char far *)MK_FP(extraseg,0);
+   strcpy(hdg,o_hdg);
+   ptr = (char *)extraseg;
 
    LOADCHOICES("Scale map C (1)");
    uvalues[k].type = 'i';
@@ -723,12 +723,12 @@ get_map_restart:
 
 static int get_music_parms(void)
 {
-static FCODE o_hdg[] = {"FM Synth Card Control Screen"};
+static char o_hdg[] = {"FM Synth Card Control Screen"};
 char *attenmodes[] = {s_none,s_low,s_mid,s_high};
 int oldhelpmode;
 char hdg[sizeof(o_hdg)];
-char far *choices[11];
-char far *ptr;
+char *choices[11];
+char *ptr;
 struct fullscreenvalues uvalues[11];
 int k;
 int i;
@@ -736,8 +736,8 @@ int i;
    menu2++;
 get_music_restart:
    k = -1;
-   far_strcpy(hdg,o_hdg);
-   ptr = (char far *)MK_FP(extraseg,0);
+   strcpy(hdg,o_hdg);
+   ptr = (char *)extraseg;
 
    LOADCHOICES("Polyphony 1..9");
    uvalues[k].type = 'i';
