@@ -78,7 +78,7 @@
  */
 
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 #include <bios.h>
 #include <io.h>
 #endif
@@ -87,7 +87,7 @@
 #include <sys/types.h>
 #include <errno.h>
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 #include <conio.h>
 #endif
 
@@ -103,44 +103,45 @@
 #include "port.h"
 #include "prototyp.h"
 #include "fractype.h"
+#include "drivers.h"
 
 /* macros for near-space-saving purposes */
 /* CAE 9211 changed these for BC++ */
 
 #define PRINTER_PRINTF1(X) {\
-   static FCODE tmp[] = X;\
+   static char tmp[] = X;\
    Printer_printf(tmp);\
 }
 
 #define PRINTER_PRINTF2(X,Y) {\
-   static FCODE tmp[] = X;\
+   static char tmp[] = X;\
    Printer_printf(tmp,(Y));\
 }
 #define PRINTER_PRINTF3(X,Y,Z) {\
-   static FCODE tmp[] = X;\
+   static char tmp[] = X;\
    Printer_printf(tmp,(Y),(Z));\
 }
 #define PRINTER_PRINTF4(X,Y,Z,W) {\
-   static FCODE tmp[] = X;\
+   static char tmp[] = X;\
    Printer_printf(tmp,(Y),(Z),(W));\
 }
 #define PRINTER_PRINTF5(X,Y,Z,W,V) {\
-   static FCODE tmp[] = X;\
+   static char tmp[] = X;\
    Printer_printf(tmp,(Y),(Z),(W),(V));\
 }
 #define PRINTER_PRINTF6(X,Y,Z,W,V,U) {\
-   static FCODE tmp[] = X;\
+   static char tmp[] = X;\
    Printer_printf(tmp,(Y),(Z),(W),(V),(U));\
 }
 #define PRINTER_PRINTF7(X,Y,Z,W,V,U,T) {\
-   static FCODE tmp[] = X;\
+   static char tmp[] = X;\
    Printer_printf(tmp,(Y),(Z),(W),(V),(U),(T));\
 }
 
 /********      PROTOTYPES     ********/
 
 #ifndef USE_VARARGS
-static void Printer_printf(char far *fmt,...);
+static void Printer_printf(char *fmt,...);
 #else
 static void Printer_printf();
 #endif
@@ -210,7 +211,7 @@ static int repeat, item, count, repeatitem, itembuf[128], rlebitsperitem,
  *         (hans@garfield.metal2.polymtl.ca)
  */
 
-static UIFCODE pj_patterns [] = {
+static unsigned int pj_patterns [] = {
       0x7777,0x0000,0x1111,0x2222,0x3333,0x4444,0x5555,0x6666,
              0x0001,0x0002,0x0003,0x0004,0x0005,0x0006,0x0007,
       0x0110,0x0120,0x0130,0x0140,0x0150,0x0160,0x0170,0x0220,
@@ -264,7 +265,7 @@ static UIFCODE pj_patterns [] = {
  *           11 <- changed blue's value from this
  */
 #ifndef XFRACT
-static BFCODE  pj_reds[] = {
+static BYTE  pj_reds[] = {
         229,  2,145,  7,227,  9,136, 5,
              17, 10, 17, 10, 16, 10, 16, 29, 16, 32, 15, 30, 15, 31,  9,
          15, 10, 15,  9, 13, 37, 15, 32, 16, 36, 10, 15,  9, 13, 30, 15,
@@ -293,7 +294,7 @@ static BFCODE  pj_reds[] = {
  *                           65 <- changed green from this
  */
 
-static BFCODE pj_greens[] = {
+static BYTE pj_greens[] = {
         224,  2, 20, 72,211, 10, 11, 55,
              12, 15, 19, 11, 11, 14, 17, 14, 18, 22, 12, 13, 16, 19, 24,
          29, 16, 17, 23, 27, 41, 17, 22, 29, 39, 11, 10, 14, 14, 11, 14,
@@ -321,7 +322,7 @@ static BFCODE pj_greens[] = {
  *                           56 <- changed green from this
  *                                          163 <- changed cyan from this
  */
-static BFCODE pj_blues[] = {
+static BYTE pj_blues[] = {
         216,  2, 34, 48, 33, 73, 64,168,
              18, 19, 18, 20, 19, 22, 21, 22, 24, 22, 26, 24, 27, 24, 27,
          24, 29, 27, 31, 29, 22, 27, 25, 30, 28, 31, 29, 33, 33, 28, 32,
@@ -358,26 +359,26 @@ static FILE *PRFILE;
 #define TONES 17                   /* Number of PostScript halftone styles */
 
 #if 1
-static FCODE ht00[] = {"D mul exch D mul add 1 exch sub"};
-static FCODE ht01[] = {"abs exch abs 2 copy add 1 gt {1 sub D mul exch 1 sub D mul add 1 sub} {D mul exch D mul add 1 exch sub} ifelse"};
-static FCODE ht02[] = {"D mul exch D mul add 1 sub"};
-static FCODE ht03[] = {"D mul exch D mul add 0.6 exch sub abs -0.5 mul"};
-static FCODE ht04[] = {"D mul exch D mul add 0.6 exch sub abs 0.5 mul"};
-static FCODE ht05[] = {"add 2 div"};
-static FCODE ht06[] = {"2 exch sub exch abs 2 mul sub 3 div"};
-static FCODE ht07[] = {"2 copy abs exch abs gt {exch} if pop 2 mul 1 exch sub 3.5 div"};
-static FCODE ht08[] = {"abs exch abs add 1 exch sub"};
-static FCODE ht09[] = {"pop"};
-static FCODE ht10[] = {"/wy exch def 180 mul cos 2 div wy D D D mul mul sub mul wy add 180 mul cos"};
-static FCODE ht11[] = {"D 5 mul 8 div mul exch D mul exch add sqrt 1 exch sub"};
-static FCODE ht12[] = {"D mul D mul exch D mul D mul add 1 exch sub"};
-static FCODE ht13[] = {"D mul exch D mul add sqrt 1 exch sub"};
-static FCODE ht14[] = {"abs exch abs 2 copy gt {exch} if 1 sub D 0 eq {0.01 add} if atan 360 div"};
-static FCODE ht15[] = {"pop pop rand 1 add 10240 mod 5120 div 1 exch sub"};
-static FCODE ht16[] = {"pop abs 2 mul 1 exch sub"};
+static char ht00[] = {"D mul exch D mul add 1 exch sub"};
+static char ht01[] = {"abs exch abs 2 copy add 1 gt {1 sub D mul exch 1 sub D mul add 1 sub} {D mul exch D mul add 1 exch sub} ifelse"};
+static char ht02[] = {"D mul exch D mul add 1 sub"};
+static char ht03[] = {"D mul exch D mul add 0.6 exch sub abs -0.5 mul"};
+static char ht04[] = {"D mul exch D mul add 0.6 exch sub abs 0.5 mul"};
+static char ht05[] = {"add 2 div"};
+static char ht06[] = {"2 exch sub exch abs 2 mul sub 3 div"};
+static char ht07[] = {"2 copy abs exch abs gt {exch} if pop 2 mul 1 exch sub 3.5 div"};
+static char ht08[] = {"abs exch abs add 1 exch sub"};
+static char ht09[] = {"pop"};
+static char ht10[] = {"/wy exch def 180 mul cos 2 div wy D D D mul mul sub mul wy add 180 mul cos"};
+static char ht11[] = {"D 5 mul 8 div mul exch D mul exch add sqrt 1 exch sub"};
+static char ht12[] = {"D mul D mul exch D mul D mul add 1 exch sub"};
+static char ht13[] = {"D mul exch D mul add sqrt 1 exch sub"};
+static char ht14[] = {"abs exch abs 2 copy gt {exch} if 1 sub D 0 eq {0.01 add} if atan 360 div"};
+static char ht15[] = {"pop pop rand 1 add 10240 mod 5120 div 1 exch sub"};
+static char ht16[] = {"pop abs 2 mul 1 exch sub"};
 #endif
 
-static FCODE *HalfTone[TONES]=  {ht00,ht01,ht02,ht03,ht04,ht05,ht06,ht07,
+static char *HalfTone[TONES]=  {ht00,ht01,ht02,ht03,ht04,ht05,ht06,ht07,
     ht08,ht09,ht10,ht11,ht12,ht13,ht14,ht15,ht16};
 
 #if 0
@@ -426,7 +427,7 @@ Print_Screen (void)
                                 /* by MAXPIXELS pic took over 2 hours to*/
                                 /* print.  It takes about 15 min now*/
     int BuffSiz;                /* how much of buff[] we'll use   */
-    char far *es;               /* pointer to extraseg for buffer */
+    char *es;               /* pointer to extraseg for buffer */
     int i,x,k,                  /* more indices                   */
         imax,                   /* maximum i value (ydots/8)      */
         res,                    /* resolution we're gonna' use    */
@@ -465,12 +466,13 @@ Print_Screen (void)
       }
 
 #ifdef XFRACT
-      putstring(3,0,0,"Printing to:");
-      putstring(4,0,0,PrintName);
-      putstring(5,0,0,"               ");
+      driver_put_string(3,0,0,"Printing to:");
+      driver_put_string(4,0,0,PrintName);
+      driver_put_string(5,0,0,"               ");
 #endif
 
-    es=MK_FP(extraseg,0);
+   /* TODO: allocate real memory, not reuse shared segment */
+    es=extraseg;
 
     LPTn=LPTNumber-1;
     if (((LPTn>2)&&(LPTn<10))||
@@ -523,7 +525,7 @@ Print_Screen (void)
                a tolerable mapping of screen colors to printer colors on
                my machine.  There are two sources of error in getting colors
                to come out right.
-               1) Must match some dacbox values to the 330 PaintJet dithered
+               1) Must match some g_dac_box values to the 330 PaintJet dithered
                   colors so that they look the same.  For this we use HP's
                   color values in printera.asm and modify by gamma separately
                   for each of red/green/blue.  This mapping is ok if the
@@ -541,7 +543,7 @@ Print_Screen (void)
             BYTE convert[256];
             BYTE scale[64];
 
-            BYTE far *table_ptr = NULL;
+            BYTE *table_ptr = NULL;
             res = (res < 150) ? 90 : 180;   /* 90 or 180 dpi */
             if (Printer_SetScreen == 0) {
                 Printer_SFrequency = 21;  /* default red gamma */
@@ -567,9 +569,8 @@ Print_Screen (void)
                 gamma_val = 10.0 / i;
                 gammadiv = pow(255,gamma_val) / 255;
                 for (i = 0; i < 256; ++i) { /* build gamma conversion table */
-                    static FCODE msg[]={"Calculating color translation"};
                     if ((i & 15) == 15)
-                        thinking(1,msg);
+                        thinking(1, "Calculating color translation");
                     convert[i] = (BYTE)((pow((double)i,gamma_val) / gammadiv) + 0.5);
                     }
                 for (i = 0; i < 330; ++i) {
@@ -592,9 +593,9 @@ Print_Screen (void)
             /* Following code and the later code which writes to Paintjet    */
             /* using pj_patterns was adapted from Lee Crocker's PGIF program */
             for (i = 0; i < colors; ++i) { /* find nearest match colors */
-                r = scale[dacbox[i][0]];
-                g = scale[dacbox[i][1]];
-                b = scale[dacbox[i][2]];
+                r = scale[g_dac_box[i][0]];
+                g = scale[g_dac_box[i][1]];
+                b = scale[g_dac_box[i][2]];
                 ldist = 9999999L;
                 /* check variance vs each PaintJet color */
                 /* if high-res 8 color mode, consider only 1st 8 colors */
@@ -616,19 +617,18 @@ Print_Screen (void)
                 color_test();
                 return;
             }  */
-            if (dotmode != 11) { /* preview */
-                static char far msg[] = {"Preview. Enter=go, Esc=cancel, k=keep"};
-                memcpy(triple[1],dacbox,768);
+            if (!driver_diskp()) { /* preview */
+                memcpy(triple[1],g_dac_box,768);
                 for (i = 0; i < colors; ++i)
                     for (j = 0; j < 3; ++j)
-                        dacbox[i][j] = (BYTE)triple[0][j][pj_color_ptr[i]];
+                        g_dac_box[i][j] = (BYTE)triple[0][j][pj_color_ptr[i]];
                 spindac(0,1);
-                texttempmsg(msg);
+                texttempmsg("Preview. Enter=go, Esc=cancel, k=keep");
                 i = getakeynohelp();
                 if (i == 'K' || i == 'k') {
                     return;
                 }
-                memcpy(dacbox,triple[1],768);
+                memcpy(g_dac_box,triple[1],768);
                 spindac(0,1);
                 if (i == 0x1B) {
                     return;
@@ -663,7 +663,7 @@ Print_Screen (void)
 
     graphics_init(ptrid,res,EndOfLine);
 
-    if (keypressed()) {         /* one last chance before we start...*/
+    if (driver_key_pressed()) {         /* one last chance before we start...*/
         return;
         }
 
@@ -674,9 +674,9 @@ Print_Screen (void)
 
         case 1:                        /* HP LaserJet (et al)            */
             imax=(ydots/8)-1;
-            for (x=0;((x<xdots)&&(!keypressed()));x+=BuffSiz) {
-                for (i=imax;((i>=0)&&(!keypressed()));i--) {
-                    for (y=7;((y>=0)&&(!keypressed()));y--) {
+            for (x=0;((x<xdots)&&(!driver_key_pressed()));x+=BuffSiz) {
+                for (i=imax;((i>=0)&&(!driver_key_pressed()));i--) {
+                    for (y=7;((y>=0)&&(!driver_key_pressed()));y--) {
                         for (j=0;j<BuffSiz;j++) {
                             if ((x+j)<xdots) {
                                 buff[j]<<=1;
@@ -689,20 +689,20 @@ Print_Screen (void)
                         buff[j]=0;
                         }
                     }
-                for (j=0;((j<BuffSiz)&&(!keypressed()));j++) {
+                for (j=0;((j<BuffSiz)&&(!driver_key_pressed()));j++) {
                     if ((x+j)<xdots) {
                         PRINTER_PRINTF2("\033*b%iW",imax+1);
-                        for (i=imax;((i>=0)&&(!keypressed()));i--) {
+                        for (i=imax;((i>=0)&&(!driver_key_pressed()));i--) {
                             printer(*(es+j+BuffSiz*i));
                             }
                         }
                     }
                 }
-            if (!keypressed()) PRINTER_PRINTF1("\033*rB\014");
+            if (!driver_key_pressed()) PRINTER_PRINTF1("\033*rB\014");
             break;
 
         case 2:                        /* IBM Graphics/Epson             */
-            for (x=0;((x<xdots)&&(!keypressed()));x+=8) {
+            for (x=0;((x<xdots)&&(!driver_key_pressed()));x+=8) {
                 switch (res) {
                     case 60:  Printer_printf("\033K"); break;
                     case 120: Printer_printf("\033L"); break;
@@ -720,16 +720,16 @@ Print_Screen (void)
                         }
                     printer(buff[0]);
                     }
-                if (keypressed()) break;
+                if (driver_key_pressed()) break;
                 Printer_printf(EndOfLine);
                 }
-            if (!keypressed()) printer(12);
+            if (!driver_key_pressed()) printer(12);
             break;
 
         case 3:                        /* IBM Graphics/Epson Color      */
             high=ydots/256;
             low=ydots%256;
-            for (x=0;((x<xdots)&&(!keypressed()));x+=8)
+            for (x=0;((x<xdots)&&(!driver_key_pressed()));x+=8)
                 {
                 for (k=0; k<8; k++)  /* colors */
                     {
@@ -765,23 +765,22 @@ Print_Screen (void)
         case 4:                       /* HP PaintJet       */
             {
             unsigned int fetchrows,fetched;
-            BYTE far *pixels = NULL, far *nextpixel = NULL;
+            BYTE *pixels = NULL, *nextpixel = NULL;
             /* for reasonable speed when using disk video, try to fetch
                and store the info for 8 columns at a time instead of
                doing getcolor calls down each column in separate passes */
             fetchrows = 16;
             for(;;) {
-                if ((pixels = (BYTE far *)farmemalloc((long)(fetchrows)*ydots)) != NULL)
+                if ((pixels = (BYTE *)malloc((long)(fetchrows)*ydots)) != NULL)
                    break;
                 if ((fetchrows >>= 1) == 0) {
-                    static char far msg[]={"insufficient memory"};
-                    stopmsg(0,msg);
+                    stopmsg(0, "Insufficient memory");
                     break;
                 }
             }
             if (!pixels) break;
             fetched = 0;
-            for (x = 0; (x < xdots && !keypressed()); ++x) {
+            for (x = 0; (x < xdots && !driver_key_pressed()); ++x) {
                 if (fetched == 0) {
                     if ((fetched = xdots-x) > fetchrows)
                         fetched = fetchrows;
@@ -855,13 +854,13 @@ Print_Screen (void)
                 }
             }
             PRINTER_PRINTF1("\033*r0B"); /* end raster graphics */
-            if (!keypressed()) {
+            if (!driver_key_pressed()) {
                if (debugflag != 600)
                   printer(12); /* form feed */
                else
                   Printer_printf("\n\n");
             }
-            farmemfree(pixels);
+            free(pixels);
             break;
             }
 
@@ -872,36 +871,36 @@ Print_Screen (void)
             if (!ColorPS) {
               for (i=0; i<256; ++i)
                 if (Printer_Compress) {
-                    convert[i] = (char)((.3*255./63. * (double)dacbox[i][0])+
-                                        (.59*255./63. * (double)dacbox[i][1])+
-                                        (.11*255./63. * (double)dacbox[i][2]));
+                    convert[i] = (char)((.3*255./63. * (double)g_dac_box[i][0])+
+                                        (.59*255./63. * (double)g_dac_box[i][1])+
+                                        (.11*255./63. * (double)g_dac_box[i][2]));
                 } else
                 {
                     sprintf(&convert[2*i], "%02X",
-                              (int)((.3*255./63. * (double)dacbox[i][0])+
-                                    (.59*255./63. * (double)dacbox[i][1])+
-                                    (.11*255./63. * (double)dacbox[i][2])));
+                              (int)((.3*255./63. * (double)g_dac_box[i][0])+
+                                    (.59*255./63. * (double)g_dac_box[i][1])+
+                                    (.11*255./63. * (double)g_dac_box[i][2])));
                 }
             }
             i=0;
             j=0;
-            for (y=0;((y<ydots)&&(!keypressed()));y++)
+            for (y=0;((y<ydots)&&(!driver_key_pressed()));y++)
             {   unsigned char bit8 = 0;
                 if (Printer_Compress) {
                     if (ColorPS) {
                         for (x=0;x<xdots;x++) {
                             k=getcolor(x,y);
-                            rleputxelval((int)dacbox[k][0]<<2);
+                            rleputxelval((int)g_dac_box[k][0]<<2);
                         }
                         rleflush();
                         for (x=0;x<xdots;x++) {
                             k=getcolor(x,y);
-                            rleputxelval((int)dacbox[k][1]<<2);
+                            rleputxelval((int)g_dac_box[k][1]<<2);
                         }
                         rleflush();
                         for (x=0;x<xdots;x++) {
                             k=getcolor(x,y);
-                            rleputxelval((int)dacbox[k][2]<<2);
+                            rleputxelval((int)g_dac_box[k][2]<<2);
                         }
                         rleflush();
                      } else {
@@ -934,9 +933,9 @@ Print_Screen (void)
                         k=getcolor(x,y);
                         if (ColorPS)
                           {
-                          sprintf(&buff[i], "%02X%02X%02X", dacbox[k][0]<<2,
-                                                            dacbox[k][1]<<2,
-                                                            dacbox[k][2]<<2);
+                          sprintf(&buff[i], "%02X%02X%02X", g_dac_box[k][0]<<2,
+                                                            g_dac_box[k][1]<<2,
+                                                            g_dac_box[k][2]<<2);
                           i+=6;
                           }
                         else
@@ -995,11 +994,11 @@ Print_Screen (void)
             for (i=0;i<3;i++)
             {
               PRINTER_PRINTF4("%sSP %d;%s\0",EndOfLine,(i+1),EndOfLine);
-              for (y=0;(y<ydots)&&(!keypressed());y++)
+              for (y=0;(y<ydots)&&(!driver_key_pressed());y++)
               {
                 for (x=0;x<xdots;x++)
                 {
-                  j=dacbox[getcolor(x,y)][i];
+                  j=g_dac_box[getcolor(x,y)][i];
                   if (j>0)
                   {
                     switch(Printer_SStyle)
@@ -1044,7 +1043,7 @@ Print_Screen (void)
         outp((LPTn==30) ? 0x3F9 : 0x2F9,0x00);
         }
 #else
-    putstring(5,0,0,"Printing done\n");
+    driver_put_string(5,0,0,"Printing done\n");
 #endif
 }
 
@@ -1174,29 +1173,29 @@ static void _fastcall graphics_init(int ptrid,int res,char *EndOfLine)
                 if (Printer_SetScreen==1)
                     {
 #ifndef XFRACT
-                    static char far fmt_str[] = "%d %d {%Fs}%s";
+                    static char fmt_str[] = "%d %d {%Fs}%s";
 #else
                     static char fmt_str[] = "%d %d {%s}%s";
 #endif
                     Printer_printf(fmt_str,
                                        Printer_RFrequency,
                                        Printer_RAngle,
-                                       (char far *)HalfTone[Printer_RStyle],
+                                       (char *)HalfTone[Printer_RStyle],
                                        EndOfLine);
                     Printer_printf(fmt_str,
                                        Printer_GFrequency,
                                        Printer_GAngle,
-                                       (char far *)HalfTone[Printer_GStyle],
+                                       (char *)HalfTone[Printer_GStyle],
                                        EndOfLine);
                     Printer_printf(fmt_str,
                                        Printer_BFrequency,
                                        Printer_BAngle,
-                                       (char far *)HalfTone[Printer_BStyle],
+                                       (char *)HalfTone[Printer_BStyle],
                                        EndOfLine);
                     Printer_printf(fmt_str,
                                        Printer_SFrequency,
                                        Printer_SAngle,
-                                       (char far *)HalfTone[Printer_SStyle],
+                                       (char *)HalfTone[Printer_SStyle],
                                        EndOfLine);
                     PRINTER_PRINTF2("setcolorscreen%s", EndOfLine);
                     }
@@ -1220,13 +1219,13 @@ static void _fastcall graphics_init(int ptrid,int res,char *EndOfLine)
                       PRINTER_PRINTF5("%d %d {%Fs} setscreen%s",
                                      Printer_SFrequency,
                                      Printer_SAngle,
-                                     (char far *)HalfTone[Printer_SStyle],
+                                     (char *)HalfTone[Printer_SStyle],
                                      EndOfLine);
 #else
                       Printer_printf("%d %d {%s} setscreen%s",
                                      Printer_SFrequency,
                                      Printer_SAngle,
-                                     (char far *)HalfTone[Printer_SStyle],
+                                     (char *)HalfTone[Printer_SStyle],
                                      EndOfLine);
 #endif
                    }
@@ -1343,7 +1342,7 @@ static void _fastcall print_title(int ptrid,int res,char *EndOfLine)
 /* This function prints a string to the the printer with BIOS calls. */
 
 #ifndef USE_VARARGS
-static void Printer_printf(char far *fmt,...)
+static void Printer_printf(char *fmt,...)
 #else
 static void Printer_printf(va_alist)
 va_dcl
@@ -1357,13 +1356,13 @@ va_list arg;
 #ifndef USE_VARARGS
 va_start(arg,fmt);
 #else
-char far *fmt;
+char *fmt;
 va_start(arg);
-fmt = va_arg(arg,char far *);
+fmt = va_arg(arg,char *);
 #endif
 
 {
-   /* copy far to near string */
+   /* copy to near string */
    char fmt1[100];
    i=0;
    while(fmt[i]) {
@@ -1379,7 +1378,7 @@ if (Print_To_File>0)    /* This is for printing to file */
 else                    /* And this is for printing to printer */
     while (s[x])
         if (printer(s[x++]) != 0)
-            while (!keypressed()) { if (printer(s[x-1])==0) break; }
+            while (!driver_key_pressed()) { if (printer(s[x-1])==0) break; }
 }
 
 /* This function standardizes both _bios_printer and _bios_serialcom
@@ -1390,7 +1389,7 @@ else                    /* And this is for printing to printer */
 static int _fastcall printer(int c)
 {
     if (Print_To_File>0) return ((fprintf(PRFILE,"%c",c))<1);
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
     if (LPTn<9)  return (((_bios_printer(0,LPTn,c))+0x0010)&0x0010);
     if (LPTn<19) return ((_bios_serialcom(1,(LPTn-10),c))&0x9E00);
     if ((LPTn==20)||(LPTn==21))
@@ -1398,7 +1397,7 @@ static int _fastcall printer(int c)
         int PS=0;
         while ((PS & 0xF8) != 0xD8)
             { PS = inp((LPTn==20) ? 0x379 : 0x279);
-              if (keypressed()) return(1); }
+              if (driver_key_pressed()) return(1); }
         outp((LPTn==20) ? 0x37C : 0x27C,c);
         PS = inp((LPTn==20) ? 0x37A : 0x27A);
         outp((LPTn==20) ? 0x37A : 0x27A,(PS | 0x01));
@@ -1409,7 +1408,7 @@ static int _fastcall printer(int c)
         {
         while (((inp((LPTn==30) ? 0x3FE : 0x2FE)&0x30)!=0x30) ||
                ((inp((LPTn==30) ? 0x3FD : 0x2FD)&0x60)!=0x60))
-            { if (keypressed()) return (1); }
+            { if (driver_key_pressed()) return (1); }
         outp((LPTn==30) ? 0x3F8 : 0x2F8,c);
         return(0);
         }
@@ -1427,7 +1426,7 @@ static int _fastcall printer(int c)
 
 static void printer_reset(void)
 {
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
     if (Print_To_File < 1)
         if (LPTn<9)       _bios_printer(1,LPTn,0);
         else if (LPTn<19) _bios_serialcom(3,(LPTn-10),0);
@@ -1440,23 +1439,23 @@ color_test()
 {
    int x,y,color,i,j,xx,yy;
    int bw,cw,bh,ch;
-   setvideomode(videoentry.videomodeax,
-                videoentry.videomodebx,
-                videoentry.videomodecx,
-                videoentry.videomodedx);
+   setvideomode(g_video_entry.videomodeax,
+                g_video_entry.videomodebx,
+                g_video_entry.videomodecx,
+                g_video_entry.videomodedx);
    bw = xdots/25; cw = bw * 2 / 3;
    bh = ydots/10; ch = bh * 2 / 3;
-   dacbox[0][0] = dacbox[0][1] = dacbox[0][2] = 60;
+   g_dac_box[0][0] = g_dac_box[0][1] = g_dac_box[0][2] = 60;
    if (debugflag == 902)
-      dacbox[0][0] = dacbox[0][1] = dacbox[0][2] = 0;
+      g_dac_box[0][0] = g_dac_box[0][1] = g_dac_box[0][2] = 0;
    for (x = 0; x < 25; ++x)
       for (y = 0; y < 10; ++y) {
          if (x < 11) i = (32 - x) * 10 + y;
              else    i = (24 - x) * 10 + y;
          color = x * 10 + y + 1;
-         dacbox[color][0] = triple[0][0][i];
-         dacbox[color][1] = triple[0][1][i];
-         dacbox[color][2] = triple[0][2][i];
+         g_dac_box[color][0] = triple[0][0][i];
+         g_dac_box[color][1] = triple[0][1][i];
+         g_dac_box[color][2] = triple[0][2][i];
          for (i = 0; i < cw; ++i) {
             xx = x * bw + bw / 6 + i;
             yy = y * bh + bh / 6;
@@ -1465,7 +1464,7 @@ color_test()
             }
          }
    spindac(0,1);
-   getakey();
+   driver_get_key();
 }
 **/
 
