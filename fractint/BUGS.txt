@@ -1,0 +1,33 @@
+Alpha 1:
+==========================================================================
+-  Closing the window upon exit:
+    <esc> <y> always seems to work (DOS compatible)
+   The upper right corner button works sometimes - but usually not after 
+   completing a fractal.
+   Sometimes the screen clears to white but the window frame remains.
+
+- Orbits window crashes - probably because you don't do this in disk 
+video mode. :-)
+
+I notice that you have true-color modes in the Select Video Mode page, 
+but FractInt doesn't have the ability to handle these yet, does it?
+
+-----
+
+Slideshow stuff is all messed up.  Works partially, but when we're blocked
+on Windows waiting for an event, we need a way to timeout and return to the
+slideshow.  Could use a SetTimer if we knew the time from the slideshow
+code.  The old slideshow code did a busy wait polling for keyboard input,
+where the slideshow would have a chance to inject a key if enough time
+went by.
+
+INSERT doesn't reset g_text_rbase and g_text_cbase or something.
+
+-----
+
+Alpha 2
+==========================================================================
+The par hypnoteyes2 causes a crash - with either float=yes or no and the 
+program window disappears.
+
+Most pars seem to work.

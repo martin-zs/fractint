@@ -49,13 +49,13 @@ unsigned Max_Args = MAX_ARGS;
 unsigned long number_of_ops, number_of_loads, number_of_stores, number_of_jumps;
 
 struct PEND_OP {
-   void (far *f)(void);
+   void (*f)(void);
    int p;
 };
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 /* reuse an array in the decoder */
-JUMP_CONTROL_ST far *jump_control = (JUMP_CONTROL_ST far *) sizeofstring;
+JUMP_CONTROL_ST *jump_control = (JUMP_CONTROL_ST *) sizeofstring;
 #else
 JUMP_CONTROL_ST jump_control[MAX_JUMPS];
 #endif
@@ -164,7 +164,7 @@ struct token_st {
 #define MAX_LOADS  ((unsigned)(Max_Ops*.8))  /* and 80% can be loads */
 /* PB 901103 made some of the following static for safety */
 
-static struct PEND_OP far *o;
+static struct PEND_OP *o;
 
 #if 0
 static void ops_allocate(void);
@@ -173,13 +173,13 @@ static void vars_allocate(void);
 
 struct var_list_st {
    char name[34];
-   struct var_list_st far * next_item;
-} far * var_list;
+   struct var_list_st * next_item;
+} * var_list;
 
 struct const_list_st {
    _CMPLX complex_const;
-   struct const_list_st far * next_item;
-} far * complx_list, far * real_list;
+   struct const_list_st * next_item;
+} * complx_list, * real_list;
 
 static void parser_allocate(void);
 
@@ -188,21 +188,21 @@ union Arg *Arg1, *Arg2;
 
 /* CAE fp  made some of the following non-static for PARSERA.ASM */
 /* Some of these variables should be renamed for safety */
-union Arg s[20], far * far *Store, far * far *Load;     /* static CAE fp */
+union Arg s[20], * *Store, * *Load;     /* static CAE fp */
 int StoPtr, LodPtr, OpPtr;      /* static CAE fp */
 int var_count;
 int complx_count;
 int real_count;
 
 
-void (far * far *f)(void) = (void(far * far *)(void))0; /* static CAE fp */
+void (* *f)(void) = (void(* *)(void))0; /* static CAE fp */
 
 short int ismand = 1;
 
 unsigned int posp, vsp, LastOp;     /* CAE fp made non-static */
 static unsigned int n, NextOp, InitN;
 static int paren, ExpectingArg;
-struct ConstArg far *v = (struct ConstArg far *)0;      /* was static CAE fp */
+struct ConstArg *v = (struct ConstArg *)0;      /* was static CAE fp */
 int InitLodPtr, InitStoPtr, InitOpPtr, LastInitOp;      /* was static CAE fp */
 static int Delta16;
 double fgLimit;           /* TIW 05-04-91 */
@@ -215,7 +215,7 @@ short uses_p1, uses_p2, uses_p3, uses_p4, uses_p5, uses_jump;
 short uses_ismand;
 unsigned int chars_in_formula;
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 #define ChkLongDenom(denom)\
     if ((denom == 0 || overflow) && save_release > 1920) {\
         overflow = 1;\
@@ -232,10 +232,6 @@ unsigned int chars_in_formula;
     }
 
 #define LastSqr v[4].a
-
-#if (_MSC_VER >= 700)
-#pragma code_seg ("parser1_text")     /* place following in an overlay */
-#endif
 
 /* ParseErrs() defines; all calls to ParseErrs(), or any variable which will
    be used as the argument in a call to ParseErrs(), should use one of these
@@ -280,46 +276,46 @@ unsigned int chars_in_formula;
 #define PE_SECOND_COLON                              34
 #define PE_INVALID_CALL_TO_PARSEERRS                 35
 
-static char far *ParseErrs(int which)
+static char *ParseErrs(int which)
 {
    int lasterr;
-   static FCODE e0[] = {"Should be an Argument"};
-   static FCODE e1[] = {"Should be an Operator"};
-   static FCODE e2[] = {"')' needs a matching '('"};
-   static FCODE e3[] = {"Need more ')'"};
-   static FCODE e4[] = {"Undefined Operator"};
-   static FCODE e5[] = {"Undefined Function"};
-   static FCODE e6[] = {"Table overflow"};
-   static FCODE e7[] = {"Didn't find matching ')' in symmetry declaration"};
-   static FCODE e8[] = {"No '{' found on first line"};
-   static FCODE e9[] = {"Unexpected EOF!"};
-   static FCODE e10[] = {"Symmetry below is invalid, will use NOSYM"};
-   static FCODE e11[] = {"Formula is too large"};
-   static FCODE e12[] = {"Insufficient memory to run fractal type 'formula'"};
-   static FCODE e13[] = {"Could not open file where formula located"};
-   static FCODE e14[] = {"No characters may precede jump instruction"};
-   static FCODE e15[] = {"No characters may follow this jump instruction"};
-   static FCODE e16[] = {"Jump instruction missing required (boolean argument)"};
-   static FCODE e17[] = {"Next jump after \"else\" must be \"endif\""};
-   static FCODE e18[] = {"\"endif\" has no matching \"if\""};
-   static FCODE e19[] = {"Misplaced \"else\" or \"elseif()\""};
-   static FCODE e20[] = {"\"if()\" in initialization has no matching \"endif\""};
-   static FCODE e21[] = {"\"if()\" has no matching \"endif\""};
-   static FCODE e22[] = {"Error in parsing jump statements"};
-   static FCODE e23[] = {"Formula has too many jump commands"};
-   static FCODE e24[] = {"Formula name has too many characters"};
-   static FCODE e25[] = {"Only variables are allowed to left of assignment"};
-   static FCODE e26[] = {"Illegal variable name"};
-   static FCODE e27[] = {"Invalid constant expression"};
-   static FCODE e28[] = {"This character not supported by parser"};
-   static FCODE e29[] = {"Nesting of parentheses exceeds maximum depth"};
-   static FCODE e30[] = {"Unmatched modulus operator \"|\" in this expression"}; /*last one */
-   static FCODE e31[] = {"Can't use function name as variable"};
-   static FCODE e32[] = {"Negative exponent must be enclosed in parens"};
-   static FCODE e33[] = {"Variable or constant exceeds 32 character limit"};
-   static FCODE e34[] = {"Only one \":\" permitted in a formula"};
-   static FCODE e35[] = {"Invalid ParseErrs code"};
-   static PFCODE ErrStrings[] = { e0,e1,e2,e3,e4,e5,
+   static char e0[] = {"Should be an Argument"};
+   static char e1[] = {"Should be an Operator"};
+   static char e2[] = {"')' needs a matching '('"};
+   static char e3[] = {"Need more ')'"};
+   static char e4[] = {"Undefined Operator"};
+   static char e5[] = {"Undefined Function"};
+   static char e6[] = {"Table overflow"};
+   static char e7[] = {"Didn't find matching ')' in symmetry declaration"};
+   static char e8[] = {"No '{' found on first line"};
+   static char e9[] = {"Unexpected EOF!"};
+   static char e10[] = {"Symmetry below is invalid, will use NOSYM"};
+   static char e11[] = {"Formula is too large"};
+   static char e12[] = {"Insufficient memory to run fractal type 'formula'"};
+   static char e13[] = {"Could not open file where formula located"};
+   static char e14[] = {"No characters may precede jump instruction"};
+   static char e15[] = {"No characters may follow this jump instruction"};
+   static char e16[] = {"Jump instruction missing required (boolean argument)"};
+   static char e17[] = {"Next jump after \"else\" must be \"endif\""};
+   static char e18[] = {"\"endif\" has no matching \"if\""};
+   static char e19[] = {"Misplaced \"else\" or \"elseif()\""};
+   static char e20[] = {"\"if()\" in initialization has no matching \"endif\""};
+   static char e21[] = {"\"if()\" has no matching \"endif\""};
+   static char e22[] = {"Error in parsing jump statements"};
+   static char e23[] = {"Formula has too many jump commands"};
+   static char e24[] = {"Formula name has too many characters"};
+   static char e25[] = {"Only variables are allowed to left of assignment"};
+   static char e26[] = {"Illegal variable name"};
+   static char e27[] = {"Invalid constant expression"};
+   static char e28[] = {"This character not supported by parser"};
+   static char e29[] = {"Nesting of parentheses exceeds maximum depth"};
+   static char e30[] = {"Unmatched modulus operator \"|\" in this expression"}; /*last one */
+   static char e31[] = {"Can't use function name as variable"};
+   static char e32[] = {"Negative exponent must be enclosed in parens"};
+   static char e33[] = {"Variable or constant exceeds 32 character limit"};
+   static char e34[] = {"Only one \":\" permitted in a formula"};
+   static char e35[] = {"Invalid ParseErrs code"};
+   static char *ErrStrings[] = { e0,e1,e2,e3,e4,e5,
                                   e6,e7,e8,e9,e10,
                                   e11,e12,e13,e14,e15,
                                   e16,e17,e18,e19,e20,
@@ -330,32 +326,22 @@ static char far *ParseErrs(int which)
    lasterr = sizeof(ErrStrings)/sizeof(ErrStrings[0]) - 1;
    if(which > lasterr)
      which = lasterr;
-   return((char far *)ErrStrings[which]);
+   return((char *)ErrStrings[which]);
 }
-
-#if (_MSC_VER >= 700)
-#pragma code_seg ()       /* back to normal segment */
-#endif
 
 /* use the following when only float functions are implemented to
    get MP math and Integer math */
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 #define FUNCT
 #ifdef FUNCT /* use function form save space - isn't really slower */
 
-#if (_MSC_VER >= 700)
-#pragma code_seg ("mpmath1_text")     /* place following in an overlay */
-#endif
 static void mStkFunct(void (*fct)(void))   /* call lStk via dStk */
 {
    Arg1->d = MPC2cmplx(Arg1->m);
    (*fct)();
    Arg1->m = cmplx2MPC(Arg1->d);
 }
-#if (_MSC_VER >= 700)
-#pragma code_seg ()       /* back to normal segment */
-#endif
 
 static void lStkFunct(void (*fct)(void))   /* call lStk via dStk */
 {
@@ -429,7 +415,7 @@ void dRandom(void)
 
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mRandom(void)
 {
    long x, y;
@@ -474,7 +460,7 @@ void RandomSeed(void)
    Randomized = 1;
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void lStkSRand(void)
 {
    SetRandFnct();
@@ -483,7 +469,7 @@ void lStkSRand(void)
 }
 #endif
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkSRand(void)
 {
    Arg1->l.x = Arg1->m.x.Mant ^ (long)Arg1->m.x.Exp;
@@ -572,7 +558,7 @@ void dStkAbs(void) {
    Arg1->d.y = fabs(Arg1->d.y);
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkAbs(void) {
    if(Arg1->m.x.Exp < 0)
       Arg1->m.x.Exp = -Arg1->m.x.Exp;
@@ -597,7 +583,7 @@ void dStkSqr(void) {
    LastSqr.d.y = 0;
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkSqr(void) {
    LastSqr.m.x = *MPmul(Arg1->m.x, Arg1->m.x);
    LastSqr.m.y = *MPmul(Arg1->m.y, Arg1->m.y);
@@ -627,19 +613,13 @@ void dStkAdd(void) {
    Arg2--;
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 
-#if (_MSC_VER >= 700)
-#pragma code_seg ("mpmath1_text")     /* place following in an overlay */
-#endif
 void mStkAdd(void) {
    Arg2->m = MPCadd(Arg2->m, Arg1->m);
    Arg1--;
    Arg2--;
 }
-#if (_MSC_VER >= 700)
-#pragma code_seg ()       /* back to normal segment */
-#endif
 
 void lStkAdd(void) {
    Arg2->l.x += Arg1->l.x;
@@ -658,18 +638,12 @@ void dStkSub(void) {
    Arg2--;
 }
 
-#ifndef XFRACT
-#if (_MSC_VER >= 700)
-#pragma code_seg ("mpmath1_text")     /* place following in an overlay */
-#endif
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkSub(void) {
    Arg2->m = MPCsub(Arg2->m, Arg1->m);
    Arg1--;
    Arg2--;
 }
-#if (_MSC_VER >= 700)
-#pragma code_seg ()       /* back to normal segment */
-#endif
 
 void lStkSub(void) {
    Arg2->l.x -= Arg1->l.x;
@@ -685,7 +659,7 @@ void dStkConj(void) {
    Arg1->d.y = -Arg1->d.y;
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkConj(void) {
    Arg1->m.y.Exp ^= 0x8000;
 }
@@ -702,7 +676,7 @@ void dStkFloor(void) {
    Arg1->d.y = floor(Arg1->d.y);
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkFloor(void) {
    mStkFunct(dStkFloor);   /* call lStk via dStk */
 }
@@ -726,7 +700,7 @@ void dStkCeil(void) {
    Arg1->d.y = ceil(Arg1->d.y);
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkCeil(void) {
    mStkFunct(dStkCeil);   /* call lStk via dStk */
 }
@@ -748,7 +722,7 @@ void dStkTrunc(void) {
    Arg1->d.y = (int)(Arg1->d.y);
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkTrunc(void) {
    mStkFunct(dStkTrunc);   /* call lStk via dStk */
 }
@@ -777,7 +751,7 @@ void dStkRound(void) {
    Arg1->d.y = floor(Arg1->d.y+.5);
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkRound(void) {
    mStkFunct(dStkRound);   /* call lStk via dStk */
 }
@@ -796,7 +770,7 @@ void dStkZero(void) {
    Arg1->d.y = Arg1->d.x = 0.0;
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkZero(void) {
    Arg1->m.x.Mant = Arg1->m.x.Exp = 0;
    Arg1->m.y.Mant = Arg1->m.y.Exp = 0;
@@ -814,7 +788,7 @@ void dStkOne(void) {
    Arg1->d.y = 0.0;
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkOne(void) {
    Arg1->m = MPCone;
 }
@@ -832,7 +806,7 @@ void dStkReal(void) {
    Arg1->d.y = 0.0;
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkReal(void) {
    Arg1->m.y.Mant = (long)(Arg1->m.y.Exp = 0);
 }
@@ -849,7 +823,7 @@ void dStkImag(void) {
    Arg1->d.y = 0.0;
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkImag(void) {
    Arg1->m.x = Arg1->m.y;
    Arg1->m.y.Mant = (long)(Arg1->m.y.Exp = 0);
@@ -868,7 +842,7 @@ void dStkNeg(void) {
    Arg1->d.y = -Arg1->d.y;
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkNeg(void) {
    Arg1->m.x.Exp ^= 0x8000;
    Arg1->m.y.Exp ^= 0x8000;
@@ -888,18 +862,12 @@ void dStkMul(void) {
    Arg2--;
 }
 
-#ifndef XFRACT
-#if (_MSC_VER >= 700)
-#pragma code_seg ("mpmath1_text")     /* place following in an overlay */
-#endif
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkMul(void) {
    Arg2->m = MPCmul(Arg2->m, Arg1->m);
    Arg1--;
    Arg2--;
 }
-#if (_MSC_VER >= 700)
-#pragma code_seg ()       /* back to normal segment */
-#endif
 
 void lStkMul(void) {
    long x, y;
@@ -923,18 +891,12 @@ void dStkDiv(void) {
    Arg2--;
 }
 
-#ifndef XFRACT
-#if (_MSC_VER >= 700)
-#pragma code_seg ("mpmath1_text")     /* place following in an overlay */
-#endif
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkDiv(void) {
    Arg2->m = MPCdiv(Arg2->m, Arg1->m);
    Arg1--;
    Arg2--;
 }
-#if (_MSC_VER >= 700)
-#pragma code_seg ()       /* back to normal segment */
-#endif
 
 void lStkDiv(void) {
    long x, y, mod, x2, y2;
@@ -960,17 +922,11 @@ void dStkMod(void) {
    Arg1->d.y = 0.0;
 }
 
-#ifndef XFRACT
-#if (_MSC_VER >= 700)
-#pragma code_seg ("mpmath1_text")     /* place following in an overlay */
-#endif
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkMod(void) {
    Arg1->m.x = MPCmod(Arg1->m);
    Arg1->m.y.Mant = (long)(Arg1->m.y.Exp = 0);
 }
-#if (_MSC_VER >= 700)
-#pragma code_seg ()       /* back to normal segment */
-#endif
 
 void lStkMod(void) {
 /*   Arg1->l.x = multiply(Arg2->l.x, Arg1->l.x, bitshift) + */
@@ -1006,8 +962,6 @@ void StkLod(void) {
    *Arg1 = *Load[LodPtr++];
 }
 
-void (*PtrStkLod)(void) = StkLod;
-
 void StkClr(void) {
    s[0] = *Arg1;
    Arg1 = &s[0];
@@ -1027,7 +981,7 @@ void dStkFlip(void) {
    Arg1->d.y = t;
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkFlip(void) {
    struct MP t;
 
@@ -1056,7 +1010,7 @@ void dStkSin(void) {
    Arg1->d.y = cosx*sinhy;
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkSin(void) {
    mStkFunct(dStkSin);   /* call lStk via dStk */
 }
@@ -1089,7 +1043,7 @@ void dStkTan(void) {
    Arg1->d.y = sinhy/denom;
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkTan(void) {
    mStkFunct(dStkTan);   /* call lStk via dStk */
 }
@@ -1123,7 +1077,7 @@ void dStkTanh(void) {
    Arg1->d.y = siny/denom;
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkTanh(void) {
    mStkFunct(dStkTanh);   /* call lStk via dStk */
 }
@@ -1157,7 +1111,7 @@ void dStkCoTan(void) {
    Arg1->d.y = -sinhy/denom;
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkCoTan(void) {
    mStkFunct(dStkCoTan);   /* call lStk via dStk */
 }
@@ -1191,7 +1145,7 @@ void dStkCoTanh(void) {
    Arg1->d.y = -siny/denom;
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkCoTanh(void) {
    mStkFunct(dStkCoTanh);   /* call lStk via dStk */
 }
@@ -1227,7 +1181,7 @@ void dStkRecip(void) {
    Arg1->d.y = -Arg1->d.y/mod;
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkRecip(void) {
    struct MP mod;
    mod = *MPadd(*MPmul(Arg1->m.x, Arg1->m.x),*MPmul(Arg1->m.y, Arg1->m.y));
@@ -1265,7 +1219,7 @@ void dStkSinh(void) {
    Arg1->d.y = coshx*siny;
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkSinh(void) {
    mStkFunct(dStkSinh);   /* call lStk via dStk */
 }
@@ -1293,7 +1247,7 @@ void dStkCos(void) {
    Arg1->d.y = -sinx*sinhy; /* TIW 04-25-91 sign */
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkCos(void) {
    mStkFunct(dStkCos);   /* call lStk via dStk */
 }
@@ -1319,7 +1273,7 @@ void dStkCosXX(void) {
    Arg1->d.y = -Arg1->d.y;
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkCosXX(void) {
    mStkFunct(dStkCosXX);   /* call lStk via dStk */
 }
@@ -1341,7 +1295,7 @@ void dStkCosh(void) {
    Arg1->d.y = sinhx*siny;
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkCosh(void) {
    mStkFunct(dStkCosh);   /* call lStk via dStk */
 }
@@ -1366,7 +1320,7 @@ void dStkASin(void) {
    Arcsinz(Arg1->d, &(Arg1->d));
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkASin(void) {
    mStkFunct(dStkASin);
 }
@@ -1382,7 +1336,7 @@ void dStkASinh(void) {
    Arcsinhz(Arg1->d, &(Arg1->d));
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkASinh(void) {
    mStkFunct(dStkASinh);
 }
@@ -1398,7 +1352,7 @@ void dStkACos(void) {
    Arccosz(Arg1->d, &(Arg1->d));
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkACos(void) {
    mStkFunct(dStkACos);
 }
@@ -1414,7 +1368,7 @@ void dStkACosh(void) {
    Arccoshz(Arg1->d, &(Arg1->d));
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkACosh(void) {
    mStkFunct(dStkACosh);
 }
@@ -1430,7 +1384,7 @@ void dStkATan(void) {
    Arctanz(Arg1->d, &(Arg1->d));
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkATan(void) {
    mStkFunct(dStkATan);
 }
@@ -1446,7 +1400,7 @@ void dStkATanh(void) {
    Arctanhz(Arg1->d, &(Arg1->d));
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkATanh(void) {
    mStkFunct(dStkATanh);
 }
@@ -1462,7 +1416,7 @@ void dStkSqrt(void) {
    Arg1->d = ComplexSqrtFloat(Arg1->d.x, Arg1->d.y);
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkSqrt(void) {
    mStkFunct(dStkSqrt);
 }
@@ -1480,7 +1434,7 @@ void dStkCAbs(void) {
    Arg1->d.y = 0.0;
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkCAbs(void) {
    mStkFunct(dStkCAbs);
 }
@@ -1501,7 +1455,7 @@ void dStkLT(void) {
    Arg2--;
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkLT(void) {
    Arg2->m.x = *fg2MP((long)(MPcmp(Arg2->m.x, Arg1->m.x) == -1), 0);
    Arg2->m.y.Mant = (long)(Arg2->m.y.Exp = 0);
@@ -1526,7 +1480,7 @@ void dStkGT(void) {
    Arg2--;
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkGT(void) {
    Arg2->m.x = *fg2MP((long)(MPcmp(Arg2->m.x, Arg1->m.x) == 1), 0);
    Arg2->m.y.Mant = (long)(Arg2->m.y.Exp = 0);
@@ -1551,7 +1505,7 @@ void dStkLTE(void) {
    Arg2--;
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkLTE(void) {
    int comp;
 
@@ -1579,7 +1533,7 @@ void dStkGTE(void) {
    Arg2--;
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkGTE(void) {
    int comp;
 
@@ -1607,7 +1561,7 @@ void dStkEQ(void) {
    Arg2--;
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkEQ(void) {
    int comp;
 
@@ -1635,7 +1589,7 @@ void dStkNE(void) {
    Arg2--;
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkNE(void) {
    int comp;
 
@@ -1663,7 +1617,7 @@ void dStkOR(void) {
    Arg2--;
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkOR(void) {
    Arg2->m.x = *fg2MP((long)(Arg2->m.x.Mant || Arg1->m.x.Mant), 0);
    Arg2->m.y.Mant = (long)(Arg2->m.y.Exp = 0);
@@ -1688,7 +1642,7 @@ void dStkAND(void) {
    Arg2--;
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkAND(void) {
    Arg2->m.x = *fg2MP((long)(Arg2->m.x.Mant && Arg1->m.x.Mant), 0);
    Arg2->m.y.Mant = (long)(Arg2->m.y.Exp = 0);
@@ -1709,7 +1663,7 @@ void dStkLog(void) {
    FPUcplxlog(&Arg1->d, &Arg1->d);
 }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkLog(void) {
    mStkFunct(dStkLog);   /* call lStk via dStk */
 }
@@ -1738,7 +1692,7 @@ void FPUcplxexp(_CMPLX *x, _CMPLX *z) {
       FPUcplxexp(&Arg1->d, &Arg1->d);
    }
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkExp(void) {
    mStkFunct(dStkExp);   /* call lStk via dStk */
 }
@@ -1756,10 +1710,7 @@ void dStkPwr(void) {
    Arg2--;
 }
 
-#ifndef XFRACT
-#if (_MSC_VER >= 700)
-#pragma code_seg ("mpmath1_text")     /* place following in an overlay */
-#endif
+#if !defined(XFRACT) && !defined(_WIN32)
 void mStkPwr(void) {
    _CMPLX x, y;
 
@@ -1770,9 +1721,6 @@ void mStkPwr(void) {
    Arg1--;
    Arg2--;
 }
-#if (_MSC_VER >= 700)
-#pragma code_seg ()       /* back to normal segment */
-#endif
 
 void lStkPwr(void) {
    _CMPLX x, y;
@@ -1820,7 +1768,7 @@ void dStkJumpOnFalse (void)
 
 void mStkJumpOnFalse (void)
 {
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
    if(Arg1->m.x.Mant == 0)
       StkJump();
    else
@@ -1848,7 +1796,7 @@ void dStkJumpOnTrue (void)
 
 void mStkJumpOnTrue (void)
 {
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
    if(Arg1->m.x.Mant)
       StkJump();
    else
@@ -1871,10 +1819,6 @@ void StkJumpLabel (void)
    jump_index++;
 }
 
-
-#if (_MSC_VER >= 700)
-#pragma code_seg ("parser1_text")     /* place following in an overlay */
-#endif
 
 unsigned SkipWhiteSpace(char *Str) {
    unsigned n, Done;
@@ -1910,7 +1854,7 @@ static int isconst_pair(char *Str) {
    return(answer);
 }
 
-struct ConstArg far *isconst(char *Str, int Len) {
+struct ConstArg *isconst(char *Str, int Len) {
    _CMPLX z;
    unsigned n, j;
    /* next line enforces variable vs constant naming convention */
@@ -1932,7 +1876,7 @@ struct ConstArg far *isconst(char *Str, int Len) {
                uses_p4 = 1;
             if(n == 18)        /* The formula uses 'p5'. */
                uses_p5 = 1;
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
             if(n == 10 || n == 11 || n == 12)
                if(MathType == L_MATH)
                   keybuffer = 'f';
@@ -1946,7 +1890,7 @@ struct ConstArg far *isconst(char *Str, int Len) {
    v[vsp].len = Len;
    v[vsp].a.d.x = v[vsp].a.d.y = 0.0;
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
    /* v[vsp].a should already be zeroed out */
    switch(MathType) {
    case M_MATH:
@@ -1988,7 +1932,7 @@ struct ConstArg far *isconst(char *Str, int Len) {
       case D_MATH:
          v[vsp].a.d = z;
          break;
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
       case M_MATH:
          v[vsp].a.m = cmplx2MPC(z);
          break;
@@ -2005,7 +1949,7 @@ struct ConstArg far *isconst(char *Str, int Len) {
 
 
 struct FNCT_LIST {
-   char far *s;              /* TIW 03-31-91 added far */
+   char *s;              /* TIW 03-31-91 added far */
    void (**ptr)(void);
 };
 
@@ -2015,7 +1959,7 @@ void (*StkTrig1)(void) = dStkSqr;
 void (*StkTrig2)(void) = dStkSinh;
 void (*StkTrig3)(void) = dStkCosh;
 
-char far * JumpList[] = {
+char * JumpList[] = {
    "if",
    "elseif",
    "else",
@@ -2038,8 +1982,8 @@ int isjump(char *Str, int Len)
    int i;
 
    for(i = 0; *JumpList[i]; i++)
-      if(far_strlen(JumpList[i]) == Len)
-         if(!far_strnicmp(JumpList[i], Str, Len))
+      if((int) strlen(JumpList[i]) == Len)
+         if(!strnicmp(JumpList[i], Str, Len))
             return i + 1;
    return 0;
 }
@@ -2048,7 +1992,7 @@ int isjump(char *Str, int Len)
 char maxfn = 0;
 /* TIW 03-30-91 STOP */
 
-struct FNCT_LIST far FnctList[] = {   /* TIW 03-31-91 added far */
+struct FNCT_LIST FnctList[] = {   /* TIW 03-31-91 added far */
    {s_sin,   &StkSin},
    {s_sinh,  &StkSinh},
    {s_cos,   &StkCos},
@@ -2085,29 +2029,24 @@ struct FNCT_LIST far FnctList[] = {   /* TIW 03-31-91 added far */
    {s_round, &StkRound},   /* TIW 06-30-96 */
 };
 
-struct OP_LIST {
-   char *s;
-   void (**ptr)(void);
-};
-
-struct OP_LIST far OPList[] = {
-    {","  , &PtrStkClr  }, /*  0 */
-    {"!=" , &StkNE      }, /*  1 */
-    {"="  , &PtrStkSto  }, /*  2 */
-    {"==" , &StkEQ      }, /*  3 */
-    {"<"  , &StkLT      }, /*  4 */
-    {"<=" , &StkLTE     }, /*  5 */
-    {">"  , &StkGT      }, /*  6 */
-    {">=" , &StkGTE     }, /*  7 */
-    {"|"  , &StkMod     }, /*  8 */
-    {"||" , &StkOR      }, /*  9 */
-    {"&&" , &StkAND     }, /* 10 */
-    {":"  , &PtrEndInit }, /* 11 */
-    {"+"  , &StkAdd     }, /* 12 */
-    {"-"  , &StkSub     }, /* 13 */
-    {"*"  , &StkMul     }, /* 14 */
-    {"/"  , &StkDiv     }, /* 15 */
-    {"^"  , &StkPwr     }, /* 16 */
+char *OPList[] = {
+    ",",	/*  0 */
+    "!=",	/*  1 */
+    "=",	/*  2 */
+    "==",	/*  3 */
+    "<",	/*  4 */
+    "<=",	/*  5 */
+    ">",	/*  6 */
+    ">=",	/*  7 */
+    "|",	/*  8 */
+    "||",	/*  9 */
+    "&&",	/* 10 */
+    ":",	/* 11 */
+    "+",	/* 12 */
+    "-",	/* 13 */
+    "*",	/* 14 */
+    "/",	/* 15 */
+    "^"		/* 16 */
 };
 
 
@@ -2130,12 +2069,10 @@ int whichfn(char *s, int len)
    return(out);
 }
 
-#ifndef XFRACT
-void (far *isfunct(char *Str, int Len))(void)
+#if !defined(XFRACT) && !defined(_WIN32)
+void (*isfunct(char *Str, int Len))(void)
 #else
-void (*isfunct(Str, Len))()
-char *Str;
-int Len;
+void (*isfunct(char *Str, int Len))(void)
 #endif
 {
    unsigned n;
@@ -2144,8 +2081,8 @@ int Len;
    n = SkipWhiteSpace(&Str[Len]);
    if(Str[Len+n] == '(') {
       for(n = 0; n < sizeof(FnctList) / sizeof(struct FNCT_LIST); n++) {
-         if(far_strlen(FnctList[n].s) == Len) {        /* TIW 03-31-91 added far */
-            if(!far_strnicmp(FnctList[n].s, Str, Len)) {  /* TIW 03-31-91 added far */
+         if((int) strlen(FnctList[n].s) == Len) {        /* TIW 03-31-91 added far */
+            if(!strnicmp(FnctList[n].s, Str, Len)) {  /* TIW 03-31-91 added far */
                /* count function variables */
                if((functnum = whichfn(Str, Len)) != 0)    /* TIW 04-22-91 */
                   if(functnum > maxfn)                  /* TIW 04-22-91 */
@@ -2210,7 +2147,7 @@ struct SYMETRY {
 };
 
 static int ParseStr(char *Str, int pass) {
-   struct ConstArg far *c;
+   struct ConstArg *c;
    int ModFlag = 999, Len, Equals = 0, Mod[20], mdstk = 0;
    int jumptype;
    double const_pi, const_e;
@@ -2220,13 +2157,13 @@ static int ParseStr(char *Str, int pass) {
    uses_jump = 0;
    jump_index = 0;
    if(pass == 0)
-      o = (struct PEND_OP far *)
-    ((char far *)typespecific_workarea + total_formula_mem-sizeof(struct PEND_OP) * Max_Ops);
+      o = (struct PEND_OP *)
+    ((char *)typespecific_workarea + total_formula_mem-sizeof(struct PEND_OP) * Max_Ops);
    else if(used_extra == 1)
-      o = (struct PEND_OP far *)
-    ((char far *)typespecific_workarea + total_formula_mem-sizeof(struct PEND_OP) * Max_Ops);
+      o = (struct PEND_OP *)
+    ((char *)typespecific_workarea + total_formula_mem-sizeof(struct PEND_OP) * Max_Ops);
    else
-      o = (struct PEND_OP far *)farmemalloc(sizeof(struct PEND_OP) * (long)Max_Ops);
+      o = (struct PEND_OP *)malloc(sizeof(struct PEND_OP) * (long)Max_Ops);
    if( !o || !typespecific_workarea) {
       stopmsg(0,ParseErrs(PE_INSUFFICIENT_MEM_FOR_TYPE_FORMULA));
       return(1);
@@ -2287,7 +2224,7 @@ static int ParseStr(char *Str, int pass) {
       StkJumpOnFalse = dStkJumpOnFalse;    /* GGM 02-10-97 */
       StkOne = dStkOne;        /* GGM 10-08-97 */
       break;
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
    case M_MATH:
       StkAdd = mStkAdd;
       StkSub = mStkSub;
@@ -2406,7 +2343,7 @@ static int ParseStr(char *Str, int pass) {
    maxfn = 0;   /* TIW 03-30-91 */
    for(vsp = 0; vsp < sizeof(Constants) / sizeof(char*); vsp++) {
       v[vsp].s = Constants[vsp];
-      v[vsp].len = strlen(Constants[vsp]);
+      v[vsp].len = (int) strlen(Constants[vsp]);
    }
    cvtcentermag(&Xctr, &Yctr, &Magnification, &Xmagfactor, &Rotation, &Skew);
    const_pi = atan(1.0) * 4;
@@ -2442,7 +2379,7 @@ static int ParseStr(char *Str, int pass) {
       v[18].a.d.x = param[8];
       v[18].a.d.y = param[9];
       break;
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
    case M_MATH:
       v[1].a.m.x = *d2MP(param[0]);
       v[1].a.m.y = *d2MP(param[1]);
@@ -2536,7 +2473,7 @@ static int ParseStr(char *Str, int pass) {
          case ';':
             if(!ExpectingArg) {
                ExpectingArg = 1;
-               o[posp].f = (void(far*)(void))0;
+               o[posp].f = (void(*)(void))0;
                o[posp++].p = 15;
                o[posp].f = StkClr;
                o[posp++].p = -30000;
@@ -2545,7 +2482,7 @@ static int ParseStr(char *Str, int pass) {
             break;
          case ':':
             ExpectingArg = 1;
-            o[posp].f = (void(far*)(void))0;
+            o[posp].f = (void(*)(void))0;
             o[posp++].p = 15;
             o[posp].f = EndInit;
             o[posp++].p = -30000;
@@ -2649,7 +2586,7 @@ static int ParseStr(char *Str, int pass) {
                      jump_control[jump_index++].type = 2;
                      o[posp].f = StkJump;
                      o[posp++].p = 1;
-                     o[posp].f = (void(far*)(void))0;
+                     o[posp].f = (void(*)(void))0;
                      o[posp++].p = 15;
                      o[posp].f = StkClr;
                      o[posp++].p = -30000;
@@ -2687,7 +2624,7 @@ static int ParseStr(char *Str, int pass) {
             break;
       }
    }
-   o[posp].f = (void(far*)(void))0;
+   o[posp].f = (void(*)(void))0;
    o[posp++].p = 16;
    NextOp = 0;
    LastOp = posp;
@@ -2700,14 +2637,10 @@ static int ParseStr(char *Str, int pass) {
       }
    }
    if(pass > 0 && used_extra == 0)
-      farmemfree(o);
+      free(o);
    return(0);
 }
 
-
-#if (_MSC_VER >= 700)
-#pragma code_seg ()       /* back to normal segment */
-#endif
 
 int Formula(void) {
    if(FormName[0] == 0 || overflow) return(1);
@@ -2724,7 +2657,7 @@ int Formula(void) {
       case D_MATH:
          dRandom();
          break;
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
       case L_MATH:
          lRandom();
          break;
@@ -2749,11 +2682,11 @@ int Formula(void) {
 
    switch(MathType) {
    case D_MATH:
-      old = new = v[3].a.d;
+      old = g_new = v[3].a.d;
       return(Arg1->d.x == 0.0);
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
    case M_MATH:
-      old = new = MPC2cmplx(v[3].a.m);
+      old = g_new = MPC2cmplx(v[3].a.m);
       return(Arg1->m.x.Exp == 0 && Arg1->m.x.Mant == 0);
    case L_MATH:
       lold = lnew = v[3].a.l;
@@ -2786,7 +2719,7 @@ int form_per_pixel(void) {
       break;
 
 
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
    case M_MATH:
       if((row+col)&1)
          v[9].a.m = MPCone;
@@ -2816,7 +2749,7 @@ int form_per_pixel(void) {
             v[0].a.d.x = old.x;
             v[0].a.d.y = old.y;
             break;
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
          case M_MATH:
             v[0].a.m.x = *d2MP(old.x);
             v[0].a.m.y = *d2MP(old.y);
@@ -2843,7 +2776,7 @@ int form_per_pixel(void) {
             v[0].a.d.x = dxpixel();
             v[0].a.d.y = dypixel();
             break;
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
          case M_MATH:
             v[0].a.m.x = *d2MP(dxpixel());
             v[0].a.m.y = *d2MP(dypixel());
@@ -2870,7 +2803,7 @@ int form_per_pixel(void) {
    case D_MATH:
       old = v[3].a.d;
       break;
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
    case M_MATH:
       old = MPC2cmplx(v[3].a.m);
       break;
@@ -2983,10 +2916,6 @@ int fill_jump_struct(void)
 
 static char *FormStr;
 
-#if (_MSC_VER >= 700)
-#pragma code_seg ("parser1_text")     /* place following in an overlay */
-#endif
-
 int frmgetchar (FILE * openfile)
 {
    int c;
@@ -3024,7 +2953,7 @@ void getfuncinfo(struct token_st * tok)
 {
    int i;
    for(i=0; i < sizeof(FnctList)/ sizeof(struct FNCT_LIST); i++) {
-      if(!far_strcmp(FnctList[i].s, tok->token_str)) {
+      if(!strcmp(FnctList[i].s, tok->token_str)) {
          tok->token_id = i;
          if(i >= 11 && i <= 14)
             tok->token_type = PARAM_FUNCTION;
@@ -3035,7 +2964,7 @@ void getfuncinfo(struct token_st * tok)
    }
 
    for (i=0; i < 4; i++) { /*pick up flow control*/
-      if(!far_strcmp(JumpList[i], tok->token_str)) {
+      if(!strcmp(JumpList[i], tok->token_str)) {
          tok->token_type = FLOW_CONTROL;
          tok->token_id   = i + 1;
          return;
@@ -3051,7 +2980,7 @@ void getvarinfo(struct token_st * tok)
    int i;
 
    for(i=0; i < sizeof(Constants) / sizeof(char*); i++) {
-      if(!far_strcmp(Constants[i], tok->token_str)) {
+      if(!strcmp(Constants[i], tok->token_str)) {
          tok->token_id = i;
          switch(i) {
             case 1: case 2: case 8: case 13: case 17: case 18:
@@ -3443,8 +3372,8 @@ int frmgettoken(FILE * openfile, struct token_st * this_token)
          }
          this_token->token_str[i] = (char) 0;
          if(this_token->token_type == OPERATOR) {
-            for(i=0; i < sizeof(OPList)/sizeof(struct OP_LIST); i++) {
-               if(!far_strcmp(OPList[i].s, this_token->token_str)) {
+            for(i=0; i < sizeof(OPList)/sizeof(OPList[0]); i++) {
+               if(!strcmp(OPList[i], this_token->token_str)) {
                   this_token->token_id = i;
                }
             }
@@ -3571,15 +3500,15 @@ int frm_check_name_and_sym (FILE * open_file, int report_bad_sym)
 
    if(i > ITEMNAMELEN) {
       int j;
-      int k = far_strlen(ParseErrs(PE_FORMULA_NAME_TOO_LARGE));
+      int k = (int) strlen(ParseErrs(PE_FORMULA_NAME_TOO_LARGE));
       char msgbuf[100];
-      far_strcpy(msgbuf, ParseErrs(PE_FORMULA_NAME_TOO_LARGE));
+      strcpy(msgbuf, ParseErrs(PE_FORMULA_NAME_TOO_LARGE));
       strcat(msgbuf, ":\n   ");
       fseek(open_file, filepos, SEEK_SET);
       for(j = 0; j < i && j < 25; j++)
          msgbuf[j+k+2] = (char) getc(open_file);
       msgbuf[j+k+2] = (char) 0;
-      stopmsg(8, msgbuf);
+      stopmsg(STOPMSG_FIXED_FONT, msgbuf);
       return 0;
    }
       /* get symmetry */
@@ -3593,10 +3522,10 @@ int frm_check_name_and_sym (FILE * open_file, int report_bad_sym)
                stopmsg(0,ParseErrs(PE_UNEXPECTED_EOF));
                return 0;
             case '\r': case '\n':
-               stopmsg(8,ParseErrs(PE_NO_LEFT_BRACKET_FIRST_LINE));
+               stopmsg(STOPMSG_FIXED_FONT,ParseErrs(PE_NO_LEFT_BRACKET_FIRST_LINE));
                return 0;
             case '{':
-               stopmsg(8,ParseErrs(PE_NO_MATCH_RIGHT_PAREN));
+               stopmsg(STOPMSG_FIXED_FONT,ParseErrs(PE_NO_MATCH_RIGHT_PAREN));
                return 0;
             case ' ': case '\t':
                break;
@@ -3617,13 +3546,13 @@ int frm_check_name_and_sym (FILE * open_file, int report_bad_sym)
          }
       }
       if(SymStr[i].s[0] == (char) 0 && report_bad_sym) {
-         char far * msgbuf = (char far*) farmemalloc(far_strlen(ParseErrs(PE_INVALID_SYM_USING_NOSYM))
-                            + strlen(sym_buf) + 6);
-         far_strcpy(msgbuf, ParseErrs(PE_INVALID_SYM_USING_NOSYM));
-         far_strcat(msgbuf, ":\n   ");
-         far_strcat(msgbuf, sym_buf);
-         stopmsg(8, msgbuf);
-         farmemfree(msgbuf);
+         char * msgbuf = (char *) malloc((int) strlen(ParseErrs(PE_INVALID_SYM_USING_NOSYM))
+                            + (int) strlen(sym_buf) + 6);
+         strcpy(msgbuf, ParseErrs(PE_INVALID_SYM_USING_NOSYM));
+         strcat(msgbuf, ":\n   ");
+         strcat(msgbuf, sym_buf);
+         stopmsg(STOPMSG_FIXED_FONT, msgbuf);
+         free(msgbuf);
       }
    }
    if (c != '{') {
@@ -3631,10 +3560,10 @@ int frm_check_name_and_sym (FILE * open_file, int report_bad_sym)
       while(!done) {
          switch (c = getc(open_file)) {
             case EOF: case '\032':
-               stopmsg(8,ParseErrs(PE_UNEXPECTED_EOF));
+               stopmsg(STOPMSG_FIXED_FONT,ParseErrs(PE_UNEXPECTED_EOF));
                return 0;
             case '\r': case '\n':
-               stopmsg(8,ParseErrs(PE_NO_LEFT_BRACKET_FIRST_LINE));
+               stopmsg(STOPMSG_FIXED_FONT,ParseErrs(PE_NO_LEFT_BRACKET_FIRST_LINE));
                return 0;
             case '{':
                done = 1;
@@ -3702,12 +3631,12 @@ static char *PrepareFormula(FILE * File, int from_prompts1c) {
    while(!Done) {
       frmgettoken(File, &temp_tok);
       if (temp_tok.token_type == NOT_A_TOKEN) {
-         stopmsg(8, "Unexpected token error in PrepareFormula\n");
+         stopmsg(STOPMSG_FIXED_FONT, "Unexpected token error in PrepareFormula\n");
          fseek(File, filepos, SEEK_SET);
          return NULL;
       }
       else if (temp_tok.token_type == END_OF_FORMULA) {
-         stopmsg(8, "Formula has no executable instructions\n");
+         stopmsg(STOPMSG_FIXED_FONT, "Formula has no executable instructions\n");
          fseek(File, filepos, SEEK_SET);
          return NULL;
       }
@@ -3724,7 +3653,7 @@ static char *PrepareFormula(FILE * File, int from_prompts1c) {
       frmgettoken(File, &temp_tok);
       switch (temp_tok.token_type) {
          case NOT_A_TOKEN:
-            stopmsg(8, "Unexpected token error in PrepareFormula\n");
+            stopmsg(STOPMSG_FIXED_FONT, "Unexpected token error in PrepareFormula\n");
             fseek(File, filepos, SEEK_SET);
             return NULL;
          case END_OF_FORMULA:
@@ -3806,7 +3735,7 @@ int RunForm(char *Name, int from_prompts1c) {  /*  returns 1 if an error occurre
 int fpFormulaSetup(void) {
 
    int RunFormRes;              /* CAE fp */
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
    if (fpu > 0) {
       MathType = D_MATH;
       /* CAE changed below for fp */
@@ -3833,8 +3762,8 @@ int fpFormulaSetup(void) {
 }
 
 int intFormulaSetup(void) {
-#ifdef XFRACT
-      printf("intFormulaSetup called!!!\n");
+#if defined(XFRACT) || defined(_WIN32)
+      _ASSERTE(0 && "intFormulaSetup called");
       exit(-1);
 #else
       MathType = L_MATH;
@@ -3849,7 +3778,7 @@ int intFormulaSetup(void) {
 /* TIW added 06-20-90 so functions can be called from fractals.c */
 void init_misc()
 {
-   static struct ConstArg far vv[5];
+   static struct ConstArg vv[5];
    static union Arg argfirst,argsecond;
    if(!v)
       v = vv;
@@ -3865,7 +3794,7 @@ void init_misc()
 
 
 /* PB 910417 here to end changed.
-        Allocate sub-arrays from one main farmemalloc, using global variable
+        Allocate sub-arrays from one main malloc, using global variable
         typespecific_workarea; calcfrac.c releases this area when calculation
         ends or is terminated.
         Moved the "f" array to be allocated as part of this.
@@ -3885,7 +3814,7 @@ static void parser_allocate(void)
    long end_dx_array;
    /* TW Jan 1 1996 Made two passes to determine actual values of
       Max_Ops and Max_Args. Now use the end of extraseg if possible, so
-      if less than 2048x2048 resolution is used, usually no farmemalloc
+      if less than 2048x2048 resolution is used, usually no malloc
       calls are needed */
    for(pass = 0; pass < 2; pass++)
    {
@@ -3894,11 +3823,11 @@ static void parser_allocate(void)
          Max_Ops = 2300; /* this value uses up about 64K memory */
          Max_Args = (unsigned)(Max_Ops/2.5);
       }
-      f_size = sizeof(void(far * far *)(void)) * Max_Ops;
-      Store_size = sizeof(union Arg far *) * MAX_STORES;
-      Load_size = sizeof(union Arg far *) * MAX_LOADS;
+      f_size = sizeof(void(* *)(void)) * Max_Ops;
+      Store_size = sizeof(union Arg *) * MAX_STORES;
+      Load_size = sizeof(union Arg *) * MAX_LOADS;
       v_size = sizeof(struct ConstArg) * Max_Args;
-      p_size = sizeof(struct fls far *) * Max_Ops;
+      p_size = sizeof(struct fls *) * Max_Ops;
       total_formula_mem = f_size+Load_size+Store_size+v_size+p_size /*+ jump_size*/
          + sizeof(struct PEND_OP) * Max_Ops;
       used_extra = 0;
@@ -3910,25 +3839,27 @@ static void parser_allocate(void)
 
       if(pass == 0 || is_bad_form)
       {
-         typespecific_workarea = (char far *)MK_FP(extraseg,0);
+   /* TODO: allocate real memory, not reuse shared segment */
+         typespecific_workarea = (char *)extraseg;
          used_extra = 1;
       }
       else if(1L<<16 > end_dx_array + total_formula_mem)
       {
-         typespecific_workarea = (char far *)MK_FP(extraseg,0) + end_dx_array;
+   /* TODO: allocate real memory, not reuse shared segment */
+         typespecific_workarea = (char *)extraseg + end_dx_array;
          used_extra = 1;
       }
       else if(is_bad_form == 0)
       {
          typespecific_workarea =
-            (char far *)farmemalloc((long)(f_size+Load_size+Store_size+v_size+p_size));
+            (char *)malloc((long)(f_size+Load_size+Store_size+v_size+p_size));
          used_extra = 0;
       }
-      f = (void(far * far *)(void))typespecific_workarea;
-      Store = (union Arg far * far *)(f + Max_Ops);
-      Load = (union Arg far * far *)(Store + MAX_STORES);
-      v = (struct ConstArg far *)(Load + MAX_LOADS);
-      pfls = (struct fls far *)(v + Max_Args);
+      f = (void(* *)(void))typespecific_workarea;
+      Store = (union Arg * *)(f + Max_Ops);
+      Load = (union Arg * *)(Store + MAX_STORES);
+      v = (struct ConstArg *)(Load + MAX_LOADS);
+      pfls = (struct fls *)(v + Max_Args);
 
       if(pass == 0)
       {
@@ -3947,14 +3878,14 @@ static void parser_allocate(void)
 void free_workarea()
 {
    if(typespecific_workarea && used_extra == 0) {
-      farmemfree(typespecific_workarea);
+      free(typespecific_workarea);
    }
    typespecific_workarea = NULL;
-   Store = (union Arg far * far *)0;
-   Load = (union Arg far * far *)0;
-   v = (struct ConstArg far *)0;
-   f = (void(far * far *)(void))0;      /* CAE fp */
-   pfls = (struct fls far * )0;   /* CAE fp */
+   Store = (union Arg * *)0;
+   Load = (union Arg * *)0;
+   v = (struct ConstArg *)0;
+   f = (void(* *)(void))0;      /* CAE fp */
+   pfls = (struct fls * )0;   /* CAE fp */
    total_formula_mem = 0;
 
    /* restore extraseg */
@@ -4000,12 +3931,12 @@ void frm_error(FILE * open_file, long begin_frm)
             return;
          }
       }
-#ifndef XFRACT
-      sprintf(&msgbuf[strlen(msgbuf)], "Error(%d) at line %d:  %Fs\n  ", errors[j].error_number, line_number, ParseErrs(errors[j].error_number));
+#if !defined(XFRACT) && !defined(_WIN32)
+      sprintf(&msgbuf[(int) strlen(msgbuf)], "Error(%d) at line %d:  %Fs\n  ", errors[j].error_number, line_number, ParseErrs(errors[j].error_number));
 #else
-      sprintf(&msgbuf[strlen(msgbuf)], "Error(%d) at line %d:  %s\n  ", errors[j].error_number, line_number, ParseErrs(errors[j].error_number));
+      sprintf(&msgbuf[(int) strlen(msgbuf)], "Error(%d) at line %d:  %s\n  ", errors[j].error_number, line_number, ParseErrs(errors[j].error_number));
 #endif
-      i = strlen(msgbuf);
+      i = (int) strlen(msgbuf);
 /*    sprintf(debugmsg, "msgbuf is: %s\n and i is %d\n", msgbuf, i);
       stopmsg (0, debugmsg);
 */    fseek(open_file, errors[j].start_pos, SEEK_SET);
@@ -4017,7 +3948,7 @@ void frm_error(FILE * open_file, long begin_frm)
 /*          stopmsg(0, "About to get error token\n");
 */          chars_to_error = statement_len;
             frmgettoken(open_file, &tok);
-            chars_in_error = strlen(tok.token_str);
+            chars_in_error = (int) strlen(tok.token_str);
             statement_len += chars_in_error;
             token_count++;
 /*          sprintf(debugmsg, "Error is %s\nChars in error is %d\nChars to error is %d\n", tok.token_str, chars_in_error, chars_to_error);
@@ -4027,7 +3958,7 @@ void frm_error(FILE * open_file, long begin_frm)
             frmgettoken(open_file, &tok);
 /*          sprintf(debugmsg, "Just got %s\n", tok.token_str);
             stopmsg (0, debugmsg);
-*/          statement_len += strlen(tok.token_str);
+*/          statement_len += (int) strlen(tok.token_str);
             token_count++;
          }
          if ((tok.token_type == END_OF_FORMULA)
@@ -4045,7 +3976,7 @@ void frm_error(FILE * open_file, long begin_frm)
          while (chars_to_error + chars_in_error > 74) {
 /*          stopmsg(0, "chars in error less than 74, but late in line");
 */          frmgettoken(open_file, &tok);
-            chars_to_error -= strlen(tok.token_str);
+            chars_to_error -= (int) strlen(tok.token_str);
             token_count--;
          }
       }
@@ -4055,17 +3986,17 @@ void frm_error(FILE * open_file, long begin_frm)
          token_count = 1;
       }
 /*    stopmsg(0, "Back to beginning of statement to build msgbuf");
-*/    while (strlen(&msgbuf[i]) <=74 && token_count--) {
+*/    while ((int) strlen(&msgbuf[i]) <=74 && token_count--) {
          frmgettoken (open_file, &tok);
          strcat (msgbuf, tok.token_str);
 /*         stopmsg(0, &msgbuf[i]);
 */    }
       fseek (open_file, errors[j].error_pos, SEEK_SET);
       frmgettoken (open_file, &tok);
-      if (strlen(&msgbuf[i]) > 74)
+      if ((int) strlen(&msgbuf[i]) > 74)
          msgbuf[i + 74] = (char) 0;
       strcat(msgbuf, "\n");
-      i = strlen(msgbuf);
+      i = (int) strlen(msgbuf);
       while (chars_to_error-- > -2)
          strcat (msgbuf, " ");
 /*    sprintf(debugmsg, "Going into final line, chars in error is %d", chars_in_error);
@@ -4074,7 +4005,7 @@ void frm_error(FILE * open_file, long begin_frm)
       if(errors[j].error_number == PE_TOKEN_TOO_LONG) {
          chars_in_error = 33;
       }
-      while (chars_in_error-- && strlen(&msgbuf[i]) <=74)
+      while (chars_in_error-- && (int) strlen(&msgbuf[i]) <=74)
          strcat (msgbuf, "^");
       strcat (msgbuf, "\n");
    }
@@ -4084,7 +4015,7 @@ void frm_error(FILE * open_file, long begin_frm)
 
 void display_var_list()
 {
-   struct var_list_st far * p;
+   struct var_list_st * p;
    stopmsg(0, "List of user defined variables:\n");
    for (p = var_list; p; p=p->next_item) {
       stopmsg(0, p->name);
@@ -4094,7 +4025,7 @@ void display_var_list()
 
 void display_const_lists()
 {
-   struct const_list_st far * p;
+   struct const_list_st * p;
    char msgbuf[800];
    stopmsg (0, "Complex constants are:");
    for (p = complx_list; p; p=p->next_item) {
@@ -4109,21 +4040,21 @@ void display_const_lists()
 }
 
 
-struct var_list_st far *var_list_alloc() {
-   return (struct var_list_st far*) farmemalloc(sizeof(struct var_list_st));
+struct var_list_st *var_list_alloc() {
+   return (struct var_list_st *) malloc(sizeof(struct var_list_st));
 }
 
 
-struct const_list_st  far *const_list_alloc() {
-   return (struct const_list_st far *) farmemalloc(sizeof(struct const_list_st));
+struct const_list_st  *const_list_alloc() {
+   return (struct const_list_st *) malloc(sizeof(struct const_list_st));
 }
 
 void init_var_list()
 {
-   struct var_list_st far * temp, far * p;
+   struct var_list_st * temp, * p;
    for (p = var_list; p; p=temp) {
       temp = p->next_item;
-      farmemfree(p);
+      free(p);
    }
    var_list = NULL;
 }
@@ -4131,27 +4062,27 @@ void init_var_list()
 
 void init_const_lists()
 {
-   struct const_list_st far * temp, far * p;
+   struct const_list_st * temp, * p;
    for (p = complx_list; p; p=temp) {
       temp = p->next_item;
-      farmemfree(p);
+      free(p);
    }
    complx_list = NULL;
    for (p = real_list; p; p=temp) {
       temp = p->next_item;
-      farmemfree(p);
+      free(p);
    }
    real_list = NULL;
 }
 
-struct var_list_st far * add_var_to_list (struct var_list_st far * p, struct token_st tok) {
+struct var_list_st * add_var_to_list (struct var_list_st * p, struct token_st tok) {
    if (p == NULL) {
       if ((p = var_list_alloc()) == NULL)
          return NULL;
-      far_strcpy(p->name, tok.token_str);
+      strcpy(p->name, tok.token_str);
       p->next_item = NULL;
    }
-   else if (far_strcmp(p->name, tok.token_str) == 0) {
+   else if (strcmp(p->name, tok.token_str) == 0) {
    }
    else {
       if ((p->next_item = add_var_to_list(p->next_item, tok)) == NULL)
@@ -4160,7 +4091,7 @@ struct var_list_st far * add_var_to_list (struct var_list_st far * p, struct tok
    return p;
 }
 
-struct const_list_st far *  add_const_to_list (struct const_list_st far * p, struct token_st tok) {
+struct const_list_st *  add_const_to_list (struct const_list_st * p, struct token_st tok) {
    if (p == NULL) {
       if ((p = const_list_alloc()) == NULL)
          return NULL;
@@ -4179,8 +4110,8 @@ struct const_list_st far *  add_const_to_list (struct const_list_st far * p, str
 void count_lists()
 {
 /* char msgbuf[800];
-*/ struct var_list_st far * p;
-   struct const_list_st far * q;
+*/ struct var_list_st * p;
+   struct const_list_st * q;
 
    var_count = 0;
    complx_count = 0;
@@ -4264,7 +4195,7 @@ int frm_prescan (FILE * open_file)
           errors[2].start_pos, errors[2].error_pos, errors[2].error_number);
       stopmsg (0, debugmsg);
 */
-      chars_in_formula += strlen(this_token.token_str);
+      chars_in_formula += (int) strlen(this_token.token_str);
       switch (this_token.token_type) {
          case NOT_A_TOKEN:
             assignment_ok = 0;

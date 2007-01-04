@@ -187,13 +187,9 @@ S16 big_setS16(S16 BIGDIST *addr, S16 val)
 
 #endif
 
-#if (_MSC_VER >= 700)
-#pragma code_seg ("bignum1_text")     /* place following in an overlay */
-#endif
-
 /************************************************************************/
 /* convert_bn  -- convert bignum numbers from old to new lengths        */
-int convert_bn(bn_t new, bn_t old, int newbnlength, int newintlength,
+int convert_bn(bn_t newnum, bn_t old, int newbnlength, int newintlength,
                                    int oldbnlength, int oldintlength)
    {
    int savebnlength, saveintlength;
@@ -204,7 +200,7 @@ int convert_bn(bn_t new, bn_t old, int newbnlength, int newintlength,
 
    intlength     = newintlength;
    bnlength      = newbnlength;
-   clear_bn(new);
+   clear_bn(newnum);
 
    if(newbnlength - newintlength > oldbnlength - oldintlength)
       {
@@ -212,13 +208,13 @@ int convert_bn(bn_t new, bn_t old, int newbnlength, int newintlength,
       /* This will keep the integer part from overflowing past the array. */
       bnlength = oldbnlength - oldintlength + min(oldintlength, newintlength);
 
-      _fmemcpy(new+newbnlength-newintlength-oldbnlength+oldintlength,
+      memcpy(newnum+newbnlength-newintlength-oldbnlength+oldintlength,
                old,bnlength);
       }
    else
       {
       bnlength = newbnlength - newintlength + min(oldintlength, newintlength);
-      _fmemcpy(new,old+oldbnlength-oldintlength-newbnlength+newintlength,
+      memcpy(newnum,old+oldbnlength-oldintlength-newbnlength+newintlength,
                bnlength);
       }
    intlength = saveintlength;
@@ -268,7 +264,7 @@ bn_t strtobn(bn_t r, char *s)
 
     if (strchr(s, '.') != NULL) /* is there a decimal point? */
         {
-        l = strlen(s) - 1;      /* start with the last digit */
+        l = (int) strlen(s) - 1;      /* start with the last digit */
         while (s[l] >= '0' && s[l] <= '9') /* while a digit */
             {
             *onesbyte = (BYTE)(s[l--] - '0');
@@ -378,7 +374,7 @@ char *unsafe_bntostr(char *s, int dec, bn_t r)
             break;
         }
     ltoa(longval, s, 10);
-    l = strlen(s);
+    l = (int) strlen(s);
     s[l++] = '.';
     for (d=0; d < dec; d++)
         {
@@ -392,10 +388,6 @@ char *unsafe_bntostr(char *s, int dec, bn_t r)
 
     return s;
     }
-
-#if (_MSC_VER >= 700)
-#pragma code_seg ( )         /* back to normal segment */
-#endif
 
 /*********************************************************************/
 /*  b = l                                                            */
@@ -699,10 +691,10 @@ bn_t unsafe_div_bn(bn_t r, bn_t n1, bn_t n2)
 
     /* shift n1, n2 */
     /* important!, use memmove(), not memcpy() */
-    _fmemmove(n1+scale1, n1, bnlength-scale1); /* shift bytes over */
-    _fmemset(n1, 0, scale1);  /* zero out the rest */
-    _fmemmove(n2+scale2, n2, bnlength-scale2); /* shift bytes over */
-    _fmemset(n2, 0, scale2);  /* zero out the rest */
+    memmove(n1+scale1, n1, bnlength-scale1); /* shift bytes over */
+    memset(n1, 0, scale1);  /* zero out the rest */
+    memmove(n2+scale2, n2, bnlength-scale2); /* shift bytes over */
+    memset(n2, 0, scale2);  /* zero out the rest */
 
     unsafe_inv_bn(r, n2);
     unsafe_mult_bn(bntmp1, n1, r);
@@ -714,14 +706,14 @@ bn_t unsafe_div_bn(bn_t r, bn_t n1, bn_t n2)
         if (scale1 > scale2) /* answer is too big, adjust it */
             {
             scale = scale1-scale2;
-            _fmemmove(r, r+scale, bnlength-scale); /* shift bytes over */
-            _fmemset(r+bnlength-scale, 0, scale);  /* zero out the rest */
+            memmove(r, r+scale, bnlength-scale); /* shift bytes over */
+            memset(r+bnlength-scale, 0, scale);  /* zero out the rest */
             }
         else if (scale1 < scale2) /* answer is too small, adjust it */
             {
             scale = scale2-scale1;
-            _fmemmove(r+scale, r, bnlength-scale); /* shift bytes over */
-            _fmemset(r, 0, scale);                 /* zero out the rest */
+            memmove(r+scale, r, bnlength-scale); /* shift bytes over */
+            memset(r, 0, scale);                 /* zero out the rest */
             }
         /* else scale1 == scale2 */
 
@@ -1359,19 +1351,11 @@ bn_t div_bn_int(bn_t r, bn_t n, U16 u)
     return r;
     }
 
-#if (_MSC_VER >= 700)
-#pragma code_seg ("bignum1_text")     /* place following in an overlay */
-#endif
-
 /**********************************************************************/
 char *bntostr(char *s, int dec, bn_t r)
     {
     return unsafe_bntostr(s, dec, copy_bn(bntmpcpy2, r));
     }
-
-#if (_MSC_VER >= 700)
-#pragma code_seg ( )        /* back to normal segment */
-#endif
 
 /**********************************************************************/
 bn_t inv_bn(bn_t r, bn_t n)

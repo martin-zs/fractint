@@ -15,6 +15,7 @@
 #include "port.h"
 #include "prototyp.h"
 #include "targa.h"
+#include "drivers.h"
 
 /*************  ****************/
 
@@ -33,7 +34,7 @@ static unsigned _fastcall near Row32Calculate(unsigned,unsigned);
 static void     _fastcall near PutPix32(int,int,int);
 static unsigned _fastcall near GetPix32(int,int);
 static void     _fastcall near DoFirstPixel(int,int,int);
-static void _fastcall fatalerror(char far *);
+static void _fastcall fatalerror(char *);
 static int  GetLine(int);
 static void _fastcall near SetDispReg(int,int);
 static int  VWait(void);
@@ -60,8 +61,8 @@ static void GraphEnd(void);
 /*************  ****************/
 
 int          xorTARGA;
-unsigned far *tga16 = NULL;  /* [256] */
-long     far *tga32;         /* [256] */
+unsigned *tga16 = NULL;  /* [256] */
+long     *tga32;         /* [256] */
 static int   last = 0;
 
 /*************  ****************/
@@ -91,10 +92,10 @@ static unsigned _fastcall near Row16Calculate( unsigned line, unsigned x1 )
 
 static void _fastcall near PutPix16( int x, int y, int index )
 {
-unsigned far * ip;
+unsigned * ip;
 
         /**************/
-        ip = MK_FP( MEMSEG, Row16Calculate( y, x ) );
+        ip = MK_FP( (void *) MEMSEG, (void *) Row16Calculate( y, x ) );
         if( ! xorTARGA )
                 *ip = tga16[index];
         else
@@ -106,7 +107,7 @@ unsigned far * ip;
 static unsigned _fastcall near GetPix16( int x, int y )
 {
 register unsigned pixel, index;
-unsigned far * ip;
+unsigned * ip;
         /**************/
         ip = MK_FP( MEMSEG, Row16Calculate( y, x ) );
         pixel = *ip & 0x7FFF;
@@ -131,7 +132,7 @@ static unsigned _fastcall near Row32Calculate( unsigned line, unsigned x1 )
 
 static void _fastcall near PutPix32( int x, int y, int index )
 {
-long far * lp;
+long * lp;
         lp = MK_FP( MEMSEG, Row32Calculate( y, x ) );
         if( ! xorTARGA )
                 *lp = tga32[index];
@@ -145,7 +146,7 @@ static unsigned _fastcall near GetPix32( int x, int y )
 {
 register int index;
 long    pixel;
-long    far * lp;
+long    * lp;
 
         lp = MK_FP( MEMSEG, Row32Calculate( y, x ) );
         pixel = *lp & 0x00FFFFFFL;
@@ -242,8 +243,8 @@ static FCODE insuffmem[]={"Insufficient memory for Targa"};
         VCenterDisplay( sydots + 1 );
 
         if (tga16 == NULL)
-            if ( (tga16 = (unsigned far *)farmemalloc(512L)) == NULL
-              || (tga32 = (long     far *)farmemalloc(1024L)) == NULL)
+            if ( (tga16 = (unsigned *)malloc(512L)) == NULL
+              || (tga32 = (long     *)malloc(1024L)) == NULL)
                 fatalerror(insuffmem);
 
         SetTgaColors();
@@ -272,16 +273,16 @@ void ReopenTGA()
 {
 static FCODE runningontarga[]={"Running On TrueVision TARGA Card"};
         helptitle();
-        putstring(2,20,7,runningontarga);
-        movecursor(6,0); /* in case of brutal exit */
+        driver_put_string(2,20,7,runningontarga);
+        driver_move_cursor(6,0); /* in case of brutal exit */
 }
 
-static void _fastcall fatalerror(char far *msg)
+static void _fastcall fatalerror(char *msg)
 {
 static FCODE abortmsg[]={"...aborting!"};
-        putstring(4,20,15,msg);
-        putstring(5,20,15,abortmsg);
-        movecursor(8,0);
+        driver_put_string(4,20,15,msg);
+        driver_put_string(5,20,15,abortmsg);
+        driver_move_cursor(8,0);
         exit(1);
 }
 
