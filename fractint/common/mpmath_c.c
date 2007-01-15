@@ -22,10 +22,7 @@
 #include "port.h"
 #include "prototyp.h"
 
-#ifndef XFRACT
-#if (_MSC_VER >= 700)
-#pragma code_seg ("mpmath1_text")     /* place following in an overlay */
-#endif
+#if !defined(XFRACT) && !defined(_WIN32)
 
 struct MP *MPsub(struct MP x, struct MP y) {
    y.Exp ^= 0x8000;
@@ -188,9 +185,6 @@ void setMPfunctions(void) {
       /* pfg2MP = fg2MP086; */
    }
 }
-#if (_MSC_VER >= 700)
-#pragma code_seg ()       /* back to normal segment */
-#endif
 #endif /* XFRACT */
 
 #ifndef sqr
@@ -438,7 +432,7 @@ _CMPLX ComplexSqrtFloat(double x, double y)
 
 #ifndef TESTING_MATH
 
-BYTE far *LogTable = (BYTE far *)0;
+BYTE *LogTable = (BYTE *)0;
 long MaxLTSize;
 int  Log_Calc = 0;
 static double mlf;
@@ -564,7 +558,7 @@ long logtablecalc(long citer) {
    return (ret);
 }
 
-long far ExpFloat14(long xx) {
+long ExpFloat14(long xx) {
    static float fLogTwo = (float)0.6931472;
    int f;
    long Ans;
@@ -604,14 +598,14 @@ int ComplexNewton(void) {
    cd1.y = cdegree.y;
 
    temp = ComplexPower(old, cd1);
-   FPUcplxmul(&temp, &old, &new);
+   FPUcplxmul(&temp, &old, &g_new);
 
-   tmp.x = new.x - croot.x;
-   tmp.y = new.y - croot.y;
+   tmp.x = g_new.x - croot.x;
+   tmp.y = g_new.y - croot.y;
    if((sqr(tmp.x) + sqr(tmp.y)) < threshold)
       return(1);
 
-   FPUcplxmul(&new, &cd1, &tmp);
+   FPUcplxmul(&g_new, &cd1, &tmp);
    tmp.x += croot.x;
    tmp.y += croot.y;
 
@@ -621,7 +615,7 @@ int ComplexNewton(void) {
    {
       return(1);
    }
-   new = old;
+   g_new = old;
    return(0);
 }
 
@@ -637,10 +631,10 @@ int ComplexBasin(void) {
    cd1.y = cdegree.y;
 
    temp = ComplexPower(old, cd1);
-   FPUcplxmul(&temp, &old, &new);
+   FPUcplxmul(&temp, &old, &g_new);
 
-   tmp.x = new.x - croot.x;
-   tmp.y = new.y - croot.y;
+   tmp.x = g_new.x - croot.x;
+   tmp.y = g_new.y - croot.y;
    if((sqr(tmp.x) + sqr(tmp.y)) < threshold) {
       if(fabs(old.y) < .01)
          old.y = 0.0;
@@ -660,7 +654,7 @@ int ComplexBasin(void) {
       return(1);
    }
 
-   FPUcplxmul(&new, &cd1, &tmp);
+   FPUcplxmul(&g_new, &cd1, &tmp);
    tmp.x += croot.x;
    tmp.y += croot.y;
 
@@ -670,7 +664,7 @@ int ComplexBasin(void) {
    {
       return(1);
    }
-   new = old;
+   g_new = old;
    return(0);
 }
 

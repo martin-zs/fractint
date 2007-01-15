@@ -22,10 +22,6 @@ fractal routines.
 
 int bf_math = 0;
 
-#if (_MSC_VER >= 700)
-#pragma code_seg ("bigsetup_text")     /* place following in an overlay */
-#endif
-
 #ifdef DEBUG
 
 /**********************************************************************/
@@ -36,19 +32,20 @@ void show_var_bn(char *s, bn_t n)
         strcat(msg," ");
         bntostr(msg+strlen(s),40,n);
         msg[79] = 0;
-        stopmsg(0,(char far *)msg);
+        stopmsg(0,(char *)msg);
     }
 
 void showcornersdbl(char *s)
 {
    char msg[400];
-   sprintf(msg,"%s\n\
-xxmin= %.20f xxmax= %.20f\n\
-yymin= %.20f yymax= %.20f\n\
-xx3rd= %.20f yy3rd= %.20f\n\
-delxx= %.20Lf delyy= %.20Lf\n\
-delx2= %.20Lf dely2= %.20Lf",s,xxmin,xxmax,yymin,yymax,xx3rd,yy3rd,
-   delxx, delyy,delxx2, delyy2);
+   sprintf(msg,"%s\n"
+		"xxmin= %.20f xxmax= %.20f\n"
+		"yymin= %.20f yymax= %.20f\n"
+		"xx3rd= %.20f yy3rd= %.20f\n"
+		"delxx= %.20Lf delyy= %.20Lf\n"
+		"delx2= %.20Lf dely2= %.20Lf",
+		s,xxmin,xxmax,yymin,yymax,xx3rd,yy3rd,
+		delxx, delyy,delxx2, delyy2);
    if(stopmsg(0,msg)==-1)
       goodbye();
 }
@@ -250,10 +247,6 @@ void bfcornerstofloat(void)
          param[i] = (double)bftofloat(bfparms[i]);
 }
 
-#if (_MSC_VER >= 700)
-#pragma code_seg ( )     /* back to normal segment */
-#endif
-
 /* -------------------------------------------------------------------- */
 /*    Bignumber Bailout Routines                                        */
 /* -------------------------------------------------------------------- */
@@ -265,7 +258,7 @@ void bfcornerstofloat(void)
 /* No need to set magnitude                          */
 /* as color schemes that need it calculate it later. */
 
-int near bnMODbailout()
+int  bnMODbailout()
 {
    long longmagnitude;
 
@@ -281,7 +274,7 @@ int near bnMODbailout()
    return 0;
 }
 
-int near bnREALbailout()
+int  bnREALbailout()
 {
    long longtempsqrx;
 
@@ -296,7 +289,7 @@ int near bnREALbailout()
 }
 
 
-int near bnIMAGbailout()
+int  bnIMAGbailout()
 {
    long longtempsqry;
 
@@ -310,7 +303,7 @@ int near bnIMAGbailout()
    return(0);
 }
 
-int near bnORbailout()
+int  bnORbailout()
 {
    long longtempsqrx, longtempsqry;
 
@@ -325,7 +318,7 @@ int near bnORbailout()
    return(0);
 }
 
-int near bnANDbailout()
+int  bnANDbailout()
 {
    long longtempsqrx, longtempsqry;
 
@@ -340,7 +333,7 @@ int near bnANDbailout()
    return(0);
 }
 
-int near bnMANHbailout()
+int  bnMANHbailout()
 {
    long longtempmag;
 
@@ -359,7 +352,7 @@ int near bnMANHbailout()
    return(0);
 }
 
-int near bnMANRbailout()
+int  bnMANRbailout()
 {
    long longtempmag;
 
@@ -376,7 +369,7 @@ int near bnMANRbailout()
    return(0);
 }
 
-int near bfMODbailout()
+int  bfMODbailout()
 {
    long longmagnitude;
 
@@ -392,7 +385,7 @@ int near bfMODbailout()
    return 0;
 }
 
-int near bfREALbailout()
+int  bfREALbailout()
 {
    long longtempsqrx;
 
@@ -407,7 +400,7 @@ int near bfREALbailout()
 }
 
 
-int near bfIMAGbailout()
+int  bfIMAGbailout()
 {
    long longtempsqry;
 
@@ -421,7 +414,7 @@ int near bfIMAGbailout()
    return(0);
 }
 
-int near bfORbailout()
+int  bfORbailout()
 {
    long longtempsqrx, longtempsqry;
 
@@ -436,7 +429,7 @@ int near bfORbailout()
    return(0);
 }
 
-int near bfANDbailout()
+int  bfANDbailout()
 {
    long longtempsqrx, longtempsqry;
 
@@ -451,7 +444,7 @@ int near bfANDbailout()
    return(0);
 }
 
-int near bfMANHbailout()
+int  bfMANHbailout()
 {
    long longtempmag;
 
@@ -470,7 +463,7 @@ int near bfMANHbailout()
    return(0);
 }
 
-int near bfMANRbailout()
+int  bfMANRbailout()
 {
    long longtempmag;
 
@@ -486,10 +479,6 @@ int near bfMANRbailout()
    copy_bf(bfold.y, bfnew.y);
    return(0);
 }
-
-#if (_MSC_VER >= 700)
-#pragma code_seg ("bigsetup_text")     /* place following in an overlay */
-#endif
 
 int MandelbnSetup()
 {
@@ -644,10 +633,6 @@ int MandelbfSetup()
    restore_stack(saved);
    return (1);
 }
-
-#if (_MSC_VER >= 700)
-#pragma code_seg ( )     /* back to normal segment */
-#endif
 
 int mandelbn_per_pixel()
 {
