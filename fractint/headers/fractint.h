@@ -11,27 +11,11 @@ typedef BYTE BOOLEAN;
 #endif
 #endif
 
-#ifndef XFRACT
-#define ftimex ftime
-typedef int SEGTYPE;
-typedef unsigned USEGTYPE;
-#ifdef __TURBOC__
-#   define _bios_printer(a,b,c)   biosprint((a),(c),(b))
-#   define _bios_serialcom(a,b,c) bioscom((a),(c),(b))
-#else
-#ifndef __WATCOMC__
-#ifndef MK_FP
-#   define MK_FP(seg,off) (VOIDFARPTR )( (((long)(seg))<<16) | \
-                                          ((unsigned)(off)) )
-#endif
-#endif
-#endif
-#else
-typedef char * SEGTYPE;
-typedef char * USEGTYPE;
-#   define MK_FP(seg,off) (VOIDFARPTR )(seg+off)
-#include <sys/types.h> /* need size_t */
-#endif
+/* Returns the number of items in an array declared of fixed size, i.e:
+	int stuff[100];
+	NUM_OF(stuff) returns 100.
+*/
+#define NUM_OF(ary_) (sizeof(ary_)/sizeof(ary_[0]))
 
 #ifndef XFRACT
 #define clock_ticks() clock()
@@ -41,13 +25,86 @@ typedef char * USEGTYPE;
 #define difftime(now,then) ((now)-(then))
 #endif
 
+/* driver_buzzer() codes */
+#define BUZZER_COMPLETE 0
+#define BUZZER_INTERRUPT 1
+#define BUZZER_ERROR 2
+
+/* stopmsg() flags */
+#define STOPMSG_NO_STACK	1
+#define STOPMSG_CANCEL		2
+#define STOPMSG_NO_BUZZER	4
+#define STOPMSG_FIXED_FONT	8
+#define STOPMSG_INFO_ONLY	16
+
+/* g_video_type video types */
+#define VIDEO_TYPE_HGC		1
+#define VIDEO_TYPE_EGA		3
+#define VIDEO_TYPE_CGA		2
+#define VIDEO_TYPE_MCGA		4
+#define VIDEO_TYPE_VGA		5
+
 /* for gotos in former FRACTINT.C pieces */
 #define RESTART           1
 #define IMAGESTART        2
 #define RESTORESTART      3
 #define CONTINUE          4
 
+/* values for dotmode */
+#define DOTMODE_SLOW_BIOS		1
+#define DOTMODE_PRETEND_EGA		2
+#define DOTMODE_PRETEND_MCGA	3
+#define DOTMODE_VGA_TSENG		4
+#define DOTMODE_VGA_PARADISE	5
+#define DOTMODE_VGA_VIDEO7		6
+#define DOTMODE_VGA_NONSTANDARD	7
+#define DOTMODE_VGA_EVEREX		8
+#define DOTMODE_TARGA			9
+#define DOTMODE_HERCULES		10
+#define DOTMODE_RAMDISK			11
+#define DOTMODE_8514A			12
+#define DOTMODE_CGA				13
+#define DOTMODE_TANDY_1000		14
+#define DOTMODE_SVGA_TRIDENT	15
+#define DOTMODE_SVGA_CHIPSTECH	16
+#define DOTMODE_SVGA_VGAWONDER	17
+#define DOTMODE_SVGA_EVEREX		18
+#define DOTMODE_ROLL_YOUR_OWN	19
+#define DOTMODE_XGA_VGAWONDER	20
+#define DOTMODE_XGA_TSENG		21
+#define DOTMODE_XGA_TRIDENT		22
+#define DOTMODE_XGA_VIDEO7		23
+#define DOTMODE_XGA_PARADISE	24
+#define DOTMODE_XGA_CHIPSTECH	25
+#define DOTMODE_XGA_EVEREX		26
+#define DOTMODE_SVGA_AUTO		27
+#define DOTMODE_VESA			28
+#define DOTMODE_TRUECOLOR_AUTO	29
+
+#define SLIDES_OFF		0
+#define SLIDES_PLAY		1
+#define SLIDES_RECORD	2
+
+/* fullscreen_choice options */
+#define CHOICE_RETURN_KEY	1
+#define CHOICE_MENU			2
+#define CHOICE_HELP			4
+#define CHOICE_CRUNCH		16
+#define CHOICE_NOT_SORTED	32
+
+/* calc_status values */
+#define CALCSTAT_NO_FRACTAL		-1
+#define CALCSTAT_PARAMS_CHANGED	0
+#define CALCSTAT_IN_PROGRESS	1
+#define CALCSTAT_RESUMABLE		2
+#define CALCSTAT_NON_RESUMABLE	3
+#define CALCSTAT_COMPLETED		4
+
 /* these are used to declare arrays for file names */
+#if defined(_WIN32)
+#define FILE_MAX_PATH _MAX_PATH
+#define FILE_MAX_DIR _MAX_DIR
+#else
 #ifdef XFRACT
 #define FILE_MAX_PATH  256       /* max length of path+filename  */
 #define FILE_MAX_DIR   256       /* max length of directory name */
@@ -55,12 +112,9 @@ typedef char * USEGTYPE;
 #define FILE_MAX_PATH  80       /* max length of path+filename  */
 #define FILE_MAX_DIR   80       /* max length of directory name */
 #endif
+#endif
 #define FILE_MAX_DRIVE  3       /* max length of drive letter   */
 
-#if 1
-#define FILE_MAX_FNAME  9       /* max length of filename       */
-#define FILE_MAX_EXT    5       /* max length of extension      */
-#else
 /*
 The filename limits were increased in Xfract 3.02. But alas,
 in this poor program that was originally developed on the
@@ -70,7 +124,6 @@ names. So for now humor us and let's keep the names short.
 */
 #define FILE_MAX_FNAME  64       /* max length of filename       */
 #define FILE_MAX_EXT    64       /* max length of extension      */
-#endif
 
 #define MAXMAXLINELENGTH  128   /* upper limit for maxlinelength for PARs */
 #define MINMAXLINELENGTH  40    /* lower limit for maxlinelength for PARs */
@@ -81,8 +134,10 @@ names. So for now humor us and let's keep the names short.
 #define MAXPIXELS   32767       /* Maximum pixel count across/down the screen */
 #define OLDMAXPIXELS 2048       /* Limit of some old fixed arrays */
 #define MINPIXELS 10            /* Minimum pixel count across/down the screen */
-#define DEFAULTASPECT ((float)0.75)/* Assumed overall screen dimensions, y/x  */
-#define DEFAULTASPECTDRIFT ((float)0.02) /* drift of < 2% is forced to 0% */
+#define DEFAULTASPECT 1.0f		/* Assumed overall screen dimensions, y/x  */
+#define DEFAULTASPECTDRIFT 0.02f /* drift of < 2% is forced to 0% */
+
+typedef struct tagDriver Driver;
 
 struct videoinfo {              /* All we need to know about a Video Adapter */
         char    name[26];       /* Adapter name (IBM EGA, etc)          */
@@ -114,9 +169,10 @@ struct videoinfo {              /* All we need to know about a Video Adapter */
         int     xdots;          /* number of dots across the screen     */
         int     ydots;          /* number of dots down the screen       */
         int     colors;         /* number of colors available           */
+		Driver *driver;
         };
 
-typedef struct videoinfo far        VIDEOINFO;
+typedef struct videoinfo VIDEOINFO;
 #define INFO_ID         "Fractal"
 typedef    struct fractal_info FRACTAL_INFO;
 
@@ -383,26 +439,12 @@ struct formula_info         /*  for saving formula data in GIF file     */
     short future[6];       /* for stuff we haven't thought of, yet */
 };
 
-#ifndef XFRACT
 enum stored_at_values
-   {
+{
    NOWHERE,
-   EXTRA,
-   FARMEM,
-   EXPANDED,
-   EXTENDED,
+   MEMORY,
    DISK
-   };
-#endif
-
-#ifdef XFRACT
-enum stored_at_values
-   {
-   NOWHERE,
-   FARMEM,
-   DISK
-   };
-#endif
+};
 
 #define NUMGENES 21
 
@@ -473,11 +515,6 @@ struct orbits_info      /* for saving orbits data in a GIF file */
 };
 
 #define MAXVIDEOMODES 300       /* maximum entries in fractint.cfg        */
-#ifndef XFRACT
-#define MAXVIDEOTABLE 40        /* size of the resident video modes table */
-#else
-#define MAXVIDEOTABLE 2         /* size of the resident video modes table */
-#endif
 
 #define AUTOINVERT -123456.789
 #define ENDVID 22400   /* video table uses extra seg up to here */
@@ -494,17 +531,17 @@ extern  double   f_at_rad;      /* finite attractor radius  */
 struct moreparams
 {
    int      type;                       /* index in fractalname of the fractal */
-   char     far *param[MAXPARAMS-4];    /* name of the parameters */
+   char     *param[MAXPARAMS-4];    /* name of the parameters */
    double   paramvalue[MAXPARAMS-4];    /* default parameter values */
 };
 
-typedef struct moreparams far       MOREPARAMS;
+typedef struct moreparams MOREPARAMS;
 
 struct fractalspecificstuff
 {
    char  *name;                         /* name of the fractal */
                                         /* (leading "*" supresses name display) */
-   char  far *param[4];                 /* name of the parameters */
+   char  *param[4];                 /* name of the parameters */
    double paramvalue[4];                /* default parameter values */
    int   helptext;                      /* helpdefs.h HT_xxxx, -1 for none */
    int   helpformula;                   /* helpdefs.h HF_xxxx, -1 for none */
@@ -554,7 +591,7 @@ struct alternatemathstuff
    int (*per_image)(void);      /* once-per-image setup */
 };
 
-typedef struct alternatemathstuff ALTERNATE;
+typedef struct alternatemathstuff AlternateMath;
 
 /* defines for symmetry */
 #define  NOSYM          0
@@ -623,8 +660,8 @@ enum Minor  {left_first, right_first};
 #define NOGROUT         8    /* no gaps between images                                   */
 
 
-extern struct fractalspecificstuff far fractalspecific[];
-extern struct fractalspecificstuff far *curfractalspecific;
+extern struct fractalspecificstuff fractalspecific[];
+extern struct fractalspecificstuff *curfractalspecific;
 
 #define DEFAULTFRACTALTYPE      ".gif"
 #define ALTERNATEFRACTALTYPE    ".fra"
@@ -823,61 +860,75 @@ extern  void   (_fastcall *plot)(int, int, int);
 /* nonalpha tests if we have a control character */
 #define nonalpha(c) ((c)<32 || (c)>127)
 
-/* keys */
-#define   INSERT         1082
-#define   DELETE         1083
-#define   PAGE_UP        1073
-#define   PAGE_DOWN      1081
-#define   CTL_HOME       1119
-#define   CTL_END        1117
-#define   LEFT_ARROW     1075
-#define   RIGHT_ARROW    1077
-#define   UP_ARROW       1072
-#define   DOWN_ARROW     1080
-#define   LEFT_ARROW_2   1115
-#define   RIGHT_ARROW_2  1116
-#define   UP_ARROW_2     1141
-#define   DOWN_ARROW_2   1145
-#define   HOME           1071
-#define   END            1079
-#define   ENTER          13
-#define   ENTER_2        1013
-#define   CTL_ENTER      10
-#define   CTL_ENTER_2    1010
-#define   CTL_PAGE_UP    1132
-#define   CTL_PAGE_DOWN  1118
-#define   CTL_MINUS      1142
-#define   CTL_PLUS       1144
-#define   CTL_INSERT     1146
-#define   CTL_DEL        1147
-#define   CTL_BACKSLASH  28
-#define   F1             1059
-#define   F2             1060
-#define   F3             1061
-#define   F4             1062
-#define   F5             1063
-#define   F6             1064
-#define   F7             1065
-#define   F8             1066
-#define   F9             1067
-#define   F10            1068
-#define   BACKSPACE      8
-#define   TAB            9
-#define   CTL_TAB        1148
-#define   ALT_TAB        1165
-#define   BACK_TAB       1015  /* shift tab */
-#define   ESC            27
-#define   SPACE          32
-#define   SF1            1084
-#define   SF2            1085
-#define   SF3            1086
-#define   SF4            1087
-#define   SF5            1088
-#define   SF6            1089
-#define   SF7            1090
-#define   SF8            1091
-#define   SF9            1092
-#define   SF10           1093
+/* keys; FIK = "FractInt Key"
+ * Use this prefix to disambiguate key name symbols used in the fractint source
+ * from symbols defined by the external environment, i.e. "DELETE" on Win32
+ */
+#define FIK_ALT_F1			1104
+
+#define FIK_CTL_A			1
+#define FIK_CTL_B			2
+#define FIK_CTL_E			5
+#define FIK_CTL_F			6
+#define FIK_CTL_G			7
+#define FIK_CTL_P			16
+#define FIK_CTL_S			19
+#define FIK_CTL_BACKSLASH	28
+#define FIK_CTL_DEL			1147
+#define FIK_CTL_END			1117
+#define FIK_CTL_ENTER		10
+#define FIK_CTL_ENTER_2		1010
+#define FIK_CTL_HOME		1119
+#define FIK_CTL_INSERT		1146
+#define FIK_CTL_MINUS		1142
+#define FIK_CTL_PAGE_DOWN	1118
+#define FIK_CTL_PAGE_UP		1132
+#define FIK_CTL_PLUS		1144
+#define FIK_CTL_TAB			1148
+
+#define FIK_SHF_TAB			1015  /* shift tab aka BACKTAB */
+
+#define FIK_BACKSPACE		8
+#define FIK_DELETE			1083
+#define FIK_DOWN_ARROW		1080
+#define FIK_DOWN_ARROW_2	1145
+#define FIK_END				1079
+#define FIK_ENTER			13
+#define FIK_ENTER_2			1013
+#define FIK_ESC				27
+#define FIK_F1				1059
+#define FIK_F2				1060
+#define FIK_F3				1061
+#define FIK_F4				1062
+#define FIK_F5				1063
+#define FIK_F6				1064
+#define FIK_F7				1065
+#define FIK_F8				1066
+#define FIK_F9				1067
+#define FIK_F10				1068
+#define FIK_HOME			1071
+#define FIK_INSERT			1082
+#define FIK_LEFT_ARROW		1075
+#define FIK_LEFT_ARROW_2	1115
+#define FIK_PAGE_DOWN		1081
+#define FIK_PAGE_UP			1073
+#define FIK_RIGHT_ARROW		1077
+#define FIK_RIGHT_ARROW_2	1116
+#define FIK_SPACE			32
+#define FIK_SF1				1084
+#define FIK_SF2				1085
+#define FIK_SF3				1086
+#define FIK_SF4				1087
+#define FIK_SF5				1088
+#define FIK_SF6				1089
+#define FIK_SF7				1090
+#define FIK_SF8				1091
+#define FIK_SF9				1092
+#define FIK_SF10			1093
+#define FIK_TAB				9
+#define FIK_UP_ARROW		1072
+#define FIK_UP_ARROW_2		1141
+
 /* text colors */
 #define BLACK      0
 #define BLUE       1
@@ -961,7 +1012,7 @@ struct fullscreenvalues
       int    ival;      /* when type is 'i'      */
       long   Lval;      /* when type is 'L'      */
       char   sval[16];  /* when type is 's'      */
-      char  far *sbuf;  /* when type is 0x100+n  */
+      char  *sbuf;  /* when type is 0x100+n  */
       struct {          /* when type is 'l'      */
          int  val;      /*   selected choice     */
          int  vlen;     /*   char len per choice */
@@ -976,14 +1027,14 @@ struct fullscreenvalues
 #define   SYSTEM         4
 #define   SUBDIR         16
 
-struct DIR_SEARCH               /* Allocate DTA and define structure */
+struct DIR_SEARCH				/* Allocate	DTA	and	define structure */
 {
-     char path[21];             /* DOS path and filespec */
-     char attribute;            /* File attributes wanted */
-     int  ftime;                /* File creation time */
-     int  fdate;                /* File creation date */
-     long size;                 /* File size in bytes */
-     char filename[13];         /* Filename and extension */
+	char path[FILE_MAX_PATH];		/* DOS path	and	filespec */
+	char attribute;				/* File	attributes wanted */
+	int	 ftime;					/* File	creation time */
+	int	 fdate;					/* File	creation date */
+	long size;					/* File	size in bytes */
+	char filename[FILE_MAX_PATH];	/* Filename	and	extension */
 };
 
 extern struct DIR_SEARCH DTA;   /* Disk Transfer Area */
@@ -1034,13 +1085,13 @@ struct ext_blk_3 {
 struct ext_blk_4 {
    char got_data;
    int length;
-   int far *range_data;
+   int *range_data;
    };
 
 struct ext_blk_5 {
    char got_data;
    int length;
-   char far *apm_data;
+   char *apm_data;
    };
 
 /* parameter evolution stuff */
@@ -1113,75 +1164,6 @@ typedef struct baseunit    GENEBASE;
 
 #define sign(x) (((x) < 0) ? -1 : ((x) != 0)  ? 1 : 0)
 
-/* 
- * The following typedefs allow declaring based data
- * types that are stored in the code segment under MSC,
- * and thus may be overlaid. Use only for constant data.
- * Be sure to use the data right away, since arrays thus
- * declared do not exist when the overlay they belong to
- * is swapped out.
- */
-
-#if (_MSC_VER >= 700 && !defined(WINFRACT))
-typedef char __based(__segname("_CODE")) FCODE;
-#else
-typedef char far FCODE;
-#endif
-
-/* pointer to FCODE */
-#if (_MSC_VER >= 700 && !defined(WINFRACT))
-typedef FCODE * __based(__segname("_CODE")) PFCODE;
-#else
-typedef FCODE * PFCODE;
-#endif
-
-#if (_MSC_VER >= 700 && !defined(WINFRACT))
-typedef BYTE __based(__segname("_CODE")) BFCODE;
-#else
-typedef BYTE far BFCODE;
-#endif
-
-#if (_MSC_VER >= 700 && !defined(WINFRACT))
-typedef short __based(__segname("_CODE")) SIFCODE;
-#else
-typedef short far SIFCODE;
-#endif
-
-#if (_MSC_VER >= 700 && !defined(WINFRACT))
-typedef short __based(__segname("_CODE")) USFCODE;
-#else
-typedef short far USFCODE;
-#endif
-
-#if (_MSC_VER >= 700 && !defined(WINFRACT))
-typedef int __based(__segname("_CODE")) IFCODE;
-#else
-typedef int far IFCODE;
-#endif
-
-#if (_MSC_VER >= 700 && !defined(WINFRACT))
-typedef unsigned int __based(__segname("_CODE")) UIFCODE;
-#else
-typedef unsigned int far UIFCODE;
-#endif
-
-#if (_MSC_VER >= 700 && !defined(WINFRACT))
-typedef long __based(__segname("_CODE")) LFCODE;
-#else
-typedef long far LFCODE;
-#endif
-
-#if (_MSC_VER >= 700 && !defined(WINFRACT))
-typedef unsigned long __based(__segname("_CODE")) ULFCODE;
-#else
-typedef unsigned long far ULFCODE;
-#endif
-
-#if (_MSC_VER >= 700 && !defined(WINFRACT))
-typedef double __based(__segname("_CODE")) DFCODE;
-#else
-typedef double far DFCODE;
-#endif
 #endif
 
 

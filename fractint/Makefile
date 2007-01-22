@@ -91,15 +91,15 @@ ifeq ($(AS),/usr/bin/nasm)
 
 #CFLAGS = -I. -D_CONST $(DEFINES)
 CFLAGS = -I$(HFD) $(DEFINES) -g -DBIG_ANSI_C -DLINUX -O2 \
-         -march=athlon64 -DNASM -fno-builtin
-#         -march=pentium -DNASM -fno-builtin
+         -march=pentium -DNASM -fno-builtin
+#         -march=athlon64 -DNASM -fno-builtin
 #CFLAGS = -I. $(DEFINES) -g -DBIG_ANSI_C -DLINUX -Os -DNASM -fno-builtin
 
 else
 
 CFLAGS = -I$(HFD) $(DEFINES) -g -DBIG_ANSI_C -DLINUX -O2 \
-         -march=athlon64 -fno-builtin
-#         -march=pentium -fno-builtin
+         -march=pentium -fno-builtin
+#         -march=athlon64 -fno-builtin
 #CFLAGS = -I. $(DEFINES) -g -DBIG_ANSI_C -DLINUX -Os -fno-builtin
 
 endif
@@ -121,8 +121,8 @@ CC = /usr/bin/gcc
 # if you get undefined symbols like "w32addch".
 # For Linux, use
 #LIBS = -L/usr/X11R6/lib -lX11 -lm -lncurses
-#LIBS = -L/usr/X11R6/lib -lX11 -lm -lncurses
-LIBS = -L/usr/X11R6/lib64 -lX11 -lm -lncurses
+LIBS = -L/usr/X11R6/lib -lX11 -lm -lncurses
+#LIBS = -L/usr/X11R6/lib64 -lX11 -lm -lncurses
 #LIBS = -lX11 -lm -lcurses
 
 # HPUX fixes thanks to David Allport, Bill Broadley, and R. Lloyd.
@@ -139,7 +139,7 @@ OLDSRC = \
 bignumc.c calcfrac.c cmdfiles.c decoder.c editpal.c \
 encoder.c evolve.c f16.c fracsubr.c fractalb.c fractalp.c \
 fractals.c fractint.c framain2.c \
-frasetup.c gifview.c hc.c hcmplx.c help.c history.c\
+frasetup.c gifview.c hc.c hcmplx.c help.c \
 intro.c jb.c jiim.c line3d.c loadfdos.c loadfile.c loadmap.c lorenz.c \
 lsys.c lsysf.c memory.c miscfrac.c miscovl.c miscres.c \
 mpmath_c.c parser.c parserfp.c plot3d.c printer.c prompts1.c \
@@ -197,11 +197,12 @@ FILES = $(SRCFILES) $(RUNFILES)
 OBJS = \
 $(COMDIR)/3d.o $(COMDIR)/ant.o $(COMDIR)/bigflt.o  $(COMDIR)/biginit.o \
 $(COMDIR)/bignum.o $(COMDIR)/bignumc.o $(COMDIR)/calcfrac.o \
-$(COMDIR)/cmdfiles.o $(COMDIR)/decoder.o $(COMDIR)/editpal.o \
+$(COMDIR)/cmdfiles.o $(COMDIR)/decoder.o \
+$(COMDIR)/drivers.o $(COMDIR)/editpal.o \
 $(COMDIR)/encoder.o $(COMDIR)/evolve.o $(COMDIR)/f16.o $(COMDIR)/fracsubr.o \
 $(COMDIR)/fractalb.o $(COMDIR)/fractalp.o $(COMDIR)/fractals.o \
 $(COMDIR)/fractint.o $(COMDIR)/framain2.o $(COMDIR)/frasetup.o \
-$(COMDIR)/gifview.o $(COMDIR)/hcmplx.o $(COMDIR)/help.o $(COMDIR)/history.o\
+$(COMDIR)/gifview.o $(COMDIR)/hcmplx.o $(COMDIR)/help.o \
 $(COMDIR)/intro.o $(COMDIR)/jb.o $(COMDIR)/jiim.o $(COMDIR)/line3d.o \
 $(COMDIR)/loadfdos.o $(COMDIR)/loadfile.o $(COMDIR)/loadmap.o \
 $(COMDIR)/lorenz.o $(COMDIR)/lsys.o $(COMDIR)/lsysf.o $(COMDIR)/memory.o \
@@ -211,7 +212,8 @@ $(COMDIR)/plot3d.o $(COMDIR)/printer.o $(COMDIR)/prompts1.o \
 $(COMDIR)/prompts2.o $(COMDIR)/realdos.o $(COMDIR)/rotate.o \
 $(COMDIR)/slideshw.o $(COMDIR)/soi.o $(COMDIR)/soi1.o $(COMDIR)/stereo.o \
 $(COMDIR)/targa.o $(COMDIR)/testpt.o $(COMDIR)/tgaview.o \
-$(COMDIR)/zoom.o
+$(COMDIR)/zoom.o \
+drivers/d_x11.o drivers/d_disk.o
 
 
 ifeq ($(AS),/usr/bin/nasm)
@@ -241,6 +243,7 @@ xfractint: fractint.hlp .WAIT
 	if [ -f $(DOSHELPDIR)/helpdefs.h ] ; then mv -f $(DOSHELPDIR)/helpdefs.h $(HFD) ; fi
 	cd common ; ${MAKE} all "CFLAGS= -I.${HFD} ${CFLAGS}" "SRCDIR=${SRCDIR}" \
 	          "HFD=.${HFD}"
+	cd drivers ; ${MAKE} all "CFLAGS= -I.${HFD} ${CFLAGS}" "SRCDIR=${SRCDIR}" "HFD=.${HFD}"
 	cd unix ; ${MAKE} all "CFLAGS= -I.${HFD} ${CFLAGS}" "SRCDIR=${SRCDIR}" \
 	          "AS=${AS}" "AFLAGS=${AFLAGS}" "HFD=.${HFD}"
 	$(CC) -o xfractint $(CFLAGS) $(OBJS) $(U_OBJS) $(LIBS)

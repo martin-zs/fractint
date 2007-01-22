@@ -11,6 +11,7 @@
 #include "fractype.h"
 #include "helpdefs.h"
 #include "targa_lc.h"
+#include "drivers.h"
 
 /* routines in this module      */
 
@@ -21,7 +22,7 @@ static int  find_fractal_info(char *,struct fractal_info *,
                               struct ext_blk_5 *,
                               struct ext_blk_6 *,
                               struct ext_blk_7 *);
-static void load_ext_blk(char far *loadptr,int loadlen);
+static void load_ext_blk(char *loadptr,int loadlen);
 static void skip_ext_blk(int *,int *);
 static void backwardscompat(struct fractal_info *info);
 static int fix_bof(void);
@@ -49,7 +50,7 @@ int read_overlay()      /* read overlay/3D files, if reqr'd */
    struct ext_blk_7 blk_7_info;
 
    showfile = 1;                /* for any abort exit, pretend done */
-   initmode = -1;               /* no viewing mode set yet */
+   g_init_mode = -1;               /* no viewing mode set yet */
    oldfloatflag = usr_floatflag;
    loaded3d = 0;
    if(fastrestore)
@@ -135,7 +136,7 @@ int read_overlay()      /* read overlay/3D files, if reqr'd */
       outside      = read_info.outside;
       }
 
-   calc_status = 0;       /* defaults if version < 4 */
+   calc_status = CALCSTAT_PARAMS_CHANGED;       /* defaults if version < 4 */
    xx3rd = xxmin;
    yy3rd = yymin;
    usr_distest = 0;
@@ -335,11 +336,10 @@ int read_overlay()      /* read overlay/3D files, if reqr'd */
       usr_floatflag = oldfloatflag; /*  floatflag in line3d is clarified */
 
    if (overlay3d) {
-      initmode = adapter;          /* use previous adapter mode for overlays */
+      g_init_mode = g_adapter;          /* use previous adapter mode for overlays */
       if (filexdots > xdots || fileydots > ydots) {
-         static FCODE msg[]={"Can't overlay with a larger image"};
-         stopmsg(0,msg);
-         initmode = -1;
+         stopmsg(0,"Can't overlay with a larger image");
+         g_init_mode = -1;
          return(-1);
          }
       }
@@ -358,19 +358,19 @@ int read_overlay()      /* read overlay/3D files, if reqr'd */
             MemoryRelease((U16)blk_2_info.resume_data);
             blk_2_info.length = 0;
          }
-         initmode = -1;
+         g_init_mode = -1;
          return(-1);
          }
       }
 
    if (display3d) {
-      calc_status = 0;
+      calc_status = CALCSTAT_PARAMS_CHANGED;
       fractype = PLASMA;
       curfractalspecific = &fractalspecific[PLASMA];
       param[0] = 0;
       if (!initbatch)
          if (get_3d_params() < 0) {
-            initmode = -1;
+            g_init_mode = -1;
             return(-1);
             }
       }
@@ -415,13 +415,13 @@ int read_overlay()      /* read overlay/3D files, if reqr'd */
           }
 
    if (rangeslen) { /* free prior ranges */
-     farmemfree((char far *)ranges);
+     free((char *)ranges);
      rangeslen = 0;
    }
 
    if(blk_4_info.got_data == 1)
           {
-          ranges = (int far *)blk_4_info.range_data;
+          ranges = (int *)blk_4_info.range_data;
           rangeslen = blk_4_info.length;
 #ifdef XFRACT
           fix_ranges(ranges,rangeslen,1);
@@ -432,8 +432,8 @@ int read_overlay()      /* read overlay/3D files, if reqr'd */
           {
           bf_math = 1;
           init_bf_length(read_info.bflength);
-          far_memcpy((char far *)bfxmin,blk_5_info.apm_data,blk_5_info.length);
-          farmemfree(blk_5_info.apm_data);
+          memcpy((char *)bfxmin,blk_5_info.apm_data,blk_5_info.length);
+          free(blk_5_info.apm_data);
           }
    else
       bf_math = 0;
@@ -444,18 +444,20 @@ int read_overlay()      /* read overlay/3D files, if reqr'd */
           GENEBASE gene[NUMGENES];
           int i;
 
+		  /* TODO: MemoryAlloc */
           if (gene_handle == 0)
-             gene_handle = MemoryAlloc((U16)sizeof(gene),1L,FARMEM);
+             gene_handle = MemoryAlloc((U16)sizeof(gene),1L,MEMORY);
           MoveFromMemory((BYTE *)&gene, (U16)sizeof(gene), 1L, 0L, gene_handle);
           if (read_info.version < 15)  /* This is VERY Ugly!  JCO  14JUL01 */
              /* Increasing NUMGENES moves ecount in the data structure */
              /* We added 4 to NUMGENES, so ecount is at NUMGENES-4 */
              blk_6_info.ecount = blk_6_info.mutate[NUMGENES-4];
           if (blk_6_info.ecount != blk_6_info.gridsz * blk_6_info.gridsz
-             && calc_status != 4) {
-             calc_status = 2;
+             && calc_status != CALCSTAT_COMPLETED) {
+             calc_status = CALCSTAT_RESUMABLE;
+			 /* TODO: MemoryAlloc */
              if (evolve_handle == 0)
-                evolve_handle = MemoryAlloc((U16)sizeof(resume_e_info),1L,FARMEM);
+                evolve_handle = MemoryAlloc((U16)sizeof(resume_e_info),1L,MEMORY);
              resume_e_info.paramrangex  = blk_6_info.paramrangex;
              resume_e_info.paramrangey  = blk_6_info.paramrangey;
              resume_e_info.opx          = blk_6_info.opx;
@@ -478,7 +480,7 @@ int read_overlay()      /* read overlay/3D files, if reqr'd */
              if (evolve_handle != 0)  /* Image completed, release it. */
                 MemoryRelease(evolve_handle);
              evolve_handle = 0;
-             calc_status = 4;
+             calc_status = CALCSTAT_COMPLETED;
           }
           paramrangex  = blk_6_info.paramrangex;
           paramrangey  = blk_6_info.paramrangey;
@@ -588,7 +590,7 @@ static int find_fractal_info(char *gif_file,struct fractal_info *info,
          for (j = 0; j < 3; j++) {
             if ((k = getc(fp)) < 0)
                break;
-            dacbox[i][j] = (BYTE)(k >> 2);
+            g_dac_box[i][j] = (BYTE)(k >> 2);
          }
          if(k < 0)
             break;
@@ -676,7 +678,7 @@ static int find_fractal_info(char *gif_file,struct fractal_info *info,
                      scan_extend = 0;
                      break;
                      }
-                  load_ext_blk((char far *)info,FRACTAL_INFO_SIZE);
+                  load_ext_blk((char *)info,FRACTAL_INFO_SIZE);
 #ifdef XFRACT
                   decode_fractal_info(info,1);
 #endif
@@ -686,11 +688,12 @@ static int find_fractal_info(char *gif_file,struct fractal_info *info,
                   break;
                case 2: /* resume info */
                   skip_ext_blk(&block_len,&data_len); /* once to get lengths */
-                  if ((blk_2_info->resume_data = MemoryAlloc((U16)1,(long)data_len,FARMEM)) == 0)
-                     info->calc_status = 3; /* not resumable after all */
+			 /* TODO: MemoryAlloc */
+                  if ((blk_2_info->resume_data = MemoryAlloc((U16)1,(long)data_len,MEMORY)) == 0)
+                     info->calc_status = CALCSTAT_NON_RESUMABLE; /* not resumable after all */
                   else {
                      fseek(fp,(long)(0-block_len),SEEK_CUR);
-                     load_ext_blk((char far *)block,data_len);
+                     load_ext_blk((char *)block,data_len);
                      MoveToMemory((BYTE *)block,(U16)1,(long)data_len,0,(U16)blk_2_info->resume_data);
                      blk_2_info->length = data_len;
                      blk_2_info->got_data = 1; /* got data */
@@ -700,7 +703,7 @@ static int find_fractal_info(char *gif_file,struct fractal_info *info,
                   skip_ext_blk(&block_len,&data_len); /* once to get lengths */
                 /* check data_len for backward compatibility */
                   fseek(fp,(long)(0-block_len),SEEK_CUR);
-                  load_ext_blk((char far *)&fload_info,data_len);
+                  load_ext_blk((char *)&fload_info,data_len);
                   strcpy(blk_3_info->form_name,fload_info.form_name);
                   blk_3_info->length = data_len;
                   blk_3_info->got_data = 1; /* got data */
@@ -725,16 +728,16 @@ static int find_fractal_info(char *gif_file,struct fractal_info *info,
                   break;
                case 4: /* ranges info */
                   skip_ext_blk(&block_len,&data_len); /* once to get lengths */
-                  if ((blk_4_info->range_data = (int far *)farmemalloc((long)data_len)) != NULL) {
+                  if ((blk_4_info->range_data = (int *)malloc((long)data_len)) != NULL) {
                      fseek(fp,(long)(0-block_len),SEEK_CUR);
-                     load_ext_blk((char far *)blk_4_info->range_data,data_len);
+                     load_ext_blk((char *)blk_4_info->range_data,data_len);
                      blk_4_info->length = data_len/2;
                      blk_4_info->got_data = 1; /* got data */
                      }
                   break;
                case 5: /* extended precision parameters  */
                   skip_ext_blk(&block_len,&data_len); /* once to get lengths */
-                  if ((blk_5_info->apm_data = (char far *)farmemalloc((long)data_len)) != NULL) {
+                  if ((blk_5_info->apm_data = (char *)malloc((long)data_len)) != NULL) {
                      fseek(fp,(long)(0-block_len),SEEK_CUR);
                      load_ext_blk(blk_5_info->apm_data,data_len);
                      blk_5_info->length = data_len;
@@ -744,7 +747,7 @@ static int find_fractal_info(char *gif_file,struct fractal_info *info,
                case 6: /* evolver params */
                   skip_ext_blk(&block_len,&data_len); /* once to get lengths */
                   fseek(fp,(long)(0-block_len),SEEK_CUR);
-                  load_ext_blk((char far *)&eload_info,data_len);
+                  load_ext_blk((char *)&eload_info,data_len);
                   /* XFRACT processing of doubles here */
 #ifdef XFRACT
                   decode_evolver_info(&eload_info,1);
@@ -775,7 +778,7 @@ static int find_fractal_info(char *gif_file,struct fractal_info *info,
                case 7: /* orbits parameters  */
                   skip_ext_blk(&block_len,&data_len); /* once to get lengths */
                   fseek(fp,(long)(0-block_len),SEEK_CUR);
-                  load_ext_blk((char far *)&oload_info,data_len);
+                  load_ext_blk((char *)&oload_info,data_len);
                   /* XFRACT processing of doubles here */
 #ifdef XFRACT
                   decode_orbits_info(&oload_info,1);
@@ -829,7 +832,7 @@ static int find_fractal_info(char *gif_file,struct fractal_info *info,
    return(0);
 }
 
-static void load_ext_blk(char far *loadptr,int loadlen)
+static void load_ext_blk(char *loadptr,int loadlen)
 {
    int len;
    while ((len = fgetc(fp)) > 0) {
@@ -1204,10 +1207,11 @@ int fgetwindow(void)
 #ifdef XFRACT
    vidlength = 4; /* Xfractint only needs the 4 corners saved. */
 #endif
-   browsehandle = MemoryAlloc((U16)sizeof(struct window),(long)MAX_WINDOWS_OPEN,FARMEM);
-   boxxhandle = MemoryAlloc((U16)(vidlength),(long)MAX_WINDOWS_OPEN,EXPANDED);
-   boxyhandle = MemoryAlloc((U16)(vidlength),(long)MAX_WINDOWS_OPEN,EXPANDED);
-   boxvalueshandle = MemoryAlloc((U16)(vidlength>>1),(long)MAX_WINDOWS_OPEN,EXPANDED);
+	/* TODO: MemoryAlloc */
+   browsehandle = MemoryAlloc((U16)sizeof(struct window),(long)MAX_WINDOWS_OPEN,MEMORY);
+   boxxhandle = MemoryAlloc((U16)(vidlength),(long)MAX_WINDOWS_OPEN,MEMORY);
+   boxyhandle = MemoryAlloc((U16)(vidlength),(long)MAX_WINDOWS_OPEN,MEMORY);
+   boxvalueshandle = MemoryAlloc((U16)(vidlength>>1),(long)MAX_WINDOWS_OPEN,MEMORY);
    if(!browsehandle || !boxxhandle || !boxyhandle || !boxvalueshandle)
       no_memory = 1;
 
@@ -1227,7 +1231,7 @@ int fgetwindow(void)
         floattobf(bt_f, cvt->f);
         }
      find_special_colors();
-     color_of_box = color_medium;
+     color_of_box = g_color_medium;
 rescan:  /* entry for changed browse parms */
      time(&lastime);
      toggle = 0;
@@ -1240,9 +1244,9 @@ rescan:  /* entry for changed browse parms */
                                    /* draw all visible windows */
      while (!done)
      {
-       if(keypressed())
+       if (driver_key_pressed())
        {
-          getakey();
+          driver_get_key();
           break;
        }
        splitpath(DTA.filename,NULL,NULL,fname,ext);
@@ -1257,7 +1261,7 @@ rescan:  /* entry for changed browse parms */
            is_visible_window(&winlist,&read_info,&blk_5_info)
          )
          {
-           far_strcpy(winlist.name,DTA.filename);
+           strcpy(winlist.name,DTA.filename);
            drawindow(color_of_box,&winlist);
            boxcount <<= 1; /*boxcount*2;*/ /* double for byte count */
            winlist.boxcount = boxcount;
@@ -1268,35 +1272,32 @@ rescan:  /* entry for changed browse parms */
            wincount++;
          }
 
-        if(blk_2_info.got_data == 1) /* Clean up any far memory allocated */
+        if(blk_2_info.got_data == 1) /* Clean up any memory allocated */
            MemoryRelease((U16)blk_2_info.resume_data);
-        if(blk_4_info.got_data == 1) /* Clean up any far memory allocated */
-           farmemfree(blk_4_info.range_data);
-        if(blk_5_info.got_data == 1) /* Clean up any far memory allocated */
-           farmemfree(blk_5_info.apm_data);
+        if(blk_4_info.got_data == 1) /* Clean up any memory allocated */
+           free(blk_4_info.range_data);
+        if(blk_5_info.got_data == 1) /* Clean up any memory allocated */
+           free(blk_5_info.apm_data);
 
         done=(fr_findnext() || wincount >= MAX_WINDOWS_OPEN);
       }
 
       if (no_memory)
       {
-         static FCODE msg[] = {"Sorry...not enough memory to browse."};
-       texttempmsg(msg);/* doesn't work if NO far memory available, go figure */
+       texttempmsg("Sorry...not enough memory to browse.");/* doesn't work if NO memory available, go figure */
       }
       if (wincount >= MAX_WINDOWS_OPEN)
       { /* hard code message at MAX_WINDOWS_OPEN = 450 */
-         static FCODE msg[] = {"Sorry...no more space, 450 displayed."};
-       texttempmsg(msg);
+       texttempmsg("Sorry...no more space, 450 displayed.");
       }
       if (vid_too_big==2)
       {
-         static FCODE msg[] = {"Xdots + Ydots > 4096."};
-       texttempmsg(msg);
+       texttempmsg("Xdots + Ydots > 4096.");
       }
  c=0;
  if (wincount)
  {
-      buzzer(0); /*let user know we've finished */
+      driver_buzzer(BUZZER_COMPLETE); /*let user know we've finished */
       index=0;done = 0;
       MoveFromMemory(winlistptr,(U16)sizeof(struct window),1L,(long)index,browsehandle);
       MoveFromMemory((BYTE *)boxx,vidlength,1L,(long)index,boxxhandle);
@@ -1311,7 +1312,7 @@ rescan:  /* entry for changed browse parms */
 #ifdef XFRACT
         blinks = 1;
 #endif
-        while (!keypressed())
+        while (!driver_key_pressed())
         {
           time(&thistime);
           if (difftime(thistime,lastime) > .2 ) {
@@ -1319,27 +1320,27 @@ rescan:  /* entry for changed browse parms */
              toggle = 1- toggle;
           }
           if (toggle)
-             drawindow(color_bright,&winlist);   /* flash current window */
+             drawindow(g_color_bright,&winlist);   /* flash current window */
           else
-             drawindow(color_dark,&winlist);
+             drawindow(g_color_dark,&winlist);
 #ifdef XFRACT
           blinks++;
 #endif
         }
 #ifdef XFRACT
           if ((blinks & 1) == 1)   /* Need an odd # of blinks, so next one leaves box turned off */
-             drawindow(color_bright,&winlist);
+             drawindow(g_color_bright,&winlist);
 #endif
 
-      c=getakey();
+      c=driver_get_key();
       switch (c) {
-         case RIGHT_ARROW:
-         case LEFT_ARROW:
-         case DOWN_ARROW:
-         case UP_ARROW:
+         case FIK_RIGHT_ARROW:
+         case FIK_LEFT_ARROW:
+         case FIK_DOWN_ARROW:
+         case FIK_UP_ARROW:
            cleartempmsg();
            drawindow(color_of_box,&winlist);/* dim last window */
-           if (c==RIGHT_ARROW || c== UP_ARROW) {
+           if (c==FIK_RIGHT_ARROW || c== FIK_UP_ARROW) {
               index++;                     /* shift attention to next window */
               if (index >= wincount) index=0;
            }
@@ -1354,8 +1355,8 @@ rescan:  /* entry for changed browse parms */
            showtempmsg(winlist.name);
            break;
 #ifndef XFRACT
-        case CTL_INSERT:
-          color_of_box += key_count(CTL_INSERT);
+        case FIK_CTL_INSERT:
+          color_of_box += key_count(FIK_CTL_INSERT);
           for (i=0 ; i < wincount ; i++) {
               MoveFromMemory(winlistptr,(U16)sizeof(struct window),1L,(long)i,browsehandle);
               drawindow(color_of_box,&winlist);
@@ -1364,8 +1365,8 @@ rescan:  /* entry for changed browse parms */
           drawindow(color_of_box,&winlist);
           break;
 
-        case CTL_DEL:
-          color_of_box -= key_count(CTL_DEL);
+        case FIK_CTL_DEL:
+          color_of_box -= key_count(FIK_CTL_DEL);
           for (i=0 ; i < wincount ; i++) {
               MoveFromMemory(winlistptr,(U16)sizeof(struct window),1L,(long)i,browsehandle);
               drawindow(color_of_box,&winlist);
@@ -1374,18 +1375,18 @@ rescan:  /* entry for changed browse parms */
           drawindow(color_of_box,&winlist);
           break;
 #endif
-        case ENTER:
-        case ENTER_2:   /* this file please */
-          far_strcpy(browsename,winlist.name);
+        case FIK_ENTER:
+        case FIK_ENTER_2:   /* this file please */
+          strcpy(browsename,winlist.name);
           done = 1;
           break;
 
-        case ESC:
+        case FIK_ESC:
         case 'l':
         case 'L':
 #ifdef XFRACT
         /* Need all boxes turned on, turn last one back on. */
-          drawindow(color_bright,&winlist);
+          drawindow(g_color_bright,&winlist);
 #endif
           autobrowse = FALSE;
           done = 2;
@@ -1393,18 +1394,14 @@ rescan:  /* entry for changed browse parms */
 
         case 'D': /* delete file */
           cleartempmsg();
-          strcpy(mesg,"");
-          strcat(mesg,"Delete ");
-          far_strcat(mesg,winlist.name);
-          strcat(mesg,"? (Y/N)");
+		  _snprintf(mesg, NUM_OF(mesg), "Delete %s? (Y/N)", winlist.name);
           showtempmsg(mesg);
-          while (!keypressed()) ;
+		  driver_wait_key_pressed(0);
           cleartempmsg();
-          c = getakey();
+          c = driver_get_key();
           if ( c == 'Y' && doublecaution ) {
-           static FCODE msg[] = {"ARE YOU SURE???? (Y/N)"};
-           texttempmsg(msg);
-            if ( getakey() != 'Y') c = 'N';
+           texttempmsg("ARE YOU SURE???? (Y/N)");
+            if ( driver_get_key() != 'Y') c = 'N';
           }
           if ( c == 'Y' ) {
           splitpath(readname,drive,dir,NULL,NULL);
@@ -1413,54 +1410,47 @@ rescan:  /* entry for changed browse parms */
           if ( !unlink(tmpmask)) {
           /* do a rescan */
             done = 3;
-            far_strcpy(oldname,winlist.name);
+            strcpy(oldname,winlist.name);
             tmpmask[0] = '\0';
             check_history(oldname,tmpmask);
             break;
             }
           else if( errno == EACCES ) {
-              static FCODE msg[] = {"Sorry...it's a read only file, can't del"};
-              texttempmsg(msg);
+              texttempmsg("Sorry...it's a read only file, can't del");
               showtempmsg(winlist.name);
               break;
               }
           }
           {
-          static FCODE msg[] = {"file not deleted (phew!)"};
-          texttempmsg(msg);
+          texttempmsg("file not deleted (phew!)");
           }
           showtempmsg(winlist.name);
           break;
 
         case 'R':
          cleartempmsg();
-         stackscreen();
+         driver_stack_screen();
          newname[0] = 0;
-         strcpy(mesg,"");
-         {
-         static FCODE msg[] = {"Enter the new filename for "};
-         far_strcat((char far *)mesg,msg);
-         }
+         strcpy(mesg, "Enter the new filename for ");
          splitpath(readname,drive,dir,NULL,NULL);
          splitpath(winlist.name,NULL,NULL,fname,ext);
          makepath(tmpmask,drive,dir,fname,ext);
          strcpy(newname,tmpmask);
          strcat(mesg,tmpmask);
          i = field_prompt(0,mesg,NULL,newname,60,NULL);
-         unstackscreen();
+         driver_unstack_screen();
          if( i != -1)
           if (!rename(tmpmask,newname)) {
             if (errno == EACCES)
             {
-               static FCODE msg[] = {"sorry....can't rename"};
-                texttempmsg(msg);
+                texttempmsg("Sorry....can't rename");
             }
           else {
            splitpath(newname,NULL,NULL,fname,ext);
            makepath(tmpmask,NULL,NULL,fname,ext);
-           far_strcpy(oldname,winlist.name);
+           strcpy(oldname,winlist.name);
            check_history(oldname,tmpmask);
-           far_strcpy(winlist.name,tmpmask);
+           strcpy(winlist.name,tmpmask);
            }
           }
          MoveToMemory(winlistptr,(U16)sizeof(struct window),1L,(long)index,browsehandle);
@@ -1469,9 +1459,9 @@ rescan:  /* entry for changed browse parms */
 
         case 2: /* ctrl B */
           cleartempmsg();
-          stackscreen();
+          driver_stack_screen();
           done = abs(get_browse_params());
-          unstackscreen();
+          driver_unstack_screen();
           showtempmsg(winlist.name);
           break;
 
@@ -1503,7 +1493,7 @@ rescan:  /* entry for changed browse parms */
           if (boxcount > 0 )
 #ifdef XFRACT
         /* Turn all boxes off */
-             drawindow(color_bright,&winlist);
+             drawindow(g_color_bright,&winlist);
 #else
              clearbox();
 #endif
@@ -1514,9 +1504,8 @@ rescan:  /* entry for changed browse parms */
     }
  }/*if*/
  else {
-   static FCODE msg[] = {"sorry.. I can't find anything"};
-   buzzer(1); /*no suitable files in directory! */
-   texttempmsg(msg);
+   driver_buzzer(BUZZER_INTERRUPT); /*no suitable files in directory! */
+   texttempmsg("Sorry.. I can't find anything");
    no_sub_images = TRUE;
  }
 
@@ -1665,12 +1654,12 @@ static char is_visible_window
       bt_t5   = alloc_stack(two_di_len);
       bt_t6   = alloc_stack(two_di_len);
 
-      far_memcpy((char far *)bt_t1,blk_5_info->apm_data,(two_di_len));
-      far_memcpy((char far *)bt_t2,blk_5_info->apm_data+two_di_len,(two_di_len));
-      far_memcpy((char far *)bt_t3,blk_5_info->apm_data+2*two_di_len,(two_di_len));
-      far_memcpy((char far *)bt_t4,blk_5_info->apm_data+3*two_di_len,(two_di_len));
-      far_memcpy((char far *)bt_t5,blk_5_info->apm_data+4*two_di_len,(two_di_len));
-      far_memcpy((char far *)bt_t6,blk_5_info->apm_data+5*two_di_len,(two_di_len));
+      memcpy((char *)bt_t1,blk_5_info->apm_data,(two_di_len));
+      memcpy((char *)bt_t2,blk_5_info->apm_data+two_di_len,(two_di_len));
+      memcpy((char *)bt_t3,blk_5_info->apm_data+2*two_di_len,(two_di_len));
+      memcpy((char *)bt_t4,blk_5_info->apm_data+3*two_di_len,(two_di_len));
+      memcpy((char *)bt_t5,blk_5_info->apm_data+4*two_di_len,(two_di_len));
+      memcpy((char *)bt_t6,blk_5_info->apm_data+5*two_di_len,(two_di_len));
 
       convert_bf(bt_xmin, bt_t1, two_len, two_di_len);
       convert_bf(bt_xmax, bt_t2, two_len, two_di_len);

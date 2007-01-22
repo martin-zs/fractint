@@ -44,7 +44,7 @@ int ZoomMode;
 HWND hMainWnd, hwnd;                     /* handle to main window */
 HWND hWndCopy;                                 /* Copy of hWnd */
 
-char far winfract_title_text[41];        /* Winfract title-bar text */
+char winfract_title_text[41];        /* Winfract title-bar text */
 
 #define PALETTESIZE 256               /* dull-normal VGA                    */
 HANDLE hpal;                          /* palette handle                     */
@@ -87,7 +87,7 @@ char       szHelpFileName[EXE_NAME_MAX_SIZE+1];    /* Help file name*/
 
 void MakeHelpPathName(char*);  /* Function deriving help file path */
 
-unsigned char far win_dacbox[256][3];
+unsigned char win_dacbox[256][3];
 
 int win_fastupdate;                   /* 0 for "normal" fast screen updates */
 
@@ -122,8 +122,8 @@ FARPROC lpSelectStarfield;
 
 extern int FileFormat;
 extern unsigned char DefPath[];
-extern char far StatusTitle[];
-unsigned char far DialogTitle[128];
+extern char StatusTitle[];
+unsigned char DialogTitle[128];
 unsigned char FileName[128];
 unsigned char FullPathName[FILE_MAX_DIR];
 unsigned char DefSpec[13];
@@ -138,7 +138,7 @@ unsigned char huge *pixels;        /* the device-independent bitmap  pixels */
 extern int bytes_per_pixelline;        /* pixels/line / pixels/byte */
 extern long win_bitmapsize;     /* size of the DIB in bytes */
 extern        int        resave_flag;        /* resaving after a timed save */
-extern        char overwrite;         /* overwrite on/off */
+extern        char fract_overwrite;         /* overwrite on/off */
 
 HANDLE hClipboard1, hClipboard2, hClipboard3; /* handles to clipboard info */
 LPSTR lpClipboard1, lpClipboard2;            /* pointers to clipboard info */
@@ -190,7 +190,7 @@ char FormNameChoices[80][25];
 extern char FormName[];
 extern char        IFSFileName[];    /* IFS code file */
 extern char        IFSName[];        /* IFS code item */
-double far *temp_array;
+double *temp_array;
 HANDLE htemp_array;
 
 HANDLE hSaveCursor;             /* the original cursor value */
@@ -200,15 +200,15 @@ BOOL winfract_menustyle = FALSE;/* Menu style:
                                    FALSE = Winfract-style,
                                    TRUE  = Fractint-style */
 
-/* far strings (near space is precious) */
-char far winfract_msg01[] = "Fractint For Windows";
-char far winfract_msg02[] = "WinFracMenu";
-char far winfract_msg03[] = "FractintForWindowsV0010";
-char far winfract_msg04[] = "WinfractAcc";
-char far winfract_msg96[] = "I'm sorry, but color-cycling \nrequires a palette-based\nvideo driver";
-char far winfract_msg97[] = "There isn't enough available\nmemory to run Winfract";
-char far winfract_msg98[] =  "This program requires Standard\nor 386-Enhanced Mode";
-char far winfract_msg99[] = "Not Enough Free Memory to Copy to the Clipboard";
+/* strings (near space is precious) */
+char winfract_msg01[] = "Fractint For Windows";
+char winfract_msg02[] = "WinFracMenu";
+char winfract_msg03[] = "FractintForWindowsV0010";
+char winfract_msg04[] = "WinfractAcc";
+char winfract_msg96[] = "I'm sorry, but color-cycling \nrequires a palette-based\nvideo driver";
+char winfract_msg97[] = "There isn't enough available\nmemory to run Winfract";
+char winfract_msg98[] =  "This program requires Standard\nor 386-Enhanced Mode";
+char winfract_msg99[] = "Not Enough Free Memory to Copy to the Clipboard";
 
 
 int PASCAL WinMain(hInstance, hPrevInstance, lpCmdLine, nCmdShow)
@@ -370,7 +370,7 @@ BOOL InitInstance(hInstance, nCmdShow)
         GlobalLock(temphandle);
         GlobalUnlock(temphandle);
         GlobalFree(temphandle);
-        temp_array = (double far *)GlobalLock(htemp_array);
+        temp_array = (double *)GlobalLock(htemp_array);
     }
 
    MakeHelpPathName(szHelpFileName);
@@ -1030,7 +1030,7 @@ GlobalExit:
 
                case IDM_HELP_INDEX:
                case IDF_HELP_INDEX:
-                   WinHelp(hWnd,szHelpFileName,HELP_INDEX,0L);
+                   WinHelp(hWnd,szHelpFileName,FIHELP_INDEX,0L);
                    break;
 
                case IDM_HELP_FRACTINT:
@@ -1043,7 +1043,7 @@ GlobalExit:
                    break;
 
                case IDM_HELP_HELP:
-                   WinHelp(hWnd,"WINHELP.HLP",HELP_INDEX,0L);
+                   WinHelp(hWnd,"WINHELP.HLP",FIHELP_INDEX,0L);
                    break;
 
                 case IDM_ABOUT:
@@ -1249,8 +1249,6 @@ GlobalExit:
                 case IDM_MAINMENU:
                 case IDF_MAINMENU:
                 case IDF_CMDSTRING:
-                case IDF_HISTORY_F:
-                case IDF_HISTORY_B:
                     win_kill_all_zooming();
                     time_to_cycle = 0;
                     SecondaryhWnd = hWnd;
@@ -1438,7 +1436,7 @@ void SecondaryWndProc(void)
                        time_to_cycle = 0;
                        wsprintf(StatusTitle, "Saving:  %s", (LPSTR)FullPathName);
                        OpenStatusBox(hWnd, hInst);
-                       resave_flag = overwrite = 1;
+                       resave_flag = fract_overwrite = 1;
                     }
                     break;
 
@@ -1765,32 +1763,6 @@ julibrot_fudge:                                /* dive in here for Julibrots */
                         break;
                    }
 
-                case IDF_HISTORY_F:
-                case IDF_HISTORY_B:
-                   if(maxhistory > 0 && bf_math == 0)
-                   {
-                      if (wParam == IDF_HISTORY_B)
-                         if (--historyptr < 0)
-                            historyptr = maxhistory - 1;
-                      if (wParam == IDF_HISTORY_F)
-                         if (++historyptr >= maxhistory)
-                            historyptr = 0;
-                      restore_history_info(historyptr);
-                      if (curfractalspecific->isinteger != 0 &&
-                          curfractalspecific->tofloat != NOFRACTAL)
-                         usr_floatflag = 0;
-                      if (curfractalspecific->isinteger == 0 &&
-                          curfractalspecific->tofloat != NOFRACTAL)
-                         usr_floatflag = 1;
-                      historyflag = 1;       /* avoid re-store parms due to rounding errs */
-                      win_kill_all_zooming();
-                      win_savedac();
-                      time_to_restart = 1;
-                      time_to_cycle = 0;
-                      calc_status = 0;
-                   }
-                   break;
-
                 case IDM_DOODADX:
 winfract_xmenu:
                         lpSelectDoodads = MakeProcInstance((FARPROC)SelectDoodads, hInst);
@@ -2095,11 +2067,11 @@ void win_set_title_text(void)
     lstrcpy(winfract_title_text, ctemp);
 }
 
-char far win_oldtitle[30];
-char far win_title1[] = " (calculating)";
-char far win_title2[] = " (color-cycling)";
-char far win_title3[] = " (zooming ";
-char far win_title4[] = " (starfield generation)";
+char win_oldtitle[30];
+char win_title1[] = " (calculating)";
+char win_title2[] = " (color-cycling)";
+char win_title3[] = " (zooming ";
+char win_title4[] = " (starfield generation)";
 
 void win_title_text(int title)
 {
@@ -2198,9 +2170,9 @@ int i;                /* fill in the palette index values */
 int default_dib_palette(void)
 {
 int i, k;                /* fill in the palette index values */
-int far *palette_values;        /* pointer to palette values */
+int *palette_values;        /* pointer to palette values */
 
-    palette_values = (int far *)&pDibInfo->bmiColors[0];
+    palette_values = (int *)&pDibInfo->bmiColors[0];
     k = 0;
     for (i = 0; i < 256; i++) {
         palette_values[i] = k;

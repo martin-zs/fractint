@@ -121,11 +121,12 @@ static void init_bf_2(void)
 
     calc_lengths();
 
+   /* TODO: allocate real memory, not reuse shared segment */
     /* allocate all the memory at once within the same segment (DOS) */
 #if defined(BIG_FAR) || defined(BIG_ANSI_C)
-    bnroot = (bf_t)MK_FP(extraseg,ENDVID); /* ENDVID is to avoid videotable */
+    bnroot = (bf_t) extraseg;
 #else /* BASED or NEAR  */
-    bnroot = (bf_t)ENDVID;  /* ENDVID is to avoid videotable */
+    bnroot = (bf_t) 0;  /* ENDVID is to avoid g_video_table */
 #endif
 #ifdef BIG_BASED
     bignum_seg = (_segment)extraseg;
@@ -226,10 +227,7 @@ static void init_bf_2(void)
     if(ptr + NUMVARS*(bflength+2) > maxstack)
        {
        char msg[80];
-       char nmsg[80];
-       static FCODE fmsg[] = {"Requested precision of %d too high, aborting"};
-       far_strcpy(nmsg,fmsg);
-       sprintf(msg,nmsg,decimals);
+       sprintf(msg,"Requested precision of %d too high, aborting",decimals);
        stopmsg(0,msg);
        goodbye();
        }
@@ -258,13 +256,13 @@ static void init_bf_2(void)
 
     /* good citizens initialize variables */
     if(bf_save_len)  /* leave save area */
-       far_memset(bnroot+(bf_save_len+2)*22,0,(unsigned)(startstack-(bf_save_len+2)*22));
+       memset(bnroot+(bf_save_len+2)*22,0,(unsigned)(startstack-(bf_save_len+2)*22));
     else /* first time through - nothing saved */
        {
        /* high variables */
-       far_memset(bnroot+maxstack,0,(bflength+2)*22);
+       memset(bnroot+maxstack,0,(bflength+2)*22);
        /* low variables */
-       far_memset(bnroot,0,(unsigned)startstack);
+       memset(bnroot,0,(unsigned)startstack);
        }
 
     restore_bf_vars();
@@ -288,9 +286,9 @@ static int save_bf_vars(void)
       {
       mem = (bflength+2)*22;  /* 6 corners + 6 save corners + 10 params */
       bf_save_len = bflength;
-      far_memcpy(bnroot,bfxmin,mem);
+      memcpy(bnroot,bfxmin,mem);
       /* scrub old high area */
-      far_memset(bfxmin,0,mem);
+      memset(bfxmin,0,mem);
       ret = 0;
       }
    else
@@ -329,7 +327,7 @@ static int restore_bf_vars(void)
    convert_bf(bfsy3rd,ptr,bflength,bf_save_len); ptr += bf_save_len+2;
 
    /* scrub save area */
-   far_memset(bnroot,0,(bf_save_len+2)*22);
+   memset(bnroot,0,(bf_save_len+2)*22);
    return(0);
    }
 
@@ -355,16 +353,14 @@ bn_t alloc_stack(size_t size)
    long stack_addr;
    if(bf_math == 0)
       {
-      static FCODE msg[] = {"alloc_stack called with bf_math==0"};
-      stopmsg(0,msg);
+      stopmsg(0,"alloc_stack called with bf_math==0");
       return(0);
       }
-   stack_addr = (long)(stack_ptr-bnroot)+size; /* +ENDVID, part of bnroot */
+   stack_addr = (long)((stack_ptr-bnroot)+size); /* +ENDVID, part of bnroot */
 
    if(stack_addr > maxstack)
       {
-      static FCODE msg[] = {"Aborting, Out of Bignum Stack Space"};
-      stopmsg(0,msg);
+      stopmsg(0,"Aborting, Out of Bignum Stack Space");
       goodbye();
       }
    /* keep track of max ptr */
@@ -378,7 +374,7 @@ bn_t alloc_stack(size_t size)
 /* Returns stack pointer offset so it can be saved.                            */
 int save_stack(void)
    {
-   return(stack_ptr - bnroot);
+   return (int) (stack_ptr - bnroot);
    }
 
 /************************************************************************/
@@ -450,7 +446,7 @@ void init_big_pi(void)
     /* What, don't you recognize the first 700 digits of pi, */
     /* in base 256, in reverse order?                        */
     int length, pi_offset;
-    static BFCODE pi_table[] = {
+    static BYTE pi_table[] = {
          0x44, 0xD5, 0xDB, 0x69, 0x17, 0xDF, 0x2E, 0x56, 0x87, 0x1A,
          0xA0, 0x8C, 0x6F, 0xCA, 0xBB, 0x57, 0x5C, 0x9E, 0x82, 0xDF,
          0x00, 0x3E, 0x48, 0x7B, 0x31, 0x53, 0x60, 0x87, 0x23, 0xFD,
@@ -528,7 +524,7 @@ void init_big_pi(void)
 
     length = bflength+2; /* 2 byte exp */
     pi_offset = sizeof pi_table - length;
-    _fmemcpy(big_pi, pi_table + pi_offset, length);
+    memcpy(big_pi, pi_table + pi_offset, length);
 
     /* notice that bf_pi and bn_pi can share the same memory space */
     bf_pi = big_pi;

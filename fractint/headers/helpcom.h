@@ -105,18 +105,18 @@ typedef struct
 
    /* PD_GET_TOPIC is allowed to change these */
 
-   char far *curr;
+   char *curr;
    unsigned  len;
 
    /* PD_GET_CONTENT is allowed to change these */
 
-   char far *id;
-   char far *title;
+   char *id;
+   char *title;
    int       new_page;
 
    /* general parameters */
 
-   char far *s;
+   char *s;
    int       i;
 
 
@@ -156,9 +156,9 @@ enum  PD_COMMANDS
 typedef int (*PD_FUNC)(int cmd, PD_INFO *pd, VOIDPTR info);
 
 
-int _find_token_length(char far *curr, unsigned len, int *size, int *width);
-int find_token_length(int mode, char far *curr, unsigned len, int *size, int *width);
-int find_line_width(int mode, char far *curr, unsigned len);
+int _find_token_length(char *curr, unsigned len, int *size, int *width);
+int find_token_length(int mode, char *curr, unsigned len, int *size, int *width);
+int find_line_width(int mode, char *curr, unsigned len);
 int process_document(PD_FUNC get_info, PD_FUNC output, VOIDPTR info);
 
 
@@ -173,8 +173,8 @@ int process_document(PD_FUNC get_info, PD_FUNC output, VOIDPTR info);
 
 
 #ifndef XFRACT
-#define getint(ptr) (*(int far *)(ptr))
-#define setint(ptr,n) (*(int far *)(ptr)) = n
+#define getint(ptr) (*(int *)(ptr))
+#define setint(ptr,n) (*(int *)(ptr)) = n
 #else
 /* Get an int from an unaligned pointer
  * This routine is needed because this program uses unaligned 2 byte
@@ -199,7 +199,7 @@ char *ptr;
 #endif
 
 
-static int is_hyphen(char far *ptr)   /* true if ptr points to a real hyphen */
+static int is_hyphen(char *ptr)   /* true if ptr points to a real hyphen */
    {                           /* checkes for "--" and " -" */
    if ( *ptr != '-' )
       return (0);    /* that was easy! */
@@ -210,7 +210,7 @@ static int is_hyphen(char far *ptr)   /* true if ptr points to a real hyphen */
    }
 
 
-int _find_token_length(register char far *curr, unsigned len, int *size, int *width)
+int _find_token_length(register char *curr, unsigned len, int *size, int *width)
    {
    register int _size  = 0;
    register int _width = 0;
@@ -257,7 +257,7 @@ int _find_token_length(register char far *curr, unsigned len, int *size, int *wi
                ++curr;
                ++_size;
                ++_width;
-               assert(_size < len);
+               assert((unsigned) _size < len);
                }
 
             ++_size;   /* skip ending CMD_LINK */
@@ -343,7 +343,7 @@ int _find_token_length(register char far *curr, unsigned len, int *size, int *wi
    }
 
 
-int find_token_length(int mode, char far *curr, unsigned len, int *size, int *width)
+int find_token_length(int mode, char *curr, unsigned len, int *size, int *width)
    {
    int tok;
    int t;
@@ -382,7 +382,7 @@ int find_token_length(int mode, char far *curr, unsigned len, int *size, int *wi
    }
 
 
-int find_line_width(int mode, char far *curr, unsigned len)
+int find_line_width(int mode, char *curr, unsigned len)
    {
    int size   = 0,
        width  = 0,
@@ -558,7 +558,7 @@ int process_document(PD_FUNC get_info, PD_FUNC output, VOIDPTR info)
                   int       indent,
                             margin;
                   unsigned  holdlen = 0;
-                  char far *holdcurr = 0;
+                  char *holdcurr = 0;
                   int       in_link = 0;
 
                   ++pd.curr;
@@ -605,7 +605,7 @@ int process_document(PD_FUNC get_info, PD_FUNC output, VOIDPTR info)
                         else if (in_link == 2)
                            {
                            tok = TOK_WORD;
-                           width = strlen(page_text);
+                           width = (int) strlen(page_text);
                            col += 8 - width;
                            size = 0;
                            pd.curr = page_text;
@@ -760,7 +760,7 @@ int process_document(PD_FUNC get_info, PD_FUNC output, VOIDPTR info)
                      {
                      width += 9;
                      sprintf(page_text, " (p. %d)", pd.i);
-                     if ( !DO_PRINT(page_text, strlen(page_text)) )
+                     if ( !DO_PRINT(page_text, (int) strlen(page_text)) )
                         return (0);
                      }
                   break;
