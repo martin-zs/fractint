@@ -2,6 +2,7 @@
         This module consists only of the fractalspecific structure
         and a *slew* of defines needed to get it to compile
 */
+#include <string.h>
 
 /* includes needed for fractalspecific */
 
@@ -19,137 +20,85 @@
 /*       parameters preceded by # are U32 parameters */
 
 /* for Mandelbrots */
-static char far realz0[] = "Real Perturbation of Z(0)";
-static char far imagz0[] = "Imaginary Perturbation of Z(0)";
+static char realz0[] = "Real Perturbation of Z(0)";
+static char imagz0[] = "Imaginary Perturbation of Z(0)";
 
 /* for Julias */
-static char far realparm[] = "Real Part of Parameter";
-static char far imagparm[] = "Imaginary Part of Parameter";
+static char realparm[] = "Real Part of Parameter";
+static char imagparm[] = "Imaginary Part of Parameter";
 
 /* for Newtons */
-static char far newtdegree[] = "+Polynomial Degree (>= 2)";
+static char newtdegree[] = "+Polynomial Degree (>= 2)";
 
 /* for MarksMandel/Julia */
-static char far exponent[]   = "Real part of Exponent";
-static char far imexponent[] = "Imag part of Exponent";
-
-/* for Complex Newton */
-static char far realroot[]   = "Real part of Root";
-static char far imagroot[]   = "Imag part of Root";
-static char far realdegree[] = "Real part of Degree";
-static char far imagdegree[] = "Imag part of Degree";
+static char exponent[]   = "Real part of Exponent";
+static char imexponent[] = "Imag part of Exponent";
 
 /* for Lorenz */
-static char far timestep[]     = "Time Step";
+static char timestep[]     = "Time Step";
 
 /* for formula */
-static char far p1real[] = "Real portion of p1";
-static char far p2real[] = "Real portion of p2";
-static char far p3real[] = "Real portion of p3";
-static char far p4real[] = "Real portion of p4";
-static char far p5real[] = "Real portion of p5";
-static char far p1imag[] = "Imaginary portion of p1";
-static char far p2imag[] = "Imaginary portion of p2";
-static char far p3imag[] = "Imaginary portion of p3";
-static char far p4imag[] = "Imaginary portion of p4";
-static char far p5imag[] = "Imaginary portion of p5";
+static char p1real[] = "Real portion of p1";
+static char p2real[] = "Real portion of p2";
+static char p3real[] = "Real portion of p3";
+static char p4real[] = "Real portion of p4";
+static char p5real[] = "Real portion of p5";
+static char p1imag[] = "Imaginary portion of p1";
+static char p2imag[] = "Imaginary portion of p2";
+static char p3imag[] = "Imaginary portion of p3";
+static char p4imag[] = "Imaginary portion of p4";
+static char p5imag[] = "Imaginary portion of p5";
 
 /* trig functions */
-static char far recoeftrg1[] = "Real Coefficient First Function";
-static char far imcoeftrg1[] = "Imag Coefficient First Function";
-static char far recoeftrg2[] = "Real Coefficient Second Function";
-static char far imcoeftrg2[] = "Imag Coefficient Second Function";
-
-/* MCP 7-7-91
-static char far recoefsqr[] = "Real Coefficient Square Term";
-static char far imcoefsqr[] = "Imag Coefficient Square Term";
-*/
-
-static char far recoef2nd[] = "Real Coefficient Second Term";
-static char far imcoef2nd[] = "Imag Coefficient Second Term";
+static char recoeftrg1[] = "Real Coefficient First Function";
+static char imcoeftrg1[] = "Imag Coefficient First Function";
+static char recoeftrg2[] = "Real Coefficient Second Function";
+static char imcoeftrg2[] = "Imag Coefficient Second Function";
 
 /* KAM Torus */
-static char far kamangle[] = "Angle (radians)";
-static char far kamstep[] =  "Step size";
-static char far kamstop[] =  "Stop value";
-static char far pointsperorbit[] = "+Points per orbit";
-
-/* Newtbasin */
-static char far stripes[] = "Enter non-zero value for stripes";
-
-/* Gingerbreadman */
-static char far initx[] = "Initial x";
-static char far inity[] = "Initial y";
+static char kamangle[] = "Angle (radians)";
+static char kamstep[] =  "Step size";
+static char kamstop[] =  "Stop value";
+static char pointsperorbit[] = "+Points per orbit";
 
 /* popcorn and julia popcorn generalized */
-static char far step_x[] = "Step size (real)";
-static char far step_y[] = "Step size (imaginary)";
-static char far constant_x[] = "Constant C (real)";
-static char far constant_y[] = "Constant C (imaginary)";
+static char step_x[] = "Step size (real)";
+static char step_y[] = "Step size (imaginary)";
+static char constant_x[] = "Constant C (real)";
+static char constant_y[] = "Constant C (imaginary)";
 
 /* bifurcations */
-static char far filt[] = "+Filter Cycles";
-static char far seed[] = "Seed Population";
+static char filt[] = "+Filter Cycles";
+static char seed[] = "Seed Population";
 
 /* frothy basins */
-static char far frothmapping[] = "+Apply mapping once (1) or twice (2)";
-static char far frothshade[] =  "+Enter non-zero value for alternate color shading";
-static char far frothavalue[] =  "A (imaginary part of C)";
-
-/* symmetrical icon fractals */
-static char far s_lambda[] = "Lambda";
-static char far s_alpha[]  = "Alpha";
-static char far s_beta[]   = "Beta";
-static char far s_gamma[]  = "Gamma";
-static char far s_omega[]  = "Omega";
-static char far symdegree[] = "+Degree of symmetry";
-
-static char far shiftval[] = "Function Shift Value";
+static char frothmapping[] = "+Apply mapping once (1) or twice (2)";
+static char frothshade[] =  "+Enter non-zero value for alternate color shading";
+static char frothavalue[] =  "A (imaginary part of C)";
 
 /* plasma and ant */
 
-static char far s_randomseed[] = "+Random Seed Value (0 = Random, 1 = Reuse Last)";
+static char s_randomseed[] = "+Random Seed Value (0 = Random, 1 = Reuse Last)";
 
 /* ifs */
-static char far color_method[] = "+Coloring method (0,1)";
+static char color_method[] = "+Coloring method (0,1)";
 
-/* orbit fractals */
-static char A[] = "a";
-static char B[] = "b";
-static char D[] = "d";
-static char H[] = "h";
-static char P[] = "p";
-
-/* 4D fractals */
-static char C[] = "c";
-static char C1[] = "c1";
-static char CI[] = "ci";
-static char CJ[] = "cj";
-static char CK[] = "ck";
-static char ZJ[] = "zj";
-static char ZK[] = "zk";
-static char far notused[] = "notused";
 /* phoenix fractals */
-static char far degreeZ[] = "Degree = 0 | >= 2 | <= -3";
-
-/* empty string */
-static char far ES[] = "";
+static char degreeZ[] = "Degree = 0 | >= 2 | <= -3";
 
 /* julia inverse */
-static char far s_maxhits[] = "Max Hits per Pixel";
-#ifdef RANDOM_RUN
-static char far randomruninterval[] = "Random Run Interval";
-#endif
+static char s_maxhits[] = "Max Hits per Pixel";
+
 /* halley */
-static char far order[] = {"+Order (integer > 1)"};
-static char far real_relax[] = {"Real Relaxation coefficient"};
-static char far epsilon[] = {"Epsilon"};
-static char far imag_relax[] = {"Imag Relaxation coefficient"};
+static char order[] = {"+Order (integer > 1)"};
+static char real_relax[] = {"Real Relaxation coefficient"};
+static char epsilon[] = {"Epsilon"};
+static char imag_relax[] = {"Imag Relaxation coefficient"};
 /* cellular */
-static char far cell_init[] = {"#Initial String | 0 = Random | -1 = Reuse Last Random"};
-static char far cell_rule[] = {"#Rule = # of digits (see below) | 0 = Random"};
-static char far cell_type[] = {"+Type (see below)"};
-static char far cell_strt[] = {"#Starting Row Number"};
+static char cell_init[] = {"#Initial String | 0 = Random | -1 = Reuse Last Random"};
+static char cell_rule[] = {"#Rule = # of digits (see below) | 0 = Random"};
+static char cell_type[] = {"+Type (see below)"};
+static char cell_strt[] = {"#Starting Row Number"};
 
 /* bailout defines */
 #define FTRIGBAILOUT 2500
@@ -160,25 +109,25 @@ static char far cell_strt[] = {"#Starting Row Number"};
 
 MOREPARAMS moreparams[] =
 {
-    {ICON             ,{ s_omega, symdegree,   ES,ES,ES,ES},{0,3,0,0,0,0}},
-    {ICON3D           ,{ s_omega, symdegree,   ES,ES,ES,ES},{0,3,0,0,0,0}},
-    {HYPERCMPLXJFP    ,{ ZJ,      ZK,          ES,ES,ES,ES},{0,0,0,0,0,0}},
-    {QUATJULFP        ,{ ZJ,      ZK,          ES,ES,ES,ES},{0,0,0,0,0,0}},
-    {PHOENIXCPLX      ,{ degreeZ, ES,          ES,ES,ES,ES},{0,0,0,0,0,0}},
-    {PHOENIXFPCPLX    ,{ degreeZ, ES,          ES,ES,ES,ES},{0,0,0,0,0,0}},
-    {MANDPHOENIXCPLX  ,{ degreeZ, ES,          ES,ES,ES,ES},{0,0,0,0,0,0}},
-    {MANDPHOENIXFPCPLX,{ degreeZ, ES,          ES,ES,ES,ES},{0,0,0,0,0,0}},
+    {ICON             ,{ "Omega", "+Degree of symmetry",   "","","",""},{0,3,0,0,0,0}},
+    {ICON3D           ,{ "Omega", "+Degree of symmetry",   "","","",""},{0,3,0,0,0,0}},
+    {HYPERCMPLXJFP    ,{ "zj",      "zk",          "","","",""},{0,0,0,0,0,0}},
+    {QUATJULFP        ,{ "zj",      "zk",          "","","",""},{0,0,0,0,0,0}},
+    {PHOENIXCPLX      ,{ degreeZ, "",          "","","",""},{0,0,0,0,0,0}},
+    {PHOENIXFPCPLX    ,{ degreeZ, "",          "","","",""},{0,0,0,0,0,0}},
+    {MANDPHOENIXCPLX  ,{ degreeZ, "",          "","","",""},{0,0,0,0,0,0}},
+    {MANDPHOENIXFPCPLX,{ degreeZ, "",          "","","",""},{0,0,0,0,0,0}},
     {FORMULA  ,{ p3real,p3imag,p4real,p4imag,p5real,p5imag},{0,0,0,0,0,0}},
     {FFORMULA ,{ p3real,p3imag,p4real,p4imag,p5real,p5imag},{0,0,0,0,0,0}},
-    {ANT              ,{ "+Wrap?",s_randomseed,ES,ES,ES,ES},{1,0,0,0,0,0}},
-    {MANDELBROTMIX4   ,{ p3real,p3imag,        ES,ES,ES,ES},{0,0,0,0,0,0}},
+    {ANT              ,{ "+Wrap?",s_randomseed,"","","",""},{1,0,0,0,0,0}},
+    {MANDELBROTMIX4   ,{ p3real,p3imag,        "","","",""},{0,0,0,0,0,0}},
     {-1               ,{ NULL,NULL,NULL,NULL,NULL,NULL    },{0,0,0,0,0,0}}
 };
 
 /*
      type math orbitcalc fnct per_pixel fnct per_image fnct
    |-----|----|--------------|--------------|--------------| */
-struct alternatemathstuff far alternatemath[] =
+struct alternatemathstuff alternatemath[] =
 {
 #define USEBN
 #ifdef USEBN
@@ -270,7 +219,7 @@ char t_halley[]= "*halley";
 /* use next to cast orbitcalcs() that have arguments */
 #define VF int(*)(void)
 
-struct fractalspecificstuff far fractalspecific[]=
+struct fractalspecificstuff fractalspecific[]=
 {
    /*
    {
@@ -287,7 +236,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_mandel+1,
-      {realz0, imagz0, ES, ES},
+      {realz0, imagz0, "", ""},
       {0, 0, 0, 0},
       HT_MANDEL, HF_MANDEL, WINFRAC+BAILTEST,
       (float)-2.5, (float)1.5, (float)-1.5, (float)1.5,
@@ -298,7 +247,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_julia+1,
-      {realparm, imagparm, ES, ES},
+      {realparm, imagparm, "", ""},
       {0.3, 0.6, 0, 0},
       HT_JULIA, HF_JULIA, WINFRAC+OKJB+BAILTEST,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -309,7 +258,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_newtbasin,
-      {newtdegree, stripes, ES, ES},
+      {newtdegree, "Enter non-zero value for stripes", "", ""},
       {3, 0, 0, 0},
       HT_NEWTBAS, HF_NEWTBAS, WINFRAC,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -320,7 +269,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_lambda+1,
-      {realparm, imagparm, ES, ES},
+      {realparm, imagparm, "", ""},
       {0.85, 0.6, 0, 0},
       HT_LAMBDA, HF_LAMBDA, WINFRAC+OKJB+BAILTEST,
       (float)-1.5, (float)2.5, (float)-1.5, (float)1.5,
@@ -331,7 +280,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_mandel,
-      {realz0, imagz0, ES, ES},
+      {realz0, imagz0, "", ""},
       {0, 0, 0, 0},
       HT_MANDEL, HF_MANDEL, WINFRAC+BAILTEST+BF_MATH,
       (float)-2.5, (float)1.5, (float)-1.5, (float)1.5,
@@ -342,7 +291,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_newton,
-      {newtdegree, ES, ES, ES},
+      {newtdegree, "", "", ""},
       {3, 0, 0, 0},
       HT_NEWT, HF_NEWT, WINFRAC,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -353,7 +302,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_julia,
-      {realparm, imagparm, ES, ES},
+      {realparm, imagparm, "", ""},
       {0.3, 0.6, 0, 0},
       HT_JULIA, HF_JULIA, WINFRAC+OKJB+BAILTEST+BF_MATH,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -379,7 +328,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_mandelfn,
-      {realz0, imagz0, ES, ES},
+      {realz0, imagz0, "", ""},
       {0, 0, 0, 0},
       HT_MANDFN, HF_MANDFN, TRIG1+WINFRAC,
       (float)-8.0, (float)8.0, (float)-6.0, (float)6.0,
@@ -391,7 +340,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_manowar,
-      {realz0, imagz0, ES, ES},
+      {realz0, imagz0, "", ""},
       {0, 0, 0, 0},
       HT_SCOTSKIN, HF_MANOWAR, WINFRAC+BAILTEST,
       (float)-2.5, (float)1.5, (float)-1.5, (float)1.5,
@@ -402,7 +351,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_manowar+1,
-      {realz0, imagz0, ES, ES},
+      {realz0, imagz0, "", ""},
       {0, 0, 0, 0},
       HT_SCOTSKIN, HF_MANOWAR, WINFRAC+BAILTEST,
       (float)-2.5,  (float)1.5, (float)-1.5, (float)1.5,
@@ -428,7 +377,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_sierpinski+1,
-      {ES, ES, ES, ES},
+      {"", "", "", ""},
       {0, 0, 0, 0},
       HT_SIER, HF_SIER, WINFRAC,
       (float)-4/3, (float)96/45, (float)-0.9, (float)1.7,
@@ -440,7 +389,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_barnsleym1+1,
-      {realz0, imagz0, ES, ES},
+      {realz0, imagz0, "", ""},
       {0, 0, 0, 0},
       HT_BARNS, HF_BARNSM1, WINFRAC+BAILTEST,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -452,7 +401,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_barnsleyj1+1,
-      {realparm, imagparm, ES, ES},
+      {realparm, imagparm, "", ""},
       {0.6, 1.1, 0, 0},
       HT_BARNS, HF_BARNSJ1, WINFRAC+OKJB+BAILTEST,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -463,7 +412,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_barnsleym2+1,
-      {realz0, imagz0, ES, ES},
+      {realz0, imagz0, "", ""},
       {0, 0, 0, 0},
       HT_BARNS, HF_BARNSM2, WINFRAC+BAILTEST,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -475,7 +424,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_barnsleyj2+1,
-      {realparm, imagparm, ES, ES},
+      {realparm, imagparm, "", ""},
       {0.6, 1.1, 0, 0},
       HT_BARNS, HF_BARNSJ2, WINFRAC+OKJB+BAILTEST,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -486,7 +435,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_sqr_fn_+1,
-      {ES, ES, ES, ES},
+      {"", "", "", ""},
       {0, 0, 0, 0},
       HT_SCOTSKIN, HF_SQRFN, TRIG1+WINFRAC+BAILTEST,
       (float)-4.0, (float)4.0, (float)-3.0, (float)3.0,
@@ -497,7 +446,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_sqr_fn_,
-      {ES, ES, ES, ES},
+      {"", "", "", ""},
       {0, 0, 0, 0},
       HT_SCOTSKIN, HF_SQRFN, TRIG1+WINFRAC+BAILTEST,
       (float)-4.0, (float)4.0, (float)-3.0, (float)3.0,
@@ -520,7 +469,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_mandellambda+1,
-      {realz0, imagz0, ES, ES},
+      {realz0, imagz0, "", ""},
       {0, 0, 0, 0},
       HT_MLAMBDA, HF_MLAMBDA, WINFRAC+BAILTEST,
       (float)-3.0, (float)5.0, (float)-3.0, (float)3.0,
@@ -531,7 +480,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_marksmandel+1,
-      {realz0, imagz0, exponent, ES},
+      {realz0, imagz0, exponent, ""},
       {0, 0, 1, 0},
       HT_MARKS, HF_MARKSMAND, WINFRAC+BAILTEST,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -543,7 +492,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_marksjulia+1,
-      {realparm, imagparm, exponent, ES},
+      {realparm, imagparm, exponent, ""},
       {0.1, 0.9, 1, 0},
       HT_MARKS, HF_MARKSJULIA, WINFRAC+BAILTEST,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -554,7 +503,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_unity+1,
-      {ES, ES, ES, ES},
+      {"", "", "", ""},
       {0, 0, 0, 0},
       HT_UNITY, HF_UNITY, WINFRAC,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -565,7 +514,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_mandel4+1,
-      {realz0, imagz0, ES, ES},
+      {realz0, imagz0, "", ""},
       {0, 0, 0, 0},
       HT_MANDJUL4, HF_MANDEL4, WINFRAC+BAILTEST,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -576,7 +525,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_julia4+1,
-      {realparm, imagparm, ES, ES},
+      {realparm, imagparm, "", ""},
       {0.6, 0.55, 0, 0},
       HT_MANDJUL4, HF_JULIA4, WINFRAC+OKJB+BAILTEST,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -587,7 +536,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "ifs",
-      {color_method, ES, ES, ES},
+      {color_method, "", "", ""},
       {0, 0, 0, 0},
       HT_IFS, -4, NOGUESS+NOTRACE+NORESUME+WINFRAC+INFCALC,
       (float)-8.0, (float)8.0, (float)-1.0, (float)11.0,
@@ -598,7 +547,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_ifs3d,
-      {color_method, ES, ES, ES},
+      {color_method, "", "", ""},
       {0, 0, 0, 0},
       HT_IFS, -4, NOGUESS+NOTRACE+NORESUME+WINFRAC+PARMS3D+INFCALC,
       (float)-11.0, (float)11.0, (float)-11.0, (float)11.0,
@@ -609,7 +558,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_barnsleym3+1,
-      {realz0, imagz0, ES, ES},
+      {realz0, imagz0, "", ""},
       {0, 0, 0, 0},
       HT_BARNS, HF_BARNSM3, WINFRAC+BAILTEST,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -621,7 +570,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_barnsleyj3+1,
-      {realparm, imagparm, ES, ES},
+      {realparm, imagparm, "", ""},
       {0.1, 0.36, 0, 0},
       HT_BARNS, HF_BARNSJ3, WINFRAC+OKJB+BAILTEST,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -632,7 +581,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_fn_zz_+1,
-      {ES, ES, ES, ES},
+      {"", "", "", ""},
       {0, 0, 0, 0},
       HT_SCOTSKIN, HF_FNZTIMESZ, TRIG1+WINFRAC+BAILTEST,
       (float)-4.0, (float)4.0, (float)-3.0, (float)3.0,
@@ -643,7 +592,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_fn_zz_,
-      {ES, ES, ES, ES},
+      {"", "", "", ""},
       {0, 0, 0, 0},
       HT_SCOTSKIN, HF_FNZTIMESZ, TRIG1+WINFRAC+BAILTEST,
       (float)-4.0, (float)4.0, (float)-3.0, (float)3.0,
@@ -654,7 +603,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_bifurcation,
-      {filt, seed, ES, ES},
+      {filt, seed, "", ""},
       {1000.0, 0.66, 0, 0},
       HT_BIF, HF_BIFURCATION, TRIG1+NOGUESS+NOTRACE+NOROTATE+WINFRAC,
       (float)1.9, (float)3.0, (float)0.0, (float)1.34,
@@ -677,7 +626,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_fnfn+1,
-      {ES, ES, ES, ES},
+      {"", "", "", ""},
       {0, 0, 0, 0},
       HT_SCOTSKIN, HF_FNTIMESFN, TRIG2+WINFRAC+BAILTEST,
       (float)-4.0, (float)4.0, (float)-3.0, (float)3.0,
@@ -688,7 +637,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_fnfn,
-      {ES, ES, ES, ES},
+      {"", "", "", ""},
       {0, 0, 0, 0},
       HT_SCOTSKIN, HF_FNTIMESFN, TRIG2+WINFRAC+BAILTEST,
       (float)-4.0, (float)4.0, (float)-3.0, (float)3.0,
@@ -699,7 +648,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_sqr_1divfn_+1,
-      {ES, ES, ES, ES},
+      {"", "", "", ""},
       {0, 0, 0, 0},
       HT_SCOTSKIN, HF_SQROVFN, TRIG1+WINFRAC+BAILTEST,
       (float)-4.0, (float)4.0, (float)-3.0, (float)3.0,
@@ -711,7 +660,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_sqr_1divfn_,
-      {ES, ES, ES, ES},
+      {"", "", "", ""},
       {0, 0, 0, 0},
       HT_SCOTSKIN, HF_SQROVFN, TRIG1+WINFRAC+BAILTEST,
       (float)-4.0, (float)4.0, (float)-3.0, (float)3.0,
@@ -723,7 +672,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_fnzplusz+1,
-      {recoeftrg1, imcoeftrg1, recoef2nd, imcoef2nd},
+      {recoeftrg1, imcoeftrg1, "Real Coefficient Second Term", "Imag Coefficient Second Term"},
       {1, 0, 1, 0},
       HT_SCOTSKIN, HF_FNXZPLUSZ, TRIG1+WINFRAC+BAILTEST,
       (float)-4.0, (float)4.0, (float)-3.0, (float)3.0,
@@ -734,7 +683,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_fnzplusz,
-      {recoeftrg1, imcoeftrg1, recoef2nd, imcoef2nd},
+      {recoeftrg1, imcoeftrg1, "Real Coefficient Second Term", "Imag Coefficient Second Term"},
       {1, 0, 1, 0},
       HT_SCOTSKIN, HF_FNXZPLUSZ, TRIG1+WINFRAC+BAILTEST,
       (float)-4.0, (float)4.0, (float)-3.0, (float)3.0,
@@ -790,7 +739,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_lambdafn+1,
-      {realparm, imagparm, ES, ES},
+      {realparm, imagparm, "", ""},
       {1.0, 0.4, 0, 0},
       HT_LAMBDAFN, HF_LAMBDAFN, TRIG1+WINFRAC+OKJB,
       (float)-4.0, (float)4.0, (float)-3.0, (float)3.0,
@@ -802,7 +751,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_manfnpluszsqrd+1,
-      {realz0, imagz0, ES, ES},
+      {realz0, imagz0, "", ""},
       {0, 0, 0, 0},
       HT_PICKMJ, HF_MANDFNPLUSZSQRD, TRIG1+WINFRAC+BAILTEST,
       (float)-2.5, (float)1.5, (float)-1.5, (float)1.5,
@@ -814,7 +763,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_julfnpluszsqrd+1,
-      {realparm, imagparm, ES, ES},
+      {realparm, imagparm, "", ""},
       {-0.5, 0.5, 0, 0},
       HT_PICKMJ, HF_JULFNPLUSZSQRD, TRIG1+WINFRAC+OKJB+BAILTEST,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -826,7 +775,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_manfnpluszsqrd,
-      {realz0, imagz0, ES, ES},
+      {realz0, imagz0, "", ""},
       {0, 0, 0, 0},
       HT_PICKMJ, HF_MANDFNPLUSZSQRD, TRIG1+WINFRAC+BAILTEST,
       (float)-2.5, (float)1.5, (float)-1.5, (float)1.5,
@@ -838,7 +787,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_julfnpluszsqrd,
-      {realparm, imagparm, ES, ES},
+      {realparm, imagparm, "", ""},
       {-0.5, 0.5, 0, 0},
       HT_PICKMJ, HF_JULFNPLUSZSQRD, TRIG1+WINFRAC+OKJB+BAILTEST,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -850,7 +799,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_lambdafn,
-      {realparm, imagparm, ES, ES},
+      {realparm, imagparm, "", ""},
       {1.0, 0.4, 0, 0},
       HT_LAMBDAFN, HF_LAMBDAFN, TRIG1+WINFRAC+OKJB,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -862,7 +811,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_mandelfn+1,
-      {realz0, imagz0, ES, ES},
+      {realz0, imagz0, "", ""},
       {0, 0, 0, 0},
       HT_MANDFN, HF_MANDFN, TRIG1+WINFRAC,
       (float)-8.0, (float)8.0, (float)-6.0, (float)6.0,
@@ -922,7 +871,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "manzzpwr",
-      {realz0, imagz0, exponent, ES},
+      {realz0, imagz0, exponent, ""},
       {0, 0, 2, 0},
       HT_PICKMJ, HF_MANZZPWR, WINFRAC+BAILTEST,
       (float)-2.5, (float)1.5, (float)-1.5, (float)1.5,
@@ -934,7 +883,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "julzzpwr",
-      {realparm, imagparm, exponent, ES},
+      {realparm, imagparm, exponent, ""},
       {-0.3, 0.3, 2, 0},
       HT_PICKMJ, HF_JULZZPWR, WINFRAC+OKJB+BAILTEST,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -946,7 +895,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_manfnplusexp+1,
-      {realz0, imagz0, ES, ES},
+      {realz0, imagz0, "", ""},
       {0, 0, 0, 0},
       HT_PICKMJ, HF_MANDFNPLUSEXP, TRIG1+WINFRAC+BAILTEST,
       (float)-8.0, (float)8.0, (float)-6.0, (float)6.0,
@@ -958,7 +907,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_julfnplusexp+1,
-      {realparm, imagparm, ES, ES},
+      {realparm, imagparm, "", ""},
       {0, 0, 0, 0},
       HT_PICKMJ, HF_JULFNPLUSEXP, TRIG1+WINFRAC+OKJB+BAILTEST,
       (float)-4.0, (float)4.0, (float)-3.0, (float)3.0,
@@ -970,7 +919,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_manfnplusexp,
-      {realz0, imagz0, ES, ES},
+      {realz0, imagz0, "", ""},
       {0, 0, 0, 0},
       HT_PICKMJ, HF_MANDFNPLUSEXP, TRIG1+WINFRAC+BAILTEST,
       (float)-8.0, (float)8.0, (float)-6.0, (float)6.0,
@@ -982,7 +931,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_julfnplusexp,
-      {realparm, imagparm, ES, ES},
+      {realparm, imagparm, "", ""},
       {0, 0, 0, 0},
       HT_PICKMJ, HF_JULFNPLUSEXP, TRIG1+WINFRAC+OKJB+BAILTEST,
       (float)-4.0, (float)4.0, (float)-3.0, (float)3.0,
@@ -1016,7 +965,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_lorenz,
-      {timestep, A, B, C},
+      {timestep, "a", "b", "c"},
       {.02, 5, 15, 1},
       HT_LORENZ, HF_LORENZ, NOGUESS+NOTRACE+INFCALC+WINFRAC,
       (float)-15.0, (float)15.0, (float)0.0, (float)30.0,
@@ -1027,7 +976,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_lorenz+1,
-      {timestep, A, B, C},
+      {timestep, "a", "b", "c"},
       {.02, 5, 15, 1},
       HT_LORENZ, HF_LORENZ, NOGUESS+NOTRACE+INFCALC+WINFRAC,
       (float)-15.0, (float)15.0, (float)0.0, (float)30.0,
@@ -1038,7 +987,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_lorenz3d+1,
-      {timestep, A, B, C},
+      {timestep, "a", "b", "c"},
       {.02, 5, 15, 1},
       HT_LORENZ, HF_LORENZ, NOGUESS+NOTRACE+NORESUME+WINFRAC+PARMS3D+INFCALC,
       (float)-30.0, (float)30.0, (float)-30.0, (float)30.0,
@@ -1049,7 +998,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_newton+1,
-      {newtdegree, ES, ES, ES},
+      {newtdegree, "", "", ""},
       {3, 0, 0, 0},
       HT_NEWT, HF_NEWT, WINFRAC,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -1060,7 +1009,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_newtbasin+1,
-      {newtdegree, stripes, ES, ES},
+      {newtdegree, "Enter non-zero value for stripes", "", ""},
       {3, 0, 0, 0},
       HT_NEWTBAS, HF_NEWTBAS, WINFRAC,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -1071,7 +1020,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "complexnewton",
-      {realdegree, imagdegree, realroot, imagroot},
+      {"Real part of Degree", "Imag part of Degree", "Real part of Root", "Imag part of Root"},
       {3, 0, 1, 0},
       HT_NEWTCMPLX, HF_COMPLEXNEWT, WINFRAC,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -1083,7 +1032,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "complexbasin",
-      {realdegree, imagdegree, realroot, imagroot},
+      {"Real part of Degree", "Imag part of Degree", "Real part of Root", "Imag part of Root"},
       {3, 0, 1, 0},
       HT_NEWTCMPLX, HF_COMPLEXNEWT, WINFRAC,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -1139,7 +1088,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_sierpinski,
-      {ES, ES, ES, ES},
+      {"", "", "", ""},
       {0, 0, 0, 0},
       HT_SIER, HF_SIER, WINFRAC,
       (float)-4/3, (float)96/45, (float)-0.9, (float)1.7,
@@ -1151,7 +1100,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_lambda,
-      {realparm, imagparm, ES, ES},
+      {realparm, imagparm, "", ""},
       {0.85, 0.6, 0, 0},
       HT_LAMBDA, HF_LAMBDA, WINFRAC+OKJB+BAILTEST,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -1162,7 +1111,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_barnsleym1,
-      {realz0, imagz0, ES, ES},
+      {realz0, imagz0, "", ""},
       {0, 0, 0, 0},
       HT_BARNS, HF_BARNSM1, WINFRAC+BAILTEST,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -1174,7 +1123,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_barnsleyj1,
-      {realparm, imagparm, ES, ES},
+      {realparm, imagparm, "", ""},
       {0.6, 1.1, 0, 0},
       HT_BARNS, HF_BARNSJ1, WINFRAC+OKJB+BAILTEST,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -1186,7 +1135,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_barnsleym2,
-      {realz0, imagz0, ES, ES},
+      {realz0, imagz0, "", ""},
       {0, 0, 0, 0},
       HT_BARNS, HF_BARNSM2, WINFRAC+BAILTEST,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -1198,7 +1147,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_barnsleyj2,
-      {realparm, imagparm, ES, ES},
+      {realparm, imagparm, "", ""},
       {0.6, 1.1, 0, 0},
       HT_BARNS, HF_BARNSJ2, WINFRAC+OKJB+BAILTEST,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -1210,7 +1159,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_barnsleym3,
-      {realz0, imagz0, ES, ES},
+      {realz0, imagz0, "", ""},
       {0, 0, 0, 0},
       HT_BARNS, HF_BARNSM3, WINFRAC+BAILTEST,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -1222,7 +1171,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_barnsleyj3,
-      {realparm, imagparm, ES, ES},
+      {realparm, imagparm, "", ""},
       {0.6, 1.1, 0, 0},
       HT_BARNS, HF_BARNSJ3, WINFRAC+OKJB+BAILTEST,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -1234,7 +1183,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_mandellambda,
-      {realz0, imagz0, ES, ES},
+      {realz0, imagz0, "", ""},
       {0, 0, 0, 0},
       HT_MLAMBDA, HF_MLAMBDA, WINFRAC+BAILTEST,
       (float)-3.0, (float)5.0, (float)-3.0, (float)3.0,
@@ -1245,7 +1194,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_julibrot+1,
-      {ES, ES, ES, ES},
+      {"", "", "", ""},
       {0, 0, 0, 0},
       HT_JULIBROT, -1, NOGUESS+NOTRACE+NOROTATE+NORESUME+WINFRAC,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -1256,7 +1205,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_lorenz3d,
-      {timestep, A, B, C},
+      {timestep, "a", "b", "c"},
       {.02, 5, 15, 1},
       HT_LORENZ, HF_LORENZ, NOGUESS+NOTRACE+NORESUME+WINFRAC+PARMS3D+INFCALC,
       (float)-30.0, (float)30.0, (float)-30.0, (float)30.0,
@@ -1267,7 +1216,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_rossler3d+1,
-      {timestep, A, B, C},
+      {timestep, "a", "b", "c"},
       {.04, .2, .2, 5.7},
       HT_ROSS, HF_ROSS, NOGUESS+NOTRACE+NORESUME+WINFRAC+PARMS3D+INFCALC,
       (float)-30.0, (float)30.0, (float)-20.0, (float)40.0,
@@ -1278,7 +1227,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_rossler3d,
-      {timestep, A, B, C},
+      {timestep, "a", "b", "c"},
       {.04, .2, .2, 5.7},
       HT_ROSS, HF_ROSS, NOGUESS+NOTRACE+NORESUME+WINFRAC+PARMS3D+INFCALC,
       (float)-30.0, (float)30.0, (float)-20.0, (float)40.0,
@@ -1289,7 +1238,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_henon+1,
-      {A, B, ES, ES},
+      {"a", "b", "", ""},
       {1.4, .3, 0, 0},
       HT_HENON, HF_HENON, NOGUESS+NOTRACE+INFCALC+WINFRAC,
       (float)-1.4, (float)1.4, (float)-.5, (float).5,
@@ -1300,7 +1249,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_henon,
-      {A, B, ES, ES},
+      {"a", "b", "", ""},
       {1.4, .3, 0, 0},
       HT_HENON, HF_HENON, NOGUESS+NOTRACE+INFCALC+WINFRAC,
       (float)-1.4, (float)1.4, (float)-.5, (float).5,
@@ -1311,7 +1260,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "pickover",
-      {A, B, C, D},
+      {"a", "b", "c", "d"},
       {2.24, .43, -.65, -2.43},
       HT_PICK, HF_PICKOVER, NOGUESS+NOTRACE+NORESUME+WINFRAC+PARMS3D,
       (float)-8/3, (float)8/3, (float)-2, (float)2,
@@ -1322,7 +1271,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "gingerbreadman",
-      {initx, inity, ES, ES},
+      {"Initial x", "Initial y", "", ""},
       {-.1, 0, 0, 0},
       HT_GINGER, HF_GINGER, NOGUESS+NOTRACE+INFCALC+WINFRAC,
       (float)-4.5, (float)8.5, (float)-4.5, (float)8.5,
@@ -1336,7 +1285,7 @@ struct fractalspecificstuff far fractalspecific[]=
       {"+Border size",
        "+Type (0=Central,1=Falling,2=Square Cavity)",
        "+Color change rate (0=Random)",
-        ES
+        ""
       },
       {10, 0, 0, 0},
       HT_DIFFUS, HF_DIFFUS, NOZOOM+NOGUESS+NOTRACE+WINFRAC,
@@ -1348,7 +1297,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_unity,
-      {ES, ES, ES, ES},
+      {"", "", "", ""},
       {0, 0, 0, 0},
       HT_UNITY, HF_UNITY, WINFRAC,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -1359,7 +1308,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_spider,
-      {realz0, imagz0, ES, ES},
+      {realz0, imagz0, "", ""},
       {0, 0, 0, 0},
       HT_SCOTSKIN, HF_SPIDER, WINFRAC+BAILTEST,
       (float)-2.5, (float)1.5, (float)-1.5, (float)1.5,
@@ -1370,7 +1319,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_spider+1,
-      {realz0, imagz0, ES, ES},
+      {realz0, imagz0, "", ""},
       {0, 0, 0, 0},
       HT_SCOTSKIN, HF_SPIDER, WINFRAC+BAILTEST,
       (float)-2.5, (float)1.5, (float)-1.5, (float)1.5,
@@ -1381,7 +1330,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "tetrate",
-      {realz0, imagz0, ES, ES},
+      {realz0, imagz0, "", ""},
       {0, 0, 0, 0},
       HT_SCOTSKIN, HF_TETRATE, WINFRAC+BAILTEST,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -1393,7 +1342,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "magnet1m",
-      {realz0, imagz0, ES, ES},
+      {realz0, imagz0, "", ""},
       {0, 0, 0, 0},
       HT_MAGNET, HF_MAGM1, WINFRAC,
       (float)-4.0, (float)4.0, (float)-3.0, (float)3.0,
@@ -1404,7 +1353,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "magnet1j",
-      {realparm, imagparm, ES, ES},
+      {realparm, imagparm, "", ""},
       {0, 0, 0, 0},
       HT_MAGNET, HF_MAGJ1, WINFRAC,
       (float)-8.0, (float)8.0, (float)-6.0, (float)6.0,
@@ -1415,7 +1364,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "magnet2m",
-      {realz0, imagz0, ES, ES},
+      {realz0, imagz0, "", ""},
       {0, 0, 0, 0},
       HT_MAGNET, HF_MAGM2, WINFRAC,
       (float)-1.5, (float)3.7, (float)-1.95, (float)1.95,
@@ -1426,7 +1375,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "magnet2j",
-      {realparm, imagparm, ES, ES},
+      {realparm, imagparm, "", ""},
       {0, 0, 0, 0},
       HT_MAGNET, HF_MAGJ2, WINFRAC,
       (float)-8.0, (float)8.0, (float)-6.0, (float)6.0,
@@ -1437,7 +1386,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_bifurcation+1,
-      {filt, seed, ES, ES},
+      {filt, seed, "", ""},
       {1000.0, 0.66, 0, 0},
       HT_BIF, HF_BIFURCATION, TRIG1+NOGUESS+NOTRACE+NOROTATE+WINFRAC,
       (float)1.9, (float)3.0, (float)0.0, (float)1.34,
@@ -1448,7 +1397,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_biflambda+1,
-      {filt, seed, ES, ES},
+      {filt, seed, "", ""},
       {1000.0, 0.66, 0, 0},
       HT_BIF, HF_BIFLAMBDA, TRIG1+NOGUESS+NOTRACE+NOROTATE+WINFRAC,
       (float)-2.0, (float)4.0, (float)-1.0, (float)2.0,
@@ -1459,7 +1408,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_biflambda,
-      {filt, seed, ES, ES},
+      {filt, seed, "", ""},
       {1000.0, 0.66, 0, 0},
       HT_BIF, HF_BIFLAMBDA, TRIG1+NOGUESS+NOTRACE+NOROTATE+WINFRAC,
       (float)-2.0, (float)4.0, (float)-1.0, (float)2.0,
@@ -1470,7 +1419,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_bifplussinpi,
-      {filt, seed, ES, ES},
+      {filt, seed, "", ""},
       {1000.0, 0.66, 0, 0},
       HT_BIF, HF_BIFPLUSSINPI, TRIG1+NOGUESS+NOTRACE+NOROTATE+WINFRAC,
       (float)0.275, (float)1.45, (float)0.0, (float)2.0,
@@ -1481,7 +1430,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_bifeqsinpi,
-      {filt, seed, ES, ES},
+      {filt, seed, "", ""},
       {1000.0, 0.66, 0, 0},
       HT_BIF, HF_BIFEQSINPI, TRIG1+NOGUESS+NOTRACE+NOROTATE+WINFRAC,
       (float)-2.5, (float)2.5, (float)-3.5, (float)3.5,
@@ -1514,7 +1463,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "lsystem",
-      {"+Order", ES, ES, ES},
+      {"+Order", "", "", ""},
       {2, 0, 0, 0},
       HT_LSYS, -3, NOZOOM+NORESUME+NOGUESS+NOTRACE+WINFRAC,
       (float)-1.0, (float)1.0, (float)-1.0, (float)1.0,
@@ -1525,7 +1474,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_manowarj,
-      {realparm, imagparm, ES, ES},
+      {realparm, imagparm, "", ""},
       {0, 0, 0, 0},
       HT_SCOTSKIN, HF_MANOWARJ, WINFRAC+OKJB+BAILTEST,
       (float)-2.5, (float)1.5, (float)-1.5, (float)1.5,
@@ -1536,7 +1485,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_manowarj+1,
-      {realparm, imagparm, ES, ES},
+      {realparm, imagparm, "", ""},
       {0, 0, 0, 0},
       HT_SCOTSKIN, HF_MANOWARJ, WINFRAC+OKJB+BAILTEST,
       (float)-2.5, (float)1.5, (float)-1.5, (float)1.5,
@@ -1571,7 +1520,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_marksmandelpwr,
-      {realz0, imagz0, ES, ES},
+      {realz0, imagz0, "", ""},
       {0, 0, 0, 0},
       HT_MARKS, HF_MARKSMANDPWR, TRIG1+WINFRAC+BAILTEST,
       (float)-2.5, (float)1.5, (float)-1.5, (float)1.5,
@@ -1583,7 +1532,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_marksmandelpwr+1,
-      {realz0, imagz0, ES, ES},
+      {realz0, imagz0, "", ""},
       {0, 0, 0, 0},
       HT_MARKS, HF_MARKSMANDPWR, TRIG1+WINFRAC+BAILTEST,
       (float)-2.5, (float)1.5, (float)-1.5, (float)1.5,
@@ -1595,7 +1544,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_tims_error,
-      {realz0, imagz0, ES, ES},
+      {realz0, imagz0, "", ""},
       {0, 0, 0, 0},
       HT_MARKS, HF_TIMSERR, WINFRAC+TRIG1+BAILTEST,
       (float)-2.9, (float)4.3, (float)-2.7, (float)2.7,
@@ -1607,7 +1556,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_tims_error+1,
-      {realz0, imagz0, ES, ES},
+      {realz0, imagz0, "", ""},
       {0, 0, 0, 0},
       HT_MARKS, HF_TIMSERR, WINFRAC+TRIG1+BAILTEST,
       (float)-2.9, (float)4.3, (float)-2.7, (float)2.7,
@@ -1619,7 +1568,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_bifeqsinpi+1,
-      {filt, seed, ES, ES},
+      {filt, seed, "", ""},
       {1000.0, 0.66, 0, 0},
       HT_BIF, HF_BIFEQSINPI, TRIG1+NOGUESS+NOTRACE+NOROTATE+WINFRAC,
       (float)-2.5, (float)2.5, (float)-3.5, (float)3.5,
@@ -1630,7 +1579,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_bifplussinpi+1,
-      {filt, seed, ES, ES},
+      {filt, seed, "", ""},
       {1000.0, 0.66, 0, 0},
       HT_BIF, HF_BIFPLUSSINPI, TRIG1+NOGUESS+NOTRACE+NOROTATE+WINFRAC,
       (float)0.275, (float)1.45, (float)0.0, (float)2.0,
@@ -1641,7 +1590,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_bifstewart,
-      {filt, seed, ES, ES},
+      {filt, seed, "", ""},
       {1000.0, 0.66, 0, 0},
       HT_BIF, HF_BIFSTEWART, TRIG1+NOGUESS+NOTRACE+NOROTATE+WINFRAC,
       (float)0.7, (float)2.0, (float)-1.1, (float)1.1,
@@ -1652,7 +1601,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_bifstewart+1,
-      {filt, seed, ES, ES},
+      {filt, seed, "", ""},
       {1000.0, 0.66, 0, 0},
       HT_BIF, HF_BIFSTEWART, TRIG1+NOGUESS+NOTRACE+NOROTATE+WINFRAC,
       (float)0.7, (float)2.0, (float)-1.1, (float)1.1,
@@ -1663,7 +1612,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "hopalong",
-      {A, B, C, ES},
+      {"a", "b", "c", ""},
       {.4, 1, 0, 0},
       HT_MARTIN, HF_HOPALONG, NOGUESS+NOTRACE+INFCALC+WINFRAC,
       (float)-2.0, (float)3.0, (float)-1.625, (float)2.625,
@@ -1674,7 +1623,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "circle",
-      {"magnification", ES, ES, ES},
+      {"magnification", "", "", ""},
       {200000L, 0, 0, 0},
       HT_CIRCLE, HF_CIRCLE, WINFRAC,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -1685,7 +1634,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "martin",
-      {A, ES, ES, ES},
+      {"a", "", "", ""},
       {3.14, 0, 0, 0},
       HT_MARTIN, HF_MARTIN, NOGUESS+NOTRACE+INFCALC+WINFRAC,
       (float)-32, (float)32, (float)-24, (float)24,
@@ -1696,7 +1645,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "lyapunov",
-      {"+Order (integer)", "Population Seed", "+Filter Cycles", ES},
+      {"+Order (integer)", "Population Seed", "+Filter Cycles", ""},
       {0, 0.5, 0, 0},
       HT_LYAPUNOV, HT_LYAPUNOV, WINFRAC,
       (float)-8.0, (float)8.0, (float)-6.0, (float)6.0,
@@ -1707,7 +1656,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "lorenz3d1",
-      {timestep, A, B, C},
+      {timestep, "a", "b", "c"},
       {.02, 5, 15, 1},
       HT_LORENZ, HF_LORENZ3D1,
                         NOGUESS+NOTRACE+NORESUME+WINFRAC+PARMS3D+INFCALC,
@@ -1719,7 +1668,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "lorenz3d3",
-      {timestep, A, B, C},
+      {timestep, "a", "b", "c"},
       {.02, 10, 28, 2.66},
       HT_LORENZ, HF_LORENZ3D3,
                       NOGUESS+NOTRACE+NORESUME+WINFRAC+PARMS3D+INFCALC,
@@ -1731,7 +1680,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "lorenz3d4",
-      {timestep, A, B, C},
+      {timestep, "a", "b", "c"},
       {.02, 10, 28, 2.66},
       HT_LORENZ, HF_LORENZ3D4,
                        NOGUESS+NOTRACE+NORESUME+WINFRAC+PARMS3D+INFCALC,
@@ -1743,7 +1692,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_lambda_fnorfn_+1,
-      {realparm, imagparm, shiftval, ES},
+      {realparm, imagparm, "Function Shift Value", ""},
       {1, 0.1, 1, 0},
       HT_FNORFN, HF_LAMBDAFNFN, TRIG2+WINFRAC+BAILTEST,
       (float)-4.0, (float)4.0, (float)-3.0, (float)3.0,
@@ -1755,7 +1704,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_lambda_fnorfn_,
-      {realparm, imagparm, shiftval, ES},
+      {realparm, imagparm, "Function Shift Value", ""},
       {1, 0.1, 1, 0},
       HT_FNORFN, HF_LAMBDAFNFN, TRIG2+WINFRAC+BAILTEST,
       (float)-4.0, (float)4.0, (float)-3.0, (float)3.0,
@@ -1767,7 +1716,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_julia_fnorfn_+1,
-      {realparm, imagparm, shiftval, ES},
+      {realparm, imagparm, "Function Shift Value", ""},
       {0, 0, 8, 0},
       HT_FNORFN, HF_JULIAFNFN, TRIG2+WINFRAC+BAILTEST,
       (float)-4.0, (float)4.0, (float)-3.0, (float)3.0,
@@ -1779,7 +1728,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_julia_fnorfn_,
-      {realparm, imagparm, shiftval, ES},
+      {realparm, imagparm, "Function Shift Value", ""},
       {0, 0, 8, 0},
       HT_FNORFN, HF_JULIAFNFN, TRIG2+WINFRAC+BAILTEST,
       (float)-4.0, (float)4.0, (float)-3.0, (float)3.0,
@@ -1791,7 +1740,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_manlam_fnorfn_+1,
-      {realz0, imagz0, shiftval, ES},
+      {realz0, imagz0, "Function Shift Value", ""},
       {0, 0, 10, 0},
       HT_FNORFN, HF_MANLAMFNFN, TRIG2+WINFRAC+BAILTEST,
       (float)-4.0, (float)4.0, (float)-3.0, (float)3.0,
@@ -1803,7 +1752,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_manlam_fnorfn_,
-      {realz0, imagz0, shiftval, ES},
+      {realz0, imagz0, "Function Shift Value", ""},
       {0, 0, 10, 0},
       HT_FNORFN, HF_MANLAMFNFN, TRIG2+WINFRAC+BAILTEST,
       (float)-4.0, (float)4.0, (float)-3.0, (float)3.0,
@@ -1815,7 +1764,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_mandel_fnorfn_+1,
-      {realz0, imagz0, shiftval, ES},
+      {realz0, imagz0, "Function Shift Value", ""},
       {0, 0, 0.5, 0},
       HT_FNORFN, HF_MANDELFNFN, TRIG2+WINFRAC+BAILTEST,
       (float)-4.0, (float)4.0, (float)-3.0, (float)3.0,
@@ -1827,7 +1776,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_mandel_fnorfn_,
-      {realz0, imagz0, shiftval, ES},
+      {realz0, imagz0, "Function Shift Value", ""},
       {0, 0, 0.5, 0},
       HT_FNORFN, HF_MANDELFNFN, TRIG2+WINFRAC+BAILTEST,
       (float)-4.0, (float)4.0, (float)-3.0, (float)3.0,
@@ -1839,7 +1788,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_bifmay+1,
-      {filt, seed, "Beta >= 2", ES},
+      {filt, seed, "Beta >= 2", ""},
       {300.0, 0.9, 5, 0},
       HT_BIF, HF_BIFMAY, NOGUESS+NOTRACE+NOROTATE+WINFRAC,
       (float)-3.5, (float)-0.9, (float)-0.5, (float)3.2,
@@ -1850,7 +1799,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_bifmay,
-      {filt, seed, "Beta >= 2", ES},
+      {filt, seed, "Beta >= 2", ""},
       {300.0, 0.9, 5, 0},
       HT_BIF, HF_BIFMAY, NOGUESS+NOTRACE+NOROTATE+WINFRAC,
       (float)-3.5, (float)-0.9, (float)-0.5, (float)3.2,
@@ -1883,7 +1832,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "dynamic",
-      {"+# of intervals (<0 = connect)", "time step (<0 = Euler)", A, B},
+      {"+# of intervals (<0 = connect)", "time step (<0 = Euler)", "a", "b"},
       {50, .1, 1, 3},
       HT_DYNAM, HF_DYNAM, NOGUESS+NOTRACE+WINFRAC+TRIG1,
       (float)-20.0, (float)20.0, (float)-20.0, (float)20.0,
@@ -1894,7 +1843,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "quat",
-      {notused, notused, CJ, CK},
+      {"notused", "notused", "cj", "ck"},
       {0, 0, 0, 0},
       HT_QUAT, HF_QUAT, WINFRAC+OKJB,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -1906,7 +1855,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "quatjul",
-      {C1, CI, CJ, CK},
+      {"c1", "ci", "cj", "ck"},
       {-.745, 0, .113, .05},
       HT_QUAT, HF_QUATJ, WINFRAC+OKJB+MORE,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -1929,7 +1878,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_julibrot,
-      {ES, ES, ES, ES},
+      {"", "", "", ""},
       {0, 0, 0, 0},
       HT_JULIBROT, -1, NOGUESS+NOTRACE+NOROTATE+NORESUME+WINFRAC,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -1941,7 +1890,7 @@ struct fractalspecificstuff far fractalspecific[]=
 #ifdef RANDOM_RUN
    {
    t_julia_inverse+1,
-      {realparm, imagparm, s_maxhits, randomruninterval},
+      {realparm, imagparm, s_maxhits, "Random Run Interval"},
       {-0.11, 0.6557, 4, 1024},
       HT_INVERSE, HF_INVERSE, NOGUESS+NOTRACE+INFCALC+NORESUME,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -1952,7 +1901,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_julia_inverse,
-      {realparm, imagparm, s_maxhits, randomruninterval},
+      {realparm, imagparm, s_maxhits, "Random Run Interval"},
       {-0.11, 0.6557, 4, 1024},
       HT_INVERSE, HF_INVERSE, NOGUESS+NOTRACE+INFCALC+NORESUME,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -1963,7 +1912,7 @@ struct fractalspecificstuff far fractalspecific[]=
 #else
    {
    t_julia_inverse+1,
-      {realparm, imagparm, s_maxhits, ES},
+      {realparm, imagparm, s_maxhits, ""},
       {-0.11, 0.6557, 4, 1024},
       HT_INVERSE, HF_INVERSE, NOGUESS+NOTRACE+INFCALC+NORESUME,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -1974,7 +1923,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_julia_inverse,
-      {realparm, imagparm, s_maxhits, ES},
+      {realparm, imagparm, s_maxhits, ""},
       {-0.11, 0.6557, 4, 1024},
       HT_INVERSE, HF_INVERSE, NOGUESS+NOTRACE+INFCALC+NORESUME,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -1987,7 +1936,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "mandelcloud",
-      {"+# of intervals (<0 = connect)", ES, ES, ES},
+      {"+# of intervals (<0 = connect)", "", "", ""},
       {50, 0, 0, 0},
       HT_MANDELCLOUD, HF_MANDELCLOUD, NOGUESS+NOTRACE+WINFRAC,
       (float)-2.5, (float)1.5, (float)-1.5, (float)1.5,
@@ -1998,7 +1947,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_phoenix+1,
-      {p1real, p2real, degreeZ, ES},
+      {p1real, p2real, degreeZ, ""},
       {0.56667, -0.5, 0, 0},
       HT_PHOENIX, HF_PHOENIX, WINFRAC+BAILTEST,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -2010,7 +1959,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_phoenix,
-      {p1real, p2real, degreeZ, ES},
+      {p1real, p2real, degreeZ, ""},
       {0.56667, -0.5, 0, 0},
       HT_PHOENIX, HF_PHOENIX, WINFRAC+BAILTEST,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -2021,7 +1970,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_mandphoenix+1,
-      {realz0, imagz0, degreeZ, ES},
+      {realz0, imagz0, degreeZ, ""},
       {0.0, 0.0, 0, 0},
       HT_PHOENIX, HF_MANDPHOENIX, WINFRAC+BAILTEST,
       (float)-2.5, (float)1.5, (float)-1.5, (float)1.5,
@@ -2033,7 +1982,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_mandphoenix,
-      {realz0, imagz0, degreeZ, ES},
+      {realz0, imagz0, degreeZ, ""},
       {0.0, 0.0, 0, 0},
       HT_PHOENIX, HF_MANDPHOENIX, WINFRAC+BAILTEST,
       (float)-2.5, (float)1.5, (float)-1.5, (float)1.5,
@@ -2045,7 +1994,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "hypercomplex",
-      {notused, notused, CJ, CK},
+      {"notused", "notused", "cj", "ck"},
       {0, 0, 0, 0},
       HT_HYPERC, HF_HYPERC, WINFRAC+OKJB+TRIG1,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -2057,7 +2006,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "hypercomplexj",
-      {C1, CI, CJ, CK},
+      {"c1", "ci", "cj", "ck"},
       {-.745, 0, .113, .05},
       HT_HYPERC, HF_HYPERCJ, WINFRAC+OKJB+TRIG1+MORE,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -2069,7 +2018,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_frothybasin+1,
-      {frothmapping, frothshade, frothavalue, ES},
+      {frothmapping, frothshade, frothavalue, ""},
       {1, 0, 1.028713768218725, 0},
       HT_FROTH, HF_FROTH, NOTRACE+WINFRAC,
       (float)-2.8, (float)2.8, (float)-2.355, (float)1.845,
@@ -2080,7 +2029,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_frothybasin,
-      {frothmapping, frothshade, frothavalue, ES},
+      {frothmapping, frothshade, frothavalue, ""},
       {1, 0, 1.028713768218725, 0},
       HT_FROTH, HF_FROTH, NOTRACE+WINFRAC,
       (float)-2.8, (float)2.8, (float)-2.355, (float)1.845,
@@ -2091,7 +2040,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_mandel4,
-      {realz0, imagz0, ES, ES},
+      {realz0, imagz0, "", ""},
       {0, 0, 0, 0},
       HT_MANDJUL4, HF_MANDEL4, WINFRAC+BAILTEST,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -2102,7 +2051,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_julia4,
-      {realparm, imagparm, ES, ES},
+      {realparm, imagparm, "", ""},
       {0.6, 0.55, 0, 0},
       HT_MANDJUL4, HF_JULIA4, WINFRAC+OKJB+BAILTEST,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -2113,7 +2062,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_marksmandel,
-      {realz0, imagz0, exponent, ES},
+      {realz0, imagz0, exponent, ""},
       {0, 0, 1, 0},
       HT_MARKS, HF_MARKSMAND, WINFRAC+BAILTEST,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -2125,7 +2074,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    t_marksjulia,
-      {realparm, imagparm, exponent, ES},
+      {realparm, imagparm, exponent, ""},
       {0.1, 0.9, 1, 0},
       HT_MARKS, HF_MARKSJULIA, WINFRAC+BAILTEST,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -2138,7 +2087,7 @@ struct fractalspecificstuff far fractalspecific[]=
       /* dmf */
    {
    "icons",
-      {s_lambda, s_alpha, s_beta, s_gamma},
+      {"Lambda", "Alpha", "Beta", "Gamma"},
       {-2.34, 2.0, 0.2, 0.1},
       HT_ICON, HF_ICON, NOGUESS+NOTRACE+WINFRAC+INFCALC+MORE,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -2150,7 +2099,7 @@ struct fractalspecificstuff far fractalspecific[]=
       /* dmf */
    {
    "icons3d",
-      {s_lambda, s_alpha, s_beta, s_gamma},
+      {"Lambda", "Alpha", "Beta", "Gamma"},
       {-2.34, 2.0, 0.2, 0.1},
       HT_ICON, HF_ICON, NOGUESS+NOTRACE+WINFRAC+INFCALC+PARMS3D+MORE,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -2224,7 +2173,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "chip",
-      {A, B, C, ES},
+      {"a", "b", "c", ""},
       {-15,-19,1,0},
       HT_MARTIN, HF_CHIP, NOGUESS+NOTRACE+INFCALC+WINFRAC,
       (float)-760.0, (float)760.0, (float)-570.0, (float)570.0,
@@ -2235,7 +2184,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "quadruptwo",
-      {A, B, C, ES},
+      {"a", "b", "c", ""},
       {34, 1, 5, 0},
       HT_MARTIN, HF_QUADRUPTWO, NOGUESS+NOTRACE+INFCALC+WINFRAC,
       (float)-82.93367, (float)112.2749, (float)-55.76383, (float)90.64257,
@@ -2246,7 +2195,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "threeply",
-      {A, B, C, ES},
+      {"a", "b", "c", ""},
       {-55, -1, -42, 0},
       HT_MARTIN, HF_THREEPLY, NOGUESS+NOTRACE+INFCALC+WINFRAC,
       (float)-8000.0, (float)8000.0, (float)-6000.0, (float)6000.0,
@@ -2257,7 +2206,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "volterra-lotka",
-      {H, P, ES, ES},
+      {"h", "p", "", ""},
       {0.739, 0.739, 0, 0},
       HT_VL, HF_VL, WINFRAC,
       (float)0.0, (float)6.0, (float)0.0, (float)4.5, 
@@ -2268,7 +2217,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "escher_julia",
-      {realparm, imagparm, ES, ES},
+      {realparm, imagparm, "", ""},
       {0.32, 0.043, 0, 0},
       HT_ESCHER, HF_ESCHER, WINFRAC,
       (float)-1.6, (float)1.6, (float)-1.2, (float)1.2,
@@ -2284,7 +2233,7 @@ struct fractalspecificstuff far fractalspecific[]=
 
    {
    "latoocarfian",
-      {A, B, C, D},
+      {"a", "b", "c", "d"},
       {-0.966918, 2.879879, 0.765145, 0.744728},
       HT_LATOO, HF_LATOO, NOGUESS+NOTRACE+WINFRAC+INFCALC+MORE+TRIG4,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
@@ -2292,7 +2241,7 @@ struct fractalspecificstuff far fractalspecific[]=
       (VF)latoofloatorbit, NULL, orbit3dfloatsetup, orbit2dfloat,
       NOBAILOUT
    },
-
+#if 0
    {
    "mandelbrotmix4",
       {p1real, p1imag, p2real, p2imag},
@@ -2303,7 +2252,7 @@ struct fractalspecificstuff far fractalspecific[]=
       MandelbrotMix4fpFractal, MandelbrotMix4fp_per_pixel, MandelbrotMix4Setup, StandardFractal,
       STDBAILOUT
    },
-
+#endif
    {
       NULL,            /* marks the END of the list */
       {NULL, NULL, NULL, NULL},
@@ -2369,7 +2318,7 @@ int paramnotused(int parm)
 int typehasparm(int type,int parm,char *buf)
 {
    int extra;
-   char far *ret = NULL;
+   char *ret = NULL;
    if(0 <= parm && parm < 4)
       ret=fractalspecific[type].param[parm];
    else if(parm >= 4 && parm < MAXPARAMS)
@@ -2384,6 +2333,6 @@ int typehasparm(int type,int parm,char *buf)
          ret = NULL;
 
    if(ret && buf != NULL)
-      far_strcpy(buf,ret);
+      strcpy(buf,ret);
    return(ret?1:0);
 }

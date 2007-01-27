@@ -23,6 +23,7 @@
   /* see Fractint.c for a description of the "include"  hierarchy */
 #include "port.h"
 #include "prototyp.h"
+#include "drivers.h"
 #include "helpdefs.h"
 
 char stereomapname[FILE_MAX_DIR+1] = {""};
@@ -115,7 +116,7 @@ static int get_min_max(void)
    MAXC = 0;
    for(yd = 0; yd < ydots; yd++)
    {
-      if (keypressed())
+      if (driver_key_pressed())
          return (1);
       if(yd == 20)
          showtempmsg("Getting min and max");
@@ -132,7 +133,7 @@ static int get_min_max(void)
    return(0);
 }
 
-void toggle_bars(int *bars, int barwidth, int far *colour)
+void toggle_bars(int *bars, int barwidth, int *colour)
 {
    int i, j, ct;
    find_special_colors();
@@ -142,8 +143,8 @@ void toggle_bars(int *bars, int barwidth, int far *colour)
       {
          if(*bars)
          {
-            putcolor(i + (int)(AVG), j , color_bright);
-            putcolor(i - (int)(AVG), j , color_bright);
+            putcolor(i + (int)(AVG), j , g_color_bright);
+            putcolor(i - (int)(AVG), j , g_color_bright);
          }
          else
          {
@@ -157,11 +158,12 @@ void toggle_bars(int *bars, int barwidth, int far *colour)
 int outline_stereo(BYTE * pixels, int linelen)
 {
    int i, j, x, s;
-   int far *same;
-   int far *colour;
+   int *same;
+   int *colour;
    if((Y) >= ydots)
       return(1);
-   same   = (int far *)MK_FP(extraseg,0);
+   /* TODO: allocate real memory, not reuse shared segment */
+   same   = (int *)extraseg;
    colour = &same[ydots];
 
    for (x = 0; x < xdots; ++x)
@@ -228,9 +230,10 @@ int do_AutoStereo(void)
    time_t ltime;
    unsigned char *buf = (unsigned char *)decoderline;
    /* following two lines re-use existing arrays in Fractint */
-   int far *same;
-   int far *colour;
-   same   = (int far *)MK_FP(extraseg,0);
+   int *same;
+   int *colour;
+   /* TODO: allocate real memory, not reuse shared segment */
+   same   = (int *)extraseg;
    colour = &same[ydots];
 
    pv = &v;   /* set static vars to stack structure */
@@ -242,15 +245,13 @@ int do_AutoStereo(void)
 
    oldhelpmode = helpmode;
    helpmode = RDSKEYS;
-   savegraphics();                      /* save graphics image */
-   memcpy(savedacbox, dacbox, 256 * 3);  /* save colors */
+   driver_save_graphics();                      /* save graphics image */
+   memcpy(savedacbox, g_dac_box, 256 * 3);  /* save colors */
 
    if(xdots > OLDMAXPIXELS)
    {
-      static FCODE msg[] = 
-         {"Stereo not allowed with resolution > 2048 pixels wide"};
-      stopmsg(0,msg);
-      buzzer(1);
+      stopmsg(0, "Stereo not allowed with resolution > 2048 pixels wide");
+      driver_buzzer(BUZZER_INTERRUPT);
       ret = 1;
       goto exit_stereo;
    }
@@ -268,7 +269,7 @@ int do_AutoStereo(void)
    DEPTH = labs(DEPTH) + 1;
    if(get_min_max())
    {
-      buzzer(1);
+      driver_buzzer(BUZZER_INTERRUPT);
       ret = 1;
       goto exit_stereo;
    }
@@ -303,7 +304,7 @@ int do_AutoStereo(void)
    {
       while(Y < ydots)
       {
-          if(keypressed())
+          if (driver_key_pressed())
           {
              ret = 1;
              goto exit_stereo;
@@ -332,12 +333,12 @@ int do_AutoStereo(void)
    done = 0;
    while(done==0)
    {
-      while(keypressed()==0); /* to trap F1 key */
-      kbdchar = getakey();
+	   driver_wait_key_pressed(0);
+      kbdchar = driver_get_key();
       switch(kbdchar)
       {
-         case ENTER:   /* toggle bars */
-         case SPACE:
+         case FIK_ENTER:   /* toggle bars */
+         case FIK_SPACE:
             toggle_bars(&bars, barwidth, colour);
             break;
          case 'c':
@@ -352,10 +353,10 @@ int do_AutoStereo(void)
             diskisactive = 0;
             break;
          default:
-            if(kbdchar == 27)   /* if ESC avoid returning to menu */
+            if(kbdchar == FIK_ESC)   /* if ESC avoid returning to menu */
                kbdchar = 255;
-            ungetakey(kbdchar);
-            buzzer(0);
+            driver_unget_key(kbdchar);
+            driver_buzzer(BUZZER_COMPLETE);
             done = 1;
             break;
        }
@@ -363,8 +364,8 @@ int do_AutoStereo(void)
 
    exit_stereo:
    helpmode = oldhelpmode;
-   restoregraphics();
-   memcpy(dacbox, savedacbox, 256 * 3);
+   driver_restore_graphics();
+   memcpy(g_dac_box, savedacbox, 256 * 3);
    spindac(0,1);
    return (ret);
 }

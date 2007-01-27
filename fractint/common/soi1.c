@@ -16,6 +16,7 @@
 #include <malloc.h>
 #include "port.h"
 #include "prototyp.h"
+#include "drivers.h"
 
 #define DBLS double
 #define FABS(x)  fabs(x)
@@ -178,9 +179,6 @@ static DBLS interpolate(DBLS x0, DBLS x1, DBLS x2,
   else
     return w1+((t-x1)/(x2-x1))*(w2-w1);*/
 }
-#if (_MSC_VER >= 700)
-#pragma code_seg ("soi3_text")     /* place following in an overlay */
-#endif
 
 /* SOICompute - Perform simultaneous orbit iteration for a given rectangle
 
@@ -228,33 +226,33 @@ static int rhombus(DBLS cre1, DBLS cre2, DBLS cim1, DBLS cim2,
 {
   /* The following variables do not need their values saved */
   /* used in scanning */
-  static long far savecolor, color, helpcolor;
-  static int far x,y,z,savex;
+  static long savecolor, color, helpcolor;
+  static int x,y,z,savex;
 
 #if 0    
-  static DBLS far re,im,restep,imstep,interstep,helpre;
-  static DBLS far zre,zim;
+  static DBLS re,im,restep,imstep,interstep,helpre;
+  static DBLS zre,zim;
   /* interpolation coefficients */
-  static DBLS far br10,br11,br12,br20,br21,br22,br30,br31,br32;
-  static DBLS far bi10,bi11,bi12,bi20,bi21,bi22,bi30,bi31,bi32;
+  static DBLS br10,br11,br12,br20,br21,br22,br30,br31,br32;
+  static DBLS bi10,bi11,bi12,bi20,bi21,bi22,bi30,bi31,bi32;
   /* ratio of interpolated test point to iterated one */
-  static DBLS far l1,l2;
+  static DBLS l1,l2;
   /* squares of key values */
-  static DBLS far rq1,iq1;
-  static DBLS far rq2,iq2;
-  static DBLS far rq3,iq3;
-  static DBLS far rq4,iq4;
-  static DBLS far rq5,iq5;
-  static DBLS far rq6,iq6;
-  static DBLS far rq7,iq7;
-  static DBLS far rq8,iq8;
-  static DBLS far rq9,iq9;
+  static DBLS rq1,iq1;
+  static DBLS rq2,iq2;
+  static DBLS rq3,iq3;
+  static DBLS rq4,iq4;
+  static DBLS rq5,iq5;
+  static DBLS rq6,iq6;
+  static DBLS rq7,iq7;
+  static DBLS rq8,iq8;
+  static DBLS rq9,iq9;
 
   /* test points */
-  static DBLS far cr1,cr2;
-  static DBLS far ci1,ci2;
-  static DBLS far tzr1,tzi1,tzr2,tzi2,tzr3,tzi3,tzr4,tzi4;
-  static DBLS far trq1,tiq1,trq2,tiq2,trq3,tiq3,trq4,tiq4;
+  static DBLS cr1,cr2;
+  static DBLS ci1,ci2;
+  static DBLS tzr1,tzi1,tzr2,tzi2,tzr3,tzi3,tzr4,tzi4;
+  static DBLS trq1,tiq1,trq2,tiq2,trq3,tiq3,trq4,tiq4;
 #else 
 #define re        mem_static[ 0]
 #define im        mem_static[ 1]
@@ -325,13 +323,13 @@ static int rhombus(DBLS cre1, DBLS cre2, DBLS cim1, DBLS cim2,
 
 #endif
   /* number of iterations before SOI iteration cycle */
-  static long far before;
-  static int far avail;
+  static long before;
+  static int avail;
 
   /* the variables below need to have local copies for recursive calls */
-  int  far *mem_int;
-  DBLS far *mem;
-  DBLS far *mem_static;
+  int  *mem_int;
+  DBLS *mem;
+  DBLS *mem_static;
   /* center of rectangle */
   DBLS midr=(cre1+cre2)/2,midi=(cim1+cim2)/2;
 
@@ -419,8 +417,8 @@ static int rhombus(DBLS cre1, DBLS cre2, DBLS cim1, DBLS cim2,
      static variables, then we make our own "stack" with copies
      for each recursive call of rhombus() for the rest.
    */  
-  mem_int    = (int far *)sizeofstring;
-  mem_static = (DBLS far *)(mem_int + 13);
+  mem_int    = (int *)sizeofstring;
+  mem_static = (DBLS *)(mem_int + 13);
   mem = mem_static+ 66 + 50*rhombus_depth;
 #endif
   
@@ -430,7 +428,7 @@ static int rhombus(DBLS cre1, DBLS cre2, DBLS cim1, DBLS cim2,
      max_rhombus_depth = rhombus_depth;
   rhombus_stack[rhombus_depth] = avail;
 
-  if(keypressed())
+  if (driver_key_pressed())
     {
     status = 1;
     goto rhombus_done;
@@ -460,7 +458,7 @@ static int rhombus(DBLS cre1, DBLS cre2, DBLS cim1, DBLS cim2,
       
       for(y=y1, im=cim1; y<y2; y++, im+=imstep)
 	{
-	  if(keypressed())
+	  if (driver_key_pressed())
 	    {
 	    status = 1;
             goto rhombus_done;
@@ -909,10 +907,6 @@ rhombus_done:
   rhombus_depth--;
   return(status);
 }
-
-#if (_MSC_VER >= 700)
-#pragma code_seg ()    
-#endif
 
 void soi(void)
 {

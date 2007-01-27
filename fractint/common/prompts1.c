@@ -31,6 +31,7 @@
 #include <sys/param.h>
 #define getwd(a) getcwd(a,MAXPATHLEN)
 #endif
+#include "drivers.h"
 
 /* Routines used in prompts2.c */
 
@@ -49,14 +50,11 @@ static  int sel_fractype_help(int curkey, int choice);
         void set_default_parms(void);
 static  long gfe_choose_entry(int,char *,char *,char *);
 static  int check_gfe_key(int curkey,int choice);
-static  void load_entry_text(FILE *entfile,char far *buf,int maxlines, int startrow, int startcol);
+static  void load_entry_text(FILE *entfile,char *buf,int maxlines, int startrow, int startcol);
 static  void format_parmfile_line(int,char *);
 static  int get_light_params(void );
 static  int check_mapfile(void );
 static  int get_funny_glasses_params(void );
-
-/* fullscreen_choice options */
-#define CHOICEHELP      4
 
 #define GETFORMULA 0
 #define GETLSYS    1
@@ -83,15 +81,15 @@ int scroll_column_status; /* will be set to first column of extra info to
                              be displayed ( 0 = leftmost column )*/
 
 int fullscreen_prompt(  /* full-screen prompting routine */
-        char far *hdg,          /* heading, lines separated by \n */
+        char *hdg,          /* heading, lines separated by \n */
         int numprompts,         /* there are this many prompts (max) */
-        char far **prompts,     /* array of prompting pointers */
+        char **prompts,     /* array of prompting pointers */
         struct fullscreenvalues *values, /* array of values */
         int fkeymask,           /* bit n on if Fn to cause return */
-        char far *extrainfo     /* extra info box to display, \n separated */
+        char *extrainfo     /* extra info box to display, \n separated */
         )
 {
-   char far *hdgscan;
+   char *hdgscan;
    int titlelines,titlewidth,titlerow;
    int maxpromptwidth,maxfldwidth,maxcomment;
    int boxrow,boxlines;
@@ -116,16 +114,6 @@ int fullscreen_prompt(  /* full-screen prompting routine */
    int rewrite_extrainfo = 0;     /* if 1: rewrite extrainfo to text box   */
    char blanks[78];               /* used to clear text box                */
 
-static FCODE instr1[]  = {"Use " UPARR1 " and " DNARR1 " to select values to change"};
-static FCODE instr2a[]  = {"Type in replacement value for selected field"};
-static FCODE instr2b[]  = {"Use " LTARR1 " or " RTARR1 " to change value of selected field"};
-static FCODE instr3a[] = {"Press ENTER when finished (or ESCAPE to back out)"};
-static FCODE instr3b[] = {"Press ENTER when finished, ESCAPE to back out, or "FK_F1" for help"};
-
-static FCODE instr0[] = {"No changeable parameters;"};
-static FCODE instr0a[] = {"Press ENTER to exit"};
-static FCODE instr0b[] = {"Press ENTER to exit, ESC to back out, "FK_F1" for help"};
-
    savelookatmouse = lookatmouse;
    lookatmouse = 0;
    promptfkeys = fkeymask;
@@ -136,27 +124,27 @@ static FCODE instr0b[] = {"Press ENTER to exit, ESC to back out, "FK_F1" for hel
          find_file_item() opens the file and sets the file pointer to the
          beginning of the entry.
       */
-
-   if((fractype == FORMULA || fractype == FFORMULA) && extrainfo && *extrainfo) {
-      find_file_item(FormFileName, FormName, &scroll_file, 1);
-      in_scrolling_mode = 1;
-      scroll_file_start = ftell(scroll_file);
-   }
-
-   else if(fractype == LSYSTEM && extrainfo && *extrainfo) {
-      find_file_item(LFileName, LName, &scroll_file, 2);
-      in_scrolling_mode = 1;
-      scroll_file_start = ftell(scroll_file);
-   }
-
-   else if((fractype == IFS || fractype == IFS3D) && extrainfo && *extrainfo) {
-      find_file_item(IFSFileName, IFSName, &scroll_file, 3);
-      in_scrolling_mode = 1;
-      scroll_file_start = ftell(scroll_file);
-   }
+	if (extrainfo && *extrainfo)
+	{
+		if (fractype == FORMULA || fractype == FFORMULA) {
+			find_file_item(FormFileName, FormName, &scroll_file, 1);
+			in_scrolling_mode = 1;
+			scroll_file_start = ftell(scroll_file);
+		}
+		else if (fractype == LSYSTEM) {
+			find_file_item(LFileName, LName, &scroll_file, 2);
+			in_scrolling_mode = 1;
+			scroll_file_start = ftell(scroll_file);
+		}
+		else if(fractype == IFS || fractype == IFS3D) {
+			find_file_item(IFSFileName, IFSName, &scroll_file, 3);
+			in_scrolling_mode = 1;
+			scroll_file_start = ftell(scroll_file);
+		}
+	}
 
       /* initialize widest_entry_line and lines_in_entry */
-   if(in_scrolling_mode && scroll_file != NULL) {
+   if (in_scrolling_mode && scroll_file != NULL) {
       int comment = 0;
       int c = 0;
       int widthct = 0;
@@ -188,7 +176,7 @@ static FCODE instr0b[] = {"Press ENTER to exit, ESC to back out, "FK_F1" for hel
 
 
    helptitle();                        /* clear screen, display title line  */
-   setattr(1,0,C_PROMPT_BKGRD,24*80);  /* init rest of screen to background */
+   driver_set_attr(1,0,C_PROMPT_BKGRD,24*80);  /* init rest of screen to background */
 
 
    hdgscan = hdg;                      /* count title lines, find widest */
@@ -227,7 +215,7 @@ static FCODE instr0b[] = {"Press ENTER to exit, ESC to back out, "FK_F1" for hel
    if(in_scrolling_mode && scroll_row_status == 0
              && lines_in_entry == extralines - 2
              && scroll_column_status == 0
-             && far_strchr(extrainfo, '\021') == NULL) {
+             && strchr(extrainfo, '\021') == NULL) {
       in_scrolling_mode = 0;
       fclose(scroll_file);
       scroll_file = NULL;
@@ -272,13 +260,13 @@ static FCODE instr0b[] = {"Press ENTER to exit, ESC to back out, "FK_F1" for hel
    maxfldwidth = maxpromptwidth = maxcomment = anyinput = 0;
    for (i = 0; i < numprompts; i++) {
       if (values[i].type == 'y') {
-         static char *noyes[2] = {s_no,s_yes};
+         static char *noyes[2] = {"no", "yes"};
          values[i].type = 'l';
          values[i].uval.ch.vlen = 3;
          values[i].uval.ch.list = noyes;
          values[i].uval.ch.llen = 2;
          }
-      j = far_strlen(prompts[i]);
+      j = (int) strlen(prompts[i]);
       if (values[i].type == '*') {
          if (j > maxcomment)     maxcomment = j;
          }
@@ -314,32 +302,34 @@ static FCODE instr0b[] = {"Press ENTER to exit, ESC to back out, "FK_F1" for hel
 
    /* display box heading */
    for (i = titlerow; i < boxrow; ++i)
-      setattr(i,boxcol,C_PROMPT_HI,boxwidth);
+      driver_set_attr(i,boxcol,C_PROMPT_HI,boxwidth);
+
    {
-      char far *hdgline = hdg;
+      char buffer[256], *hdgline = buffer;
       /* center each line of heading independently */
       int i;
+	  strcpy(hdgline, hdg);
       for(i=0;i<titlelines-1;i++)
       {
-         char far *next;
-         if((next = far_strchr(hdgline,'\n')) == NULL)
+         char *next;
+         if((next = strchr(hdgline,'\n')) == NULL)
             break; /* shouldn't happen */
          *next = '\0';
-         titlewidth = far_strlen(hdgline);
-         textcbase = boxcol + (boxwidth - titlewidth) / 2;
-         putstring(titlerow+i,0,C_PROMPT_HI,hdgline);
+         titlewidth = (int) strlen(hdgline);
+         g_text_cbase = boxcol + (boxwidth - titlewidth) / 2;
+         driver_put_string(titlerow+i,0,C_PROMPT_HI,hdgline);
          *next = '\n';
          hdgline = next+1;
       }
         /* add scrolling key message, if applicable */
       if(in_scrolling_mode) {
          *(hdgline + 31) = (char) 0;   /* replace the ')' */
-         far_strcat(hdgline, ". CTRL+(direction key) to scroll text.)");
+         strcat(hdgline, ". CTRL+(direction key) to scroll text.)");
       }
 
-      titlewidth = far_strlen(hdgline);
-      textcbase = boxcol + (boxwidth - titlewidth) / 2;
-      putstring(titlerow+i,0,C_PROMPT_HI,hdgline);
+      titlewidth = (int) strlen(hdgline);
+      g_text_cbase = boxcol + (boxwidth - titlewidth) / 2;
+      driver_put_string(titlerow+i,0,C_PROMPT_HI,hdgline);
    }
 
    /* display extra info */
@@ -360,47 +350,47 @@ static FCODE instr0b[] = {"Press ENTER to exit, ESC to back out, "FK_F1" for hel
 #define S6 "+" /* ur corner */
 #endif
       memset(buf,S1,80); buf[boxwidth-2] = 0;
-      textcbase = boxcol + 1;
-      putstring(extrarow,0,C_PROMPT_BKGRD,buf);
-      putstring(extrarow+extralines-1,0,C_PROMPT_BKGRD,buf);
-      --textcbase;
-      putstring(extrarow,0,C_PROMPT_BKGRD,S5);
-      putstring(extrarow+extralines-1,0,C_PROMPT_BKGRD,S2);
-      textcbase += boxwidth - 1;
-      putstring(extrarow,0,C_PROMPT_BKGRD,S6);
-      putstring(extrarow+extralines-1,0,C_PROMPT_BKGRD,S3);
+      g_text_cbase = boxcol + 1;
+      driver_put_string(extrarow,0,C_PROMPT_BKGRD,buf);
+      driver_put_string(extrarow+extralines-1,0,C_PROMPT_BKGRD,buf);
+      --g_text_cbase;
+      driver_put_string(extrarow,0,C_PROMPT_BKGRD,S5);
+      driver_put_string(extrarow+extralines-1,0,C_PROMPT_BKGRD,S2);
+      g_text_cbase += boxwidth - 1;
+      driver_put_string(extrarow,0,C_PROMPT_BKGRD,S6);
+      driver_put_string(extrarow+extralines-1,0,C_PROMPT_BKGRD,S3);
 
-      textcbase = boxcol;
+      g_text_cbase = boxcol;
 
       for (i = 1; i < extralines-1; ++i) {
-         putstring(extrarow+i,0,C_PROMPT_BKGRD,S4);
-         putstring(extrarow+i,boxwidth-1,C_PROMPT_BKGRD,S4);
+         driver_put_string(extrarow+i,0,C_PROMPT_BKGRD,S4);
+         driver_put_string(extrarow+i,boxwidth-1,C_PROMPT_BKGRD,S4);
       }
-      textcbase += (boxwidth - extrawidth) / 2;
-      putstring(extrarow+1,0,C_PROMPT_TEXT,extrainfo);
+      g_text_cbase += (boxwidth - extrawidth) / 2;
+      driver_put_string(extrarow+1,0,C_PROMPT_TEXT,extrainfo);
    }
 
-   textcbase = 0;
+   g_text_cbase = 0;
 
    /* display empty box */
    for (i = 0; i < boxlines; ++i)
-      setattr(boxrow+i,boxcol,C_PROMPT_LO,boxwidth);
+      driver_set_attr(boxrow+i,boxcol,C_PROMPT_LO,boxwidth);
 
    /* display initial values */
    for (i = 0; i < numprompts; i++) {
-      putstring(promptrow+i, promptcol, C_PROMPT_LO, prompts[i]);
+      driver_put_string(promptrow+i, promptcol, C_PROMPT_LO, prompts[i]);
       prompt_valuestring(buf,&values[i]);
-      putstring(promptrow+i, valuecol, C_PROMPT_LO, buf);
+      driver_put_string(promptrow+i, valuecol, C_PROMPT_LO, buf);
    }
 
 
    if (!anyinput) {
       putstringcenter(instrrow++,0,80,C_PROMPT_BKGRD,
-        instr0);
+        "No changeable parameters;");
       putstringcenter(instrrow,0,80,C_PROMPT_BKGRD,
-        (helpmode > 0) ? instr0b : instr0a);
-      movecursor(25,80);
-      textcbase = 2;
+        (helpmode > 0) ? "Press ENTER to exit, ESC to back out, "FK_F1" for help" : "Press ENTER to exit");
+      driver_hide_text_cursor();
+      g_text_cbase = 2;
       for(;;) {
          if(rewrite_extrainfo) {
             rewrite_extrainfo = 0;
@@ -408,42 +398,43 @@ static FCODE instr0b[] = {"Press ENTER to exit, ESC to back out, "FK_F1" for hel
             load_entry_text(scroll_file, extrainfo, extralines - 2,
                         scroll_row_status, scroll_column_status);
             for(i=1; i <= extralines - 2; i++)
-               putstring(extrarow+i,0,C_PROMPT_TEXT,blanks);
-            putstring(extrarow+1,0,C_PROMPT_TEXT,extrainfo);
+               driver_put_string(extrarow+i,0,C_PROMPT_TEXT,blanks);
+            driver_put_string(extrarow+1,0,C_PROMPT_TEXT,extrainfo);
          }
-        while (!keypressed()) { }
-        done = getakey();
+		 /* TODO: rework key interaction to blocking wait */
+        while (!driver_key_pressed()) { }
+        done = driver_get_key();
         switch(done) {
-            case ESC:
+            case FIK_ESC:
                done = -1;
-            case ENTER:
-            case ENTER_2:
+            case FIK_ENTER:
+            case FIK_ENTER_2:
                goto fullscreen_exit;
-            case DOWN_ARROW_2:    /* scrolling key - down one row */
+            case FIK_CTL_DOWN_ARROW:    /* scrolling key - down one row */
                if(in_scrolling_mode && scroll_row_status < vertical_scroll_limit) {
                   scroll_row_status++;
                   rewrite_extrainfo = 1;
                }
                break;
-            case UP_ARROW_2:      /* scrolling key - up one row */
+            case FIK_CTL_UP_ARROW:      /* scrolling key - up one row */
                if(in_scrolling_mode && scroll_row_status > 0) {
                   scroll_row_status--;
                   rewrite_extrainfo = 1;
               }
               break;
-            case LEFT_ARROW_2:    /* scrolling key - left one column */
+            case FIK_CTL_LEFT_ARROW:    /* scrolling key - left one column */
                if(in_scrolling_mode && scroll_column_status > 0) {
                   scroll_column_status--;
                   rewrite_extrainfo = 1;
                }
                break;
-            case RIGHT_ARROW_2:   /* scrolling key - right one column */
-               if(in_scrolling_mode && far_strchr(extrainfo, '\021') != NULL) {
+            case FIK_CTL_RIGHT_ARROW:   /* scrolling key - right one column */
+               if(in_scrolling_mode && strchr(extrainfo, '\021') != NULL) {
                   scroll_column_status++;
                   rewrite_extrainfo = 1;
                }
                break;
-            case CTL_PAGE_DOWN:   /* scrolling key - down one screen */
+            case FIK_CTL_PAGE_DOWN:   /* scrolling key - down one screen */
                if(in_scrolling_mode && scroll_row_status < vertical_scroll_limit) {
                   scroll_row_status += extralines - 2;
                   if(scroll_row_status > vertical_scroll_limit)
@@ -451,7 +442,7 @@ static FCODE instr0b[] = {"Press ENTER to exit, ESC to back out, "FK_F1" for hel
                   rewrite_extrainfo = 1;
                }
                break;
-            case CTL_PAGE_UP:     /* scrolling key - up one screen */
+            case FIK_CTL_PAGE_UP:     /* scrolling key - up one screen */
                if(in_scrolling_mode && scroll_row_status > 0) {
                   scroll_row_status -= extralines - 2;
                   if(scroll_row_status < 0)
@@ -459,29 +450,29 @@ static FCODE instr0b[] = {"Press ENTER to exit, ESC to back out, "FK_F1" for hel
                   rewrite_extrainfo = 1;
                }
                break;
-            case CTL_END:         /* scrolling key - to end of entry */
+            case FIK_CTL_END:         /* scrolling key - to end of entry */
                if(in_scrolling_mode) {
                   scroll_row_status = vertical_scroll_limit;
                   scroll_column_status = 0;
                   rewrite_extrainfo = 1;
                }
                break;
-            case CTL_HOME:        /* scrolling key - to beginning of entry */
+            case FIK_CTL_HOME:        /* scrolling key - to beginning of entry */
                if(in_scrolling_mode) {
                   scroll_row_status = scroll_column_status = 0;
                   rewrite_extrainfo = 1;
                }
                break;
-            case F2:
-            case F3:
-            case F4:
-            case F5:
-            case F6:
-            case F7:
-            case F8:
-            case F9:
-            case F10:
-               if (promptfkeys & (1<<(done+1-F1)) )
+            case FIK_F2:
+            case FIK_F3:
+            case FIK_F4:
+            case FIK_F5:
+            case FIK_F6:
+            case FIK_F7:
+            case FIK_F8:
+            case FIK_F9:
+            case FIK_F10:
+               if (promptfkeys & (1<<(done+1-FIK_F1)) )
                   goto fullscreen_exit;
          }
       }
@@ -490,34 +481,35 @@ static FCODE instr0b[] = {"Press ENTER to exit, ESC to back out, "FK_F1" for hel
 
    /* display footing */
    if (numprompts > 1)
-      putstringcenter(instrrow++,0,80,C_PROMPT_BKGRD,instr1);
+      putstringcenter(instrrow++,0,80,C_PROMPT_BKGRD,
+	  "Use " UPARR1 " and " DNARR1 " to select values to change");
    putstringcenter(instrrow+1,0,80,C_PROMPT_BKGRD,
-         (helpmode > 0) ? instr3b : instr3a);
+         (helpmode > 0) ? "Press ENTER when finished, ESCAPE to back out, or "FK_F1" for help" : "Press ENTER when finished (or ESCAPE to back out)");
 
    done = 0;
    while (values[curchoice].type == '*') ++curchoice;
 
    while (!done) {
       if(rewrite_extrainfo) {
-         j = textcbase;
-         textcbase = 2;
+         j = g_text_cbase;
+         g_text_cbase = 2;
          fseek(scroll_file, scroll_file_start, SEEK_SET);
          load_entry_text(scroll_file, extrainfo, extralines - 2,
                              scroll_row_status, scroll_column_status);
          for(i=1; i <= extralines - 2; i++)
-            putstring(extrarow+i,0,C_PROMPT_TEXT,blanks);
-         putstring(extrarow+1,0,C_PROMPT_TEXT,extrainfo);
-         textcbase = j;
+            driver_put_string(extrarow+i,0,C_PROMPT_TEXT,blanks);
+         driver_put_string(extrarow+1,0,C_PROMPT_TEXT,extrainfo);
+         g_text_cbase = j;
       }
 
       curtype = values[curchoice].type;
       curlen = prompt_valuestring(buf,&values[curchoice]);
       if(!rewrite_extrainfo)
          putstringcenter(instrrow,0,80,C_PROMPT_BKGRD,
-                   (curtype == 'l') ? instr2b : instr2a);
+                   (curtype == 'l') ? "Use " LTARR1 " or " RTARR1 " to change value of selected field" : "Type in replacement value for selected field");
       else
          rewrite_extrainfo = 0;
-      putstring(promptrow+curchoice,promptcol,C_PROMPT_HI,prompts[curchoice]);
+      driver_put_string(promptrow+curchoice,promptcol,C_PROMPT_HI,prompts[curchoice]);
 
       if (curtype == 'l') {
          i = input_field_list(
@@ -556,70 +548,70 @@ static FCODE instr0b[] = {"Press ENTER to exit, ESC to back out, "FK_F1" for hel
                strncpy(values[curchoice].uval.sval,buf,16);
                break;
             default: /* assume 0x100+n */
-               far_strcpy(values[curchoice].uval.sbuf,buf);
+               strcpy(values[curchoice].uval.sbuf,buf);
             }
          }
 
-      putstring(promptrow+curchoice,promptcol,C_PROMPT_LO,prompts[curchoice]);
-      j = strlen(buf);
+      driver_put_string(promptrow+curchoice,promptcol,C_PROMPT_LO,prompts[curchoice]);
+      j = (int) strlen(buf);
       memset(&buf[j],' ',80-j); buf[curlen] = 0;
-      putstring(promptrow+curchoice, valuecol, C_PROMPT_LO,  buf);
+      driver_put_string(promptrow+curchoice, valuecol, C_PROMPT_LO,  buf);
 
       switch(i) {
          case 0:  /* enter  */
             done = 13;
             break;
          case -1: /* escape */
-         case F2:
-         case F3:
-         case F4:
-         case F5:
-         case F6:
-         case F7:
-         case F8:
-         case F9:
-         case F10:
+         case FIK_F2:
+         case FIK_F3:
+         case FIK_F4:
+         case FIK_F5:
+         case FIK_F6:
+         case FIK_F7:
+         case FIK_F8:
+         case FIK_F9:
+         case FIK_F10:
             done = i;
             break;
-         case PAGE_UP:
+         case FIK_PAGE_UP:
             curchoice = -1;
-         case DOWN_ARROW:
+         case FIK_DOWN_ARROW:
             do {
                if (++curchoice >= numprompts) curchoice = 0;
                } while (values[curchoice].type == '*');
             break;
-         case PAGE_DOWN:
+         case FIK_PAGE_DOWN:
             curchoice = numprompts;
-         case UP_ARROW:
+         case FIK_UP_ARROW:
             do {
                if (--curchoice < 0) curchoice = numprompts - 1;
                } while (values[curchoice].type == '*');
             break;
-         case DOWN_ARROW_2:     /* scrolling key - down one row */
+         case FIK_CTL_DOWN_ARROW:     /* scrolling key - down one row */
             if(in_scrolling_mode && scroll_row_status < vertical_scroll_limit) {
                scroll_row_status++;
                rewrite_extrainfo = 1;
             }
             break;
-         case UP_ARROW_2:       /* scrolling key - up one row */
+         case FIK_CTL_UP_ARROW:       /* scrolling key - up one row */
             if(in_scrolling_mode && scroll_row_status > 0) {
                scroll_row_status--;
                rewrite_extrainfo = 1;
             }
             break;
-         case LEFT_ARROW_2:     /*scrolling key - left one column */
+         case FIK_CTL_LEFT_ARROW:     /*scrolling key - left one column */
             if(in_scrolling_mode && scroll_column_status > 0) {
                scroll_column_status--;
                rewrite_extrainfo = 1;
             }
             break;
-         case RIGHT_ARROW_2:    /* scrolling key - right one column */
-            if(in_scrolling_mode && far_strchr(extrainfo, '\021') != NULL) {
+         case FIK_CTL_RIGHT_ARROW:    /* scrolling key - right one column */
+            if(in_scrolling_mode && strchr(extrainfo, '\021') != NULL) {
                scroll_column_status++;
                rewrite_extrainfo = 1;
             }
             break;
-         case CTL_PAGE_DOWN:    /* scrolling key - down on screen */
+         case FIK_CTL_PAGE_DOWN:    /* scrolling key - down on screen */
             if(in_scrolling_mode && scroll_row_status < vertical_scroll_limit) {
                scroll_row_status += extralines - 2;
                if(scroll_row_status > vertical_scroll_limit)
@@ -627,7 +619,7 @@ static FCODE instr0b[] = {"Press ENTER to exit, ESC to back out, "FK_F1" for hel
                rewrite_extrainfo = 1;
             }
             break;
-         case CTL_PAGE_UP:      /* scrolling key - up one screen */
+         case FIK_CTL_PAGE_UP:      /* scrolling key - up one screen */
             if(in_scrolling_mode && scroll_row_status > 0) {
                  scroll_row_status -= extralines - 2;
                if(scroll_row_status < 0)
@@ -635,14 +627,14 @@ static FCODE instr0b[] = {"Press ENTER to exit, ESC to back out, "FK_F1" for hel
                rewrite_extrainfo = 1;
             }
             break;
-         case CTL_END:          /* scrolling key - go to end of entry */
+         case FIK_CTL_END:          /* scrolling key - go to end of entry */
             if(in_scrolling_mode) {
                scroll_row_status = vertical_scroll_limit;
                scroll_column_status = 0;
                rewrite_extrainfo = 1;
             }
             break;
-         case CTL_HOME:         /* scrolling key - go to beginning of entry */
+         case FIK_CTL_HOME:         /* scrolling key - go to beginning of entry */
             if(in_scrolling_mode) {
                scroll_row_status = scroll_column_status = 0;
                rewrite_extrainfo = 1;
@@ -652,7 +644,7 @@ static FCODE instr0b[] = {"Press ENTER to exit, ESC to back out, "FK_F1" for hel
    }
 
 fullscreen_exit:
-   movecursor(25,80);
+   driver_hide_text_cursor();
    lookatmouse = savelookatmouse;
    if(scroll_file) {
       fclose(scroll_file);
@@ -708,7 +700,7 @@ int prompt_valuestring(char *buf,struct fullscreenvalues *val)
          ret = val->uval.ch.vlen;
          break;
       default: /* assume 0x100+n */
-         far_strcpy(buf,val->uval.sbuf);
+         strcpy(buf,val->uval.sbuf);
          ret = val->type & 0xff;
       }
    return ret;
@@ -717,21 +709,21 @@ int prompt_valuestring(char *buf,struct fullscreenvalues *val)
 int prompt_checkkey(int curkey)
 {
    switch(curkey) {
-      case PAGE_UP:
-      case DOWN_ARROW:
-      case PAGE_DOWN:
-      case UP_ARROW:
+      case FIK_PAGE_UP:
+      case FIK_DOWN_ARROW:
+      case FIK_PAGE_DOWN:
+      case FIK_UP_ARROW:
          return(curkey);
-      case F2:
-      case F3:
-      case F4:
-      case F5:
-      case F6:
-      case F7:
-      case F8:
-      case F9:
-      case F10:
-         if (promptfkeys & (1<<(curkey+1-F1)) )
+      case FIK_F2:
+      case FIK_F3:
+      case FIK_F4:
+      case FIK_F5:
+      case FIK_F6:
+      case FIK_F7:
+      case FIK_F8:
+      case FIK_F9:
+      case FIK_F10:
+         if (promptfkeys & (1<<(curkey+1-FIK_F1)) )
             return(curkey);
       }
    return(0);
@@ -740,29 +732,29 @@ int prompt_checkkey(int curkey)
 int prompt_checkkey_scroll(int curkey)
 {
    switch(curkey) {
-      case PAGE_UP:
-      case DOWN_ARROW:
-      case DOWN_ARROW_2:
-      case PAGE_DOWN:
-      case UP_ARROW:
-      case UP_ARROW_2:
-      case LEFT_ARROW_2:
-      case RIGHT_ARROW_2:
-      case CTL_PAGE_DOWN:
-      case CTL_PAGE_UP:
-      case CTL_END:
-      case CTL_HOME:
+      case FIK_PAGE_UP:
+      case FIK_DOWN_ARROW:
+      case FIK_CTL_DOWN_ARROW:
+      case FIK_PAGE_DOWN:
+      case FIK_UP_ARROW:
+      case FIK_CTL_UP_ARROW:
+      case FIK_CTL_LEFT_ARROW:
+      case FIK_CTL_RIGHT_ARROW:
+      case FIK_CTL_PAGE_DOWN:
+      case FIK_CTL_PAGE_UP:
+      case FIK_CTL_END:
+      case FIK_CTL_HOME:
          return(curkey);
-      case F2:
-      case F3:
-      case F4:
-      case F5:
-      case F6:
-      case F7:
-      case F8:
-      case F9:
-      case F10:
-         if (promptfkeys & (1<<(curkey+1-F1)) )
+      case FIK_F2:
+      case FIK_F3:
+      case FIK_F4:
+      case FIK_F5:
+      case FIK_F6:
+      case FIK_F7:
+      case FIK_F8:
+      case FIK_F9:
+      case FIK_F10:
+         if (promptfkeys & (1<<(curkey+1-FIK_F1)) )
             return(curkey);
       }
    return(0);
@@ -793,28 +785,28 @@ static int input_field_list(
    ret = -1;
    for(;;) {
       strcpy(buf,list[curval]);
-      i = strlen(buf);
+      i = (int) strlen(buf);
       while (i < vlen)
          buf[i++] = ' ';
       buf[vlen] = 0;
-      putstring(row,col,attr,buf);
-      curkey = keycursor(row,col); /* get a keystroke */
+      driver_put_string(row,col,attr,buf);
+      curkey = driver_key_cursor(row,col); /* get a keystroke */
       switch (curkey) {
-         case ENTER:
-         case ENTER_2:
+         case FIK_ENTER:
+         case FIK_ENTER_2:
             ret = 0;
             goto inpfldl_end;
-         case ESC:
+         case FIK_ESC:
             goto inpfldl_end;
-         case RIGHT_ARROW:
+         case FIK_RIGHT_ARROW:
             if (++curval >= llen)
                curval = 0;
             break;
-         case LEFT_ARROW:
+         case FIK_LEFT_ARROW:
             if (--curval < 0)
                curval = llen - 1;
             break;
-         case F5:
+         case FIK_F5:
             curval = initval;
             break;
          default:
@@ -859,7 +851,7 @@ static void clear_line(int row, int start, int stop, int color) /* clear part of
 {
    int col;
    for(col=start;col<= stop;col++)
-      putstring(row,col,color," ");
+      driver_put_string(row,col,color," ");
 }
 
 #endif
@@ -891,26 +883,21 @@ struct FT_CHOICE {
       char name[15];
       int  num;
       };
-static struct FT_CHOICE far **ft_choices; /* for sel_fractype_help subrtn */
+static struct FT_CHOICE **ft_choices; /* for sel_fractype_help subrtn */
 
 static int select_fracttype(int t) /* subrtn of get_fracttype, separated */
                                    /* so that storage gets freed up      */
 {
-   static FCODE head1[] = {"Select a Fractal Type"};
-   static FCODE head2[] = {"Select Orbit Algorithm for Julibrot"};
-   static FCODE o_instr[] = {"Press "FK_F2" for a description of the highlighted type"};
-   char instr[sizeof(o_instr)];
-   char head[40];
    int oldhelpmode;
    int numtypes, done;
    int i, j;
 #define MAXFTYPES 200
    char tname[40];
-   struct FT_CHOICE far *choices[MAXFTYPES];
+   struct FT_CHOICE *choices[MAXFTYPES];
    int attributes[MAXFTYPES];
 
    /* steal existing array for "choices" */
-   choices[0] = (struct FT_CHOICE far *)boxy;
+   choices[0] = (struct FT_CHOICE *)boxy;
    attributes[0] = 1;
    for (i = 1; i < MAXFTYPES; ++i) {
       choices[i] = choices[i-1] + 1;
@@ -921,11 +908,6 @@ static int select_fracttype(int t) /* subrtn of get_fracttype, separated */
    /* setup context sensitive help */
    oldhelpmode = helpmode;
    helpmode = HELPFRACTALS;
-   far_strcpy(instr,o_instr);
-   if(julibrot)
-      far_strcpy(head,head2);
-   else
-      far_strcpy(head,head1);
    if (t == IFS3D) t = IFS;
    i = j = -1;
    while(fractalspecific[++i].name) {
@@ -934,20 +916,22 @@ static int select_fracttype(int t) /* subrtn of get_fracttype, separated */
            continue;
       if (fractalspecific[i].name[0] == '*')
          continue;
-      far_strcpy(choices[++j]->name,fractalspecific[i].name);
+      strcpy(choices[++j]->name,fractalspecific[i].name);
       choices[j]->name[14] = 0; /* safety */
       choices[j]->num = i;      /* remember where the real item is */
       }
    numtypes = j + 1;
-   shell_sort(choices,numtypes,sizeof(char far *),lccompare); /* sort list */
+   shell_sort(choices,numtypes,sizeof(char *),lccompare); /* sort list */
    j = 0;
    for (i = 0; i < numtypes; ++i) /* find starting choice in sorted list */
       if (choices[i]->num == t || choices[i]->num == fractalspecific[t].tofloat)
          j = i;
 
    tname[0] = 0;
-   done = fullscreen_choice(CHOICEHELP+8,head,NULL,instr,numtypes,
-         (char far *far*)choices,attributes,0,0,0,j,NULL,tname,NULL,sel_fractype_help);
+   done = fullscreen_choice(CHOICE_HELP | CHOICE_INSTRUCTIONS,
+	   julibrot ? "Select Orbit Algorithm for Julibrot" : "Select a Fractal Type",
+	   NULL, "Press "FK_F2" for a description of the highlighted type", numtypes,
+	   (char **)choices,attributes,0,0,0,j,NULL,tname,NULL,sel_fractype_help);
    if (done >= 0) {
       done = choices[done]->num;
       if((done == FORMULA || done == FFORMULA) && !strcmp(FormFileName, CommandFile))
@@ -966,7 +950,7 @@ static int select_fracttype(int t) /* subrtn of get_fracttype, separated */
 static int sel_fractype_help(int curkey,int choice)
 {
    int oldhelpmode;
-   if (curkey == F2) {
+   if (curkey == FIK_F2) {
       oldhelpmode = helpmode;
       helpmode = fractalspecific[(*(ft_choices+choice))->num].helptext;
       help(0);
@@ -1013,19 +997,19 @@ sel_type_restart:
 /* Added the following to accommodate fn bifurcations.  JCO 7/2/92 */
    if(((fractype == BIFURCATION) || (fractype == LBIFURCATION)) &&
      !((oldfractype == BIFURCATION) || (oldfractype == LBIFURCATION)))
-        set_trig_array(0,s_ident);
+        set_trig_array(0, "ident");
    if(((fractype == BIFSTEWART) || (fractype == LBIFSTEWART)) &&
      !((oldfractype == BIFSTEWART) || (oldfractype == LBIFSTEWART)))
-        set_trig_array(0,s_ident);
+        set_trig_array(0, "ident");
    if(((fractype == BIFLAMBDA) || (fractype == LBIFLAMBDA)) &&
      !((oldfractype == BIFLAMBDA) || (oldfractype == LBIFLAMBDA)))
-        set_trig_array(0,s_ident);
+        set_trig_array(0, "ident");
    if(((fractype == BIFEQSINPI) || (fractype == LBIFEQSINPI)) &&
      !((oldfractype == BIFEQSINPI) || (oldfractype == LBIFEQSINPI)))
-        set_trig_array(0,s_sin);
+        set_trig_array(0, "sin");
    if(((fractype == BIFADSINPI) || (fractype == LBIFADSINPI)) &&
      !((oldfractype == BIFADSINPI) || (oldfractype == LBIFADSINPI)))
-        set_trig_array(0,s_sin);
+        set_trig_array(0, "sin");
 
    /* 
     * Next assumes that user going between popcorn and popcornjul
@@ -1114,42 +1098,17 @@ int build_fractal_list(int fractals[], int *last_val, char *nameptr[])
     return (numfractals);
 }
 
-static FCODE v0a[] = {"From cx (real part)"};
-static FCODE v1a[] = {"From cy (imaginary part)"};
-static FCODE v2a[] = {"To   cx (real part)"};
-static FCODE v3a[] = {"To   cy (imaginary part)"};
-
-/* 4D Mandelbrot */
-static FCODE v0b[] = {"From cj (3rd dim)"};
-static FCODE v1b[] = {"From ck (4th dim)"};
-static FCODE v2b[] = {"To   cj (3rd dim)"};
-static FCODE v3b[] = {"To   ck (4th dim)"};
-
-/* 4D Julia */
-static FCODE v0c[] = {"From zj (3rd dim)"};
-static FCODE v1c[] = {"From zk (4th dim)"};
-static FCODE v2c[] = {"To   zj (3rd dim)"};
-static FCODE v3c[] = {"To   zk (4th dim)"};
-
-static FCODE v4[] = {"Number of z pixels"};
-static FCODE v5[] = {"Location of z origin"};
-static FCODE v6[] = {"Depth of z"};
-static FCODE v7[] = {"Screen height"};
-static FCODE v8[] = {"Screen width"};
-static FCODE v9[] = {"Distance to Screen"};
-static FCODE v10[] = {"Distance between eyes"};
-static FCODE v11[] = {"3D Mode"};
 char *juli3Doptions[] = {"monocular","lefteye","righteye","red-blue"};
 
 /* JIIM */
 #ifdef RANDOM_RUN
-static FCODE JIIMstr1[] = "Breadth first, Depth first, Random Walk, Random Run?";
+static char JIIMstr1[] = "Breadth first, Depth first, Random Walk, Random Run?";
 char *JIIMmethod[] = {"breadth", "depth", "walk", "run"};
 #else
-static FCODE JIIMstr1[] = "Breadth first, Depth first, Random Walk";
+static char JIIMstr1[] = "Breadth first, Depth first, Random Walk";
 char *JIIMmethod[] = {"breadth", "depth", "walk"};
 #endif
-static FCODE JIIMstr2[] = "Left first or Right first?";
+static char JIIMstr2[] = "Left first or Right first?";
 char *JIIMleftright[] = {"left", "right"};
 
 /* moved from miscres.c so sizeof structure can be accessed here */
@@ -1157,70 +1116,70 @@ struct trig_funct_lst trigfn[] =
 /* changing the order of these alters meaning of *.fra file */
 /* maximum 6 characters in function names or recheck all related code */
 {
-#ifndef XFRACT
-   {s_sin,   lStkSin,   dStkSin,   mStkSin   },
-   {s_cosxx, lStkCosXX, dStkCosXX, mStkCosXX },
-   {s_sinh,  lStkSinh,  dStkSinh,  mStkSinh  },
-   {s_cosh,  lStkCosh,  dStkCosh,  mStkCosh  },
-   {s_exp,   lStkExp,   dStkExp,   mStkExp   },
-   {s_log,   lStkLog,   dStkLog,   mStkLog   },
-   {s_sqr,   lStkSqr,   dStkSqr,   mStkSqr   },
-   {s_recip, lStkRecip, dStkRecip, mStkRecip }, /* from recip on new in v16 */
-   {s_ident, StkIdent,  StkIdent,  StkIdent  },
-   {s_cos,   lStkCos,   dStkCos,   mStkCos   },
-   {s_tan,   lStkTan,   dStkTan,   mStkTan   },
-   {s_tanh,  lStkTanh,  dStkTanh,  mStkTanh  },
-   {s_cotan, lStkCoTan, dStkCoTan, mStkCoTan },
-   {s_cotanh,lStkCoTanh,dStkCoTanh,mStkCoTanh},
-   {s_flip,  lStkFlip,  dStkFlip,  mStkFlip  },
-   {s_conj,  lStkConj,  dStkConj,  mStkConj  },
-   {s_zero,  lStkZero,  dStkZero,  mStkZero  },
-   {s_asin,  lStkASin,  dStkASin,  mStkASin  },
-   {s_asinh, lStkASinh, dStkASinh, mStkASinh },
-   {s_acos,  lStkACos,  dStkACos,  mStkACos  },
-   {s_acosh, lStkACosh, dStkACosh, mStkACosh },
-   {s_atan,  lStkATan,  dStkATan,  mStkATan  },
-   {s_atanh, lStkATanh, dStkATanh, mStkATanh },
-   {s_cabs,  lStkCAbs,  dStkCAbs,  mStkCAbs  },
-   {s_abs,   lStkAbs,   dStkAbs,   mStkAbs   },
-   {s_sqrt,  lStkSqrt,  dStkSqrt,  mStkSqrt  },
-   {s_floor, lStkFloor, dStkFloor, mStkFloor },
-   {s_ceil,  lStkCeil,  dStkCeil,  mStkCeil  },
-   {s_trunc, lStkTrunc, dStkTrunc, mStkTrunc },
-   {s_round, lStkRound, dStkRound, mStkRound },
-   {s_one,   lStkOne,   dStkOne,   mStkOne   },
+#if !defined(XFRACT) && !defined(_WIN32)
+   {"sin",   lStkSin,   dStkSin,   mStkSin   },
+   {"cosxx", lStkCosXX, dStkCosXX, mStkCosXX },
+   {"sinh",  lStkSinh,  dStkSinh,  mStkSinh  },
+   {"cosh",  lStkCosh,  dStkCosh,  mStkCosh  },
+   {"exp",   lStkExp,   dStkExp,   mStkExp   },
+   {"log",   lStkLog,   dStkLog,   mStkLog   },
+   {"sqr",   lStkSqr,   dStkSqr,   mStkSqr   },
+   {"recip", lStkRecip, dStkRecip, mStkRecip }, /* from recip on new in v16 */
+   {"ident", StkIdent,  StkIdent,  StkIdent  },
+   {"cos",   lStkCos,   dStkCos,   mStkCos   },
+   {"tan",   lStkTan,   dStkTan,   mStkTan   },
+   {"tanh",  lStkTanh,  dStkTanh,  mStkTanh  },
+   {"cotan", lStkCoTan, dStkCoTan, mStkCoTan },
+   {"cotanh",lStkCoTanh,dStkCoTanh,mStkCoTanh},
+   {"flip",  lStkFlip,  dStkFlip,  mStkFlip  },
+   {"conj",  lStkConj,  dStkConj,  mStkConj  },
+   {"zero",  lStkZero,  dStkZero,  mStkZero  },
+   {"asin",  lStkASin,  dStkASin,  mStkASin  },
+   {"asinh", lStkASinh, dStkASinh, mStkASinh },
+   {"acos",  lStkACos,  dStkACos,  mStkACos  },
+   {"acosh", lStkACosh, dStkACosh, mStkACosh },
+   {"atan",  lStkATan,  dStkATan,  mStkATan  },
+   {"atanh", lStkATanh, dStkATanh, mStkATanh },
+   {"cabs",  lStkCAbs,  dStkCAbs,  mStkCAbs  },
+   {"abs",   lStkAbs,   dStkAbs,   mStkAbs   },
+   {"sqrt",  lStkSqrt,  dStkSqrt,  mStkSqrt  },
+   {"floor", lStkFloor, dStkFloor, mStkFloor },
+   {"ceil",  lStkCeil,  dStkCeil,  mStkCeil  },
+   {"trunc", lStkTrunc, dStkTrunc, mStkTrunc },
+   {"round", lStkRound, dStkRound, mStkRound },
+   {"one",   lStkOne,   dStkOne,   mStkOne   },
 #else
-   {s_sin,   dStkSin,   dStkSin,   dStkSin   },
-   {s_cosxx, dStkCosXX, dStkCosXX, dStkCosXX },
-   {s_sinh,  dStkSinh,  dStkSinh,  dStkSinh  },
-   {s_cosh,  dStkCosh,  dStkCosh,  dStkCosh  },
-   {s_exp,   dStkExp,   dStkExp,   dStkExp   },
-   {s_log,   dStkLog,   dStkLog,   dStkLog   },
-   {s_sqr,   dStkSqr,   dStkSqr,   dStkSqr   },
-   {s_recip, dStkRecip, dStkRecip, dStkRecip }, /* from recip on new in v16 */
-   {s_ident, StkIdent,  StkIdent,  StkIdent  },
-   {s_cos,   dStkCos,   dStkCos,   dStkCos   },
-   {s_tan,   dStkTan,   dStkTan,   dStkTan   },
-   {s_tanh,  dStkTanh,  dStkTanh,  dStkTanh  },
-   {s_cotan, dStkCoTan, dStkCoTan, dStkCoTan },
-   {s_cotanh,dStkCoTanh,dStkCoTanh,dStkCoTanh},
-   {s_flip,  dStkFlip,  dStkFlip,  dStkFlip  },
-   {s_conj,  dStkConj,  dStkConj,  dStkConj  },
-   {s_zero,  dStkZero,  dStkZero,  dStkZero  },
-   {s_asin,  dStkASin,  dStkASin,  dStkASin  },
-   {s_asinh, dStkASinh, dStkASinh, dStkASinh },
-   {s_acos,  dStkACos,  dStkACos,  dStkACos  },
-   {s_acosh, dStkACosh, dStkACosh, dStkACosh },
-   {s_atan,  dStkATan,  dStkATan,  dStkATan  },
-   {s_atanh, dStkATanh, dStkATanh, dStkATanh },
-   {s_cabs,  dStkCAbs,  dStkCAbs,  dStkCAbs  },
-   {s_abs,   dStkAbs,   dStkAbs,   dStkAbs   },
-   {s_sqrt,  dStkSqrt,  dStkSqrt,  dStkSqrt  },
-   {s_floor, dStkFloor, dStkFloor, dStkFloor },
-   {s_ceil,  dStkCeil,  dStkCeil,  dStkCeil  },
-   {s_trunc, dStkTrunc, dStkTrunc, dStkTrunc },
-   {s_round, dStkRound, dStkRound, dStkRound },
-   {s_one,   dStkOne,   dStkOne,   dStkOne   },
+   {"sin",   dStkSin,   dStkSin,   dStkSin   },
+   {"cosxx", dStkCosXX, dStkCosXX, dStkCosXX },
+   {"sinh",  dStkSinh,  dStkSinh,  dStkSinh  },
+   {"cosh",  dStkCosh,  dStkCosh,  dStkCosh  },
+   {"exp",   dStkExp,   dStkExp,   dStkExp   },
+   {"log",   dStkLog,   dStkLog,   dStkLog   },
+   {"sqr",   dStkSqr,   dStkSqr,   dStkSqr   },
+   {"recip", dStkRecip, dStkRecip, dStkRecip }, /* from recip on new in v16 */
+   {"ident", StkIdent,  StkIdent,  StkIdent  },
+   {"cos",   dStkCos,   dStkCos,   dStkCos   },
+   {"tan",   dStkTan,   dStkTan,   dStkTan   },
+   {"tanh",  dStkTanh,  dStkTanh,  dStkTanh  },
+   {"cotan", dStkCoTan, dStkCoTan, dStkCoTan },
+   {"cotanh",dStkCoTanh,dStkCoTanh,dStkCoTanh},
+   {"flip",  dStkFlip,  dStkFlip,  dStkFlip  },
+   {"conj",  dStkConj,  dStkConj,  dStkConj  },
+   {"zero",  dStkZero,  dStkZero,  dStkZero  },
+   {"asin",  dStkASin,  dStkASin,  dStkASin  },
+   {"asinh", dStkASinh, dStkASinh, dStkASinh },
+   {"acos",  dStkACos,  dStkACos,  dStkACos  },
+   {"acosh", dStkACosh, dStkACosh, dStkACosh },
+   {"atan",  dStkATan,  dStkATan,  dStkATan  },
+   {"atanh", dStkATanh, dStkATanh, dStkATanh },
+   {"cabs",  dStkCAbs,  dStkCAbs,  dStkCAbs  },
+   {"abs",   dStkAbs,   dStkAbs,   dStkAbs   },
+   {"sqrt",  dStkSqrt,  dStkSqrt,  dStkSqrt  },
+   {"floor", dStkFloor, dStkFloor, dStkFloor },
+   {"ceil",  dStkCeil,  dStkCeil,  dStkCeil  },
+   {"trunc", dStkTrunc, dStkTrunc, dStkTrunc },
+   {"round", dStkRound, dStkRound, dStkRound },
+   {"one",   dStkOne,   dStkOne,   dStkOne   },
 #endif
 };
 
@@ -1231,15 +1190,15 @@ const int numtrigfn = NUMTRIGFN;
 /* --------------------------------------------------------------------- */
 int get_fract_params(int caller)        /* prompt for type-specific parms */
 {
-   char far *v0 = v0a;
-   char far *v1 = v1a;
-   char far *v2 = v2a;
-   char far *v3 = v3a;
+   char *v0 = "From cx (real part)";
+   char *v1 = "From cy (imaginary part)";
+   char *v2 = "To   cx (real part)";
+   char *v3 = "To   cy (imaginary part)";
    char *juliorbitname = NULL;
    int i,j,k;
    int curtype,numparams,numtrig;
    struct fullscreenvalues paramvalues[30];
-   char far *choices[30];
+   char *choices[30];
    long oldbailout = 0L;
    int promptnum;
    char msg[120];
@@ -1248,20 +1207,19 @@ int get_fract_params(int caller)        /* prompt for type-specific parms */
    int ret = 0;
    int oldhelpmode;
    char parmprompt[MAXPARAMS][55];
-   static FCODE t1[] = {"First Function"};
-   static FCODE t2[] = {"Second Function"};
-   static FCODE t3[] = {"Third Function"};
-   static FCODE t4[] = {"Fourth Function"};
-   static FCODE *trg[] = {t1, t2, t3, t4};
+   static char *trg[] =
+   {
+	   "First Function", "Second Function", "Third Function", "Fourth Function"
+   };
    char *filename,*entryname;
    FILE *entryfile;
    char *trignameptr[NUMTRIGFN];
 #ifdef XFRACT
    static /* Can't initialize aggregates on the stack */
 #endif
-   char *bailnameptr[] = {s_mod,s_real,s_imag,s_or,s_and,s_manh,s_manr};
-   struct fractalspecificstuff far *jborbit = NULL;
-   struct fractalspecificstuff far *savespecific;
+   char *bailnameptr[] = {"mod", "real", "imag", "or", "and", "manh", "manr"};
+   struct fractalspecificstuff *jborbit = NULL;
+   struct fractalspecificstuff *savespecific;
    int firstparm = 0;
    int lastparm  = MAXPARAMS;
    double oldparam[MAXPARAMS];
@@ -1433,7 +1391,7 @@ gfp_top:
       paramvalues[promptnum].uval.ch.llen = NUMTRIGFN;
       paramvalues[promptnum].uval.ch.vlen = 6;
       paramvalues[promptnum].uval.ch.list = trignameptr;
-      choices[promptnum++] = (char far *)trg[i];
+      choices[promptnum++] = (char *)trg[i];
       }
    if (*(typename = curfractalspecific->name) == '*')
         ++typename;
@@ -1442,26 +1400,23 @@ gfp_top:
 
    if( i != 0 && curfractalspecific->calctype == StandardFractal &&
        (curfractalspecific->flags & BAILTEST) ) {
-        static FCODE bailteststr[] = {"Bailout Test (mod, real, imag, or, and, manh, manr)"};
       paramvalues[promptnum].type = 'l';
       paramvalues[promptnum].uval.ch.val  = (int)bailoutest;
       paramvalues[promptnum].uval.ch.llen = 7;
       paramvalues[promptnum].uval.ch.vlen = 6;
       paramvalues[promptnum].uval.ch.list = bailnameptr;
-      choices[promptnum++] = bailteststr;
+      choices[promptnum++] = "Bailout Test (mod, real, imag, or, and, manh, manr)";
    }
 
    if (i) {
       if (potparam[0] != 0.0 && potparam[2] != 0.0)
       {
-        static FCODE bailpotstr[] = {"Bailout: continuous potential (Y screen) value in use"};
          paramvalues[promptnum].type = '*';
-         choices[promptnum++] = bailpotstr;
+         choices[promptnum++] = "Bailout: continuous potential (Y screen) value in use";
       }
       else
       {
-         static FCODE bailoutstr[] = {"Bailout value (0 means use default)"};
-         choices[promptnum] = bailoutstr;
+         choices[promptnum] = "Bailout value (0 means use default)";
          paramvalues[promptnum].type = 'L';
          paramvalues[promptnum++].uval.Lval = (oldbailout = bailout);
          paramvalues[promptnum].type = '*';
@@ -1481,14 +1436,14 @@ gfp_top:
       {
       case QUATFP:
       case HYPERCMPLXFP:
-          v0 = v0b; v1 = v1b; v2 = v2b; v3 = v3b;
+          v0 = "From cj (3rd dim)"; v1 = "From ck (4th dim)"; v2 = "To   cj (3rd dim)"; v3 = "To   ck (4th dim)";
           break;
       case QUATJULFP:
       case HYPERCMPLXJFP:
-          v0 = v0c; v1 = v1c; v2 = v2c; v3 = v3c;
+          v0 = "From zj (3rd dim)"; v1 = "From zk (4th dim)"; v2 = "To   zj (3rd dim)"; v3 = "To   zk (4th dim)";
           break;
       default:
-          v0 = v0a; v1 = v1a; v2 = v2a; v3 = v3a;
+          v0 = "From cx (real part)"; v1 = "From cy (imaginary part)"; v2 = "To   cx (real part)"; v3 = "To   cy (imaginary part)";
          break;
       }
 
@@ -1507,33 +1462,33 @@ gfp_top:
       choices[promptnum++] = v3;
       paramvalues[promptnum].uval.ival = zdots;
       paramvalues[promptnum].type = 'i';
-      choices[promptnum++] = v4;
+      choices[promptnum++] = "Number of z pixels";
 
       paramvalues[promptnum].type = 'l';
       paramvalues[promptnum].uval.ch.val  = juli3Dmode;
       paramvalues[promptnum].uval.ch.llen = 4;
       paramvalues[promptnum].uval.ch.vlen = 9;
       paramvalues[promptnum].uval.ch.list = juli3Doptions;
-      choices[promptnum++] = v11;
+      choices[promptnum++] = "3D Mode";
 
       paramvalues[promptnum].uval.dval = eyesfp;
       paramvalues[promptnum].type = 'f';
-      choices[promptnum++] = v10;
+      choices[promptnum++] = "Distance between eyes";
       paramvalues[promptnum].uval.dval = originfp;
       paramvalues[promptnum].type = 'f';
-      choices[promptnum++] = v5;
+      choices[promptnum++] = "Location of z origin";
       paramvalues[promptnum].uval.dval = depthfp;
       paramvalues[promptnum].type = 'f';
-      choices[promptnum++] = v6;
+      choices[promptnum++] = "Depth of z";
       paramvalues[promptnum].uval.dval = heightfp;
       paramvalues[promptnum].type = 'f';
-      choices[promptnum++] = v7;
+      choices[promptnum++] = "Screen height";
       paramvalues[promptnum].uval.dval = widthfp;
       paramvalues[promptnum].type = 'f';
-      choices[promptnum++] = v8;
+      choices[promptnum++] = "Screen width";
       paramvalues[promptnum].uval.dval = distfp;
       paramvalues[promptnum].type = 'f';
-      choices[promptnum++] = v9;
+      choices[promptnum++] = "Distance to Screen";
    }
 
    if (curtype == INVERSEJULIA || curtype == INVERSEJULIAFP)
@@ -1558,7 +1513,7 @@ gfp_top:
    }
 
    if((curtype==FORMULA || curtype==FFORMULA) && uses_ismand) {
-      choices[promptnum] = (char far *)s_ismand;
+      choices[promptnum] = "ismand";
       paramvalues[promptnum].type = 'y';
       paramvalues[promptnum++].uval.ch.val = ismand?1:0;
    }
@@ -1567,8 +1522,7 @@ gfp_top:
 /*      && (display3d > 0 || promptnum == 0)) */
       && (display3d > 0))
       {
-       static FCODE msg[]={"Current type has no type-specific parameters"};
-       stopmsg(20,msg);
+       stopmsg(STOPMSG_INFO_ONLY | STOPMSG_NO_BUZZER, "Current type has no type-specific parameters");
        goto gfp_exit;
        }
    if(julibrot)
@@ -1577,8 +1531,7 @@ gfp_top:
       sprintf(msg,"Parameters for fractal type %s",typename);
    if(bf_math == 0)
    {
-      static FCODE pressf6[] = {"\n(Press "FK_F6" for corner parameters)"};
-      far_strcat(msg,pressf6);
+      strcat(msg,"\n(Press "FK_F6" for corner parameters)");
    }
    else
       fkeymask = 0;
@@ -1598,7 +1551,7 @@ gfp_top:
             ret = -1;
          goto gfp_exit;
       }
-      if (i != F6)
+      if (i != FIK_F6)
          break;
       if(bf_math == 0)
          if (get_corners() > 0)
@@ -1769,7 +1722,7 @@ long get_file_entry(int type,char *title,char *fmask,
          char buf[60];
          newfile = 0;
          if (firsttry) {
-            sprintf(temp1,s_cantfind, filename);
+            sprintf(temp1,"Can't find %s", filename);
             stopmsg(0,temp1);
             }
          sprintf(buf,"Select %s File",title);
@@ -1811,7 +1764,7 @@ struct entryinfo {
    char name[ITEMNAMELEN+2];
    long point; /* points to the ( or the { following the name */
    };
-static struct entryinfo far *far*gfe_choices; /* for format_getparm_line */
+static struct entryinfo **gfe_choices; /* for format_getparm_line */
 static char *gfe_title;
 
 /* skip to next non-white space character and return it */
@@ -1842,14 +1795,14 @@ int skip_comment(FILE *infile, long *file_offset)
 
 #define MAXENTRIES 2000L
 
-int scan_entries(FILE * infile, void far * ch, char *itemname)
+int scan_entries(FILE * infile, void * ch, char *itemname)
 {
       /*
       function returns the number of entries found; if a
       specific entry is being looked for, returns -1 if
       the entry is found, 0 otherwise.
       */
-   struct entryinfo far *far * choices;
+   struct entryinfo ** choices;
    char buf[101];
    int exclude_entry;
    long name_offset, temp_offset;   /*rev 5/23/96 to add temp_offset,
@@ -1859,7 +1812,7 @@ int scan_entries(FILE * infile, void far * ch, char *itemname)
    long file_offset = -1;
    int numentries = 0;
 
-   choices = (struct entryinfo far * far *) ch;
+   choices = (struct entryinfo * *) ch;
 
    for (;;)
    {                            /* scan the file for entry names */
@@ -1952,7 +1905,7 @@ top:
          {
             if (buf[0] != 0 && stricmp(buf, "comment") != 0 && !exclude_entry)
             {
-               far_strcpy(choices[numentries]->name, buf);
+               strcpy(choices[numentries]->name, buf);
                choices[numentries]->point = name_offset;
                if (++numentries >= MAXENTRIES)
                {
@@ -1973,27 +1926,27 @@ static long gfe_choose_entry(int type,char *title,char *filename,char *entryname
 /* subrtn of get_file_entry, separated so that storage gets freed up */
 {
 #ifdef XFRACT
-   static FCODE o_instr[]={"Press "FK_F6" to select file, "FK_F2" for details, "FK_F4" to toggle sort "};
+   static char o_instr[]={"Press "FK_F6" to select file, "FK_F2" for details, "FK_F4" to toggle sort "};
 /* keep the above line length < 80 characters */
 #else
-   static FCODE o_instr[]={"Press "FK_F6" to select different file, "FK_F2" for details, "FK_F4" to toggle sort "};
+   static char o_instr[]={"Press "FK_F6" to select different file, "FK_F2" for details, "FK_F4" to toggle sort "};
 #endif
    int numentries, i;
    char buf[101];
-   struct entryinfo far * far *choices;
-   int far *attributes;
+   struct entryinfo * *choices;
+   int *attributes;
    void (*formatitem)(int, char *);
    int boxwidth,boxdepth,colwidth;
    static int dosort = 1;
-   int options = 8;
-   char far *instr;
+   char *instr;
    /* steal existing array for "choices" */
-   choices = (struct entryinfo far *far*)MK_FP(extraseg,0);
+   /* TODO: allocate real memory, not reuse shared segment */
+   choices = (struct entryinfo **)extraseg;
    /* leave room for details F2 */
-   choices = choices + (2048/sizeof(struct entryinfo far *far*));
-   choices[0] = (struct entryinfo far *)(choices + MAXENTRIES+1);
-   attributes = (int far *)(choices[0] + MAXENTRIES+1);
-   instr = (char far *)(attributes + MAXENTRIES +1);
+   choices = choices + (2048/sizeof(struct entryinfo **));
+   choices[0] = (struct entryinfo *)(choices + MAXENTRIES+1);
+   attributes = (int *)(choices[0] + MAXENTRIES+1);
+   instr = (char *)(attributes + MAXENTRIES +1);
    gfe_choices = &choices[0];
    gfe_title = title;
 retry:
@@ -2009,19 +1962,18 @@ retry:
 
    numentries=scan_entries(gfe_file,choices,NULL);
    if (numentries == 0) {
-      static FCODE msg[]={"File doesn't contain any valid entries"};
-      stopmsg(0,msg);
+      stopmsg(0, "File doesn't contain any valid entries");
       fclose(gfe_file);
       return -2; /* back to file list */
       }
-   far_strcpy(instr,o_instr);
+   strcpy(instr,o_instr);
    if(dosort)
    {
-      far_strcat(instr,"off");
-      shell_sort((char far *)choices,numentries,sizeof(char far *),lccompare);
+      strcat(instr,"off");
+      shell_sort((char *)choices,numentries,sizeof(char *),lccompare);
    }
    else
-      far_strcat(instr,"on");
+      strcat(instr,"on");
 
    strcpy(buf,entryname); /* preset to last choice made */
    sprintf(temp1,"%s Selection\nFile: %s",title,filename);
@@ -2033,14 +1985,12 @@ retry:
       boxdepth = 16;
       colwidth = 76;
       }
-   if(dosort)
-      options = 8;
-   else
-      options = 8+32;
-   i = fullscreen_choice(options,temp1,NULL,instr,numentries,(char far*far*)choices,
+   
+   i = fullscreen_choice(CHOICE_INSTRUCTIONS | (dosort ? 0 : CHOICE_NOT_SORTED),
+	   temp1,NULL,instr,numentries,(char **)choices,
                            attributes,boxwidth,boxdepth,colwidth,0,
                            formatitem,buf,NULL,check_gfe_key);
-   if (i == 0-F4)
+   if (i == 0-FIK_F4)
    {
      rewind(gfe_file);
      dosort = 1-dosort;
@@ -2048,11 +1998,11 @@ retry:
    }
    fclose(gfe_file);
    if (i < 0) {
-      if (i == 0-F6)
+      if (i == 0-FIK_F6)
          return -2; /* go back to file list */
       return -1;    /* cancel */
       }
-   far_strcpy(entryname, choices[i]->name);
+   strcpy(entryname, choices[i]->name);
    return(choices[i]->point);
 }
 
@@ -2060,7 +2010,7 @@ retry:
 static int check_gfe_key(int curkey,int choice)
 {
    char infhdg[60];
-   char far *infbuf;
+   char *infbuf;
    int in_scrolling_mode = 0; /* 1 if entry doesn't fit available space */
    int top_line = 0;
    int left_column = 0;
@@ -2071,17 +2021,18 @@ static int check_gfe_key(int curkey,int choice)
    memset(blanks, ' ', 78);
    blanks[78] = (char) 0;
 
-   if (curkey == F6)
-      return 0-F6;
-   if (curkey == F4)
-      return 0-F4;
-   if (curkey == F2) {
+   if (curkey == FIK_F6)
+      return 0-FIK_F6;
+   if (curkey == FIK_F4)
+      return 0-FIK_F4;
+   if (curkey == FIK_F2) {
       int widest_entry_line = 0;
       int lines_in_entry = 0;
       int comment = 0;
       int c = 0;
       int widthct = 0;
-      infbuf = MK_FP(extraseg,0);
+   /* TODO: allocate real memory, not reuse shared segment */
+      infbuf = extraseg;
       fseek(gfe_file,gfe_choices[choice]->point,SEEK_SET);
       while((c = fgetc(gfe_file)) != EOF && c != '\032') {
          if(c == ';')
@@ -2113,18 +2064,18 @@ static int check_gfe_key(int curkey,int choice)
       strcpy(infhdg,gfe_title);
       strcat(infhdg," file entry:\n\n");
  /* ... instead, call help with buffer?  heading added */
-      stackscreen();
+      driver_stack_screen();
       helptitle();
-      setattr(1,0,C_GENERAL_MED,24*80);
+      driver_set_attr(1,0,C_GENERAL_MED,24*80);
 
-      textcbase = 0;
-      putstring(2,1,C_GENERAL_HI,infhdg);
-      textcbase = 2; /* left margin is 2 */
-      putstring(4,0,C_GENERAL_MED,infbuf);
+      g_text_cbase = 0;
+      driver_put_string(2,1,C_GENERAL_HI,infhdg);
+      g_text_cbase = 2; /* left margin is 2 */
+      driver_put_string(4,0,C_GENERAL_MED,infbuf);
 
       {
-      static FCODE msg[]  = {"\n\n Use "UPARR1", "DNARR1", "RTARR1", "LTARR1", PgUp, PgDown, Home, and End to scroll text\nAny other key to return to selection list"};
-      putstring(-1,0,C_GENERAL_LO,msg);
+      driver_put_string(-1,0,C_GENERAL_LO,
+		  "\n\n Use "UPARR1", "DNARR1", "RTARR1", "LTARR1", PgUp, PgDown, Home, and End to scroll text\nAny other key to return to selection list");
       }
 
       while(!done) {
@@ -2133,43 +2084,43 @@ static int check_gfe_key(int curkey,int choice)
             fseek(gfe_file,gfe_choices[choice]->point,SEEK_SET);
             load_entry_text(gfe_file, infbuf, 17, top_line, left_column);
             for(i = 4; i < (lines_in_entry < 17 ? lines_in_entry + 4 : 21); i++)
-               putstring(i,0,C_GENERAL_MED,blanks);
-            putstring(4,0,C_GENERAL_MED,infbuf);
+               driver_put_string(i,0,C_GENERAL_MED,blanks);
+            driver_put_string(4,0,C_GENERAL_MED,infbuf);
          }
-         if((i = getakeynohelp()) == DOWN_ARROW || i == DOWN_ARROW_2
-                             || i == UP_ARROW || i == UP_ARROW_2
-                             || i == LEFT_ARROW || i == LEFT_ARROW_2
-                             || i == RIGHT_ARROW || i == RIGHT_ARROW_2
-                             || i == HOME || i == CTL_HOME
-                             || i == END || i == CTL_END
-                             || i == PAGE_UP || i == CTL_PAGE_UP
-                             || i == PAGE_DOWN || i == CTL_PAGE_DOWN) {
+         if((i = getakeynohelp()) == FIK_DOWN_ARROW		|| i == FIK_CTL_DOWN_ARROW
+                             || i == FIK_UP_ARROW		|| i == FIK_CTL_UP_ARROW
+                             || i == FIK_LEFT_ARROW		|| i == FIK_CTL_LEFT_ARROW
+                             || i == FIK_RIGHT_ARROW	|| i == FIK_CTL_RIGHT_ARROW
+                             || i == FIK_HOME			|| i == FIK_CTL_HOME
+                             || i == FIK_END			|| i == FIK_CTL_END
+                             || i == FIK_PAGE_UP		|| i == FIK_CTL_PAGE_UP
+                             || i == FIK_PAGE_DOWN		|| i == FIK_CTL_PAGE_DOWN) {
             switch(i) {
-               case DOWN_ARROW: case DOWN_ARROW_2: /* down one line */
+               case FIK_DOWN_ARROW: case FIK_CTL_DOWN_ARROW: /* down one line */
                   if(in_scrolling_mode && top_line < lines_in_entry - 17) {
                      top_line++;
                      rewrite_infbuf = 1;
                   }
                   break;
-               case UP_ARROW: case UP_ARROW_2:  /* up one line */
+               case FIK_UP_ARROW: case FIK_CTL_UP_ARROW:  /* up one line */
                   if(in_scrolling_mode && top_line > 0) {
                      top_line--;
                      rewrite_infbuf = 1;
                   }
                   break;
-               case LEFT_ARROW: case LEFT_ARROW_2:  /* left one column */
+               case FIK_LEFT_ARROW: case FIK_CTL_LEFT_ARROW:  /* left one column */
                   if(in_scrolling_mode && left_column > 0) {
                      left_column--;
                      rewrite_infbuf = 1;
                   }
                   break;
-               case RIGHT_ARROW: case RIGHT_ARROW_2: /* right one column */
-                  if(in_scrolling_mode && far_strchr(infbuf, '\021') != NULL) {
+               case FIK_RIGHT_ARROW: case FIK_CTL_RIGHT_ARROW: /* right one column */
+                  if(in_scrolling_mode && strchr(infbuf, '\021') != NULL) {
                      left_column++;
                      rewrite_infbuf = 1;
                   }
                   break;
-               case PAGE_DOWN: case CTL_PAGE_DOWN: /* down 17 lines */
+               case FIK_PAGE_DOWN: case FIK_CTL_PAGE_DOWN: /* down 17 lines */
                   if(in_scrolling_mode && top_line < lines_in_entry - 17) {
                      top_line += 17;
                      if(top_line > lines_in_entry - 17)
@@ -2177,7 +2128,7 @@ static int check_gfe_key(int curkey,int choice)
                      rewrite_infbuf = 1;
                   }
                   break;
-               case PAGE_UP: case CTL_PAGE_UP: /* up 17 lines */
+               case FIK_PAGE_UP: case FIK_CTL_PAGE_UP: /* up 17 lines */
                   if(in_scrolling_mode && top_line > 0) {
                      top_line -= 17;
                      if(top_line < 0)
@@ -2185,14 +2136,14 @@ static int check_gfe_key(int curkey,int choice)
                      rewrite_infbuf = 1;
                   }
                   break;
-               case END: case CTL_END:       /* to end of entry */
+               case FIK_END: case FIK_CTL_END:       /* to end of entry */
                   if(in_scrolling_mode) {
                      top_line = lines_in_entry - 17;
                      left_column = 0;
                      rewrite_infbuf = 1;
                   }
                   break;
-               case HOME: case CTL_HOME:     /* to beginning of entry */
+               case FIK_HOME: case FIK_CTL_HOME:     /* to beginning of entry */
                   if(in_scrolling_mode) {
                      top_line = left_column = 0;
                      rewrite_infbuf = 1;
@@ -2205,16 +2156,16 @@ static int check_gfe_key(int curkey,int choice)
          else
             done = 1;  /* a key other than scrolling key was pressed */
       }
-      textcbase = 0;
-      movecursor(25,80);
-      unstackscreen();
+      g_text_cbase = 0;
+      driver_hide_text_cursor();
+      driver_unstack_screen();
    }
    return 0;
 }
 
 static void load_entry_text(
       FILE *entfile,
-      char far *buf,
+      char *buf,
       int maxlines,
       int startrow,
       int startcol)
@@ -2353,25 +2304,19 @@ static void format_parmfile_line(int choice,char *buf)
 int get_fract3d_params() /* prompt for 3D fractal parameters */
 {
    int i,k,ret,oldhelpmode;
-   static FCODE hdg[] = {"3D Parameters"};
-   static FCODE p1[] = {"X-axis rotation in degrees"};
-   static FCODE p2[] = {"Y-axis rotation in degrees"};
-   static FCODE p3[] = {"Z-axis rotation in degrees"};
-   static FCODE p4[] = {"Perspective distance [1 - 999, 0 for no persp]"};
-   static FCODE p5[] = {"X shift with perspective (positive = right)"};
-   static FCODE p6[] = {"Y shift with perspective (positive = up   )"};
-   static FCODE p7[] = {"Stereo (R/B 3D)? (0=no,1=alternate,2=superimpose,3=photo,4=stereo pair)"};
    struct fullscreenvalues uvalues[20];
-   char far *ifs3d_prompts[8];
+   char *ifs3d_prompts[7] =
+	{
+		"X-axis rotation in degrees",
+		"Y-axis rotation in degrees",
+		"Z-axis rotation in degrees",
+		"Perspective distance [1 - 999, 0 for no persp]",
+		"X shift with perspective (positive = right)",
+		"Y shift with perspective (positive = up   )",
+		"Stereo (R/B 3D)? (0=no,1=alternate,2=superimpose,3=photo,4=stereo pair)"
+	};
 
-   stackscreen();
-   ifs3d_prompts[0] = p1;
-   ifs3d_prompts[1] = p2;
-   ifs3d_prompts[2] = p3;
-   ifs3d_prompts[3] = p4;
-   ifs3d_prompts[4] = p5;
-   ifs3d_prompts[5] = p6;
-   ifs3d_prompts[6] = p7;
+   driver_stack_screen();
    k = 0;
    uvalues[k].type = 'i';
    uvalues[k++].uval.ival = XROT;
@@ -2386,11 +2331,11 @@ int get_fract3d_params() /* prompt for 3D fractal parameters */
    uvalues[k].type = 'i';
    uvalues[k++].uval.ival = YSHIFT;
    uvalues[k].type = 'i';
-   uvalues[k++].uval.ival = glassestype;
+   uvalues[k++].uval.ival = g_glasses_type;
 
    oldhelpmode = helpmode;
    helpmode = HELP3DFRACT;
-   i = fullscreen_prompt(hdg,k,ifs3d_prompts,uvalues,0,NULL);
+   i = fullscreen_prompt("3D Parameters",k,ifs3d_prompts,uvalues,0,NULL);
    helpmode = oldhelpmode;
    if (i < 0) {
       ret = -1;
@@ -2404,14 +2349,14 @@ int get_fract3d_params() /* prompt for 3D fractal parameters */
    ZVIEWER =  uvalues[k++].uval.ival;
    XSHIFT  =  uvalues[k++].uval.ival;
    YSHIFT  =  uvalues[k++].uval.ival;
-   glassestype = uvalues[k++].uval.ival;
-   if (glassestype < 0 || glassestype > 4) glassestype = 0;
-   if (glassestype)
+   g_glasses_type = uvalues[k++].uval.ival;
+   if (g_glasses_type < 0 || g_glasses_type > 4) g_glasses_type = 0;
+   if (g_glasses_type)
       if (get_funny_glasses_params() || check_mapfile())
          ret = -1;
 
 get_f3d_exit:
-   unstackscreen();
+   driver_unstack_screen();
    return(ret);
 }
 
@@ -2419,37 +2364,29 @@ get_f3d_exit:
 /* These macros streamline the "save near space" campaign */
 
 #define LOADPROMPTS3D(X)     {\
-   static FCODE tmp[] = { X };\
+   static char tmp[] = { X };\
    prompts3d[++k]= tmp;\
    }
 
 #define LOADPROMPTSCHOICES(X)     {\
-   static FCODE tmp[] = { X };\
+   static char tmp[] = { X };\
    choices[k++]= tmp;\
    }
 
 int get_3d_params()     /* prompt for 3D parameters */
 {
-   static FCODE hdg[]={"3D Mode Selection"};
-   static FCODE hdg1[]={"Select 3D Fill Type"};
-   char far *choices[11];
+   char *choices[11];
    int attributes[21];
    int sphere;
-   char far *s;
-   static FCODE s1[] = {"Sphere 3D Parameters\n\
-Sphere is on its side; North pole to right\n\
-Long. 180 is top, 0 is bottom; Lat. -90 is left, 90 is right"};
-   static FCODE s2[]={"Planar 3D Parameters\n\
-Pre-rotation X axis is screen top; Y axis is left side\n\
-Pre-rotation Z axis is coming at you out of the screen!"};
-   char far *prompts3d[21];
+   char *s;
+   char *prompts3d[21];
    struct fullscreenvalues uvalues[21];
    int i, k;
    int oldhelpmode;
 
 #ifdef WINFRACT
      {
-     extern int far wintext_textmode;
+     extern int wintext_textmode;
      if (wintext_textmode != 2)  /* are we in textmode? */
          return(0);              /* no - prompts are already handled */
      }
@@ -2478,7 +2415,7 @@ restart_1:
 
    LOADPROMPTS3D("Stereo (R/B 3D)? (0=no,1=alternate,2=superimpose,");
    uvalues[k].type = 'i';
-   uvalues[k].uval.ival = glassestype;
+   uvalues[k].uval.ival = g_glasses_type;
 
    LOADPROMPTS3D("                  3=photo,4=stereo pair)");
    uvalues[k].type = '*';
@@ -2510,7 +2447,7 @@ restart_1:
    oldhelpmode = helpmode;
    helpmode = HELP3DMODE;
 
-   k = fullscreen_prompt(hdg,k+1,prompts3d,uvalues,0,NULL);
+   k = fullscreen_prompt("3D Mode Selection",k+1,prompts3d,uvalues,0,NULL);
    helpmode = oldhelpmode;
    if (k < 0) {
       return(-1);
@@ -2526,17 +2463,15 @@ restart_1:
 
    sphere = uvalues[k++].uval.ch.val;
 
-   glassestype = uvalues[k++].uval.ival;
+   g_glasses_type = uvalues[k++].uval.ival;
    k++;
 
    RAY = uvalues[k++].uval.ival;
    k++;
    {
-      static FCODE msg[] = {
-"DKB/POV-Ray output is obsolete but still works. See \"Ray Tracing Output\" in\n\
-the online documentation."};
       if(RAY == 1)
-         stopmsg(0,msg);
+         stopmsg(0, "DKB/POV-Ray output is obsolete but still works. See \"Ray Tracing Output\" in\n"
+			"the online documentation.");
    }
    BRIEF = uvalues[k++].uval.ch.val;
 
@@ -2562,12 +2497,12 @@ the online documentation."};
       set_3d_defaults();
    }
 
-   if(glassestype < 0)
-      glassestype = 0;
-   if(glassestype > 4)
-      glassestype = 4;
-   if(glassestype)
-      whichimage = 1;
+   if(g_glasses_type < 0)
+      g_glasses_type = 0;
+   if(g_glasses_type > 4)
+      g_glasses_type = 4;
+   if(g_glasses_type)
+      g_which_image = 1;
 
    if (RAY < 0)
       RAY = 0;
@@ -2595,14 +2530,14 @@ the online documentation."};
       for (i = 0; i < k; ++i)
          attributes[i] = 1;
       helpmode = HELP3DFILL;
-      i = fullscreen_choice(CHOICEHELP,hdg1,NULL,NULL,k,(char far * far *)choices,attributes,
+      i = fullscreen_choice(CHOICE_HELP,"Select 3D Fill Type",NULL,NULL,k,(char * *)choices,attributes,
                               0,0,0,FILLTYPE+1,NULL,NULL,NULL,NULL);
       helpmode = oldhelpmode;
       if (i < 0)
          goto restart_1;
       FILLTYPE = i-1;
 
-      if(glassestype)
+      if(g_glasses_type)
       {
          if(get_funny_glasses_params())
             goto restart_1;
@@ -2693,9 +2628,13 @@ the online documentation."};
    uvalues[k++].uval.ival = RANDOMIZE;
 
    if (SPHERE)
-      s = s1;
+      s = "Sphere 3D Parameters\n"
+			"Sphere is on its side; North pole to right\n"
+			"Long. 180 is top, 0 is bottom; Lat. -90 is left, 90 is right";
    else
-      s = s2;
+      s = "Planar 3D Parameters\n"
+			"Pre-rotation X axis is screen top; Y axis is left side\n"
+			"Pre-rotation Z axis is coming at you out of the screen!";
 
    helpmode = HELP3DPARMS;
    k = fullscreen_prompt(s,k,prompts3d,uvalues,0,NULL);
@@ -2737,8 +2676,7 @@ return(0);
 /* --------------------------------------------------------------------- */
 static int get_light_params()
 {
-   static FCODE hdg[]={"Light Source Parameters"};
-   char far *prompts3d[13];
+   char *prompts3d[13];
    struct fullscreenvalues uvalues[13];
 
    int k;
@@ -2811,7 +2749,7 @@ static int get_light_params()
 
    oldhelpmode = helpmode;
    helpmode = HELP3DLIGHT;
-   k = fullscreen_prompt(hdg,k,prompts3d,uvalues,0,NULL);
+   k = fullscreen_prompt("Light Source Parameters",k,prompts3d,uvalues,0,NULL);
    helpmode = oldhelpmode;
    if (k < 0)
       return(-1);
@@ -2860,19 +2798,18 @@ static int check_mapfile()
    strcpy(temp1,"*");
    if (mapset)
       strcpy(temp1,MAP_name);
-   if (!(glassestype == 1 || glassestype == 2))
+   if (!(g_glasses_type == 1 || g_glasses_type == 2))
       askflag = 1;
    else
       merge_pathnames(temp1,funnyglasses_map_name,0);
 
    for(;;) {
       if (askflag) {
-         static FCODE msg[] = {"\
-Enter name of .MAP file to use,\n\
-or '*' to use palette from the image to be loaded."};
          oldhelpmode = helpmode;
          helpmode = -1;
-         i = field_prompt(0,msg,NULL,temp1,60,NULL);
+         i = field_prompt(0,"Enter name of .MAP file to use,\n"
+				"or '*' to use palette from the image to be loaded.",
+				NULL,temp1,60,NULL);
          helpmode = oldhelpmode;
          if (i < 0)
             return(-1);
@@ -2881,9 +2818,9 @@ or '*' to use palette from the image to be loaded."};
             break;
          }
       }
-      memcpy(olddacbox,dacbox,256*3); /* save the DAC */
+      memcpy(olddacbox,g_dac_box,256*3); /* save the DAC */
       i = ValidateLuts(temp1);
-      memcpy(dacbox,olddacbox,256*3); /* restore the DAC */
+      memcpy(g_dac_box,olddacbox,256*3); /* restore the DAC */
       if (i != 0) { /* Oops, somethings wrong */
          askflag = 1;
          continue;
@@ -2897,8 +2834,7 @@ or '*' to use palette from the image to be loaded."};
 
 static int get_funny_glasses_params()
 {
-   static FCODE hdg[]={"Funny Glasses Parameters"};
-   char far *prompts3d[10];
+   char *prompts3d[10];
 
    struct fullscreenvalues uvalues[10];
 
@@ -2908,23 +2844,23 @@ static int get_funny_glasses_params()
    /* defaults */
    if(ZVIEWER == 0)
       ZVIEWER = 150;
-   if(eyeseparation == 0)
+   if(g_eye_separation == 0)
    {
       if(fractype==IFS3D || fractype==LLORENZ3D || fractype==FPLORENZ3D)
       {
-         eyeseparation =  2;
+         g_eye_separation =  2;
          xadjust       = -2;
       }
       else
       {
-         eyeseparation =  3;
+         g_eye_separation =  3;
          xadjust       =  0;
       }
    }
 
-   if(glassestype == 1)
+   if(g_glasses_type == 1)
       strcpy(funnyglasses_map_name,Glasses1Map);
-   else if(glassestype == 2)
+   else if(g_glasses_type == 2)
    {
       if(FILLTYPE == -1)
          strcpy(funnyglasses_map_name,"grid.map");
@@ -2938,7 +2874,7 @@ static int get_funny_glasses_params()
    k = -1;
    LOADPROMPTS3D("Interocular distance (as % of screen)");
    uvalues[k].type = 'i';
-   uvalues[k].uval.ival= eyeseparation;
+   uvalues[k].uval.ival= g_eye_separation;
 
    LOADPROMPTS3D("Convergence adjust (positive = spread greater)");
    uvalues[k].type = 'i';
@@ -2968,7 +2904,7 @@ static int get_funny_glasses_params()
    uvalues[k].type = 'i';
    uvalues[k].uval.ival = blue_bright;
 
-   if(glassestype == 1 || glassestype == 2)
+   if(g_glasses_type == 1 || g_glasses_type == 2)
    {
       LOADPROMPTS3D("Map File name");
       uvalues[k].type = 's';
@@ -2977,13 +2913,13 @@ static int get_funny_glasses_params()
 
    oldhelpmode = helpmode;
    helpmode = HELP3DGLASSES;
-   k = fullscreen_prompt(hdg,k+1,prompts3d,uvalues,0,NULL);
+   k = fullscreen_prompt("Funny Glasses Parameters",k+1,prompts3d,uvalues,0,NULL);
    helpmode = oldhelpmode;
    if (k < 0)
       return(-1);
 
    k = 0;
-   eyeseparation   =  uvalues[k++].uval.ival;
+   g_eye_separation   =  uvalues[k++].uval.ival;
    xadjust         =  uvalues[k++].uval.ival;
    red_crop_left   =  uvalues[k++].uval.ival;
    red_crop_right  =  uvalues[k++].uval.ival;
@@ -2992,7 +2928,7 @@ static int get_funny_glasses_params()
    red_bright      =  uvalues[k++].uval.ival;
    blue_bright     =  uvalues[k++].uval.ival;
 
-   if(glassestype == 1 || glassestype == 2)
+   if(g_glasses_type == 1 || g_glasses_type == 2)
       strcpy(funnyglasses_map_name,uvalues[k].uval.sval);
    return(0);
 }
@@ -3003,87 +2939,87 @@ void setbailoutformula(enum bailouts test) {
      case Mod:
      default:{
          if (fpu >= 287 && debugflag != 72)     /* Fast 287 math */
-           floatbailout = (int (near *)(void))asmfpMODbailout;
+           floatbailout = (int ( *)(void))asmfpMODbailout;
          else
-           floatbailout = (int (near *)(void))fpMODbailout;
+           floatbailout = (int ( *)(void))fpMODbailout;
          if (cpu >=386 && debugflag != 8088)    /* Fast 386 math */
-           longbailout = (int (near *)(void))asm386lMODbailout;
+           longbailout = (int ( *)(void))asm386lMODbailout;
          else
-           longbailout = (int (near *)(void))asmlMODbailout;
-         bignumbailout = (int (near *)(void))bnMODbailout;
-         bigfltbailout = (int (near *)(void))bfMODbailout;
+           longbailout = (int ( *)(void))asmlMODbailout;
+         bignumbailout = (int ( *)(void))bnMODbailout;
+         bigfltbailout = (int ( *)(void))bfMODbailout;
          break;}
      case Real: {
          if (fpu >= 287 && debugflag != 72)     /* Fast 287 math */
-           floatbailout = (int (near *)(void))asmfpREALbailout;
+           floatbailout = (int ( *)(void))asmfpREALbailout;
          else
-           floatbailout = (int (near *)(void))fpREALbailout;
+           floatbailout = (int ( *)(void))fpREALbailout;
          if (cpu >=386 && debugflag != 8088)    /* Fast 386 math */
-           longbailout = (int (near *)(void))asm386lREALbailout;
+           longbailout = (int ( *)(void))asm386lREALbailout;
          else
-           longbailout = (int (near *)(void))asmlREALbailout;
-         bignumbailout = (int (near *)(void))bnREALbailout;
-         bigfltbailout = (int (near *)(void))bfREALbailout;
+           longbailout = (int ( *)(void))asmlREALbailout;
+         bignumbailout = (int ( *)(void))bnREALbailout;
+         bigfltbailout = (int ( *)(void))bfREALbailout;
          break;}
      case Imag:{
          if (fpu >= 287 && debugflag != 72)     /* Fast 287 math */
-           floatbailout = (int (near *)(void))asmfpIMAGbailout;
+           floatbailout = (int ( *)(void))asmfpIMAGbailout;
          else
-           floatbailout = (int (near *)(void))fpIMAGbailout;
+           floatbailout = (int ( *)(void))fpIMAGbailout;
          if (cpu >=386 && debugflag != 8088)    /* Fast 386 math */
-           longbailout = (int (near *)(void))asm386lIMAGbailout;
+           longbailout = (int ( *)(void))asm386lIMAGbailout;
          else
-           longbailout = (int (near *)(void))asmlIMAGbailout;
-         bignumbailout = (int (near *)(void))bnIMAGbailout;
-         bigfltbailout = (int (near *)(void))bfIMAGbailout;
+           longbailout = (int ( *)(void))asmlIMAGbailout;
+         bignumbailout = (int ( *)(void))bnIMAGbailout;
+         bigfltbailout = (int ( *)(void))bfIMAGbailout;
          break;}
      case Or:{
          if (fpu >= 287 && debugflag != 72)     /* Fast 287 math */
-           floatbailout = (int (near *)(void))asmfpORbailout;
+           floatbailout = (int ( *)(void))asmfpORbailout;
          else
-           floatbailout = (int (near *)(void))fpORbailout;
+           floatbailout = (int ( *)(void))fpORbailout;
          if (cpu >=386 && debugflag != 8088)    /* Fast 386 math */
-           longbailout = (int (near *)(void))asm386lORbailout;
+           longbailout = (int ( *)(void))asm386lORbailout;
          else
-           longbailout = (int (near *)(void))asmlORbailout;
-         bignumbailout = (int (near *)(void))bnORbailout;
-         bigfltbailout = (int (near *)(void))bfORbailout;
+           longbailout = (int ( *)(void))asmlORbailout;
+         bignumbailout = (int ( *)(void))bnORbailout;
+         bigfltbailout = (int ( *)(void))bfORbailout;
          break;}
      case And:{
          if (fpu >= 287 && debugflag != 72)     /* Fast 287 math */
-           floatbailout = (int (near *)(void))asmfpANDbailout;
+           floatbailout = (int ( *)(void))asmfpANDbailout;
          else
-           floatbailout = (int (near *)(void))fpANDbailout;
+           floatbailout = (int ( *)(void))fpANDbailout;
          if (cpu >=386 && debugflag != 8088)    /* Fast 386 math */
-           longbailout = (int (near *)(void))asm386lANDbailout;
+           longbailout = (int ( *)(void))asm386lANDbailout;
          else
-           longbailout = (int (near *)(void))asmlANDbailout;
-         bignumbailout = (int (near *)(void))bnANDbailout;
-         bigfltbailout = (int (near *)(void))bfANDbailout;
+           longbailout = (int ( *)(void))asmlANDbailout;
+         bignumbailout = (int ( *)(void))bnANDbailout;
+         bigfltbailout = (int ( *)(void))bfANDbailout;
          break;}
      case Manh:{
          if (fpu >= 287 && debugflag != 72)     /* Fast 287 math */
-           floatbailout = (int (near *)(void))asmfpMANHbailout;
+           floatbailout = (int ( *)(void))asmfpMANHbailout;
          else
-           floatbailout = (int (near *)(void))fpMANHbailout;
+           floatbailout = (int ( *)(void))fpMANHbailout;
          if (cpu >=386 && debugflag != 8088)    /* Fast 386 math */
-           longbailout = (int (near *)(void))asm386lMANHbailout;
+           longbailout = (int ( *)(void))asm386lMANHbailout;
          else
-           longbailout = (int (near *)(void))asmlMANHbailout;
-         bignumbailout = (int (near *)(void))bnMANHbailout;
-         bigfltbailout = (int (near *)(void))bfMANHbailout;
+           longbailout = (int ( *)(void))asmlMANHbailout;
+         bignumbailout = (int ( *)(void))bnMANHbailout;
+         bigfltbailout = (int ( *)(void))bfMANHbailout;
          break;}
      case Manr:{
          if (fpu >= 287 && debugflag != 72)     /* Fast 287 math */
-           floatbailout = (int (near *)(void))asmfpMANRbailout;
+           floatbailout = (int ( *)(void))asmfpMANRbailout;
          else
-           floatbailout = (int (near *)(void))fpMANRbailout;
+           floatbailout = (int ( *)(void))fpMANRbailout;
          if (cpu >=386 && debugflag != 8088)    /* Fast 386 math */
-           longbailout = (int (near *)(void))asm386lMANRbailout;
+           longbailout = (int ( *)(void))asm386lMANRbailout;
          else
-           longbailout = (int (near *)(void))asmlMANRbailout;
-         bignumbailout = (int (near *)(void))bnMANRbailout;
-         bigfltbailout = (int (near *)(void))bfMANRbailout;
+           longbailout = (int ( *)(void))asmlMANRbailout;
+         bignumbailout = (int ( *)(void))bnMANRbailout;
+         bigfltbailout = (int ( *)(void))bfMANRbailout;
          break;}
    }
 }

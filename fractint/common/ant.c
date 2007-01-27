@@ -21,6 +21,7 @@
 #include "port.h"
 #include "prototyp.h"
 #include "helpdefs.h"
+#include "drivers.h"
 
 #define RANDOM(n)       ((int)((long)((long)rand() * (long)(n)) >> 15)) /* Generate Random
                                                                          * Number 0 <= r < n */
@@ -34,8 +35,8 @@
  * for x 0, 1, 0, -1
  * for y 1, 0, -1, 0
  */
-static int far *incx[DIRS];         /* tab for 4 directions */
-static int far *incy[DIRS];
+static int *s_incx[DIRS];         /* tab for 4 directions */
+static int *s_incy[DIRS];
 
 void
 setwait(long *wait)
@@ -49,24 +50,24 @@ setwait(long *wait)
       while ((int)strlen(msg) < 15)
          strcat(msg, " ");
       msg[15] = '\0';
-      showtempmsg((char far *) msg);
-      kbdchar = getakey();
+      showtempmsg((char *) msg);
+      kbdchar = driver_get_key();
       switch (kbdchar)
       {
-      case RIGHT_ARROW_2:
-      case UP_ARROW_2:
+      case FIK_CTL_RIGHT_ARROW:
+      case FIK_CTL_UP_ARROW:
          (*wait) += 100;
          break;
-      case RIGHT_ARROW:
-      case UP_ARROW:
+      case FIK_RIGHT_ARROW:
+      case FIK_UP_ARROW:
          (*wait) += 10;
          break;
-      case DOWN_ARROW_2:
-      case LEFT_ARROW_2:
+      case FIK_CTL_DOWN_ARROW:
+      case FIK_CTL_LEFT_ARROW:
          (*wait) -= 100;
          break;
-      case LEFT_ARROW:
-      case DOWN_ARROW:
+      case FIK_LEFT_ARROW:
+      case FIK_DOWN_ARROW:
          (*wait) -= 10;
          break;
       default:
@@ -144,28 +145,28 @@ TurkMite1(int maxtur, int rule_len, char *ru, long maxpts, long wait)
    for (count = 0; count < maxpts; count++)
    {
       /* check for a key only every inner_loop times */
-      kbdchar = keypressed();
+      kbdchar = driver_key_pressed();
       if (kbdchar || step)
       {
          int done = 0;
          if (kbdchar == 0)
-            kbdchar = getakey();
+            kbdchar = driver_get_key();
          switch (kbdchar)
          {
-         case SPACE:
+         case FIK_SPACE:
             step = 1 - step;
             break;
-         case ESC:
+         case FIK_ESC:
             done = 1;
             break;
-         case RIGHT_ARROW:
-         case UP_ARROW:
-         case DOWN_ARROW:
-         case LEFT_ARROW:
-         case RIGHT_ARROW_2:
-         case UP_ARROW_2:
-         case DOWN_ARROW_2:
-         case LEFT_ARROW_2:
+         case FIK_RIGHT_ARROW:
+         case FIK_UP_ARROW:
+         case FIK_DOWN_ARROW:
+         case FIK_LEFT_ARROW:
+         case FIK_CTL_RIGHT_ARROW:
+         case FIK_CTL_UP_ARROW:
+         case FIK_CTL_DOWN_ARROW:
+         case FIK_CTL_LEFT_ARROW:
             setwait(&wait);
             break;
          default:
@@ -174,8 +175,8 @@ TurkMite1(int maxtur, int rule_len, char *ru, long maxpts, long wait)
          }
          if (done)
             goto exit_ant;
-         if (keypressed())
-            getakey();
+         if (driver_key_pressed())
+            driver_get_key();
       }
       for (i = INNER_LOOP; i; i--)
       {
@@ -199,8 +200,8 @@ TurkMite1(int maxtur, int rule_len, char *ru, long maxpts, long wait)
                       (idir == 2 && iy == 0) ||
                       (idir == 3 && ix == 0))
                      goto exit_ant;
-               x[color] = incx[idir][ix];
-               y[color] = incy[idir][iy];
+               x[color] = s_incx[idir][ix];
+               y[color] = s_incy[idir][iy];
                dir[color] = idir;
             }
          }
@@ -221,8 +222,8 @@ TurkMite1(int maxtur, int rule_len, char *ru, long maxpts, long wait)
                       (idir == 2 && iy == 0) ||
                       (idir == 3 && ix == 0))
                      goto exit_ant;
-               x[color] = incx[idir][ix];
-               y[color] = incy[idir][iy];
+               x[color] = s_incx[idir][ix];
+               y[color] = s_incy[idir][iy];
                dir[color] = idir;
             }
          }
@@ -282,28 +283,28 @@ TurkMite2(int maxtur, int rule_len, char *ru, long maxpts, long wait)
    for (count = 0; count < maxpts; count++)
    {
       /* check for a key only every inner_loop times */
-      kbdchar = keypressed();
+      kbdchar = driver_key_pressed();
       if (kbdchar || step)
       {
          int done = 0;
          if (kbdchar == 0)
-            kbdchar = getakey();
+            kbdchar = driver_get_key();
          switch (kbdchar)
          {
-         case SPACE:
+         case FIK_SPACE:
             step = 1 - step;
             break;
-         case ESC:
+         case FIK_ESC:
             done = 1;
             break;
-         case RIGHT_ARROW:
-         case UP_ARROW:
-         case DOWN_ARROW:
-         case LEFT_ARROW:
-         case RIGHT_ARROW_2:
-         case UP_ARROW_2:
-         case DOWN_ARROW_2:
-         case LEFT_ARROW_2:
+         case FIK_RIGHT_ARROW:
+         case FIK_UP_ARROW:
+         case FIK_DOWN_ARROW:
+         case FIK_LEFT_ARROW:
+         case FIK_CTL_RIGHT_ARROW:
+         case FIK_CTL_UP_ARROW:
+         case FIK_CTL_DOWN_ARROW:
+         case FIK_CTL_LEFT_ARROW:
             setwait(&wait);
             break;
          default:
@@ -312,8 +313,8 @@ TurkMite2(int maxtur, int rule_len, char *ru, long maxpts, long wait)
          }
          if (done)
             goto exit_ant;
-         if (keypressed())
-            getakey();
+         if (driver_key_pressed())
+            driver_get_key();
       }
       for (i = INNER_LOOP; i; i--)
       {
@@ -345,8 +346,8 @@ TurkMite2(int maxtur, int rule_len, char *ru, long maxpts, long wait)
                    (idir == 2 && iy == 0) ||
                    (idir == 3 && ix == 0))
                   goto exit_ant;
-            x[color] = incx[idir][ix];
-            y[color] = incy[idir][iy];
+            x[color] = s_incx[idir][ix];
+            y[color] = s_incy[idir][iy];
             dir[color] = idir;
          }
          rule_mask = _rotl(rule_mask, 1);
@@ -364,14 +365,15 @@ ant(void)
    int oldhelpmode, rule_len;
    long maxpts, wait;
    char rule[MAX_ANTS];
-   char far *extra;
+   char *extra;
 
-   extra = MK_FP(extraseg,0);
+   /* TODO: allocate real memory, not reuse shared segment */
+   extra = extraseg;
 
    for (i = 0; i < DIRS; i++)
    {
-      incx[i] = (int far *) (extra + (xdots + 2) * sizeof(int) * i);       /* steal some memory */
-      incy[i] = (int far *) (extra + (xdots + 2) * sizeof(int) * DIRS + (ydots + 2) *sizeof(int) * i);     /* steal some memory */
+      s_incx[i] = (int *) (extra + (xdots + 2) * sizeof(int) * i);       /* steal some memory */
+      s_incy[i] = (int *) (extra + (xdots + 2) * sizeof(int) * DIRS + (ydots + 2) *sizeof(int) * i);     /* steal some memory */
    }
 
 /* In this vectors put all the possible point that the ants can visit.
@@ -379,30 +381,30 @@ ant(void)
  */
    for (i = 0; i < xdots; i++)
    {
-      incx[0][i] = i;
-      incx[2][i] = i;
+      s_incx[0][i] = i;
+      s_incx[2][i] = i;
    }
 
    for(i = 0; i < xdots; i++)
-      incx[3][i] = i + 1;
-   incx[3][xdots-1] = 0; /* wrap from right of the screen to left */
+      s_incx[3][i] = i + 1;
+   s_incx[3][xdots-1] = 0; /* wrap from right of the screen to left */
 
    for(i = 1; i < xdots; i++)
-      incx[1][i] = i - 1;
-   incx[1][0] = xdots-1; /* wrap from left of the screen to right */
+      s_incx[1][i] = i - 1;
+   s_incx[1][0] = xdots-1; /* wrap from left of the screen to right */
 
    for (i = 0; i < ydots; i++)
    {
-      incy[1][i] = i;
-      incy[3][i] = i;
+      s_incy[1][i] = i;
+      s_incy[3][i] = i;
    }
    for (i = 0; i < ydots; i++)
-      incy[0][i] = i + 1;
-   incy[0][ydots - 1] = 0;      /* wrap from the top of the screen to the
+      s_incy[0][i] = i + 1;
+   s_incy[0][ydots - 1] = 0;      /* wrap from the top of the screen to the
                                  * bottom */
    for (i = 1; i < ydots; i++)
-      incy[2][i] = i - 1;
-   incy[2][0] = ydots - 1;      /* wrap from the bottom of the screen to the
+      s_incy[2][i] = i - 1;
+   s_incy[2][0] = ydots - 1;      /* wrap from the bottom of the screen to the
                                  * top */
    oldhelpmode = helpmode;
    helpmode = ANTCOMMANDS;
@@ -410,7 +412,7 @@ ant(void)
    maxpts = labs(maxpts);
    wait = abs(orbit_delay);
    sprintf(rule, "%.17g", param[0]);
-   rule_len = strlen(rule);
+   rule_len = (int) strlen(rule);
    if (rule_len > 1)
    {                            /* if rule_len == 0 random rule */
       for (i = 0; i < rule_len; i++)

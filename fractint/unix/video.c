@@ -85,7 +85,7 @@ int textrbase = 0;		/* textrow is relative to this */
 int textcbase = 0;		/* textcol is relative to this */
 
 int vesa_detect = 1;		/* set to 0 to disable VESA-detection */
-int virtual = 0;                /* no virtual screens, it's a DOS thing */
+int virtual_screens = 0;                /* no virtual screens, it's a DOS thing */
 int video_scroll = 0;
 int video_startx = 0;
 int video_starty = 0;
@@ -321,7 +321,7 @@ keycursor (row, col)
 void
 putstring (row, col, attr, msg)
      int row, col, attr;
-     CHAR far *msg;
+     CHAR *msg;
 {
   int so = 0;
 
@@ -496,7 +496,7 @@ unsigned char *fontTab = NULL;
 /*
 ; ************** Function findfont(n) ******************************
 
-;       findfont(0) returns far pointer to 8x8 font table if it can
+;       findfont(0) returns pointer to 8x8 font table if it can
 ;                   find it, NULL otherwise;
 ;                   nonzero parameter reserved for future use
 */
@@ -770,7 +770,7 @@ out_line (pixels, linelen)
 }
 
 /*
-; far move routine for savegraphics/restoregraphics
+; move routine for savegraphics/restoregraphics
 */
 void
 movewords (len, fromptr, toptr)
@@ -835,22 +835,22 @@ static int screenctr = 0;
 
 #define MAXSCREENS 3
 
-static BYTE far *savescreen[MAXSCREENS];
+static BYTE *savescreen[MAXSCREENS];
 static int saverc[MAXSCREENS+1];
 
 void stackscreen()
 {
 #ifdef USE_XFRACT_STACK_FUNCTIONS
    int i;
-   BYTE far *ptr;
+   BYTE *ptr;
    saverc[screenctr+1] = textrow*80 + textcol;
    if (++screenctr) { /* already have some stacked */
-         static char far msg[]={"stackscreen overflow"};
+         static char msg[]={"stackscreen overflow"};
       if ((i = screenctr - 1) >= MAXSCREENS) { /* bug, missing unstack? */
          stopmsg(1,msg);
          exit(1);
          }
-      if ((ptr = (savescreen[i] = (BYTE far *)farmemalloc(sizeof(int *)))))
+      if ((ptr = (savescreen[i] = (BYTE *)malloc(sizeof(int *)))))
          savecurses((WINDOW **)ptr);
       else {
          stopmsg(1,msg);
@@ -866,13 +866,13 @@ void stackscreen()
 void unstackscreen()
 {
 #ifdef USE_XFRACT_STACK_FUNCTIONS
-   BYTE far *ptr;
+   BYTE *ptr;
    textrow = saverc[screenctr] / 80;
    textcol = saverc[screenctr] % 80;
    if (--screenctr >= 0) { /* unstack */
       ptr = savescreen[screenctr];
       restorecurses((WINDOW **)ptr);
-      farmemfree(ptr);
+      free(ptr);
       }
    else
       setforgraphics();
@@ -885,7 +885,7 @@ void discardscreen()
    if (--screenctr >= 0) { /* unstack */
       if (savescreen[screenctr]) {
 #ifdef USE_XFRACT_STACK_FUNCTIONS
-         farmemfree(savescreen[screenctr]);
+         free(savescreen[screenctr]);
 #endif
       }
    }
