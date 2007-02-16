@@ -2,13 +2,13 @@ SHELL=/bin/sh
 
 OBJS = \
 3d.o ant.o bigflt.o  biginit.o bignum.o bignumc.o calcfrac.o \
-cmdfiles.o decoder.o editpal.o encoder.o \
+cmdfiles.o decoder.o drivers.o editpal.o encoder.o \
 evolve.o f16.o fracsubr.o fractalb.o fractalp.o fractals.o \
-fractint.o framain2.o frasetup.o gifview.o hcmplx.o help.o history.o\
+fractint.o framain2.o frasetup.o gifview.o hcmplx.o help.o \
 intro.o jb.o jiim.o line3d.o loadfdos.o loadfile.o loadmap.o lorenz.o \
 lsys.o lsysf.o memory.o miscfrac.o miscovl.o miscres.o mpmath_c.o parser.o \
-parserfp.o plot3d.o printer.o prompts1.o prompts2.o \
-realdos.o rotate.o slideshw.o soi.o soi1.o stereo.o targa.o testpt.o tgaview.o \
+parserfp.o plot3d.o prompts1.o prompts2.o \
+realdos.o rotate.o slideshw.o soi.o soi1.o stereo.o testpt.o tgaview.o \
 zoom.o
 
 #Need to prevent lex from doing fractint.l -> fractint.c
@@ -88,8 +88,6 @@ hcmplx.o: hcmplx.c ${HFD}/fractint.h ${HFD}/port.h ${HFD}/prototyp.h ${HFD}/mpma
 
 help.o: help.c ${HFD}/fractint.h ${HFD}/port.h ${HFD}/helpcom.h ${HFD}/helpdefs.h ${HFD}/prototyp.h ${HFD}/mpmath.h
 
-history.o: history.c ${HFD}/fractint.h ${HFD}/port.h ${HFD}/prototyp.h
-
 intro.o: intro.c ${HFD}/fractint.h ${HFD}/port.h ${HFD}/helpdefs.h ${HFD}/prototyp.h ${HFD}/mpmath.h ${HFD}/helpcom.h
 
 jb.o: jb.c ${HFD}/fractint.h ${HFD}/port.h ${HFD}/mpmath.h ${HFD}/helpdefs.h ${HFD}/prototyp.h ${HFD}/helpcom.h
@@ -129,8 +127,6 @@ parser.o: parser.c ${HFD}/mpmath.h ${HFD}/prototyp.h ${HFD}/port.h ${HFD}/fracti
 parserfp.o: parserfp.c ${HFD}/fractint.h ${HFD}/port.h ${HFD}/prototyp.h ${HFD}/mpmath.h ${HFD}/helpcom.h
 
 plot3d.o: plot3d.c ${HFD}/fractint.h ${HFD}/port.h ${HFD}/fractype.h ${HFD}/prototyp.h ${HFD}/mpmath.h ${HFD}/helpcom.h
-
-printer.o: printer.c ${HFD}/fractint.h ${HFD}/port.h ${HFD}/fractype.h ${HFD}/prototyp.h ${HFD}/mpmath.h ${HFD}/helpcom.h
 
 prompts1.o: prompts1.c ${HFD}/fractint.h ${HFD}/port.h ${HFD}/fractype.h ${HFD}/helpdefs.h ${HFD}/prototyp.h \
 			${HFD}/mpmath.h ${HFD}/helpcom.h

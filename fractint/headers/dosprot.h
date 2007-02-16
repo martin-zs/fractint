@@ -16,17 +16,15 @@ extern  long   cdecl divide(long, long, int);
 extern  int    cdecl getakey(void);
 /*extern  void   cdecl buzzer(int); */
 extern  void   cdecl buzzerpcspkr(int);
-extern  void   cdecl farmemfree(VOIDFARPTR );
+extern  void   cdecl farmemfree(VOIDPTR );
 extern  int    cdecl far_strlen( char far *);
 extern  int    cdecl far_strnicmp(char far *, char far *,int);
 extern  void   cdecl far_strcpy( char far *, char far *);
 extern  int    cdecl far_strcmp( char far *, char far *);
-extern  int    cdecl far_stricmp(char far *, char far *);
 extern  void   cdecl far_strcat( char far *, char far *);
-extern  void   cdecl far_memset( VOIDFARPTR , int      , unsigned);
-extern  void   cdecl far_memcpy( VOIDFARPTR , VOIDFARPTR , int);
+extern  void   cdecl far_memset( VOIDPTR , int      , unsigned);
+extern  void   cdecl far_memcpy( VOIDPTR , VOIDFARPTR , int);
 extern  int    cdecl far_memcmp( VOIDFARPTR , VOIDFARPTR , int);
-extern  void   cdecl far_memicmp(VOIDFARPTR , VOIDFARPTR , int);
 extern  BYTE far *cdecl emmquery(void);
 extern  unsigned int cdecl emmgetfree(void);
 extern  unsigned int cdecl emmallocate(unsigned int);
@@ -61,7 +59,6 @@ extern  unsigned int cdecl cmpextra( unsigned int, char *, int );
 extern  unsigned int cdecl fromextra( unsigned int, char *, int );
 extern  unsigned int cdecl toextra( unsigned int, char *, int );
 extern  void   cdecl load_mat(double (*)[4]);
-extern  VOIDFARPTR cdecl farmemalloc(long);
 
 /* sound.c file prototypes */
 extern int get_sound_params(void);

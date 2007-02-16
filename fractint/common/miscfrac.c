@@ -11,6 +11,7 @@ Miscellaneous fractal-specific code (formerly in CALCFRAC.C)
 #include "prototyp.h"
 #include "fractype.h"
 #include "targa_lc.h"
+#include "drivers.h"
 
 /* routines in this module      */
 
@@ -39,7 +40,7 @@ int test(void)
       get_resume(sizeof(startrow),&startrow,sizeof(startpass),&startpass,0);
       end_resume();
    }
-   if(teststart()) /* assume it was stand-alone, doesn't want passes logic */
+   if (teststart()) /* assume it was stand-alone, doesn't want passes logic */
       return(0);
    numpasses = (stdcalcmode == '1') ? 0 : 1;
    for (passes=startpass; passes <= numpasses ; passes++)
@@ -51,7 +52,7 @@ int test(void)
             register int color;
             init.x = dxpixel();
             init.y = dypixel();
-            if(keypressed())
+            if (driver_key_pressed())
             {
                testend();
                alloc_resume(20,1);
@@ -61,12 +62,12 @@ int test(void)
             color = testpt(init.x,init.y,parm.x,parm.y,maxit,inside);
             if (color >= colors) { /* avoid trouble if color is 0 */
                if (colors < 16)
-                  color &= andcolor;
+                  color &= g_and_color;
                else
-                  color = ((color-1) % andcolor) + 1; /* skip color zero */
+                  color = ((color-1) % g_and_color) + 1; /* skip color zero */
             }
             (*plot)(col,row,color);
-            if(numpasses && (passes == 0))
+            if (numpasses && (passes == 0))
                (*plot)(col,row+1,color);
          }
       }
@@ -92,19 +93,19 @@ U16 rand16(void)
    value = (U16)rand15();
    value <<= 1;
    value = (U16)(value + (rand15()&1));
-   if(value < 1)
+   if (value < 1)
       value = 1;
    return(value);
 }
 
 void _fastcall putpot(int x, int y, U16 color)
 {
-   if(color < 1)
+   if (color < 1)
       color = 1;
    putcolor(x, y, color >> 8 ? color >> 8 : 1);  /* don't write 0 */
-   /* we don't write this if dotmode==11 because the above putcolor
+   /* we don't write this if driver_diskp() because the above putcolor
          was already a "writedisk" in that case */
-   if (dotmode != 11)
+   if (!driver_diskp())
       writedisk(x+sxoffs,y+syoffs,color >> 8);    /* upper 8 bits */
    writedisk(x+sxoffs,y+sydots+syoffs,color&255); /* lower 8 bits */
 }
@@ -112,7 +113,7 @@ void _fastcall putpot(int x, int y, U16 color)
 /* fixes border */
 void _fastcall putpotborder(int x, int y, U16 color)
 {
-   if((x==0) || (y==0) || (x==xdots-1) || (y==ydots-1))
+   if ((x==0) || (y==0) || (x==xdots-1) || (y==ydots-1))
       color = (U16)outside;
    putpot(x,y,color);
 }
@@ -120,9 +121,9 @@ void _fastcall putpotborder(int x, int y, U16 color)
 /* fixes border */
 void _fastcall putcolorborder(int x, int y, int color)
 {
-   if((x==0) || (y==0) || (x==xdots-1) || (y==ydots-1))
+   if ((x==0) || (y==0) || (x==xdots-1) || (y==ydots-1))
       color = outside;
-   if(color < 1)
+   if (color < 1)
       color = 1;
    putcolor(x,y,color);
 }
@@ -146,14 +147,14 @@ static U16 _fastcall adjust(int xa,int ya,int x,int y,int xb,int yb)
    pseudorandom = pseudorandom * recur1;
    pseudorandom = pseudorandom >> shiftvalue;
    pseudorandom = (((S32)getpix(xa,ya)+(S32)getpix(xb,yb)+1)>>1)+pseudorandom;
-   if(max_plasma == 0)
+   if (max_plasma == 0)
    {
       if (pseudorandom >= pcolors)
          pseudorandom = pcolors-1;
    }
    else if (pseudorandom >= (S32)max_plasma)
       pseudorandom = max_plasma;
-   if(pseudorandom < 1)
+   if (pseudorandom < 1)
       pseudorandom = 1;
    plot(x,y,(U16)pseudorandom);
    return((U16)pseudorandom);
@@ -193,7 +194,7 @@ static int _fastcall new_subD (int x1,int y1,int x2,int y2, int recur)
    while (suby.t >= 1)
    {
       if ((++plasma_check & 0x0f) == 1)
-         if(keypressed())
+         if (driver_key_pressed())
          {
             plasma_check--;
             return(1);
@@ -235,18 +236,22 @@ static int _fastcall new_subD (int x1,int y1,int x2,int y2, int recur)
                 subx.r[subx.t-2])+1);
          }
 
-         if ((i = getpix(nx, y)) == 0)
+         i = getpix(nx, y);
+		 if (i == 0)
             i = adjust(nx,ny1,nx,y ,nx,ny);
          v = i;
-         if ((i = getpix(x, ny)) == 0)
+         i = getpix(x, ny);
+		 if (i == 0)
             i = adjust(nx1,ny,x ,ny,nx,ny);
          v += i;
-         if(getpix(x,y) == 0)
+         if (getpix(x,y) == 0)
          {
-            if ((i = getpix(x, ny1)) == 0)
+            i = getpix(x, ny1);
+			if (i == 0)
                i = adjust(nx1,ny1,x ,ny1,nx,ny1);
             v += i;
-            if ((i = getpix(nx1, y)) == 0)
+            i = getpix(nx1, y);
+			if (i == 0)
                i = adjust(nx1,ny1,nx1,y ,nx1,ny);
             v += i;
             plot(x,y,(U16)((v + 2) >> 2));
@@ -265,32 +270,36 @@ static void _fastcall subDivide(int x1,int y1,int x2,int y2)
    int x,y;
    S32 v,i;
    if ((++plasma_check & 0x7f) == 1)
-      if(keypressed())
+      if (driver_key_pressed())
       {
          plasma_check--;
          return;
       }
-   if(x2-x1<2 && y2-y1<2)
+   if (x2-x1<2 && y2-y1<2)
       return;
    recur_level++;
    recur1 = (int)(320L >> recur_level);
 
    x = (x1+x2)>>1;
    y = (y1+y2)>>1;
-   if((v=getpix(x,y1)) == 0)
+   v=getpix(x,y1);
+   if (v == 0)
       v=adjust(x1,y1,x ,y1,x2,y1);
    i=v;
-   if((v=getpix(x2,y)) == 0)
+   v=getpix(x2,y);
+   if (v == 0)
       v=adjust(x2,y1,x2,y ,x2,y2);
    i+=v;
-   if((v=getpix(x,y2)) == 0)
+   v=getpix(x,y2);
+   if (v == 0)
       v=adjust(x1,y2,x ,y2,x2,y2);
    i+=v;
-   if((v=getpix(x1,y)) == 0)
+   v=getpix(x1,y);
+   if (v == 0)
       v=adjust(x1,y1,x1,y ,x1,y2);
    i+=v;
 
-   if(getpix(x,y) == 0)
+   if (getpix(x,y) == 0)
       plot(x,y,(U16)((i+2)>>2));
 
    subDivide(x1,y1,x ,y);
@@ -309,13 +318,11 @@ int plasma()
 
    OldPotFlag=OldPot16bit=plasma_check = 0;
 
-   if(colors < 4) {
-      static FCODE plasmamsg[]={
-         "\
-Plasma Clouds can currently only be run in a 4-or-more-color video\n\
-mode (and color-cycled only on VGA adapters [or EGA adapters in their\n\
-640x350x16 mode])."      };
-      stopmsg(0,plasmamsg);
+   if (colors < 4) {
+      stopmsg(0,
+		"Plasma Clouds can currently only be run in a 4-or-more-color video\n"
+		"mode (and color-cycled only on VGA adapters [or EGA adapters in their\n"
+		"640x350x16 mode]).");
       return(-1);
    }
    iparmx = (int)(param[0] * 8);
@@ -335,13 +342,13 @@ mode (and color-cycled only on VGA adapters [or EGA adapters in their\n\
       rseed = (int)param[2];
    max_plasma = (U16)param[3];  /* max_plasma is used as a flag for potential */
 
-   if(max_plasma != 0)
+   if (max_plasma != 0)
    {
       if (pot_startdisk() >= 0)
       {
          /* max_plasma = (U16)(1L << 16) -1; */
          max_plasma = 0xFFFF;
-         if(outside >= 0)
+         if (outside >= 0)
             plot    = (PLOT)putpotborder;
          else
             plot    = (PLOT)putpot;
@@ -353,7 +360,7 @@ mode (and color-cycled only on VGA adapters [or EGA adapters in their\n\
       {
          max_plasma = 0;        /* can't do potential (startdisk failed) */
          param[3]   = 0;
-         if(outside >= 0)
+         if (outside >= 0)
             plot    = putcolorborder;
          else
             plot    = putcolor;
@@ -362,7 +369,7 @@ mode (and color-cycled only on VGA adapters [or EGA adapters in their\n\
    }
    else
    {
-      if(outside >= 0)
+      if (outside >= 0)
         plot    = putcolorborder;
        else
         plot    = putcolor;
@@ -388,20 +395,20 @@ mode (and color-cycled only on VGA adapters [or EGA adapters in their\n\
             shiftvalue = 25;
       }
    }
-   if(max_plasma != 0)
+   if (max_plasma != 0)
       shiftvalue = 10;
 
-   if(max_plasma == 0)
+   if (max_plasma == 0)
    {
       pcolors = min(colors, max_colors);
-      for(n = 0; n < 4; n++)
+      for (n = 0; n < 4; n++)
          rnd[n] = (U16)(1+(((rand15()/pcolors)*(pcolors-1))>>(shiftvalue-11)));
    }
    else
-      for(n = 0; n < 4; n++)
+      for (n = 0; n < 4; n++)
          rnd[n] = rand16();
-   if(debugflag==3600)
-      for(n = 0; n < 4; n++)
+   if (debugflag==3600)
+      for (n = 0; n < 4; n++)
          rnd[n] = 1;
 
    plot(      0,      0,  rnd[0]);
@@ -415,12 +422,12 @@ mode (and color-cycled only on VGA adapters [or EGA adapters in their\n\
    else
    {
       recur1 = i = k = 1;
-      while(new_subD(0,0,xdots-1,ydots-1,i)==0)
+      while (new_subD(0,0,xdots-1,ydots-1,i)==0)
       {
          k = k * 2;
          if (k  >(int)max(xdots-1,ydots-1))
             break;
-         if (keypressed())
+         if (driver_key_pressed())
          {
             n = 1;
             goto done;
@@ -428,12 +435,12 @@ mode (and color-cycled only on VGA adapters [or EGA adapters in their\n\
          i++;
       }
    }
-   if (! keypressed())
+   if (!driver_key_pressed())
       n = 0;
    else
       n = 1;
    done:
-   if(max_plasma != 0)
+   if (max_plasma != 0)
    {
       potflag = OldPotFlag;
       pot16bit = OldPot16bit;
@@ -443,7 +450,7 @@ mode (and color-cycled only on VGA adapters [or EGA adapters in their\n\
    return(n);
 }
 
-#define dac ((Palettetype *)dacbox)
+#define dac ((Palettetype *)g_dac_box)
 static void set_Plasma_palette()
 {
    static Palettetype Red    = { 63, 0, 0 };
@@ -456,7 +463,7 @@ static void set_Plasma_palette()
    dac[0].red  = 0 ;
    dac[0].green= 0 ;
    dac[0].blue = 0 ;
-   for(i=1;i<=85;i++)
+   for (i=1; i<=85; i++)
    {
 #ifdef __SVR4
       dac[i].red       = (BYTE)((i*(int)Green.red   + (86-i)*(int)Blue.red)/85);
@@ -483,7 +490,6 @@ static void set_Plasma_palette()
       dac[i+170].blue  = (BYTE)((i*Blue.blue  + (86-i)*Red.blue)/85);
 #endif
    }
-   SetTgaColors();      /* TARGA 3 June 89  j mclain */
    spindac(0,1);
 }
 
@@ -508,7 +514,7 @@ int diffusion()
    int x,y;
    float r, radius;
 
-   if (diskvideo)
+   if (driver_diskp())
       notdiskmsg();
   
    x = y = -1;
@@ -544,9 +550,9 @@ int diffusion()
    }
    if (mode == 2) {
       if (xdots > ydots)
-         radius = ydots - border;
+         radius = (float) (ydots - border);
       else
-         radius = xdots - border;
+         radius = (float) (xdots - border);
    }
    if (resuming) /* restore worklist, if we can't the above will stay in place */
    {
@@ -586,7 +592,7 @@ int diffusion()
            break;
    }
 
-   for(;;)
+   while (1)
    {
       switch (mode) {
       case 0: /* Release new point on a circle inside the box */
@@ -616,7 +622,7 @@ int diffusion()
       /* Loop as long as the point (x,y) is surrounded by color 0 */
       /* on all eight sides                                       */
 
-      while((getcolor(x+1,y+1) == 0) && (getcolor(x+1,y) == 0) &&
+      while ((getcolor(x+1,y+1) == 0) && (getcolor(x+1,y) == 0) &&
           (getcolor(x+1,y-1) == 0) && (getcolor(x  ,y+1) == 0) &&
           (getcolor(x  ,y-1) == 0) && (getcolor(x-1,y+1) == 0) &&
           (getcolor(x-1,y) == 0) && (getcolor(x-1,y-1) == 0))
@@ -653,7 +659,7 @@ int diffusion()
 
          /* Check keyboard */
          if ((++plasma_check & 0x7f) == 1)
-            if(check_key())
+            if (check_key())
             {
                alloc_resume(20,1);
                if (mode!=2)
@@ -763,7 +769,7 @@ int diffusion()
 
 #define SEED 0.66               /* starting value for population */
 
-static int far *verhulst_array;
+static int *verhulst_array;
 unsigned long filter_cycles;
 static unsigned int half_time_check;
 static long   lPopulation, lRate;
@@ -783,10 +789,9 @@ int Bifurcation(void)
       end_resume();
    }
    array_size =  (iystop + 1) * sizeof(int); /* should be iystop + 1 */
-   if ((verhulst_array = (int far *) farmemalloc(array_size)) == NULL)
+   if ((verhulst_array = (int *) malloc(array_size)) == NULL)
    {
-      static FCODE msg[]={"Insufficient free memory for calculation."};
-      stopmsg(0,msg);
+      stopmsg(0, "Insufficient free memory for calculation.");
       return(-1);
    }
 
@@ -824,9 +829,9 @@ int Bifurcation(void)
 
    while (column <= ixstop)
    {
-      if(keypressed())
+      if (driver_key_pressed())
       {
-         farmemfree((char far *)verhulst_array);
+         free((char *)verhulst_array);
          alloc_resume(10,1);
          put_resume(sizeof(column),&column,0);
          return(-1);
@@ -842,9 +847,9 @@ int Bifurcation(void)
       {
          int color;
          color = verhulst_array[row];
-         if(color && mono)
+         if (color && mono)
             color = inside;
-         else if((!color) && mono)
+         else if ((!color) && mono)
             color = outside_x;
          else if (color>=colors)
             color = colors-1;
@@ -853,7 +858,7 @@ int Bifurcation(void)
       }
       column++;
    }
-   farmemfree((char far *)verhulst_array);
+   free((char *)verhulst_array);
    return(0);
 }
 
@@ -972,7 +977,7 @@ static int _fastcall Bif_Periodic (long time)  /* Bifurcation Population Periodi
 /* The following are Bifurcation "orbitcalc" routines...              */
 /*                                                                                                    */
 /**********************************************************************/
-#ifdef XFRACT
+#if defined(XFRACT) || defined(_WIN32)
 int BifurcLambda() /* Used by lyanupov */
   {
     Population = Rate * Population * (1 - Population);
@@ -997,7 +1002,7 @@ int BifurcVerhulstTrig()
 
 int LongBifurcVerhulstTrig()
   {
-#ifndef XFRACT
+#if !defined(XFRACT)
     ltmp.x = lPopulation;
     ltmp.y = 0;
     LCMPLXtrig0(ltmp, ltmp);
@@ -1019,7 +1024,7 @@ int BifurcStewartTrig()
 
 int LongBifurcStewartTrig()
   {
-#ifndef XFRACT
+#if !defined(XFRACT)
     ltmp.x = lPopulation;
     ltmp.y = 0;
     LCMPLXtrig0(ltmp, ltmp);
@@ -1041,7 +1046,7 @@ int BifurcSetTrigPi()
 
 int LongBifurcSetTrigPi()
   {
-#ifndef XFRACT
+#if !defined(XFRACT)
     ltmp.x = multiply(lPopulation,LPI,bitshift);
     ltmp.y = 0;
     LCMPLXtrig0(ltmp, ltmp);
@@ -1061,7 +1066,7 @@ int BifurcAddTrigPi()
 
 int LongBifurcAddTrigPi()
   {
-#ifndef XFRACT
+#if !defined(XFRACT)
     ltmp.x = multiply(lPopulation,LPI,bitshift);
     ltmp.y = 0;
     LCMPLXtrig0(ltmp, ltmp);
@@ -1082,7 +1087,7 @@ int BifurcLambdaTrig()
 
 int LongBifurcLambdaTrig()
   {
-#ifndef XFRACT
+#if !defined(XFRACT)
     ltmp.x = lPopulation;
     ltmp.y = 0;
     LCMPLXtrig0(ltmp, ltmp);
@@ -1108,7 +1113,7 @@ int BifurcMay()
 
 int LongBifurcMay()
   {
-#ifndef XFRACT
+#if !defined(XFRACT)
     ltmp.x = lPopulation + fudge;
     ltmp.y = 0;
     lparm2.x = beta * fudge;
@@ -1123,7 +1128,7 @@ int BifurcMaySetup()
   {
 
    beta = (long)param[2];
-   if(beta < 2)
+   if (beta < 2)
       beta = 2;
    param[2] = (double)beta;
 
@@ -1165,7 +1170,7 @@ int popcorn()   /* subset of std engine */
          reset_periodicity = 0;
       }
    }
-   calc_status = 4;
+   calc_status = CALCSTAT_COMPLETED;
    return(0);
 }
 
@@ -1197,7 +1202,7 @@ int lyapunov_cycles_in_c(long, double, double);
 int lyapunov () {
     double a, b;
 
-    if (keypressed()) {
+    if (driver_key_pressed()) {
         return -1;
         }
     overflow=FALSE;
@@ -1217,7 +1222,7 @@ int lyapunov () {
         a = dypixel();
         b = dxpixel();
         }
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
     /*  the assembler routines don't work for a & b outside the
         ranges 0 < a < 4 and 0 < b < 4. So, fall back on the C
         routines if part of the image sticks out.
@@ -1280,8 +1285,8 @@ int lya_setup () {
     lyaLength = 1;
 
     i = (long)param[0];
-#ifndef XFRACT
-    if (save_release<1732) i &= 0x0FFFFL; /* make it a short to reporduce prior stuff*/
+#if !defined(XFRACT)
+    if (save_release<1732) i &= 0x0FFFFL; /* make it a short to reproduce prior stuff*/
 #endif
     lyaRxy[0] = 1;
     for (t=31; t>=0; t--)
@@ -1297,9 +1302,7 @@ int lya_setup () {
         if (inside==1) inside = 0;
         }
     if (inside<0) {
-        static FCODE msg[]=
-            {"Sorry, inside options other than inside=nnn are not supported by the lyapunov"};
-        stopmsg(0,(char far *)msg);
+        stopmsg(0,"Sorry, inside options other than inside=nnn are not supported by the lyapunov");
         inside=1;
         }
     if (usr_stdcalcmode == 'o') { /* Oops,lyapunov type */
@@ -1334,7 +1337,8 @@ int lyapunov_cycles_in_c(long filter_cycles, double a, double b) {
                 goto jumpout;
                 }
             temp = fabs(Rate-2.0*Rate*Population);
-                if ((total *= (temp))==0) {
+                total *= temp;
+				if (total==0) {
                 overflow = TRUE;
                 goto jumpout;
                 }
@@ -1387,11 +1391,7 @@ jumpout:
 
 #define CELLULAR_DONE 10
 
-#ifndef XFRACT
 static BYTE *cell_array[2];
-#else
-static BYTE far *cell_array[2];
-#endif
 
 S16 r, k_1, rule_digits;
 int lstscreenflag;
@@ -1405,47 +1405,43 @@ void abort_cellular(int err, int t)
          {
          char msg[30];
          sprintf(msg,"Bad t=%d, aborting\n", t);
-         stopmsg(0,(char far *)msg);
+         stopmsg(0, msg);
          }
          break;
       case BAD_MEM:
          {
-         static FCODE msg[]={"Insufficient free memory for calculation" };
-         stopmsg(0,msg);
+         stopmsg(0, "Insufficient free memory for calculation");
          }
          break;
       case STRING1:
          {
-         static FCODE msg[]={"String can be a maximum of 16 digits" };
-         stopmsg(0,msg);
+         stopmsg(0, "String can be a maximum of 16 digits");
          }
          break;
       case STRING2:
          {
-         static FCODE msg[]={"Make string of 0's through  's" };
+         static char msg[]={"Make string of 0's through  's" };
          msg[27] = (char)(k_1 + 48); /* turn into a character value */
          stopmsg(0,msg);
          }
          break;
       case TABLEK:
          {
-         static FCODE msg[]={"Make Rule with 0's through  's" };
+         static char msg[]={"Make Rule with 0's through  's" };
          msg[27] = (char)(k_1 + 48); /* turn into a character value */
          stopmsg(0,msg);
          }
          break;
       case TYPEKR:
          {
-         static FCODE msg[]={"Type must be 21, 31, 41, 51, 61, 22, 32, \
-42, 23, 33, 24, 25, 26, 27" };
-         stopmsg(0,msg);
+         stopmsg(0, "Type must be 21, 31, 41, 51, 61, 22, 32, 42, 23, 33, 24, 25, 26, 27");
          }
          break;
       case RULELENGTH:
          {
-         static FCODE msg[]={"Rule must be    digits long" };
+         static char msg[]={"Rule must be    digits long" };
          i = rule_digits / 10;
-         if(i==0)
+         if (i==0)
             msg[14] = (char)(rule_digits + 48);
          else {
             msg[13] = (char)(i+48);
@@ -1456,24 +1452,23 @@ void abort_cellular(int err, int t)
          break;
       case INTERUPT:
          {
-         static FCODE msg[]={"Interrupted, can't resume" };
-         stopmsg(0,msg);
+         stopmsg(0, "Interrupted, can't resume");
          }
          break;
       case CELLULAR_DONE:
          break;
    }
-   if(cell_array[0] != NULL)
-#ifndef XFRACT
+   if (cell_array[0] != NULL)
+#if !defined(XFRACT) && !defined(_WIN32)
       cell_array[0] = NULL;
 #else
-      farmemfree((char far *)cell_array[0]);
+      free((char *)cell_array[0]);
 #endif
-   if(cell_array[1] != NULL)
-#ifndef XFRACT
+   if (cell_array[1] != NULL)
+#if !defined(XFRACT) && !defined(_WIN32)
       cell_array[1] = NULL;
 #else
-      farmemfree((char far *)cell_array[1]);
+      free((char *)cell_array[1]);
 #endif
 }
 
@@ -1548,7 +1543,7 @@ int cellular () {
    if (!rflag) ++rseed;
 
 /* generate rule table from parameter 1 */
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
    n = param[1];
 #else
    /* gcc can't manage to convert a big double to an unsigned long properly. */
@@ -1585,14 +1580,14 @@ int cellular () {
 
 
    start_row = 0;
-#ifndef XFRACT
+#if !defined(XFRACT) && !defined(_WIN32)
   /* two 4096 byte arrays, at present at most 2024 + 1 bytes should be */
   /* needed in each array (max screen width + 1) */
    cell_array[0] = (BYTE *)&dstack[0]; /* dstack is in general.asm */
    cell_array[1] = (BYTE *)&boxy[0]; /* boxy is in general.asm */
 #else
-   cell_array[0] = (BYTE far *)farmemalloc(ixstop+1);
-   cell_array[1] = (BYTE far *)farmemalloc(ixstop+1);
+   cell_array[0] = (BYTE *)malloc(ixstop+1);
+   cell_array[1] = (BYTE *)malloc(ixstop+1);
 #endif
    if (cell_array[0]==NULL || cell_array[1]==NULL) {
       abort_cellular(BAD_MEM, 0);
@@ -1618,7 +1613,7 @@ int cellular () {
       start_row = -1; /* after 1st iteration its = 0 */
    }
    else {
-    if(rflag || randparam==0 || randparam==-1){
+    if (rflag || randparam==0 || randparam==-1){
       for (col=0;col<=ixstop;col++) {
          cell_array[filled][col] = (BYTE)(rand()%(int)k);
       }
@@ -1647,10 +1642,8 @@ int cellular () {
    if (lstscreenflag) { /* line number != 0 & not resuming & not continuing */
      U32 big_row;
      for (big_row = (U32)start_row; big_row < lnnmbr; big_row++) {
-      static FCODE msg[]={"Cellular thinking (higher start row takes longer)"};
-
-      thinking(1,msg);
-      if(rflag || randparam==0 || randparam==-1){
+      thinking(1, "Cellular thinking (higher start row takes longer)");
+      if (rflag || randparam==0 || randparam==-1){
        /* Use a random border */
        for (i=0;i<=(U16)r;i++) {
          cell_array[notfilled][i]=(BYTE)(rand()%(int)k);
@@ -1688,7 +1681,7 @@ int cellular () {
 
        filled = notfilled;
        notfilled = (S16)(1-filled);
-       if (keypressed()) {
+       if (driver_key_pressed()) {
           thinking(0, NULL);
           abort_cellular(INTERUPT, 0);
           return -1;
@@ -1703,7 +1696,7 @@ int cellular () {
 contloop:
    for (row = start_row; row <= iystop; row++) {
 
-      if(rflag || randparam==0 || randparam==-1){
+      if (rflag || randparam==0 || randparam==-1){
        /* Use a random border */
        for (i=0;i<=(U16)r;i++) {
          cell_array[notfilled][i]=(BYTE)(rand()%(int)k);
@@ -1742,14 +1735,14 @@ contloop:
        filled = notfilled;
        notfilled = (S16)(1-filled);
        put_line(row,0,ixstop,cell_array[filled]);
-       if (keypressed()) {
+       if (driver_key_pressed()) {
           abort_cellular(CELLULAR_DONE, 0);
           alloc_resume(10,1);
           put_resume(sizeof(row),&row,0);
           return -1;
        }
    }
-   if(nxtscreenflag) {
+   if (nxtscreenflag) {
      param[3] += iystop + 1;
      start_row = -1; /* after 1st iteration its = 0 */
      goto contloop;
@@ -1801,7 +1794,6 @@ static void set_Cellular_palette()
    dac[5].green = Brown.green;
    dac[5].blue  = Brown.blue;
 
-   SetTgaColors();
    spindac(0,1);
 }
 
@@ -1817,11 +1809,6 @@ static void set_Cellular_palette()
 #define FROTH_CRITICAL_A    1.028713768218725  /* 1.0287137682187249127 */
 #define froth_top_x_mapping(x)  ((x)*(x)-(x)-3*fsp->fl.f.a*fsp->fl.f.a/4)
 
-
-static char froth3_256c[] = "froth3.map";
-static char froth6_256c[] = "froth6.map";
-static char froth3_16c[] =  "froth316.map";
-static char froth6_16c[] =  "froth616.map";
 
 struct froth_double_struct {
     double a;
@@ -1875,23 +1862,23 @@ static void set_Froth_palette(void)
    {
    char *mapname;
 
-   if (colorstate != 0) /* 0 means dacbox matches default */
+   if (colorstate != 0) /* 0 means g_dac_box matches default */
       return;
    if (colors >= 16)
       {
       if (colors >= 256)
          {
          if (fsp->attractors == 6)
-            mapname = froth6_256c;
+            mapname = "froth6.map";
          else
-            mapname = froth3_256c;
+            mapname = "froth3.map";
          }
       else /* colors >= 16 */
          {
          if (fsp->attractors == 6)
-            mapname = froth6_16c;
+            mapname = "froth616.map";
          else
-            mapname = froth3_16c;
+            mapname = "froth316.map";
          }
       if (ValidateLuts(mapname) != 0)
          return;
@@ -1912,9 +1899,7 @@ int froth_setup(void)
       fsp = (struct froth_struct *)malloc(sizeof (struct froth_struct));
    if (fsp == NULL)
       {
-      static FCODE msg[]=
-          {"Sorry, not enough memory to run the frothybasin fractal type"};
-      stopmsg(0,(char far *)msg);
+      stopmsg(0, "Sorry, not enough memory to run the frothybasin fractal type");
       return 0;
       }
 
@@ -2049,11 +2034,11 @@ int calcfroth(void)   /* per pixel 1/2/g, called with row & col set */
 
    orbit_ptr = 0;
    coloriter = 0;
-   if(showdot>0)
+   if (showdot>0)
       (*plot) (col, row, showdot%colors);
    if (!integerfractal) /* fp mode */
       {
-      if(invert)
+      if (invert)
          {
          invertz2(&tmp);
          old = tmp;
@@ -2070,20 +2055,20 @@ int calcfroth(void)   /* per pixel 1/2/g, called with row & col set */
          {
          /* simple formula: z = z^2 + conj(z*(-1+ai)) */
          /* but it's the attractor that makes this so interesting */
-         new.x = tempsqrx - tempsqry - old.x - fsp->fl.f.a*old.y;
+         g_new.x = tempsqrx - tempsqry - old.x - fsp->fl.f.a*old.y;
          old.y += (old.x+old.x)*old.y - fsp->fl.f.a*old.x;
-         old.x = new.x;
+         old.x = g_new.x;
          if (fsp->repeat_mapping)
             {
-            new.x = sqr(old.x) - sqr(old.y) - old.x - fsp->fl.f.a*old.y;
+            g_new.x = sqr(old.x) - sqr(old.y) - old.x - fsp->fl.f.a*old.y;
             old.y += (old.x+old.x)*old.y - fsp->fl.f.a*old.x;
-            old.x = new.x;
+            old.x = g_new.x;
             }
 
          coloriter++;
 
          if (show_orbit) {
-            if (keypressed())
+            if (driver_key_pressed())
                break;
             plot_orbit(old.x, old.y, -1);
          }
@@ -2147,7 +2132,7 @@ int calcfroth(void)   /* per pixel 1/2/g, called with row & col set */
       }
    else /* integer mode */
       {
-      if(invert)
+      if (invert)
          {
          invertz2(&tmp);
          lold.x = (long)(tmp.x * fudge);
@@ -2179,7 +2164,7 @@ int calcfroth(void)   /* per pixel 1/2/g, called with row & col set */
          coloriter++;
 
          if (show_orbit) {
-            if (keypressed())
+            if (driver_key_pressed())
                break;
             iplot_orbit(lold.x, lold.y, -1);
          }
@@ -2344,18 +2329,18 @@ int froth_per_orbit(void)
    {
    if (!integerfractal) /* fp mode */
       {
-      new.x = tempsqrx - tempsqry - old.x - fsp->fl.f.a*old.y;
-      new.y = 2.0*old.x*old.y - fsp->fl.f.a*old.x + old.y;
+      g_new.x = tempsqrx - tempsqry - old.x - fsp->fl.f.a*old.y;
+      g_new.y = 2.0*old.x*old.y - fsp->fl.f.a*old.x + old.y;
       if (fsp->repeat_mapping)
         {
-        old = new;
-        new.x = sqr(old.x) - sqr(old.y) - old.x - fsp->fl.f.a*old.y;
-        new.y = 2.0*old.x*old.y - fsp->fl.f.a*old.x + old.y;
+        old = g_new;
+        g_new.x = sqr(old.x) - sqr(old.y) - old.x - fsp->fl.f.a*old.y;
+        g_new.y = 2.0*old.x*old.y - fsp->fl.f.a*old.x + old.y;
         }
 
-      if ((tempsqrx=sqr(new.x)) + (tempsqry=sqr(new.y)) >= rqlim)
+      if ((tempsqrx=sqr(g_new.x)) + (tempsqry=sqr(g_new.y)) >= rqlim)
          return 1;
-      old = new;
+      old = g_new;
       }
    else  /* integer mode */
       {

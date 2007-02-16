@@ -14,6 +14,7 @@
   /* see Fractint.c for a description of the "include"  hierarchy */
 #include "port.h"
 #include "prototyp.h"
+#include "drivers.h"
 
 struct point
 {
@@ -43,7 +44,7 @@ static int first_time(int, VECTOR);
 static int H_R(BYTE *, BYTE *, BYTE *, unsigned long, unsigned long, unsigned long);
 static int line3dmem(void);
 static int R_H(BYTE, BYTE, BYTE, unsigned long *, unsigned long *, unsigned long *);
-static int set_pixel_buff(BYTE *, BYTE far *, unsigned);
+static int set_pixel_buff(BYTE *, BYTE *, unsigned);
 int startdisk1(char *, FILE *, int);
 static void set_upr_lwr(void);
 static int _fastcall end_object(int);
@@ -80,7 +81,7 @@ static float twocosdeltaphi;
 static float cosphi, sinphi;    /* precalculated sin/cos of longitude */
 static float oldcosphi1, oldsinphi1;
 static float oldcosphi2, oldsinphi2;
-static BYTE far *fraction;      /* float version of pixels array */
+static BYTE *fraction;      /* float version of pixels array */
 static float min_xyz[3], max_xyz[3];        /* For Raytrace output */
 static int line_length1;
 static int T_header_24 = 18;/* Size of current Targa-24 header */
@@ -96,22 +97,12 @@ static int T_Safe; /* Original Targa Image successfully copied to targa_temp */
 static VECTOR light_direction;
 static BYTE Real_Color;  /* Actual color of cur pixel */
 static int RO, CO, CO_MAX;  /* For use in Acrospin support */
-static FCODE acro_s1[] =
-   {"Set Layer 1\nSet Color 2\nEndpointList X Y Z Name\n"};
-static FCODE acro_s2[] = {"LineList From To\n"};
-static FCODE s3[] = {"{ Created by FRACTINT Ver. "};
-static FCODE s3a[] = {" }\n\n"};
-#ifndef XFRACT
-static char banner[] = "%Fs%#4.2f%Fs";
-#else
-static char banner[] = "%s%#4.2f%s";
-#endif
 static int localpreviewfactor;
 static int zcoord = 256;
 static double aspect;       /* aspect ratio */
 static int evenoddrow;
-static float far *sinthetaarray;    /* all sine thetas go here  */
-static float far *costhetaarray;    /* all cosine thetas go here */
+static float *sinthetaarray;    /* all sine thetas go here  */
+static float *costhetaarray;    /* all cosine thetas go here */
 static double rXrscale;     /* precalculation factor */
 static int persp;  /* flag for indicating perspective transformations */
 static struct point p1, p2, p3;
@@ -120,7 +111,7 @@ static struct point bad;    /* out of range value */
 static long num_tris; /* number of triangles output to ray trace file */
 
 /* global variables defined here */
-struct f_point far *f_lastrow;
+struct f_point *f_lastrow = NULL;
 void (_fastcall * standardplot) (int, int, int);
 MATRIX m; /* transformation matrix */
 int Ambient;
@@ -144,17 +135,17 @@ int xshift;
 int yshift;
 int bad_value = -10000; /* set bad values to this */
 int bad_check = -3000;  /* check values against this to determine if good */
-struct point far *lastrow; /* this array remembers the previous line */
+struct point *lastrow = NULL; /* this array remembers the previous line */
 int RAY = 0;        /* Flag to generate Ray trace compatible files in 3d */
 int BRIEF = 0;      /* 1 = short ray trace files */
 
 /* array of min and max x values used in triangle fill */
-struct minmax far *minmax_x;
+static struct minmax *minmax_x;
 VECTOR view;                /* position of observer for perspective */
 VECTOR cross;
-VECTOR tmpcross;
+static VECTOR tmpcross;
 
-struct point oldlast = { 0, 0, 0 }; /* old pixels */
+static struct point oldlast = { 0, 0, 0 }; /* old pixels */
 
 
 int line3d(BYTE * pixels, unsigned linelen)
@@ -191,7 +182,7 @@ int line3d(BYTE * pixels, unsigned linelen)
                                  * clipping */
       plot = normalplot = clipcolor;
 
-   currow = rowcount;           /* use separate variable to allow for
+   currow = g_row_count;           /* use separate variable to allow for
                                  * pot16bit files */
    if (pot16bit)
       currow >>= 1;
@@ -202,13 +193,13 @@ int line3d(BYTE * pixels, unsigned linelen)
    /* communication with the rest of the program is generally via static   */
    /* or global variables.                                                 */
    /************************************************************************/
-   if (rowcount++ == 0)
+   if (g_row_count++ == 0)
    {
       int err;
       if ((err = first_time(linelen, v)) != 0)
-         return (err);
-      if(xdots > OLDMAXPIXELS)
-         return(-1);
+         return err;
+      if (xdots > OLDMAXPIXELS)
+         return -1;
       tout = 0;
       crossavg[0] = 0;
       crossavg[1] = 0;
@@ -224,7 +215,7 @@ int line3d(BYTE * pixels, unsigned linelen)
    if (pot16bit)
    {
       if (set_pixel_buff(pixels, fraction, linelen))
-         return (0);
+         return 0;
    }
    else if (grayflag)           /* convert color numbers to grayscale values */
       for (col = 0; col < (int) linelen; col++)
@@ -232,9 +223,9 @@ int line3d(BYTE * pixels, unsigned linelen)
          int pal, colornum;
          colornum = pixels[col];
          /* effectively (30*R + 59*G + 11*B)/100 scaled 0 to 255 */
-         pal = ((int) dacbox[colornum][0] * 77 +
-                (int) dacbox[colornum][1] * 151 +
-                (int) dacbox[colornum][2] * 28);
+         pal = ((int) g_dac_box[colornum][0] * 77 +
+                (int) g_dac_box[colornum][1] * 151 +
+                (int) g_dac_box[colornum][2] * 28);
          pal >>= 6;
          pixels[col] = (BYTE) pal;
       }
@@ -277,15 +268,10 @@ int line3d(BYTE * pixels, unsigned linelen)
        !(!RAY && (FILLTYPE > 4) && (currow == 1)))
       /* Get init geometry in lightsource modes */
       goto reallythebottom;     /* skip over most of the line3d calcs */
-   if (dotmode == 11)
+   if (driver_diskp())
    {
-      static FCODE mapping[] = {"mapping to 3d, reading line "};
       char s[40];
-#ifndef XFRACT
-      sprintf(s, "%Fs%d", (char far *)mapping, currow);
-#else
-      sprintf(s, "%s%d", mapping, currow);
-#endif
+      sprintf(s, "mapping to 3d, reading line %d", currow);
       dvid_status(1, s);
    }
 
@@ -301,7 +287,7 @@ int line3d(BYTE * pixels, unsigned linelen)
              (!(!RAY && FILLTYPE > 4 && col == 1)))
             goto loopbottom;
 
-         f_cur.color = cur.color = Real_Color = pixels[col];
+         f_cur.color = (float) (cur.color = Real_Color = pixels[col]);
 
          if (RAY || preview || FILLTYPE < 0)
          {
@@ -315,7 +301,7 @@ int line3d(BYTE * pixels, unsigned linelen)
             next = lastdot;
 
          if (cur.color > 0 && cur.color < WATERLINE)
-            f_cur.color = cur.color = Real_Color = (BYTE)WATERLINE; /* "lake" */
+            f_cur.color = (float) (cur.color = Real_Color = (BYTE)WATERLINE); /* "lake" */
          else if (pot16bit)
             f_cur.color += ((float) fraction[col]) / (float) (1 << 8);
 
@@ -332,7 +318,7 @@ int line3d(BYTE * pixels, unsigned linelen)
             }
             /************************************************************/
             /* KEEP THIS FOR DOCS - original formula --                 */
-            /* if(rscale < 0.0)                                         */
+            /* if (rscale < 0.0)                                         */
             /* r = 1.0+((double)cur.color/(double)zcoord)*rscale;       */
             /* else                                                     */
             /* r = 1.0-rscale+((double)cur.color/(double)zcoord)*rscale;*/
@@ -534,10 +520,10 @@ int line3d(BYTE * pixels, unsigned linelen)
 
                tout = 1;
 
-               draw_line(old.x, old.y, cur.x, cur.y, old.color);
-               draw_line(old.x, old.y, lastrow[col].x,
+               driver_draw_line(old.x, old.y, cur.x, cur.y, old.color);
+               driver_draw_line(old.x, old.y, lastrow[col].x,
                          lastrow[col].y, old.color);
-               draw_line(lastrow[col].x, lastrow[col].y,
+               driver_draw_line(lastrow[col].x, lastrow[col].y,
                          cur.x, cur.y, cur.color);
                num_tris++;
             }
@@ -566,11 +552,11 @@ int line3d(BYTE * pixels, unsigned linelen)
 
                tout = 1;
 
-               draw_line(lastrow[col].x, lastrow[col].y, cur.x, cur.y,
+               driver_draw_line(lastrow[col].x, lastrow[col].y, cur.x, cur.y,
                          cur.color);
-               draw_line(lastrow[next].x, lastrow[next].y, cur.x, cur.y,
+               driver_draw_line(lastrow[next].x, lastrow[next].y, cur.x, cur.y,
                          cur.color);
-               draw_line(lastrow[next].x, lastrow[next].y, lastrow[col].x,
+               driver_draw_line(lastrow[next].x, lastrow[next].y, lastrow[col].x,
                          lastrow[col].y, lastrow[col].color);
                num_tris++;
             }
@@ -592,13 +578,13 @@ int line3d(BYTE * pixels, unsigned linelen)
             if (col &&
                 old.x > bad_check &&
                 old.x < (xdots - bad_check))
-               draw_line(old.x, old.y, cur.x, cur.y, cur.color);
+               driver_draw_line(old.x, old.y, cur.x, cur.y, cur.color);
             if (currow &&
                 lastrow[col].x > bad_check &&
                 lastrow[col].y > bad_check &&
                 lastrow[col].x < (xdots - bad_check) &&
                 lastrow[col].y < (ydots - bad_check))
-               draw_line(lastrow[col].x, lastrow[col].y, cur.x,
+               driver_draw_line(lastrow[col].x, lastrow[col].y, cur.x,
                          cur.y, cur.color);
             break;
 
@@ -611,7 +597,7 @@ int line3d(BYTE * pixels, unsigned linelen)
                 old.x > bad_check &&
                 old.y > bad_check)      /* Don't draw from old to cur on col
                                          * 0 */
-               draw_line(old.x, old.y, cur.x, cur.y, cur.color);
+               driver_draw_line(old.x, old.y, cur.x, cur.y, cur.color);
             break;
 
          case 2:                /* with interpolation */
@@ -686,7 +672,7 @@ int line3d(BYTE * pixels, unsigned linelen)
                old.y = 0;
             if (old.y >= ydots)
                old.y = ydots - 1;
-            draw_line(old.x, old.y, cur.x, cur.y, cur.color);
+            driver_draw_line(old.x, old.y, cur.x, cur.y, cur.color);
             break;
 
          case 5:
@@ -713,10 +699,9 @@ int line3d(BYTE * pixels, unsigned linelen)
                {
                   if (debugflag)
                   {
-                     static FCODE msg[] = {"debug, cur.color=bad"};
-                     stopmsg(0, msg);
+                     stopmsg(0, "debug, cur.color=bad");
                   }
-                  cur.color = (int)(f_cur.color = bad.color);
+                  cur.color = (int)(f_cur.color = (float) bad.color);
                }
                else
                {
@@ -745,12 +730,11 @@ int line3d(BYTE * pixels, unsigned linelen)
                         /* this shouldn't happen */
                         if (debugflag)
                         {
-                           static FCODE msg[] = {"debug, normal vector err2"};
-                           stopmsg(0, msg);
+                           stopmsg(0, "debug, normal vector err2");
                            /* use next instead if you ever need details:
-                            * static char far tmp[] = {"debug, vector err"};
+                            * static char tmp[] = {"debug, vector err"};
                             * char msg[200]; #ifndef XFRACT
-                            * sprintf(msg,"%Fs\n%f %f %f\n%f %f %f\n%f %f
+                            * sprintf(msg,"%s\n%f %f %f\n%f %f %f\n%f %f
                             * %f", #else sprintf(msg,"%s\n%f %f %f\n%f %f
                             * %f\n%f %f %f", #endif tmp, f_cur.x, f_cur.y,
                             * f_cur.color, f_lastrow[col].x,
@@ -759,7 +743,7 @@ int line3d(BYTE * pixels, unsigned linelen)
                             * f_lastrow[col-1].y,f_lastrow[col-1].color);
                             * stopmsg(0,msg); */
                         }
-                        cur.color = (int)(f_cur.color = colors);
+                        cur.color = (int)(f_cur.color = (float) colors);
                      }
                   }
                   crossavg[0] = tmpcross[0];
@@ -819,7 +803,7 @@ int line3d(BYTE * pixels, unsigned linelen)
                   fclose(File_Ptr1);
                   remove(light_name);
                   File_Error(ray_name, 2);
-                  return (-1);
+                  return -1;
                }
             }
          }
@@ -847,7 +831,7 @@ int line3d(BYTE * pixels, unsigned linelen)
          oldcosphi2 = cosphi;
       }
    }
-   return (0);                  /* decoder needs to know all is well !!! */
+   return 0;                  /* decoder needs to know all is well !!! */
 }
 
 /* vector version of line draw */
@@ -858,7 +842,7 @@ static void _fastcall vdraw_line(double *v1, double *v2, int color)
    y1 = (int) v1[1];
    x2 = (int) v2[0];
    y2 = (int) v2[1];
-   draw_line(x1, y1, x2, y2, color);
+   driver_draw_line(x1, y1, x2, y2, color);
 }
 
 static void corners(MATRIX m, int show, double *pxmin, double *pymin, double *pzmin, double *pxmax, double *pymax, double *pzmax)
@@ -1090,14 +1074,14 @@ static void _fastcall putatriangle(struct point pt1, struct point pt2, struct po
       if (p1.y == p3.y && p1.x == p3.x)
          (*plot) (p1.x, p1.y, color);
       else
-         draw_line(p1.x, p1.y, p3.x, p3.y, color);
+         driver_draw_line(p1.x, p1.y, p3.x, p3.y, color);
       plot = normalplot;
       return;
    }
    else if ((p3.y == p1.y && p3.x == p1.x) || (p3.y == p2.y && p3.x == p2.x))
    {
       plot = fillplot;
-      draw_line(p1.x, p1.y, p2.x, p2.y, color);
+      driver_draw_line(p1.x, p1.y, p2.x, p2.y, color);
       plot = normalplot;
       return;
    }
@@ -1129,9 +1113,9 @@ static void _fastcall putatriangle(struct point pt1, struct point pt2, struct po
    plot = putminmax;
 
    /* build table of extreme x's of triangle */
-   draw_line(p1.x, p1.y, p2.x, p2.y, 0);
-   draw_line(p2.x, p2.y, p3.x, p3.y, 0);
-   draw_line(p3.x, p3.y, p1.x, p1.y, 0);
+   driver_draw_line(p1.x, p1.y, p2.x, p2.y, 0);
+   driver_draw_line(p2.x, p2.y, p3.x, p3.y, 0);
+   driver_draw_line(p3.x, p3.y, p1.x, p1.y, 0);
 
    for (y = miny; y <= maxy; y++)
    {
@@ -1148,10 +1132,10 @@ static int _fastcall offscreen(struct point pt)
       if (pt.x < xdots)
          if (pt.y >= 0)
             if (pt.y < ydots)
-               return (0);      /* point is ok */
+               return 0;      /* point is ok */
    if (abs(pt.x) > 0 - bad_check || abs(pt.y) > 0 - bad_check)
-      return (99);              /* point is bad */
-   return (1);                  /* point is off the screen */
+      return 99;              /* point is bad */
+   return 1;                  /* point is off the screen */
 }
 
 static void _fastcall clipcolor(int x, int y, int color)
@@ -1164,7 +1148,7 @@ static void _fastcall clipcolor(int x, int y, int color)
 
       if (Targa_Out)
          /* standardplot modifies color in these types */
-         if (!(glassestype == 1 || glassestype == 2))
+         if (!(g_glasses_type == 1 || g_glasses_type == 2))
             targa_color(x, y, color);
    }
 }
@@ -1186,7 +1170,7 @@ static void _fastcall T_clipcolor(int x, int y, int color)
       standardplot(x, y, color);/* I guess we can plot then  */
       if (Targa_Out)
          /* standardplot modifies color in these types */
-         if (!(glassestype == 1 || glassestype == 2))
+         if (!(g_glasses_type == 1 || g_glasses_type == 2))
             targa_color(x, y, color);
    }
 }
@@ -1229,7 +1213,7 @@ static void _fastcall interpcolor(int x, int y, int color)
    {
       if (Targa_Out)
          /* standardplot modifies color in these types */
-         if (!(glassestype == 1 || glassestype == 2))
+         if (!(g_glasses_type == 1 || g_glasses_type == 2))
             D = targa_color(x, y, color);
 
       if (FILLTYPE >= 5) {
@@ -1260,7 +1244,7 @@ int _fastcall targa_color(int x, int y, int color)
    unsigned long H, S, V;
    BYTE RGB[3];
 
-   if (FILLTYPE == 2 || glassestype == 1 || glassestype == 2 || truecolor)
+   if (FILLTYPE == 2 || g_glasses_type == 1 || g_glasses_type == 2 || truecolor)
       Real_Color = (BYTE)color;       /* So Targa gets interpolated color */
 
    switch (truemode)
@@ -1268,9 +1252,9 @@ int _fastcall targa_color(int x, int y, int color)
       case 0:
       default:
       {
-         RGB[0] = (BYTE)(dacbox[Real_Color][0] << 2); /* Move color space to */
-         RGB[1] = (BYTE)(dacbox[Real_Color][1] << 2); /* 256 color primaries */
-         RGB[2] = (BYTE)(dacbox[Real_Color][2] << 2); /* from 64 colors */
+         RGB[0] = (BYTE)(g_dac_box[Real_Color][0] << 2); /* Move color space to */
+         RGB[1] = (BYTE)(g_dac_box[Real_Color][1] << 2); /* 256 color primaries */
+         RGB[2] = (BYTE)(g_dac_box[Real_Color][2] << 2); /* from 64 colors */
          break;
       }
       case 1:
@@ -1286,7 +1270,7 @@ int _fastcall targa_color(int x, int y, int color)
    R_H(RGB[0], RGB[1], RGB[2], &H, &S, &V);
 
    /* Modify original S and V components */
-   if (FILLTYPE > 4 && !(glassestype == 1 || glassestype == 2))
+   if (FILLTYPE > 4 && !(g_glasses_type == 1 || g_glasses_type == 2))
       /* Adjust for Ambient */
       V = (V * (65535L - (unsigned) (color * IAmbient))) / 65535L;
 
@@ -1317,10 +1301,10 @@ int _fastcall targa_color(int x, int y, int color)
    /* on the disk. */
    targa_writedisk(x + sxoffs, y + syoffs, RGB[0], RGB[1], RGB[2]);
 
-   return ((int) (255 - V));
+   return (int) (255 - V);
 }
 
-static int set_pixel_buff(BYTE * pixels, BYTE far * fraction, unsigned linelen)
+static int set_pixel_buff(BYTE * pixels, BYTE * fraction, unsigned linelen)
 {
    int i;
    if ((evenoddrow++ & 1) == 0) /* even rows are color value */
@@ -1328,7 +1312,7 @@ static int set_pixel_buff(BYTE * pixels, BYTE far * fraction, unsigned linelen)
       for (i = 0; i < (int) linelen; i++)       /* add the fractional part in
                                                  * odd row */
          fraction[i] = pixels[i];
-      return (1);
+      return 1;
    }
    else
       /* swap */
@@ -1341,7 +1325,7 @@ static int set_pixel_buff(BYTE * pixels, BYTE far * fraction, unsigned linelen)
          fraction[i] = tmp;
       }
    }
-   return (0);
+   return 0;
 }
 
 /**************************************************************************
@@ -1351,19 +1335,6 @@ static int set_pixel_buff(BYTE * pixels, BYTE far * fraction, unsigned linelen)
 
 **************************************************************************/
 
-#ifndef XFRACT
-static char s_f[] = "%Fs%Fs";
-static char s_fff[] = "%Fs%Fs%Fs";
-#else
-static char s_f[] = "%s%s";
-static char s_fff[] = "%s%s%s";
-#endif
-static FCODE OOPS[] = {"OOPS, "};
-static FCODE E1[] = {"can't handle this type of file.\n"};
-static FCODE str1[] = {"couldn't open  < "};
-static FCODE str3[] = {"image wrong size\n"};
-static FCODE outofdisk[] = {"ran out of disk space. < "};
-
 static void File_Error(char *File_Name1, int ERROR)
 {
    char msgbuf[200];
@@ -1372,24 +1343,16 @@ static void File_Error(char *File_Name1, int ERROR)
    switch (ERROR)
    {
    case 1:                      /* Can't Open */
-#ifndef XFRACT
-      sprintf(msgbuf, "%Fs%Fs%s >", (char far *)OOPS, (char far *)str1, File_Name1);
-#else
-      sprintf(msgbuf, "%s%s%s >", OOPS, str1, File_Name1);
-#endif
+      sprintf(msgbuf, "OOPS, couldn't open  < %s >", File_Name1);
       break;
    case 2:                      /* Not enough room */
-#ifndef XFRACT
-      sprintf(msgbuf, "%Fs%Fs%s >", (char far *)OOPS, (char far *)outofdisk, File_Name1);
-#else
-      sprintf(msgbuf, "%s%s%s >", OOPS, outofdisk, File_Name1);
-#endif
+      sprintf(msgbuf, "OOPS, ran out of disk space. < %s >", File_Name1);
       break;
    case 3:                      /* Image wrong size */
-      sprintf(msgbuf, s_f, (char far *)OOPS, (char far *)str3);
+      sprintf(msgbuf, "OOPS, image wrong size\n");
       break;
    case 4:                      /* Wrong file type */
-      sprintf(msgbuf, s_f, (char far *)OOPS, (char far *)E1);
+      sprintf(msgbuf, "OOPS, can't handle this type of file.\n");
       break;
    }
    stopmsg(0, msgbuf);
@@ -1419,10 +1382,11 @@ int startdisk1(char *File_Name2, FILE * Source, int overlay)
    FILE *fps;
 
    /* Open File for both reading and writing */
-   if ((fps = dir_fopen(workdir,File_Name2, "w+b")) == NULL)
+   fps = dir_fopen(workdir,File_Name2, "w+b");
+   if (fps == NULL)
    {
       File_Error(File_Name2, 1);
-      return (-1);              /* Oops, somethings wrong! */
+      return -1;              /* Oops, somethings wrong! */
    }
 
    inc = 1;                     /* Assume we are overlaying a file */
@@ -1455,7 +1419,7 @@ int startdisk1(char *File_Name2, FILE * Source, int overlay)
       inc = 3;
    }
 
-   if(truecolor) /* write maxit */
+   if (truecolor) /* write maxit */
    {
       fputc((BYTE)(maxit       & 0xff), fps);
       fputc((BYTE)((maxit>>8 ) & 0xff), fps);
@@ -1478,38 +1442,36 @@ int startdisk1(char *File_Name2, FILE * Source, int overlay)
       {
          /* Almost certainly not enough disk space  */
          fclose(fps);
-         if(overlay)
+         if (overlay)
             fclose(Source);
          dir_remove(workdir,File_Name2);
          File_Error(File_Name2, 2);
-         return (-2);
+         return -2;
       }
-      if (keypressed())
-         return (-3);
+      if (driver_key_pressed())
+         return -3;
    }
 
    if (targa_startdisk(fps, T_header_24) != 0)
    {
       enddisk();
       dir_remove(workdir,File_Name2);
-      return (-4);
+      return -4;
    }
-   return (0);
+   return 0;
 }
 
 int targa_validate(char *File_Name)
 {
    FILE *fp;
    int i;
-#if 0
-   int j = 0;
-#endif
 
    /* Attempt to open source file for reading */
-   if ((fp = dir_fopen(workdir,File_Name, "rb")) == NULL)
+   fp = dir_fopen(workdir,File_Name, "rb");
+   if (fp == NULL)
    {
       File_Error(File_Name, 1);
-      return (-1);              /* Oops, file does not exist */
+      return -1;              /* Oops, file does not exist */
    }
 
    T_header_24 += fgetc(fp);    /* Check ID field and adjust header size */
@@ -1517,13 +1479,13 @@ int targa_validate(char *File_Name)
    if (fgetc(fp))               /* Make sure this is an unmapped file */
    {
       File_Error(File_Name, 4);
-      return (-1);
+      return -1;
    }
 
    if (fgetc(fp) != 2)          /* Make sure it is a type 2 file */
    {
       File_Error(File_Name, 4);
-      return (-1);
+      return -1;
    }
 
    /* Skip color map specification */
@@ -1534,20 +1496,13 @@ int targa_validate(char *File_Name)
    {
       /* Check image origin */
       fgetc(fp);
-#if 0
-      if (j != 0)
-      {
-         File_Error(File_Name, 4);
-         return (-1);
-      }
-#endif
    }
    /* Check Image specs */
    for (i = 0; i < 4; i++)
       if (fgetc(fp) != (int) upr_lwr[i])
       {
          File_Error(File_Name, 3);
-         return (-1);
+         return -1;
       }
 
    if (fgetc(fp) != (int) T24)
@@ -1557,19 +1512,19 @@ int targa_validate(char *File_Name)
    if (error == 4)
    {
       File_Error(File_Name, 4);
-      return (-1);
+      return -1;
    }
    rewind(fp);
 
    /* Now that we know its a good file, create a working copy */
    if (startdisk1(targa_temp, fp, 1))
-      return (-1);
+      return -1;
 
    fclose(fp);                  /* Close the source */
 
    T_Safe = 1;                  /* Original file successfully copied to
                                  * targa_temp */
-   return (0);
+   return 0;
 }
 
 static int R_H(BYTE R, BYTE G, BYTE B, unsigned long *H, unsigned long *S, unsigned long *V)
@@ -1606,13 +1561,13 @@ static int R_H(BYTE R, BYTE G, BYTE B, unsigned long *H, unsigned long *S, unsig
    {
       *H = 0;
       *V = *V << 8;
-      return (1);               /* v or s or both are 0 */
+      return 1;               /* v or s or both are 0 */
    }
    if (*V == MIN)
    {
       *H = 0;
       *V = *V << 8;
-      return (0);
+      return 0;
    }
    R1 = (((*V - R) * 60) << 6) / DENOM; /* distance of color from red   */
    G1 = (((*V - G) * 60) << 6) / DENOM; /* distance of color from green */
@@ -1636,7 +1591,7 @@ static int R_H(BYTE R, BYTE G, BYTE B, unsigned long *H, unsigned long *S, unsig
          *H = (300 << 6) - R1;
     }
    *V = *V << 8;
-   return (0);
+   return 0;
 }
 
 static int H_R(BYTE *R, BYTE *G, BYTE *B, unsigned long H, unsigned long S, unsigned long V)
@@ -1686,7 +1641,7 @@ static int H_R(BYTE *R, BYTE *G, BYTE *B, unsigned long H, unsigned long S, unsi
       *B = (BYTE) P2;
       break;
    }
-   return (0);
+   return 0;
 }
 
 
@@ -1731,69 +1686,13 @@ static int H_R(BYTE *R, BYTE *G, BYTE *B, unsigned long H, unsigned long S, unsi
 /*                                                                  */
 /********************************************************************/
 
-static FCODE declare[] = {"DECLARE       "};
-static FCODE frac_default[] = {"F_Dflt"};
-static FCODE s_color[] = {"COLOR  "};
-static FCODE dflt[] = {"RED 0.8 GREEN 0.4 BLUE 0.1\n"};
-static FCODE d_color[] = {"0.8 0.4 0.1"};
-static FCODE r_surf[] = {"0.95 0.05 5 0 0\n"};
-static FCODE surf[] = {"surf={diff="};
-/* EB & DG: changed "surface T" to "applysurf" and "diff" to "diffuse" */
-static FCODE rs_surf[] = {"applysurf diffuse "};
-static FCODE end[] = {"END_"};
-static FCODE plane[] = {"PLANE"};
-static FCODE m1[] = {"-1.0 "};
-static FCODE one[] = {" 1.0 "};
-static FCODE z[] = {" 0.0 "};
-static FCODE bnd_by[] = {" BOUNDED_BY\n"};
-static FCODE end_bnd[] = {" END_BOUND\n"};
-static FCODE inter[] = {"INTERSECTION\n"};
-#ifndef XFRACT
-static char fmt[] = "   %Fs <%Fs%Fs%Fs> % #4.3f %Fs%Fs\n";
-#else
-static char fmt[] = "   %s <%s%s%s> % #4.3f %s%s\n";
-#endif
-static char dxf_begin[] =
-{"  0\nSECTION\n  2\nTABLES\n  0\nTABLE\n  2\nLAYER\n\
- 70\n     2\n  0\nLAYER\n  2\n0\n 70\n     0\n 62\n     7\n  6\nCONTINUOUS\n\
-  0\nLAYER\n  2\nFRACTAL\n 70\n    64\n 62\n     1\n  6\nCONTINUOUS\n  0\n\
-ENDTAB\n  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES\n"};
-static char dxf_3dface[] = {"  0\n3DFACE\n  8\nFRACTAL\n 62\n%3d\n"};
-static char dxf_vertex[] = {"%3d\n%g\n"};
-static char dxf_end[] = {"  0\nENDSEC\n  0\nEOF\n"};
-static FCODE composite[] = {"COMPOSITE"};
-static FCODE object[] = {"OBJECT"};
-static FCODE triangle[] = {"TRIANGLE "};
-static FCODE l_tri[] = {"triangle"};
-static FCODE texture[] = {"TEXTURE\n"};
-/* static FCODE end_texture[] = {" END_TEXTURE\n"}; */
-static FCODE red[] = {"RED"};
-static FCODE green[] = {"GREEN"};
-static FCODE blue[] = {"BLUE"};
-static FCODE frac_texture[] = {"      AMBIENT 0.25 DIFFUSE 0.75"};
-static FCODE polygon[] = {"polygon={points=3;"};
-static FCODE vertex[] = {" vertex =  "};
-static FCODE d_vert[] = {"      <"};
-static char f1[] = "% #4.4f ";
-/* EB & DG: changed this to much better values */
-static FCODE grid[] =
-{"screen 640 480\neyep 0 2.1 0.8\nlookp 0 0 -0.95\nlight 1 point -2 1 1.5\n"};
-static FCODE grid2[] = {"background .3 0 0\nreport verbose\n"};
-
-static char s_n[] = "\n";
-static char f2[] = "R%dC%d R%dC%d\n";
-static FCODE ray_comment1[] =
-   {"/* make a gridded aggregate. this size grid is fast for landscapes. */\n"};
-static FCODE ray_comment2[] =
-   {"/* make z grid = 1 always for landscapes. */\n\n"};
-static FCODE grid3[] = {"grid 33 25 1\n"};
-
 static int _fastcall RAY_Header(void)
 {
    /* Open the ray tracing output file */
    check_writefile(ray_name, ".ray");
-   if ((File_Ptr1 = fopen(ray_name, "w")) == NULL)
-      return (-1);              /* Oops, somethings wrong! */
+   File_Ptr1 = fopen(ray_name, "w");
+   if (File_Ptr1 == NULL)
+      return -1;              /* Oops, somethings wrong! */
 
    if (RAY == 2)
       fprintf(File_Ptr1, "//");
@@ -1804,10 +1703,13 @@ static int _fastcall RAY_Header(void)
    if (RAY == 6)
       fprintf(File_Ptr1, "--");
    if (RAY == 7)
-      fprintf(File_Ptr1, dxf_begin);
+      fprintf(File_Ptr1, "  0\nSECTION\n  2\nTABLES\n  0\nTABLE\n  2\nLAYER\n\
+ 70\n     2\n  0\nLAYER\n  2\n0\n 70\n     0\n 62\n     7\n  6\nCONTINUOUS\n\
+  0\nLAYER\n  2\nFRACTAL\n 70\n    64\n 62\n     1\n  6\nCONTINUOUS\n  0\n\
+ENDTAB\n  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES\n");
 
    if (RAY != 7)
-      fprintf(File_Ptr1, banner, (char far *)s3, release / 100., (char far *)s3a);
+      fprintf(File_Ptr1, "{ Created by FRACTINT Ver. %#4.2f }\n\n", g_release / 100.);
 
    if (RAY == 5)
       fprintf(File_Ptr1, "*/\n");
@@ -1816,40 +1718,35 @@ static int _fastcall RAY_Header(void)
    /* Set the default color */
    if (RAY == 1)
    {
-      fprintf(File_Ptr1, s_f, (char far *)declare, (char far *)frac_default);
-      fprintf(File_Ptr1, " = ");
-      fprintf(File_Ptr1, s_f, (char far *)s_color, (char far *)dflt);
+      fprintf(File_Ptr1, "DECLARE       F_Dflt = COLOR  RED 0.8 GREEN 0.4 BLUE 0.1\n");
    }
    if (BRIEF)
    {
       if (RAY == 2)
       {
-         fprintf(File_Ptr1, s_f, (char far *)surf, (char far *)d_color);
-         fprintf(File_Ptr1, ";}\n");
+         fprintf(File_Ptr1, "surf={diff=0.8 0.4 0.1;}\n");
       }
       if (RAY == 4)
       {
-         fprintf(File_Ptr1, "f ");
-         fprintf(File_Ptr1, s_f, (char far *)d_color, (char far *)r_surf);
+         fprintf(File_Ptr1, "f 0.8 0.4 0.1 0.95 0.05 5 0 0\n");
       }
       if (RAY == 5)
-         fprintf(File_Ptr1, s_f, (char far *)rs_surf, (char far *)d_color);
+         fprintf(File_Ptr1, "applysurf diffuse 0.8 0.4 0.1");
    }
    if (RAY != 7)
-      fprintf(File_Ptr1, s_n);
+      fprintf(File_Ptr1, "\n");
 
    /* EB & DG: open "grid" opject, a speedy way to do aggregates in rayshade */
    if (RAY == 5)
-      fprintf(File_Ptr1, s_fff, (char far *)ray_comment1, (char far *)ray_comment2, (char far *)grid3);
+      fprintf(File_Ptr1,
+	    "/* make a gridded aggregate. this size grid is fast for landscapes. */\n"
+		"/* make z grid = 1 always for landscapes. */\n\n"
+		"grid 33 25 1\n");
 
    if (RAY == 6)
-#ifndef XFRACT
-      fprintf(File_Ptr1, "%Fs", (char far *)acro_s1);
-#else
-      fprintf(File_Ptr1, "%s", acro_s1);
-#endif
+      fprintf(File_Ptr1, "Set Layer 1\nSet Color 2\nEndpointList X Y Z Name\n");
 
-   return (0);
+   return 0;
 }
 
 
@@ -1888,10 +1785,10 @@ static int _fastcall out_triangle(struct f_point pt1, struct f_point pt2, struct
    if (!BRIEF)
       for (i = 0; i <= 2; i++)
 #ifdef __SVR4
-         c[i] = (float) ((int)(dacbox[c1][i] + dacbox[c2][i] + dacbox[c3][i])
+         c[i] = (float) ((int)(g_dac_box[c1][i] + g_dac_box[c2][i] + g_dac_box[c3][i])
             / (3 * 63));
 #else
-         c[i] = (float) (dacbox[c1][i] + dacbox[c2][i] + dacbox[c3][i])
+         c[i] = (float) (g_dac_box[c1][i] + g_dac_box[c2][i] + g_dac_box[c3][i])
             / (3 * 63);
 #endif
 
@@ -1907,84 +1804,54 @@ static int _fastcall out_triangle(struct f_point pt1, struct f_point pt2, struct
        (pt_t[2][0] == pt_t[1][0] &&
         pt_t[2][1] == pt_t[1][1] &&
         pt_t[2][2] == pt_t[1][2]))
-      return (0);
+      return 0;
 
    /* Describe the triangle */
-#ifndef XFRACT
    if (RAY == 1)
-      fprintf(File_Ptr1, " %Fs\n  %Fs", (char far *)object, (char far *)triangle);
+      fprintf(File_Ptr1, " OBJECT\n  TRIANGLE ");
    if (RAY == 2 && !BRIEF)
-      fprintf(File_Ptr1, "%Fs", (char far *)surf);
-#else
-   if (RAY == 1)
-      fprintf(File_Ptr1, " %s\n  %s", object, triangle);
-   if (RAY == 2 && !BRIEF)
-      fprintf(File_Ptr1, "%s", surf);
-#endif
+      fprintf(File_Ptr1, "surf={diff=");
    if (RAY == 4 && !BRIEF)
       fprintf(File_Ptr1, "f");
    if (RAY == 5 && !BRIEF)
-#ifndef XFRACT
-      fprintf(File_Ptr1, "%Fs", (char far *)rs_surf);
-#else
-      fprintf(File_Ptr1, "%s", rs_surf);
-#endif
+      fprintf(File_Ptr1, "applysurf diffuse ");
 
    if (!BRIEF && RAY != 1 && RAY != 7)
       for (i = 0; i <= 2; i++)
-         fprintf(File_Ptr1, f1, c[i]);
+         fprintf(File_Ptr1, "% #4.4f ", c[i]);
 
    if (RAY == 2)
    {
       if (!BRIEF)
          fprintf(File_Ptr1, ";}\n");
-#ifndef XFRACT
-      fprintf(File_Ptr1, "%Fs", (char far *)polygon);
-#else
-      fprintf(File_Ptr1, "%s", polygon);
-#endif
+      fprintf(File_Ptr1, "polygon={points=3;");
    }
    if (RAY == 4)
    {
       if (!BRIEF)
-#ifndef XFRACT
-         fprintf(File_Ptr1, "%Fs", (char far *)r_surf);
-#else
-         fprintf(File_Ptr1, "%s", r_surf);
-#endif
+         fprintf(File_Ptr1, "0.95 0.05 5 0 0\n");
       fprintf(File_Ptr1, "p 3");
    }
    if (RAY == 5)
    {
       if (!BRIEF)
-         fprintf(File_Ptr1, s_n);
+         fprintf(File_Ptr1, "\n");
       /* EB & DG: removed "T" after "triangle" */
-#ifndef XFRACT
-      fprintf(File_Ptr1, "%Fs", (char far *)l_tri);
-#else
-      fprintf(File_Ptr1, "%s", l_tri);
-#endif
+      fprintf(File_Ptr1, "triangle");
    }
 
    if (RAY == 7)
-      fprintf(File_Ptr1, dxf_3dface, min(255, max(1, c1)));
+      fprintf(File_Ptr1, "  0\n3DFACE\n  8\nFRACTAL\n 62\n%3d\n", min(255, max(1, c1)));
 
    for (i = 0; i <= 2; i++)     /* Describe each  Vertex  */
    {
       if (RAY != 7)
-         fprintf(File_Ptr1, s_n);
+         fprintf(File_Ptr1, "\n");
 
-#ifndef XFRACT
       if (RAY == 1)
-         fprintf(File_Ptr1, "%Fs", (char far *)d_vert);
+         fprintf(File_Ptr1, "      <");
       if (RAY == 2)
-         fprintf(File_Ptr1, "%Fs", (char far *)vertex);
-#else
-      if (RAY == 1)
-         fprintf(File_Ptr1, "%s", d_vert);
-      if (RAY == 2)
-         fprintf(File_Ptr1, "%s", vertex);
-#endif
+         fprintf(File_Ptr1, " vertex =  ");
       if (RAY > 3 && RAY != 7)
          fprintf(File_Ptr1, " ");
 
@@ -1993,15 +1860,15 @@ static int _fastcall out_triangle(struct f_point pt1, struct f_point pt2, struct
          if (RAY == 7)
          {
             /* write 3dface entity to dxf file */
-            fprintf(File_Ptr1, dxf_vertex, 10 * (j + 1) + i, pt_t[i][j]);
+            fprintf(File_Ptr1, "%3d\n%g\n", 10 * (j + 1) + i, pt_t[i][j]);
             if (i == 2)         /* 3dface needs 4 vertecies */
-               fprintf(File_Ptr1, dxf_vertex, 10 * (j + 1) + i + 1,
+               fprintf(File_Ptr1, "%3d\n%g\n", 10 * (j + 1) + i + 1,
                   pt_t[i][j]);
          }
          else if (!(RAY == 4 || RAY == 5))
-            fprintf(File_Ptr1, f1, pt_t[i][j]); /* Right handed */
+            fprintf(File_Ptr1, "% #4.4f ", pt_t[i][j]); /* Right handed */
          else
-            fprintf(File_Ptr1, f1, pt_t[2 - i][j]);     /* Left handed */
+            fprintf(File_Ptr1, "% #4.4f ", pt_t[2 - i][j]);     /* Left handed */
       }
 
       if (RAY == 1)
@@ -2012,49 +1879,27 @@ static int _fastcall out_triangle(struct f_point pt1, struct f_point pt2, struct
 
    if (RAY == 1)
    {
-#ifndef XFRACT
-      fprintf(File_Ptr1, " %Fs%Fs\n", (char far *)end, (char far *)triangle);
-#else
-      fprintf(File_Ptr1, " %s%s\n", end, triangle);
-#endif
+      fprintf(File_Ptr1, " END_TRIANGLE \n");
       if (!BRIEF)
       {
-#ifndef XFRACT
-         fprintf(File_Ptr1, "  %Fs"
-                 "      %Fs%Fs% #4.4f %Fs% #4.4f %Fs% #4.4f\n"
-                 "%Fs"
-                 " %Fs%Fs",
-#else
          fprintf(File_Ptr1,
-                 "  %s   %s%s% #4.4f %s% #4.4f %s% #4.4f\n%s %s%s",
-#endif
-                 (char far *)texture,
-                 (char far *)s_color,
-                 (char far *)red,   c[0],
-                 (char far *)green, c[1],
-                 (char far *)blue,  c[2],
-                 (char far *)frac_texture,
-                 (char far *)end,
-                 (char far *)texture);
+                 "  TEXTURE\n"
+				 "   COLOR  RED% #4.4f GREEN% #4.4f BLUE% #4.4f\n"
+				 "      AMBIENT 0.25 DIFFUSE 0.75 END_TEXTURE\n",
+                 c[0], c[1], c[2]);
       }
-#ifndef XFRACT
-      fprintf(File_Ptr1, "  %Fs%Fs  %Fs%Fs",
-#else
-      fprintf(File_Ptr1, "  %s%s  %s%s",
-#endif
-              (char far *)s_color, (char far *)frac_default,
-              (char far *)end, (char far *)object);
+      fprintf(File_Ptr1, "  COLOR  F_Dflt  END_OBJECT");
       triangle_bounds(pt_t);    /* update bounding info */
    }
    if (RAY == 2)
       fprintf(File_Ptr1, "}");
    if (RAY == 3 && !BRIEF)
-      fprintf(File_Ptr1, s_n);
+      fprintf(File_Ptr1, "\n");
 
    if (RAY != 7)
-      fprintf(File_Ptr1, s_n);
+      fprintf(File_Ptr1, "\n");
 
-   return (0);
+   return 0;
 }
 
 /********************************************************************/
@@ -2089,18 +1934,14 @@ static void _fastcall triangle_bounds(float pt_t[3][3])
 static int _fastcall start_object(void)
 {
    if (RAY != 1)
-      return (0);
+      return 0;
 
    /* Reset the min/max values, for bounding box  */
    min_xyz[0] = min_xyz[1] = min_xyz[2] = (float)999999.0;
    max_xyz[0] = max_xyz[1] = max_xyz[2] = (float)-999999.0;
 
-#ifndef XFRACT
-   fprintf(File_Ptr1, "%Fs\n", (char far *)composite);
-#else
-   fprintf(File_Ptr1, "%s\n", composite);
-#endif
-   return (0);
+   fprintf(File_Ptr1, "COMPOSITE\n");
+   return 0;
 }
 
 /********************************************************************/
@@ -2115,7 +1956,7 @@ static int _fastcall start_object(void)
 static int _fastcall end_object(int triout)
 {
    if (RAY == 7)
-      return (0);
+      return 0;
    if (RAY == 1)
    {
       if (triout)
@@ -2137,37 +1978,24 @@ static int _fastcall end_object(int triout)
          }
 
          /* Add the bounding box info */
-#ifndef XFRACT
-         fprintf(File_Ptr1, "%Fs  %Fs", (char far *)bnd_by, (char far *)inter);
-#else
-         fprintf(File_Ptr1, "%s  %s", bnd_by, inter);
-#endif
-         fprintf(File_Ptr1, fmt, (char far *)plane, (char far *)m1, (char far *)z, (char far *)z, -min_xyz[0], (char far *)end, (char far *)plane);
-         fprintf(File_Ptr1, fmt, (char far *)plane, (char far *)one, (char far *)z, (char far *)z, max_xyz[0], (char far *)end, (char far *)plane);
-         fprintf(File_Ptr1, fmt, (char far *)plane, (char far *)z, (char far *)m1, (char far *)z, -min_xyz[1], (char far *)end, (char far *)plane);
-         fprintf(File_Ptr1, fmt, (char far *)plane, (char far *)z, (char far *)one, (char far *)z, max_xyz[1], (char far *)end, (char far *)plane);
-         fprintf(File_Ptr1, fmt, (char far *)plane, (char far *)z, (char far *)z, (char far *)m1, -min_xyz[2], (char far *)end, (char far *)plane);
-         fprintf(File_Ptr1, fmt, (char far *)plane, (char far *)z, (char far *)z, (char far *)one, max_xyz[2], (char far *)end, (char far *)plane);
-#ifndef XFRACT
-         fprintf(File_Ptr1, "  %Fs%Fs%Fs", (char far *)end,
-                (char far *)inter, (char far *)end_bnd);
-#else
-         fprintf(File_Ptr1, "  %s%s%s", end, inter, end_bnd);
-#endif
+         fprintf(File_Ptr1, " BOUNDED_BY\n  INTERSECTION\n");
+         fprintf(File_Ptr1, "   PLANE <-1.0  0.0  0.0 > % #4.3f END_PLANE\n", -min_xyz[0]);
+         fprintf(File_Ptr1, "   PLANE < 1.0  0.0  0.0 > % #4.3f END_PLANE\n",  max_xyz[0]);
+         fprintf(File_Ptr1, "   PLANE < 0.0 -1.0  0.0 > % #4.3f END_PLANE\n", -min_xyz[1]);
+         fprintf(File_Ptr1, "   PLANE < 0.0  1.0  0.0 > % #4.3f END_PLANE\n",  max_xyz[1]);
+         fprintf(File_Ptr1, "   PLANE < 0.0  0.0 -1.0 > % #4.3f END_PLANE\n", -min_xyz[2]);
+         fprintf(File_Ptr1, "   PLANE < 0.0  0.0  1.0 > % #4.3f END_PLANE\n",  max_xyz[2]);
+         fprintf(File_Ptr1, "  END_INTERSECTION\n END_BOUND\n");
       }
 
       /* Complete the composite object statement */
-#ifndef XFRACT
-      fprintf(File_Ptr1, "%Fs%Fs\n", (char far *)end, (char far *)composite);
-#else
-      fprintf(File_Ptr1, "%s%s\n", end, composite);
-#endif
+      fprintf(File_Ptr1, "END_%s\n", "COMPOSITE");
    }
 
    if (RAY != 6 && RAY != 5)
-      fprintf(File_Ptr1, s_n);    /* EB & DG: too many newlines */
+      fprintf(File_Ptr1, "\n");    /* EB & DG: too many newlines */
 
-   return (0);
+   return 0;
 }
 
 static void line3d_cleanup(void)
@@ -2175,51 +2003,36 @@ static void line3d_cleanup(void)
    int i, j;
    if (RAY && File_Ptr1)
    {                            /* Finish up the ray tracing files */
-      static FCODE n_ta[] = {"{ No. Of Triangles = "};
       if (RAY != 5 && RAY != 7)
-         fprintf(File_Ptr1, s_n); /* EB & DG: too many newlines */
+         fprintf(File_Ptr1, "\n"); /* EB & DG: too many newlines */
       if (RAY == 2)
          fprintf(File_Ptr1, "\n\n//");
       if (RAY == 4)
          fprintf(File_Ptr1, "\n\n#");
 
       if (RAY == 5)
-#ifndef XFRACT
-         /* EB & DG: end grid aggregate */
-         fprintf(File_Ptr1, "end\n\n/*good landscape:*/\n%Fs%Fs\n/*",
-            (char far *)grid, (char far *)grid2);
-#else
          /* EB & DG: end grid aggregate */
          fprintf(File_Ptr1, "end\n\n/*good landscape:*/\n%s%s\n/*",
-            grid, grid2);
-#endif
+            "screen 640 480\neyep 0 2.1 0.8\nlookp 0 0 -0.95\nlight 1 point -2 1 1.5\n", "background .3 0 0\nreport verbose\n");
       if (RAY == 6)
       {
-#ifndef XFRACT
-         fprintf(File_Ptr1, "%Fs", (char far *)acro_s2);
-#else
-         fprintf(File_Ptr1, "%s", acro_s2);
-#endif
+         fprintf(File_Ptr1, "LineList From To\n");
          for (i = 0; i < RO; i++)
             for (j = 0; j <= CO_MAX; j++)
             {
                if (j < CO_MAX)
-                  fprintf(File_Ptr1, f2, i, j, i, j + 1);
+                  fprintf(File_Ptr1, "R%dC%d R%dC%d\n", i, j, i, j + 1);
                if (i < RO - 1)
-                  fprintf(File_Ptr1, f2, i, j, i + 1, j);
+                  fprintf(File_Ptr1, "R%dC%d R%dC%d\n", i, j, i + 1, j);
                if (i && i < RO && j < CO_MAX)
-                  fprintf(File_Ptr1, f2, i, j, i - 1, j + 1);
+                  fprintf(File_Ptr1, "R%dC%d R%dC%d\n", i, j, i - 1, j + 1);
             }
          fprintf(File_Ptr1, "\n\n--");
       }
       if (RAY != 7)
-#ifndef XFRACT
-         fprintf(File_Ptr1, "%Fs%ld }*/\n\n", (char far *)n_ta, num_tris);
-#else
-         fprintf(File_Ptr1, "%s%ld }*/\n\n", n_ta, num_tris);
-#endif
+         fprintf(File_Ptr1, "{ No. Of Triangles = %ld }*/\n\n", num_tris);
       if (RAY == 7)
-         fprintf(File_Ptr1, dxf_end);
+         fprintf(File_Ptr1, "  0\nENDSEC\n  0\nEOF\n");
       fclose(File_Ptr1);
       File_Ptr1 = NULL;
    }
@@ -2266,7 +2079,7 @@ static int first_time(int linelen, VECTOR v)
 
    calctime = evenoddrow = 0;
    /* mark as in-progress, and enable <tab> timer display */
-   calc_status = 1;
+   calc_status = CALCSTAT_IN_PROGRESS;
 
    IAmbient = (unsigned int) (255 * (float) (100 - Ambient) / 100.0);
    if (IAmbient < 1)
@@ -2287,23 +2100,23 @@ static int first_time(int linelen, VECTOR v)
    set_upr_lwr();
    error = 0;
 
-   if (whichimage < 2)
+   if (g_which_image < 2)
       T_Safe = 0; /* Not safe yet to mess with the source image */
 
-   if (Targa_Out && !((glassestype == 1 || glassestype == 2)
-                 && whichimage == 2))
+   if (Targa_Out && !((g_glasses_type == 1 || g_glasses_type == 2)
+                 && g_which_image == 2))
    {
       if (Targa_Overlay)
       {
          /* Make sure target file is a supportable Targa File */
          if (targa_validate(light_name))
-            return (-1);
+            return -1;
       }
       else
       {
          check_writefile(light_name, ".tga");
          if (startdisk1(light_name, NULL, 0))   /* Open new file */
-            return (-1);
+            return -1;
       }
    }
 
@@ -2311,8 +2124,8 @@ static int first_time(int linelen, VECTOR v)
 
    zcoord = filecolors;
 
-   if((err=line3dmem()) != 0)
-      return(err);
+   if ((err=line3dmem()) != 0)
+      return err;
 
 
    /* get scale factors */
@@ -2615,30 +2428,17 @@ static int first_time(int linelen, VECTOR v)
    }
 
    /* bad has values caught by clipping */
-   f_bad.x = bad.x = bad_value;
-   f_bad.y = bad.y = bad_value;
-   f_bad.color = bad.color = bad_value;
+   f_bad.x = (float) (bad.x = bad_value);
+   f_bad.y = (float) (bad.y = bad_value);
+   f_bad.color = (float) (bad.color = bad_value);
    for (i = 0; i < (int) linelen; i++)
    {
       lastrow[i] = bad;
       f_lastrow[i] = f_bad;
    }
    got_status = 3;
-   return (0);
+   return 0;
 } /* end of once-per-image intializations */
-
-/*
-   This pragma prevents optimizer failure in MSC/C++ 7.0. Program compiles ok
-   without pragma, but error message is real ugly, paraphrasing loosely,
-   something like "optimizer screwed up big time, call Bill Gates collect ...
-   (Note: commented out pragma because we removed the compiler "/Og" option
-    in MAKEFRACT.BAT - left these notes as a warning...
-*/
-#ifdef _MSC_VER
-#if (_MSC_VER >= 600)
-/* #pragma optimize( "g", off ) */
-#endif
-#endif
 
 static int line3dmem(void)
 {
@@ -2646,7 +2446,7 @@ static int line3dmem(void)
    /*  Memory allocation - assumptions - a 64K segment starting at      */
    /*  extraseg has been grabbed. It may have other purposes elsewhere, */
    /*  but it is assumed that it is totally free for use here. Our      */
-   /*  strategy is to assign all the far pointers needed here to various*/
+   /*  strategy is to assign all the pointers needed here to various*/
    /*  spots in the extra segment, depending on the pixel dimensions of */
    /*  the video mode, and check whether we have run out. There is      */
    /*  basically one case where the extra segment is not big enough     */
@@ -2660,23 +2460,26 @@ static int line3dmem(void)
    /* lastrow stores the previous row of the original GIF image for
       the purpose of filling in gaps with triangle procedure */
    /* first 8k of extraseg now used in decoder TW 3/95 */
-   lastrow = MK_FP(extraseg, 0);
+   /* TODO: allocate real memory, not reuse shared segment */
+   lastrow = (struct point *) malloc(sizeof(struct point)*xdots);
 
    check_extra = sizeof(*lastrow) * xdots;
    if (SPHERE)
    {
-      sinthetaarray = (float far *) (lastrow + xdots);
+      sinthetaarray = (float *) (lastrow + xdots);
       check_extra += sizeof(*sinthetaarray) * xdots;
-      costhetaarray = (float far *) (sinthetaarray + xdots);
+      costhetaarray = (float *) (sinthetaarray + xdots);
       check_extra += sizeof(*costhetaarray) * xdots;
-      f_lastrow = (struct f_point far *) (costhetaarray + xdots);
+      f_lastrow = (struct f_point *) (costhetaarray + xdots);
    }
    else
-      f_lastrow = (struct f_point far *) (lastrow + xdots);
+   {
+      f_lastrow = (struct f_point *) (lastrow + xdots);
+   }
    check_extra += sizeof(*f_lastrow) * (xdots);
    if (pot16bit)
    {
-      fraction = (BYTE far *) (f_lastrow + xdots);
+      fraction = (BYTE *) (f_lastrow + xdots);
       check_extra += sizeof(*fraction) * xdots;
    }
    minmax_x = (struct minmax *) NULL;
@@ -2688,44 +2491,32 @@ static int line3dmem(void)
       check_extra += sizeof(struct minmax) * ydots;
       if (check_extra > (1L << 16))     /* run out of extra segment? */
       {
-         static FCODE msg[] = {"farmemalloc minmax"};
-         static struct minmax far *got_mem = NULL;
-         if(debugflag == 2222)
-            stopmsg(0,msg);
+         static struct minmax *got_mem = NULL;
+         if (debugflag == 2222)
+            stopmsg(0,"malloc minmax");
          /* not using extra segment so decrement check_extra */
          check_extra -= sizeof(struct minmax) * ydots;
          if (got_mem == NULL)
-            got_mem = (struct minmax far *) (farmemalloc(OLDMAXPIXELS *
+            got_mem = (struct minmax *) (malloc(OLDMAXPIXELS *
                                                     sizeof(struct minmax)));
          if (got_mem)
             minmax_x = got_mem;
          else
-            return (-1);
+            return -1;
       }
       else /* ok to use extra segment */
       {
          if (pot16bit)
-            minmax_x = (struct minmax far *) (fraction + xdots);
+            minmax_x = (struct minmax *) (fraction + xdots);
          else
-            minmax_x = (struct minmax far *) (f_lastrow + xdots);
+            minmax_x = (struct minmax *) (f_lastrow + xdots);
       }
    }
    if (debugflag == 2222 || check_extra > (1L << 16))
    {
       char tmpmsg[70];
-      static FCODE extramsg[] = {" of extra segment"};
-#ifndef XFRACT
-      sprintf(tmpmsg, "used %ld%Fs", check_extra, (char far *)extramsg);
-#else
-      sprintf(tmpmsg, "used %ld%s", check_extra, extramsg);
-#endif
-      stopmsg(4, tmpmsg);
+      sprintf(tmpmsg, "used %ld of extra segment", check_extra);
+      stopmsg(STOPMSG_NO_BUZZER, tmpmsg);
    }
-   return(0);
+   return 0;
 }
-
-#ifdef _MSC_VER
-#if (_MSC_VER >= 600)
-#pragma optimize( "g", on )
-#endif
-#endif

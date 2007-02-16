@@ -8,10 +8,10 @@ fractal routines.
 
 #include <limits.h>
 #include <string.h>
-#ifdef __TURBOC__
-#include <alloc.h>
-#elif !defined(__386BSD__)
+#if !defined(__386BSD__)
+#if !defined(_WIN32)
 #include <malloc.h>
+#endif
 #endif
   /* see Fractint.c for a description of the "include"  hierarchy */
 #include "port.h"
@@ -21,10 +21,6 @@ fractal routines.
 
 
 int bf_math = 0;
-
-#if (_MSC_VER >= 700)
-#pragma code_seg ("bigsetup_text")     /* place following in an overlay */
-#endif
 
 #ifdef DEBUG
 
@@ -36,20 +32,21 @@ void show_var_bn(char *s, bn_t n)
         strcat(msg," ");
         bntostr(msg+strlen(s),40,n);
         msg[79] = 0;
-        stopmsg(0,(char far *)msg);
+        stopmsg(0,(char *)msg);
     }
 
 void showcornersdbl(char *s)
 {
    char msg[400];
-   sprintf(msg,"%s\n\
-xxmin= %.20f xxmax= %.20f\n\
-yymin= %.20f yymax= %.20f\n\
-xx3rd= %.20f yy3rd= %.20f\n\
-delxx= %.20Lf delyy= %.20Lf\n\
-delx2= %.20Lf dely2= %.20Lf",s,xxmin,xxmax,yymin,yymax,xx3rd,yy3rd,
-   delxx, delyy,delxx2, delyy2);
-   if(stopmsg(0,msg)==-1)
+   sprintf(msg,"%s\n"
+		"xxmin= %.20f xxmax= %.20f\n"
+		"yymin= %.20f yymax= %.20f\n"
+		"xx3rd= %.20f yy3rd= %.20f\n"
+		"delxx= %.20Lf delyy= %.20Lf\n"
+		"delx2= %.20Lf dely2= %.20Lf",
+		s,xxmin,xxmax,yymin,yymax,xx3rd,yy3rd,
+		delxx, delyy,delxx2, delyy2);
+   if (stopmsg(0,msg)==-1)
       goodbye();
 }
 
@@ -78,7 +75,7 @@ void showcorners(char *s)
    bntostr(msg,dec,bny3rd);
    sprintf(msg1,"bny3rd=%s\nyy3rd= %.20f\n\n",msg,yy3rd);
    strcat(msg3,msg1);
-   if(stopmsg(0,msg3)==-1)
+   if (stopmsg(0,msg3)==-1)
       goodbye();
 }
 
@@ -93,7 +90,7 @@ bfdecimals=%d ",
                s, bnstep, bnlength, intlength, rlength, padding,
                shiftfactor, decimals, bflength, rbflength,
                bfdecimals);
-   if(stopmsg(0,msg)==-1)
+   if (stopmsg(0,msg)==-1)
       goodbye();
 }
 
@@ -101,7 +98,7 @@ void showcornersbf(char *s)
 {
    int dec=decimals;
    char msg[100],msg1[100],msg3[600];
-   if(dec > 20) dec = 20;
+   if (dec > 20) dec = 20;
    bftostr(msg,dec,bfxmin);
    sprintf(msg1,"bfxmin=%s\nxxmin= %.20f decimals %d bflength %d\n\n",
        msg,xxmin,decimals,bflength);
@@ -123,7 +120,7 @@ void showcornersbf(char *s)
    bftostr(msg,dec,bfy3rd);
    sprintf(msg1,"bfy3rd=%s\nyy3rd= %.20f\n\n",msg,yy3rd);
    strcat(msg3,msg1);
-   if(stopmsg(0,msg3)==-1)
+   if (stopmsg(0,msg3)==-1)
       goodbye();
 }
 
@@ -151,7 +148,7 @@ void showcornersbfs(char *s)
    bftostr(msg,dec,bfsy3rd);
    sprintf(msg1,"bfsy3rd=%s\nyy3rd= %.20f\n\n",msg,yy3rd);
    strcat(msg3,msg1);
-   if(stopmsg(0,msg3)==-1)
+   if (stopmsg(0,msg3)==-1)
       goodbye();
 }
 
@@ -161,7 +158,7 @@ void show_two_bf(char *s1,bf_t t1,char *s2, bf_t t2, int digits)
    bftostr_e(msg1,digits,t1);
    bftostr_e(msg2,digits,t2);
    sprintf(msg3,"\n%s->%s\n%s->%s",s1,msg1,s2,msg2);
-   if(stopmsg(0,msg3)==-1)
+   if (stopmsg(0,msg3)==-1)
       goodbye();
 }
 
@@ -172,7 +169,7 @@ void show_three_bf(char *s1,bf_t t1,char *s2, bf_t t2, char *s3, bf_t t3, int di
    bftostr_e(msg2,digits,t2);
    bftostr_e(msg3,digits,t3);
    sprintf(msg4,"\n%s->%s\n%s->%s\n%s->%s",s1,msg1,s2,msg2,s3,msg3);
-   if(stopmsg(0,msg4)==-1)
+   if (stopmsg(0,msg4)==-1)
       goodbye();
 }
 
@@ -193,7 +190,7 @@ void showaspect(char *s)
             s,
             (yymax-yymin)/(xxmax-xxmin),
             str);
-   if(stopmsg(0,msg)==-1)
+   if (stopmsg(0,msg)==-1)
       goodbye();
    restore_stack(saved);
 }
@@ -205,7 +202,7 @@ void comparevalues(char *s, LDBL x, bn_t bnx)
    char msg[100],msg1[100];
    bntostr(msg,dec,bnx);
    sprintf(msg1,"%s\nbignum=%s\ndouble=%.20Lf\n\n",s,msg,x);
-   if(stopmsg(0,msg1)==-1)
+   if (stopmsg(0,msg1)==-1)
       goodbye();
 }
 /* compare a double and bignumber */
@@ -215,7 +212,7 @@ void comparevaluesbf(char *s, LDBL x, bf_t bfx)
    char msg[300],msg1[300];
    bftostr_e(msg,dec,bfx);
    sprintf(msg1,"%s\nbignum=%s\ndouble=%.20Lf\n\n",s,msg,x);
-   if(stopmsg(0,msg1)==-1)
+   if (stopmsg(0,msg1)==-1)
       goodbye();
 }
 
@@ -227,7 +224,7 @@ void show_var_bf(char *s, bf_t n)
         strcat(msg," ");
         bftostr_e(msg+strlen(s),40,n);
         msg[79] = 0;
-        if(stopmsg(0,msg)==-1)
+        if (stopmsg(0,msg)==-1)
             goodbye();
     }
 
@@ -236,7 +233,7 @@ void show_var_bf(char *s, bf_t n)
 void bfcornerstofloat(void)
 {
    int i;
-   if(bf_math)
+   if (bf_math)
    {
       xxmin = (double)bftofloat(bfxmin);
       yymin = (double)bftofloat(bfymin);
@@ -245,14 +242,10 @@ void bfcornerstofloat(void)
       xx3rd = (double)bftofloat(bfx3rd);
       yy3rd = (double)bftofloat(bfy3rd);
    }
-   for(i=0;i<MAXPARAMS;i++)
-      if(typehasparm(fractype,i,NULL))
+   for (i=0; i<MAXPARAMS; i++)
+      if (typehasparm(fractype,i,NULL))
          param[i] = (double)bftofloat(bfparms[i]);
 }
-
-#if (_MSC_VER >= 700)
-#pragma code_seg ( )     /* back to normal segment */
-#endif
 
 /* -------------------------------------------------------------------- */
 /*    Bignumber Bailout Routines                                        */
@@ -265,7 +258,7 @@ void bfcornerstofloat(void)
 /* No need to set magnitude                          */
 /* as color schemes that need it calculate it later. */
 
-int near bnMODbailout()
+int  bnMODbailout()
 {
    long longmagnitude;
 
@@ -281,7 +274,7 @@ int near bnMODbailout()
    return 0;
 }
 
-int near bnREALbailout()
+int  bnREALbailout()
 {
    long longtempsqrx;
 
@@ -296,7 +289,7 @@ int near bnREALbailout()
 }
 
 
-int near bnIMAGbailout()
+int  bnIMAGbailout()
 {
    long longtempsqry;
 
@@ -310,7 +303,7 @@ int near bnIMAGbailout()
    return(0);
 }
 
-int near bnORbailout()
+int  bnORbailout()
 {
    long longtempsqrx, longtempsqry;
 
@@ -318,14 +311,14 @@ int near bnORbailout()
    square_bn(bntmpsqry, bnnew.y);
    longtempsqrx = bntoint(bntmpsqrx+shiftfactor);
    longtempsqry = bntoint(bntmpsqry+shiftfactor);
-   if(longtempsqrx >= (long)rqlim || longtempsqry >= (long)rqlim)
+   if (longtempsqrx >= (long)rqlim || longtempsqry >= (long)rqlim)
       return 1;
    copy_bn(bnold.x, bnnew.x);
    copy_bn(bnold.y, bnnew.y);
    return(0);
 }
 
-int near bnANDbailout()
+int  bnANDbailout()
 {
    long longtempsqrx, longtempsqry;
 
@@ -333,14 +326,14 @@ int near bnANDbailout()
    square_bn(bntmpsqry, bnnew.y);
    longtempsqrx = bntoint(bntmpsqrx+shiftfactor);
    longtempsqry = bntoint(bntmpsqry+shiftfactor);
-   if(longtempsqrx >= (long)rqlim && longtempsqry >= (long)rqlim)
+   if (longtempsqrx >= (long)rqlim && longtempsqry >= (long)rqlim)
       return 1;
    copy_bn(bnold.x, bnnew.x);
    copy_bn(bnold.y, bnnew.y);
    return(0);
 }
 
-int near bnMANHbailout()
+int  bnMANHbailout()
 {
    long longtempmag;
 
@@ -352,14 +345,14 @@ int near bnMANHbailout()
    add_bn(bntmp, bnold.x, bnold.y);
    square_bn(bnold.x, bntmp);
    longtempmag = bntoint(bnold.x+shiftfactor);
-   if(longtempmag >= (long)rqlim)
+   if (longtempmag >= (long)rqlim)
       return 1;
    copy_bn(bnold.x, bnnew.x);
    copy_bn(bnold.y, bnnew.y);
    return(0);
 }
 
-int near bnMANRbailout()
+int  bnMANRbailout()
 {
    long longtempmag;
 
@@ -369,14 +362,14 @@ int near bnMANRbailout()
    /* note: in next two lines, bnold is just used as a temporary variable */
    square_bn(bnold.x, bntmp);
    longtempmag = bntoint(bnold.x+shiftfactor);
-   if(longtempmag >= (long)rqlim)
+   if (longtempmag >= (long)rqlim)
       return 1;
    copy_bn(bnold.x, bnnew.x);
    copy_bn(bnold.y, bnnew.y);
    return(0);
 }
 
-int near bfMODbailout()
+int  bfMODbailout()
 {
    long longmagnitude;
 
@@ -392,7 +385,7 @@ int near bfMODbailout()
    return 0;
 }
 
-int near bfREALbailout()
+int  bfREALbailout()
 {
    long longtempsqrx;
 
@@ -407,7 +400,7 @@ int near bfREALbailout()
 }
 
 
-int near bfIMAGbailout()
+int  bfIMAGbailout()
 {
    long longtempsqry;
 
@@ -421,7 +414,7 @@ int near bfIMAGbailout()
    return(0);
 }
 
-int near bfORbailout()
+int  bfORbailout()
 {
    long longtempsqrx, longtempsqry;
 
@@ -429,14 +422,14 @@ int near bfORbailout()
    square_bf(bftmpsqry, bfnew.y);
    longtempsqrx = bftoint(bftmpsqrx);
    longtempsqry = bftoint(bftmpsqry);
-   if(longtempsqrx >= (long)rqlim || longtempsqry >= (long)rqlim)
+   if (longtempsqrx >= (long)rqlim || longtempsqry >= (long)rqlim)
       return 1;
    copy_bf(bfold.x, bfnew.x);
    copy_bf(bfold.y, bfnew.y);
    return(0);
 }
 
-int near bfANDbailout()
+int  bfANDbailout()
 {
    long longtempsqrx, longtempsqry;
 
@@ -444,14 +437,14 @@ int near bfANDbailout()
    square_bf(bftmpsqry, bfnew.y);
    longtempsqrx = bftoint(bftmpsqrx);
    longtempsqry = bftoint(bftmpsqry);
-   if(longtempsqrx >= (long)rqlim && longtempsqry >= (long)rqlim)
+   if (longtempsqrx >= (long)rqlim && longtempsqry >= (long)rqlim)
       return 1;
    copy_bf(bfold.x, bfnew.x);
    copy_bf(bfold.y, bfnew.y);
    return(0);
 }
 
-int near bfMANHbailout()
+int  bfMANHbailout()
 {
    long longtempmag;
 
@@ -463,14 +456,14 @@ int near bfMANHbailout()
    add_bf(bftmp, bfold.x, bfold.y);
    square_bf(bfold.x, bftmp);
    longtempmag = bftoint(bfold.x);
-   if(longtempmag >= (long)rqlim)
+   if (longtempmag >= (long)rqlim)
       return 1;
    copy_bf(bfold.x, bfnew.x);
    copy_bf(bfold.y, bfnew.y);
    return(0);
 }
 
-int near bfMANRbailout()
+int  bfMANRbailout()
 {
    long longtempmag;
 
@@ -480,16 +473,12 @@ int near bfMANRbailout()
    /* note: in next two lines, bfold is just used as a temporary variable */
    square_bf(bfold.x, bftmp);
    longtempmag = bftoint(bfold.x);
-   if(longtempmag >= (long)rqlim)
+   if (longtempmag >= (long)rqlim)
       return 1;
    copy_bf(bfold.x, bfnew.x);
    copy_bf(bfold.y, bfnew.y);
    return(0);
 }
-
-#if (_MSC_VER >= 700)
-#pragma code_seg ("bigsetup_text")     /* place following in an overlay */
-#endif
 
 int MandelbnSetup()
 {
@@ -525,19 +514,19 @@ int MandelbnSetup()
    div_a_bn_int(bnydel2, (U16)(xdots - 1));
 
    abs_bn(bnclosenuff,bnxdel);
-   if(cmp_bn(abs_bn(bntemp1,bnxdel2),bnclosenuff) > 0)
+   if (cmp_bn(abs_bn(bntemp1,bnxdel2),bnclosenuff) > 0)
       copy_bn(bnclosenuff,bntemp1);
-   if(cmp_bn(abs_bn(bntemp1,bnydel),abs_bn(bntemp2,bnydel2)) > 0)
+   if (cmp_bn(abs_bn(bntemp1,bnydel),abs_bn(bntemp2,bnydel2)) > 0)
    {
-      if(cmp_bn(bntemp1,bnclosenuff) > 0)
+      if (cmp_bn(bntemp1,bnclosenuff) > 0)
          copy_bn(bnclosenuff,bntemp1);
    }
-   else if(cmp_bn(bntemp2,bnclosenuff) > 0)
+   else if (cmp_bn(bntemp2,bnclosenuff) > 0)
       copy_bn(bnclosenuff,bntemp2);
    {
       int t;
       t = abs(periodicitycheck);
-      while(t--)
+      while (t--)
          half_a_bn(bnclosenuff);
    }
 
@@ -550,16 +539,16 @@ int MandelbnSetup()
          break;
       case FPMANDELZPOWER:
          init_big_pi();
-         if((double)c_exp == param[2] && (c_exp & 1)) /* odd exponents */
+         if ((double)c_exp == param[2] && (c_exp & 1)) /* odd exponents */
             symmetry = XYAXIS_NOPARM;
-         if(param[3] != 0)
+         if (param[3] != 0)
             symmetry = NOSYM;
          break;
       case FPJULIAZPOWER:
          init_big_pi();
          bftobn(bnparm.x, bfparms[0]);
          bftobn(bnparm.y, bfparms[1]);
-         if((c_exp & 1) || param[3] != 0.0 || (double)c_exp != param[2] )
+         if ((c_exp & 1) || param[3] != 0.0 || (double)c_exp != param[2] )
             symmetry = NOSYM;
          break;
    }
@@ -602,19 +591,19 @@ int MandelbfSetup()
    div_a_bf_int(bfydel2, (U16)(xdots - 1));
 
    abs_bf(bfclosenuff,bfxdel);
-   if(cmp_bf(abs_bf(bftemp1,bfxdel2),bfclosenuff) > 0)
+   if (cmp_bf(abs_bf(bftemp1,bfxdel2),bfclosenuff) > 0)
       copy_bf(bfclosenuff,bftemp1);
-   if(cmp_bf(abs_bf(bftemp1,bfydel),abs_bf(bftemp2,bfydel2)) > 0)
+   if (cmp_bf(abs_bf(bftemp1,bfydel),abs_bf(bftemp2,bfydel2)) > 0)
    {
-      if(cmp_bf(bftemp1,bfclosenuff) > 0)
+      if (cmp_bf(bftemp1,bfclosenuff) > 0)
          copy_bf(bfclosenuff,bftemp1);
    }
-   else if(cmp_bf(bftemp2,bfclosenuff) > 0)
+   else if (cmp_bf(bftemp2,bfclosenuff) > 0)
       copy_bf(bfclosenuff,bftemp2);
    {
       int t;
       t = abs(periodicitycheck);
-      while(t--)
+      while (t--)
          half_a_bf(bfclosenuff);
    }
 
@@ -627,16 +616,16 @@ int MandelbfSetup()
          break;
       case FPMANDELZPOWER:
          init_big_pi();
-         if((double)c_exp == param[2] && (c_exp & 1)) /* odd exponents */
+         if ((double)c_exp == param[2] && (c_exp & 1)) /* odd exponents */
             symmetry = XYAXIS_NOPARM;
-         if(param[3] != 0)
+         if (param[3] != 0)
             symmetry = NOSYM;
          break;
       case FPJULIAZPOWER:
          init_big_pi();
          copy_bf(bfparm.x, bfparms[0]);
          copy_bf(bfparm.y, bfparms[1]);
-         if((c_exp & 1) || param[3] != 0.0 || (double)c_exp != param[2] )
+         if ((c_exp & 1) || param[3] != 0.0 || (double)c_exp != param[2] )
             symmetry = NOSYM;
          break;
    }
@@ -644,10 +633,6 @@ int MandelbfSetup()
    restore_stack(saved);
    return (1);
 }
-
-#if (_MSC_VER >= 700)
-#pragma code_seg ( )     /* back to normal segment */
-#endif
 
 int mandelbn_per_pixel()
 {
@@ -668,7 +653,7 @@ int mandelbn_per_pixel()
    copy_bn(bnold.x, bnparm.x);
    copy_bn(bnold.y, bnparm.y);
 
-   if((inside == BOF60 || inside == BOF61) && !nobof)
+   if ((inside == BOF60 || inside == BOF61) && !nobof)
    {
       /* kludge to match "Beauty of Fractals" picture since we start
          Mandelbrot iteration with init rather than 0 */
@@ -714,7 +699,7 @@ int mandelbf_per_pixel()
    copy_bf(bfold.x, bfparm.x);
    copy_bf(bfold.y, bfparm.y);
 
-   if((inside == BOF60 || inside == BOF61) && !nobof)
+   if ((inside == BOF60 || inside == BOF61) && !nobof)
    {
       /* kludge to match "Beauty of Fractals" picture since we start
          Mandelbrot iteration with init rather than 0 */

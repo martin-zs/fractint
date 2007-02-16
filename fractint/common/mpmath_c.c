@@ -22,10 +22,7 @@
 #include "port.h"
 #include "prototyp.h"
 
-#ifndef XFRACT
-#if (_MSC_VER >= 700)
-#pragma code_seg ("mpmath1_text")     /* place following in an overlay */
-#endif
+#if !defined(XFRACT)
 
 struct MP *MPsub(struct MP x, struct MP y) {
    y.Exp ^= 0x8000;
@@ -105,17 +102,17 @@ struct MPC MPCpow(struct MPC x, int exp) {
    struct MPC z;
    struct MPC zz;
 
-   if(exp & 1)
+   if (exp & 1)
       z = x;
    else
       z = MPCone;
    exp >>= 1;
-   while(exp) {
+   while (exp) {
                 zz.x = *pMPsub(*pMPmul(x.x, x.x), *pMPmul(x.y, x.y));
                 zz.y = *pMPmul(x.x, x.y);
                 zz.y.Exp++;
       x = zz;
-      if(exp & 1) {
+      if (exp & 1) {
                         zz.x = *pMPsub(*pMPmul(z.x, x.x), *pMPmul(z.y, x.y));
                         zz.y = *pMPadd(*pMPmul(z.x, x.y), *pMPmul(z.y, x.x));
          z = zz;
@@ -128,7 +125,7 @@ struct MPC MPCpow(struct MPC x, int exp) {
 int MPCcmp(struct MPC x, struct MPC y) {
    struct MPC z;
 
-        if(pMPcmp(x.x, y.x) || pMPcmp(x.y, y.y)) {
+        if (pMPcmp(x.x, y.x) || pMPcmp(x.y, y.y)) {
                 z.x = MPCmod(x);
                 z.y = MPCmod(y);
                 return(pMPcmp(z.x, z.y));
@@ -165,7 +162,7 @@ double *(*pMP2d)(struct MP m)                  = MP2d086 ;
 /* struct MP  *(*pfg2MP)(long x, int fg)          = fg2MP086; */
 
 void setMPfunctions(void) {
-   if(cpu >= 386)
+   if (cpu >= 386)
    {
       pMPmul = MPmul386;
       pMPdiv = MPdiv386;
@@ -174,7 +171,6 @@ void setMPfunctions(void) {
       pMPcmp = MPcmp386;
       pd2MP  = d2MP386 ;
       pMP2d  = MP2d386 ;
-      /* pfg2MP = fg2MP386; */
    }
    else
    {
@@ -185,12 +181,8 @@ void setMPfunctions(void) {
       pMPcmp = MPcmp086;
       pd2MP  = d2MP086 ;
       pMP2d  = MP2d086 ;
-      /* pfg2MP = fg2MP086; */
    }
 }
-#if (_MSC_VER >= 700)
-#pragma code_seg ()       /* back to normal segment */
-#endif
 #endif /* XFRACT */
 
 #ifndef sqr
@@ -203,8 +195,8 @@ _CMPLX ComplexPower(_CMPLX xx, _CMPLX yy) {
 
    /* fixes power bug - if any complaints, backwards compatibility hook
       goes here TIW 3/95 */
-   if(ldcheck == 0)
-      if(xx.x == 0 && xx.y == 0) {
+   if (ldcheck == 0)
+      if (xx.x == 0 && xx.y == 0) {
          z.x = z.y = 0.0;
          return(z);
       }
@@ -212,10 +204,10 @@ _CMPLX ComplexPower(_CMPLX xx, _CMPLX yy) {
    FPUcplxlog(&xx, &cLog);
    FPUcplxmul(&cLog, &yy, &t);
 
-   if(fpu >= 387)
+   if (fpu >= 387)
       FPUcplxexp387(&t, &z);
    else {
-      if(t.x < -690)
+      if (t.x < -690)
          e2x = 0;
       else
          e2x = exp(t.x);
@@ -292,16 +284,16 @@ void Arctanhz(_CMPLX z,_CMPLX *rz)
 {
   _CMPLX temp0,temp1,temp2;
 
-  if( z.x == 0.0){
+  if ( z.x == 0.0){
     rz->x = 0;
     rz->y = atan( z.y);
     return;
   }
   else{
-    if( fabs(z.x) == 1.0 && z.y == 0.0){
+    if ( fabs(z.x) == 1.0 && z.y == 0.0){
       return;
     }
-    else if( fabs( z.x) < 1.0 && z.y == 0.0){
+    else if ( fabs( z.x) < 1.0 && z.y == 0.0){
       rz->x = log((1+z.x)/(1-z.x))/2;
       rz->y = 0;
       return;
@@ -321,18 +313,18 @@ void Arctanhz(_CMPLX z,_CMPLX *rz)
 void Arctanz(_CMPLX z,_CMPLX *rz)
 {
   _CMPLX temp0,temp1,temp2,temp3;
-  if( z.x == 0.0 && z.y == 0.0)
+  if ( z.x == 0.0 && z.y == 0.0)
     rz->x = rz->y = 0;
-  else if( z.x != 0.0 && z.y == 0.0){
+  else if ( z.x != 0.0 && z.y == 0.0){
     rz->x = atan( z.x);
     rz->y = 0;
   }
-  else if( z.x == 0.0 && z.y != 0.0){
+  else if ( z.x == 0.0 && z.y != 0.0){
     temp0.x = z.y;  temp0.y = 0.0;
     Arctanhz( temp0, &temp0);
     rz->x = -temp0.y; rz->y = temp0.x;              /* i*temp0 */
   }
-  else if( z.x != 0.0 && z.y != 0.0){
+  else if ( z.x != 0.0 && z.y != 0.0){
 
     temp0.x = -z.y; temp0.y = z.x;                  /* i*z */
     temp1.x = 1 - temp0.x; temp1.y = -temp0.y;      /* temp1 = 1 - temp0 */
@@ -420,7 +412,7 @@ _CMPLX ComplexSqrtFloat(double x, double y)
    double theta;
    _CMPLX  result;
 
-   if(x == 0.0 && y == 0.0)
+   if (x == 0.0 && y == 0.0)
       result.x = result.y = 0.0;
    else
    {
@@ -438,7 +430,7 @@ _CMPLX ComplexSqrtFloat(double x, double y)
 
 #ifndef TESTING_MATH
 
-BYTE far *LogTable = (BYTE far *)0;
+BYTE *LogTable = (BYTE *)0;
 long MaxLTSize;
 int  Log_Calc = 0;
 static double mlf;
@@ -540,7 +532,7 @@ long logtablecalc(long citer) {
    if (LogFlag > 0) { /* new log function */
       if ((unsigned long)citer <= lf + 1)
          ret = 1;
-      else if((citer - lf) / log(citer - lf) <= mlf) {
+      else if ((citer - lf) / log(citer - lf) <= mlf) {
          if (save_release < 2002)
             ret = (long)(citer - lf + (lf?1:0));
          else
@@ -556,7 +548,7 @@ long logtablecalc(long citer) {
    } else if (LogFlag <= -2) { /* sqrt function */
       if ((unsigned long)citer <= lf)
          ret = 1;
-      else if((unsigned long)(citer - lf) <= (unsigned long)(mlf * mlf))
+      else if ((unsigned long)(citer - lf) <= (unsigned long)(mlf * mlf))
          ret = (long)(citer - lf + 1);
       else
          ret = (long)(mlf * sqrt(citer - lf)) + 1;
@@ -564,7 +556,7 @@ long logtablecalc(long citer) {
    return (ret);
 }
 
-long far ExpFloat14(long xx) {
+long ExpFloat14(long xx) {
    static float fLogTwo = (float)0.6931472;
    int f;
    long Ans;
@@ -581,7 +573,7 @@ _CMPLX cdegree = { 3.0, 0.0 }, croot   = { 1.0, 0.0 };
 int ComplexNewtonSetup(void) {
    threshold = .001;
    periodicitycheck = 0;
-   if(param[0] != 0.0 || param[1] != 0.0 || param[2] != 0.0 ||
+   if (param[0] != 0.0 || param[1] != 0.0 || param[2] != 0.0 ||
       param[3] != 0.0) {
       croot.x = param[2];
       croot.y = param[3];
@@ -604,24 +596,24 @@ int ComplexNewton(void) {
    cd1.y = cdegree.y;
 
    temp = ComplexPower(old, cd1);
-   FPUcplxmul(&temp, &old, &new);
+   FPUcplxmul(&temp, &old, &g_new);
 
-   tmp.x = new.x - croot.x;
-   tmp.y = new.y - croot.y;
-   if((sqr(tmp.x) + sqr(tmp.y)) < threshold)
+   tmp.x = g_new.x - croot.x;
+   tmp.y = g_new.y - croot.y;
+   if ((sqr(tmp.x) + sqr(tmp.y)) < threshold)
       return(1);
 
-   FPUcplxmul(&new, &cd1, &tmp);
+   FPUcplxmul(&g_new, &cd1, &tmp);
    tmp.x += croot.x;
    tmp.y += croot.y;
 
    FPUcplxmul(&temp, &cdegree, &cd1);
    FPUcplxdiv(&tmp, &cd1, &old);
-   if(overflow)
+   if (overflow)
    {
       return(1);
    }
-   new = old;
+   g_new = old;
    return(0);
 }
 
@@ -637,40 +629,40 @@ int ComplexBasin(void) {
    cd1.y = cdegree.y;
 
    temp = ComplexPower(old, cd1);
-   FPUcplxmul(&temp, &old, &new);
+   FPUcplxmul(&temp, &old, &g_new);
 
-   tmp.x = new.x - croot.x;
-   tmp.y = new.y - croot.y;
-   if((sqr(tmp.x) + sqr(tmp.y)) < threshold) {
-      if(fabs(old.y) < .01)
+   tmp.x = g_new.x - croot.x;
+   tmp.y = g_new.y - croot.y;
+   if ((sqr(tmp.x) + sqr(tmp.y)) < threshold) {
+      if (fabs(old.y) < .01)
          old.y = 0.0;
       FPUcplxlog(&old, &temp);
       FPUcplxmul(&temp, &cdegree, &tmp);
       mod = tmp.y/TwoPi;
       coloriter = (long)mod;
-      if(fabs(mod - coloriter) > 0.5) {
-         if(mod < 0.0)
+      if (fabs(mod - coloriter) > 0.5) {
+         if (mod < 0.0)
             coloriter--;
          else
             coloriter++;
       }
       coloriter += 2;
-      if(coloriter < 0)
+      if (coloriter < 0)
          coloriter += 128;
       return(1);
    }
 
-   FPUcplxmul(&new, &cd1, &tmp);
+   FPUcplxmul(&g_new, &cd1, &tmp);
    tmp.x += croot.x;
    tmp.y += croot.y;
 
    FPUcplxmul(&temp, &cdegree, &cd1);
    FPUcplxdiv(&tmp, &cd1, &old);
-   if(overflow)
+   if (overflow)
    {
       return(1);
    }
-   new = old;
+   g_new = old;
    return(0);
 }
 
@@ -692,17 +684,1333 @@ int GausianNumber(int Probability, int Range) {
    p = divide((long)Probability << 16, (long)Range << 16, 16);
    p = multiply(p, con, 16);
    p = multiply((long)Distribution << 16, p, 16);
-   if(!(rand15() % (Distribution - (int)(p >> 16) + 1))) {
-      for(n = 0; n < Slope; n++)
+   if (!(rand15() % (Distribution - (int)(p >> 16) + 1))) {
+      for (n = 0; n < Slope; n++)
          Accum += rand15();
       Accum /= Slope;
       r = (int)(multiply((long)Range << 15, Accum, 15) >> 14);
       r = r - Range;
-      if(r < 0)
+      if (r < 0)
          r = -r;
       return(Range - r + Offset);
    }
    return(Offset);
 }
 
+#endif
+
+#if defined(_WIN32)
+/*
+MP2d086     PROC     uses si di, xExp:WORD, xMant:DWORD
+   sub   xExp, (1 SHL 14) - (1 SHL 10)
+   jo    Overflow
+
+   mov   bx, xExp
+   and   bx, 0111100000000000b
+   jz    InRangeOfDouble
+
+Overflow:
+   mov   MPOverflow, 1
+   xor   ax, ax
+   xor   dx, dx
+   xor   bx, bx
+   jmp   StoreAns
+
+InRangeOfDouble:
+   mov   si, xExp
+   mov   ax, si
+   mov   cl, 5
+   shl   si, cl
+   shl   ax, 1
+   rcr   si, 1
+
+   mov   dx, WORD PTR [xMant+2]
+   mov   ax, WORD PTR [xMant]
+   shl   ax, 1
+   rcl   dx, 1
+
+   mov   bx, ax
+   mov   di, dx
+   mov   cl, 12
+   shr   dx, cl
+   shr   ax, cl
+   mov   cl, 4
+   shl   bx, cl
+   shl   di, cl
+   or    ax, di
+   or    dx, si
+
+StoreAns:
+   mov   WORD PTR Double+6, dx
+   mov   WORD PTR Double+4, ax
+   mov   WORD PTR Double+2, bx
+   xor   bx, bx
+   mov   WORD PTR Double, bx
+
+   lea   ax, Double
+   mov   dx, ds
+   ret
+MP2d086     ENDP
+*/
+double *MP2d086(struct MP x)
+{
+	/* TODO: implement */
+	static double ans = 0.0;
+	_ASSERTE(0 && "MP2d086 called.");
+	return &ans;
+}
+
+/*
+d2MP086     PROC     uses si di, x:QWORD
+   mov   dx, word ptr [x+6]
+   mov   ax, word ptr [x+4]
+   mov   bx, word ptr [x+2]
+   mov   cx, word ptr [x]
+   mov   si, dx
+   shl   si, 1
+   pushf
+   mov   cl, 4
+   shr   si, cl
+   popf
+   rcr   si, 1
+   add   si, (1 SHL 14) - (1 SHL 10)
+
+   mov   di, ax                           ; shl dx:ax:bx 12 bits
+   mov   cl, 12
+   shl   dx, cl
+   shl   ax, cl
+   mov   cl, 4
+   shr   di, cl
+   shr   bx, cl
+   or    dx, di
+   or    ax, bx
+   stc
+   rcr   dx, 1
+   rcr   ax, 1
+
+StoreAns:
+   mov   Ans.Exp, si
+   mov   word ptr Ans.Mant+2, dx
+   mov   word ptr Ans.Mant, ax
+
+   lea   ax, Ans
+   mov   dx, ds
+   ret
+d2MP086     ENDP
+*/
+struct MP *d2MP086(double x)
+{
+	/* TODO: implement */
+	if (0.0 == x)
+	{
+		Ans.Exp = 0;
+		Ans.Mant = 0;
+	}
+	else
+	{
+		__asm
+		{
+			mov dx, word ptr [x+6]
+			mov ax, word ptr [x+4]
+			mov bx, word ptr [x+2]
+			mov cx, word ptr [x]
+			xor	esi, esi
+			mov   si, dx
+			shl   si, 1
+			pushf
+			mov   cl, 4
+			shr   si, cl
+			popf
+			rcr   si, 1
+			add   si, (1 SHL 14) - (1 SHL 10)
+
+			mov   di, ax                           ; shl dx:ax:bx 12 bits
+			mov   cl, 12
+			shl   dx, cl
+			shl   ax, cl
+			mov   cl, 4
+			shr   di, cl
+			shr   bx, cl
+			or    dx, di
+			or    ax, bx
+			stc
+			rcr   dx, 1
+			rcr   ax, 1
+
+			mov   Ans.Exp, esi
+			mov   word ptr Ans.Mant+2, dx
+			mov   word ptr Ans.Mant, ax
+		}
+	}
+	return &Ans;
+}
+
+/*
+MPadd086    PROC     uses si di, xExp:WORD, xMant:DWORD, yExp:WORD, yMant:DWORD
+   mov   si, xExp
+   mov   dx, WORD PTR [xMant+2]
+   mov   ax, WORD PTR [xMant]
+
+   mov   di, yExp
+
+   mov   cx, si
+   xor   cx, di
+   js    Subtract
+   jz    SameMag
+
+   cmp   si, di
+   jg    XisGreater
+
+   xchg  si, di
+   xchg  dx, WORD PTR [yMant+2]
+   xchg  ax, WORD PTR [yMant]
+
+XisGreater:
+   mov   cx, si
+   sub   cx, di
+   cmp   cx, 32
+   jl    ChkSixteen
+   jmp   StoreAns
+
+ChkSixteen:
+   cmp   cx, 16
+   jl    SixteenBitShift
+
+   sub   cx, 16
+   mov   bx, WORD PTR [yMant+2]
+   shr   bx, cl
+   mov   WORD PTR [yMant], bx
+   mov   WORD PTR [yMant+2], 0
+   jmp   SameMag
+
+SixteenBitShift:
+   mov   bx, WORD PTR [yMant+2]
+   shr   WORD PTR [yMant+2], cl
+   shr   WORD PTR [yMant], cl
+   neg   cl
+   add   cl, 16
+   shl   bx, cl
+   or    WORD PTR [yMant], bx
+
+SameMag:
+   add   ax, WORD PTR [yMant]
+   adc   dx, WORD PTR [yMant+2]
+   jc    ShiftCarry
+   jmp   StoreAns
+
+ShiftCarry:
+   rcr   dx, 1
+   rcr   ax, 1
+   add   si, 1
+   jo    Overflow
+   jmp   StoreAns
+
+Overflow:
+   mov   MPOverflow, 1
+
+ZeroAns:
+   xor   si, si
+   xor   ax, ax
+   xor   dx, dx
+   jmp   StoreAns
+
+Subtract:
+   xor   di, 8000h
+   mov   cx, si
+   sub   cx, di
+   jnz   DifferentMag
+
+   cmp   dx, WORD PTR [yMant+2]
+   jg    SubtractNumbers
+   jne   SwapNumbers
+
+   cmp   ax, WORD PTR [yMant]
+   jg    SubtractNumbers
+   je    ZeroAns
+
+SwapNumbers:
+   xor   si, 8000h
+   xchg  ax, WORD PTR [yMant]
+   xchg  dx, WORD PTR [yMant+2]
+   jmp   SubtractNumbers
+
+DifferentMag:
+   or    cx, cx
+   jns   NoSwap
+
+   xchg  si, di
+   xchg  ax, WORD PTR [yMant]
+   xchg  dx, WORD PTR [yMant+2]
+   xor   si, 8000h
+   neg   cx
+
+NoSwap:
+   cmp   cx, 32
+   jge   StoreAns
+
+   cmp   cx, 16
+   jl    SixteenBitShift2
+
+   sub   cx, 16
+   mov   bx, WORD PTR [yMant+2]
+   shr   bx, cl
+   mov   WORD PTR [yMant], bx
+   mov   WORD PTR [yMant+2], 0
+   jmp   SubtractNumbers
+
+SixteenBitShift2:
+   mov   bx, WORD PTR [yMant+2]
+   shr   WORD PTR [yMant+2], cl
+   shr   WORD PTR [yMant], cl
+   neg   cl
+   add   cl, 16
+   shl   bx, cl
+   or    WORD PTR [yMant], bx
+
+SubtractNumbers:
+   sub   ax, WORD PTR [yMant]
+   sbb   dx, WORD PTR [yMant+2]
+
+BitScanRight:
+   or    dx, dx
+   js    StoreAns
+
+   shl   ax, 1
+   rcl   dx, 1
+   sub   si, 1
+   jno   BitScanRight
+   jmp   Overflow
+
+StoreAns:
+   mov   Ans.Exp, si
+   mov   WORD PTR Ans.Mant+2, dx
+   mov   WORD PTR Ans.Mant, ax
+
+   lea   ax, Ans
+   mov   dx, ds
+   ret
+MPadd086    ENDP
+*/
+struct MP *MPadd086(struct MP x, struct MP y)
+{
+	/* TODO: implement */
+	_ASSERTE(0 && "MPadd086 called.");
+	return &Ans;
+}
+
+/*
+MPcmp086    PROC     uses si di, xExp:WORD, xMant:DWORD, yExp:WORD, yMant:DWORD
+LOCAL Rev:WORD, Flag:WORD
+   mov   Rev, 0
+   mov   Flag, 0
+   mov   ax, xExp
+   mov   dx, WORD PTR [xMant]
+   mov   si, WORD PTR [xMant+2]
+   mov   bx, yExp
+   mov   cx, WORD PTR [yMant]
+   mov   di, WORD PTR [yMant+2]
+   or    ax, ax
+   jns   AtLeastOnePos
+
+   or    bx, bx
+   jns   AtLeastOnePos
+
+   mov   Rev, 1
+   and   ah, 7fh
+   and   bh, 7fh
+
+AtLeastOnePos:
+   cmp   ax, bx
+   jle   Cmp1
+
+   mov   Flag, 1
+   jmp   ChkRev
+
+Cmp1:
+   je    Cmp2
+
+   mov   Flag, -1
+   jmp   ChkRev
+
+Cmp2:
+   cmp   si, di
+   jbe   Cmp3
+
+   mov   Flag, 1
+   jmp   ChkRev
+
+Cmp3:
+   je    Cmp4
+
+   mov   Flag, -1
+   jmp   ChkRev
+
+Cmp4:
+   cmp   dx, cx
+   jbe   Cmp5
+
+   mov   Flag, 1
+   jmp   ChkRev
+
+Cmp5:
+   je    ChkRev
+
+   mov   Flag, -1
+
+ChkRev:
+        or    Rev, 0
+   jz    ExitCmp
+
+   neg   Flag
+
+ExitCmp:
+   mov   ax, Flag
+   ret
+MPcmp086    ENDP
+*/
+int MPcmp086(struct MP x, struct MP y)
+{
+	/* TODO: implement */
+	_ASSERTE(0 && "MPcmp086 called.");
+	return 0;
+}
+
+/*
+MPdiv086    PROC     uses si di, xExp:WORD, xMant:DWORD, yExp:WORD, \
+                     yMant:DWORD
+   mov   ax, xExp
+   mov   bx, yExp
+   xor   ch, ch
+   shl   bh, 1
+   rcr   ch, 1
+   shr   bh, 1
+   xor   ah, ch
+
+   sub   bx, (1 SHL 14) - 2
+   sub   ax, bx
+   jno   NoOverflow
+
+Overflow:
+   mov   MPOverflow, 1
+
+ZeroAns:
+   xor   ax, ax
+   xor   dx, dx
+   mov   Ans.Exp, dx
+   jmp   StoreMant
+
+NoOverflow:
+   mov   Ans.Exp, ax
+
+   mov   dx, WORD PTR [xMant+2]
+   mov   ax, WORD PTR [xMant]
+   or    dx, dx
+   jz    ZeroAns
+
+   mov   cx, WORD PTR [yMant+2]
+   mov   bx, WORD PTR [yMant]
+   or    cx, cx
+   jz    Overflow
+
+   cmp   dx, cx
+   jl    Divide
+
+   shr   dx, 1
+   rcr   ax, 1
+   add   Ans.Exp, 1
+   jo    Overflow
+
+Divide:
+   div   cx
+   mov   si, dx
+   mov   dx, bx
+   mov   bx, ax
+   mul   dx
+   xor   di, di
+   cmp   dx, si
+   jnc   RemReallyNeg
+
+   xchg  ax, di
+   xchg  dx, si
+   sub   ax, di
+   sbb   dx, si
+
+   shr   dx, 1
+   rcr   ax, 1
+   div   cx
+   mov   dx, bx
+   shl   ax, 1
+   adc   dx, 0
+   jmp   StoreMant
+
+RemReallyNeg:
+   sub   ax, di
+   sbb   dx, si
+
+   shr   dx, 1
+   rcr   ax, 1
+   div   cx
+   mov   dx, bx
+   mov   bx, ax
+   xor   ax, ax
+   xor   cx, cx
+   shl   bx, 1
+   rcl   cx, 1
+   sub   ax, bx
+   sbb   dx, cx
+   jno   StoreMant
+
+   shl   ax, 1
+   rcl   dx, 1
+   dec   Ans.Exp
+
+StoreMant:
+   mov   WORD PTR Ans.Mant, ax
+   mov   WORD PTR Ans.Mant+2, dx
+   lea   ax, Ans
+   mov   dx, ds
+   ret
+MPdiv086    ENDP
+*/
+struct MP *MPdiv086(struct MP x, struct MP y)
+{
+	/* TODO: implement */
+	_ASSERTE(0 && "MPdiv086 called.");
+	return &Ans;
+}
+
+/*
+MPmul086    PROC     uses si di, xExp:WORD, xMant:DWORD, yExp:WORD, yMant:DWORD
+   mov   ax, xExp
+   mov   bx, yExp
+   xor   ch, ch
+   shl   bh, 1
+   rcr   ch, 1
+   shr   bh, 1
+   xor   ah, ch
+
+   sub   bx, (1 SHL 14) - 2
+   add   ax, bx
+   jno   NoOverflow
+
+Overflow:
+   or    word ptr [xMant+2], 0
+   jz    ZeroAns
+   or    word ptr [yMant+2], 0
+   jz    ZeroAns
+
+   mov   MPOverflow, 1
+
+ZeroAns:
+   xor   ax, ax
+   xor   dx, dx
+   mov   Ans.Exp, ax
+   jmp   StoreMant
+
+NoOverflow:
+   mov   Ans.Exp, ax
+
+   mov   si, word ptr [xMant+2]
+   mov   bx, word ptr [xMant]
+   mov   di, word ptr [yMant+2]
+   mov   cx, word ptr [yMant]
+
+   mov   ax, si
+   or    ax, bx
+   jz    ZeroAns
+
+   mov   ax, di
+   or    ax, cx
+   jz    ZeroAns
+
+   mov   ax, cx
+   mul   bx
+   push  dx
+
+   mov   ax, cx
+   mul   si
+   push  ax
+   push  dx
+
+   mov   ax, bx
+   mul   di
+   push  ax
+   push  dx
+
+   mov   ax, si
+   mul   di
+   pop   bx
+   pop   cx
+   pop   si
+   pop   di
+
+   add   ax, bx
+   adc   dx, 0
+   pop   bx
+   add   di, bx
+   adc   ax, 0
+   adc   dx, 0
+   add   di, cx
+   adc   ax, si
+   adc   dx, 0
+
+   or    dx, dx
+   js    StoreMant
+
+   shl   di, 1
+   rcl   ax, 1
+   rcl   dx, 1
+   sub   Ans.Exp, 1
+   jo    Overflow
+
+StoreMant:
+   mov   word ptr Ans.Mant+2, dx
+   mov   word ptr Ans.Mant, ax
+
+   lea   ax, Ans
+   mov   dx, ds
+   ret
+MPmul086    ENDP
+*/
+struct MP *MPmul086(struct MP x, struct MP y)
+{
+	/* TODO: implement */
+	__asm
+	{
+		xor   eax, eax
+		xor   ebx, ebx
+		mov   eax, x.Exp
+		mov   ebx, y.Exp
+		xor   ch, ch
+		shl   bh, 1
+		rcr   ch, 1
+		shr   bh, 1
+		xor   ah, ch
+
+		sub   bx, (1 SHL 14) - 2
+		add   ax, bx
+		jno   NoOverflow
+
+	Overflow:
+		or    word ptr [x.Mant+2], 0
+		jz    ZeroAns
+		or    word ptr [y.Mant+2], 0
+		jz    ZeroAns
+
+		mov   MPOverflow, 1
+
+	ZeroAns:
+		xor   ax, ax
+		xor   dx, dx
+		mov   Ans.Exp, eax
+		jmp   StoreMant
+
+	NoOverflow:
+		mov   Ans.Exp, eax
+
+		mov   si, word ptr [x.Mant+2]
+		mov   bx, word ptr [x.Mant]
+		mov   di, word ptr [y.Mant+2]
+		mov   cx, word ptr [y.Mant]
+
+		mov   ax, si
+		or    ax, bx
+		jz    ZeroAns
+
+		mov   ax, di
+		or    ax, cx
+		jz    ZeroAns
+
+		mov   ax, cx
+		mul   bx
+		push  dx
+
+		mov   ax, cx
+		mul   si
+		push  ax
+		push  dx
+
+		mov   ax, bx
+		mul   di
+		push  ax
+		push  dx
+
+		mov   ax, si
+		mul   di
+		pop   bx
+		pop   cx
+		pop   si
+		pop   di
+
+		add   ax, bx
+		adc   dx, 0
+		pop   bx
+		add   di, bx
+		adc   ax, 0
+		adc   dx, 0
+		add   di, cx
+		adc   ax, si
+		adc   dx, 0
+
+		or    dx, dx
+		js    StoreMant
+
+		shl   di, 1
+		rcl   ax, 1
+		rcl   dx, 1
+		sub   Ans.Exp, 1
+		jo    Overflow
+
+	StoreMant:
+		mov   word ptr Ans.Mant+2, dx
+		mov   word ptr Ans.Mant, ax
+	}
+
+	return &Ans;
+}
+
+/*
+d2MP386     PROC     uses si di, x:QWORD
+   mov   si, WORD PTR [x+6]
+.386
+   mov   edx, DWORD PTR [x+4]
+   mov   eax, DWORD PTR [x]
+
+   mov   ebx, edx
+   shl   ebx, 1
+   or    ebx, eax
+   jnz   NonZero
+
+   xor   si, si
+   xor   edx, edx
+   jmp   StoreAns
+
+NonZero:
+   shl   si, 1
+   pushf
+   shr   si, 4
+   popf
+   rcr   si, 1
+   add   si, (1 SHL 14) - (1 SHL 10)
+
+   shld  edx, eax, 12
+   stc
+   rcr   edx, 1
+
+StoreAns:
+   mov   Ans.Exp, si
+   mov   Ans.Mant, edx
+
+   lea   ax, Ans
+   mov   dx, ds
+.8086
+   ret
+d2MP386     ENDP
+*/
+struct MP *d2MP386(double x)
+{
+	/* TODO: implement */
+	_ASSERTE(0 && "d2MP386 called.");
+	return &Ans;
+}
+
+/*
+MP2d386     PROC     uses si di, xExp:WORD, xMant:DWORD
+   sub   xExp, (1 SHL 14) - (1 SHL 10)
+.386
+   jo    Overflow
+
+   mov   bx, xExp
+   and   bx, 0111100000000000b
+   jz    InRangeOfDouble
+
+Overflow:
+   mov   MPOverflow, 1
+   xor   eax, eax
+   xor   edx, edx
+   jmp   StoreAns
+
+InRangeOfDouble:
+   mov   bx, xExp
+   mov   ax, bx
+   shl   bx, 5
+   shl   ax, 1
+   rcr   bx, 1
+   shr   bx, 4
+
+   mov   edx, xMant
+   shl   edx, 1
+   xor   eax, eax
+   shrd  eax, edx, 12
+   shrd  edx, ebx, 12
+
+StoreAns:
+   mov   DWORD PTR Double+4, edx
+   mov   DWORD PTR Double, eax
+
+   lea   ax, Double
+   mov   dx, ds
+.8086
+   ret
+MP2d386     ENDP
+*/
+double *MP2d386(struct MP x)
+{
+	/* TODO: implement */
+	static double ans = 0.0;
+	_ASSERTE(0 && "MP2d386 called.");
+	return &ans;
+}
+
+/*
+MPadd086    PROC     uses si di, xExp:WORD, xMant:DWORD, yExp:WORD, yMant:DWORD
+   mov   si, xExp
+   mov   dx, WORD PTR [xMant+2]
+   mov   ax, WORD PTR [xMant]
+
+   mov   di, yExp
+
+   mov   cx, si
+   xor   cx, di
+   js    Subtract
+   jz    SameMag
+
+   cmp   si, di
+   jg    XisGreater
+
+   xchg  si, di
+   xchg  dx, WORD PTR [yMant+2]
+   xchg  ax, WORD PTR [yMant]
+
+XisGreater:
+   mov   cx, si
+   sub   cx, di
+   cmp   cx, 32
+   jl    ChkSixteen
+   jmp   StoreAns
+
+ChkSixteen:
+   cmp   cx, 16
+   jl    SixteenBitShift
+
+   sub   cx, 16
+   mov   bx, WORD PTR [yMant+2]
+   shr   bx, cl
+   mov   WORD PTR [yMant], bx
+   mov   WORD PTR [yMant+2], 0
+   jmp   SameMag
+
+SixteenBitShift:
+   mov   bx, WORD PTR [yMant+2]
+   shr   WORD PTR [yMant+2], cl
+   shr   WORD PTR [yMant], cl
+   neg   cl
+   add   cl, 16
+   shl   bx, cl
+   or    WORD PTR [yMant], bx
+
+SameMag:
+   add   ax, WORD PTR [yMant]
+   adc   dx, WORD PTR [yMant+2]
+   jc    ShiftCarry
+   jmp   StoreAns
+
+ShiftCarry:
+   rcr   dx, 1
+   rcr   ax, 1
+   add   si, 1
+   jo    Overflow
+   jmp   StoreAns
+
+Overflow:
+   mov   MPOverflow, 1
+
+ZeroAns:
+   xor   si, si
+   xor   ax, ax
+   xor   dx, dx
+   jmp   StoreAns
+
+Subtract:
+   xor   di, 8000h
+   mov   cx, si
+   sub   cx, di
+   jnz   DifferentMag
+
+   cmp   dx, WORD PTR [yMant+2]
+   jg    SubtractNumbers
+   jne   SwapNumbers
+
+   cmp   ax, WORD PTR [yMant]
+   jg    SubtractNumbers
+   je    ZeroAns
+
+SwapNumbers:
+   xor   si, 8000h
+   xchg  ax, WORD PTR [yMant]
+   xchg  dx, WORD PTR [yMant+2]
+   jmp   SubtractNumbers
+
+DifferentMag:
+   or    cx, cx
+   jns   NoSwap
+
+   xchg  si, di
+   xchg  ax, WORD PTR [yMant]
+   xchg  dx, WORD PTR [yMant+2]
+   xor   si, 8000h
+   neg   cx
+
+NoSwap:
+   cmp   cx, 32
+   jge   StoreAns
+
+   cmp   cx, 16
+   jl    SixteenBitShift2
+
+   sub   cx, 16
+   mov   bx, WORD PTR [yMant+2]
+   shr   bx, cl
+   mov   WORD PTR [yMant], bx
+   mov   WORD PTR [yMant+2], 0
+   jmp   SubtractNumbers
+
+SixteenBitShift2:
+   mov   bx, WORD PTR [yMant+2]
+   shr   WORD PTR [yMant+2], cl
+   shr   WORD PTR [yMant], cl
+   neg   cl
+   add   cl, 16
+   shl   bx, cl
+   or    WORD PTR [yMant], bx
+
+SubtractNumbers:
+   sub   ax, WORD PTR [yMant]
+   sbb   dx, WORD PTR [yMant+2]
+
+BitScanRight:
+   or    dx, dx
+   js    StoreAns
+
+   shl   ax, 1
+   rcl   dx, 1
+   sub   si, 1
+   jno   BitScanRight
+   jmp   Overflow
+
+StoreAns:
+   mov   Ans.Exp, si
+   mov   WORD PTR Ans.Mant+2, dx
+   mov   WORD PTR Ans.Mant, ax
+
+   lea   ax, Ans
+   mov   dx, ds
+   ret
+MPadd086    ENDP
+*/
+struct MP *MPadd(struct MP x, struct MP y)
+{
+	/* TODO: implement */
+	_ASSERTE(0 && "MPadd called.");
+	return &Ans;
+}
+
+/*
+MPadd386    PROC     uses si di, xExp:WORD, xMant:DWORD, yExp:WORD, \
+                     yMant:DWORD
+   mov   si, xExp
+.386
+   mov   eax, xMant
+
+   mov   di, yExp
+   mov   edx, yMant
+
+   mov   cx, si
+   xor   cx, di
+   js    Subtract
+   jz    SameMag
+
+   cmp   si, di
+   jg    XisGreater
+
+   xchg  si, di
+   xchg  eax, edx
+
+XisGreater:
+   mov   cx, si
+   sub   cx, di
+   cmp   cx, 32
+   jge   StoreAns
+
+   shr   edx, cl
+
+SameMag:
+   add   eax, edx
+   jnc   StoreAns
+
+   rcr   eax, 1
+   add   si, 1
+   jno   StoreAns
+
+Overflow:
+   mov   MPOverflow, 1
+
+ZeroAns:
+   xor   si, si
+   xor   edx, edx
+   jmp   StoreAns
+
+Subtract:
+   xor   di, 8000h
+   mov   cx, si
+   sub   cx, di
+   jnz   DifferentMag
+
+   cmp   eax, edx
+   jg    SubtractNumbers
+   je    ZeroAns
+
+   xor   si, 8000h
+   xchg  eax, edx
+   jmp   SubtractNumbers
+
+DifferentMag:
+   or    cx, cx
+   jns   NoSwap
+
+   xchg  si, di
+   xchg  eax, edx
+   xor   si, 8000h
+   neg   cx
+
+NoSwap:
+   cmp   cx, 32
+   jge   StoreAns
+
+   shr   edx, cl
+
+SubtractNumbers:
+   sub   eax, edx
+   bsr   ecx, eax
+   neg   cx
+   add   cx, 31
+   shl   eax, cl
+   sub   si, cx
+   jo    Overflow
+
+StoreAns:
+   mov   Ans.Exp, si
+   mov   Ans.Mant, eax
+
+   lea   ax, Ans
+   mov   dx, ds
+.8086
+   ret
+MPadd386    ENDP
+*/
+struct MP *MPadd386(struct MP x, struct MP y)
+{
+	/* TODO: implement */
+	_ASSERTE(0 && "MPadd386 called.");
+	return &Ans;
+}
+
+/*
+MPcmp386    PROC     uses si di, xExp:WORD, xMant:DWORD, yExp:WORD, yMant:DWORD
+   mov   si, 0
+   mov   di, si
+.386
+   mov   ax, xExp
+   mov   edx, xMant
+   mov   bx, yExp
+   mov   ecx, yMant
+   or    ax, ax
+   jns   AtLeastOnePos
+
+   or    bx, bx
+   jns   AtLeastOnePos
+
+   mov   si, 1
+   and   ah, 7fh
+   and   bh, 7fh
+
+AtLeastOnePos:
+   cmp   ax, bx
+   jle   Cmp1
+
+   mov   di, 1
+   jmp   ChkRev
+
+Cmp1:
+   je    Cmp2
+
+   mov   di, -1
+   jmp   ChkRev
+
+Cmp2:
+   cmp   edx, ecx
+   jbe   Cmp3
+
+   mov   di, 1
+   jmp   ChkRev
+
+Cmp3:
+   je    ChkRev
+
+   mov   di, -1
+
+ChkRev:
+        or    si, si
+   jz    ExitCmp
+
+   neg   di
+
+ExitCmp:
+   mov   ax, di
+.8086
+   ret
+MPcmp386    ENDP
+*/
+int MPcmp386(struct MP x, struct MP y)
+{
+	/* TODO: implement */
+	_ASSERTE(0 && "MPcmp386 called.");
+	return 0;
+}
+
+/*
+MPdiv386    PROC     uses si di, xExp:WORD, xMant:DWORD, yExp:WORD, \
+                     yMant:DWORD
+   mov   ax, xExp
+   mov   bx, yExp
+.386
+   xor   ch, ch
+   shl   bh, 1
+   rcr   ch, 1
+   shr   bh, 1
+   xor   ah, ch
+
+   sub   bx, (1 SHL 14) - 2
+   sub   ax, bx
+   jno   NoOverflow
+
+Overflow:
+   mov   MPOverflow, 1
+
+ZeroAns:
+   xor   eax, eax
+   mov   Ans.Exp, ax
+   jmp   StoreMant
+
+NoOverflow:
+   mov   Ans.Exp, ax
+
+   xor   eax, eax
+   mov   edx, xMant
+   mov   ecx, yMant
+   or    edx, edx
+   jz    ZeroAns
+
+   or    ecx, ecx
+   jz    Overflow
+
+   cmp   edx, ecx
+   jl    Divide
+
+   shr   edx, 1
+   rcr   eax, 1
+   add   Ans.Exp, 1
+   jo    Overflow
+
+Divide:
+   div   ecx
+
+StoreMant:
+   mov   Ans.Mant, eax
+   lea   ax, Ans
+   mov   dx, ds
+.8086
+   ret
+MPdiv386    ENDP
+*/
+struct MP *MPdiv386(struct MP x, struct MP y)
+{
+	/* TODO: implement */
+	_ASSERTE(0 && "MPdiv386 called.");
+	return &Ans;
+}
+
+/*
+MPmul386    PROC     uses si di, xExp:WORD, xMant:DWORD, yExp:WORD, \
+                     yMant:DWORD
+   mov   ax, xExp
+   mov   bx, yExp
+.386
+   xor   ch, ch
+   shl   bh, 1
+   rcr   ch, 1
+   shr   bh, 1
+   xor   ah, ch
+
+   sub   bx, (1 SHL 14) - 2
+   add   ax, bx
+   jno   NoOverflow
+
+Overflow:
+   or    WORD PTR [xMant+2], 0
+   jz    ZeroAns
+   or    WORD PTR [yMant+2], 0
+   jz    ZeroAns
+
+   mov   MPOverflow, 1
+
+ZeroAns:
+   xor   edx, edx
+   mov   Ans.Exp, dx
+   jmp   StoreMant
+
+NoOverflow:
+   mov   Ans.Exp, ax
+
+   mov   eax, xMant
+   mov   edx, yMant
+   or    eax, eax
+   jz    ZeroAns
+
+   or    edx, edx
+   jz    ZeroAns
+
+   mul   edx
+
+   or    edx, edx
+   js    StoreMant
+
+   shld  edx, eax, 1
+   sub   Ans.Exp, 1
+   jo    Overflow
+
+StoreMant:
+   mov   Ans.Mant, edx
+   lea   ax, Ans
+   mov   dx, ds
+.8086
+   ret
+MPmul386    ENDP
+*/
+struct MP *MPmul386(struct MP x, struct MP y)
+{
+	/* TODO: implement */
+	_ASSERTE(0 && "MPmul386 called.");
+	return &Ans;
+}
+
+/*
+*/
+struct MP *d2MP(double x)
+{
+	return ((cpu >= 386)? d2MP386 : d2MP086)(x);
+}
+
+struct MP *MPmul(struct MP x, struct MP y)
+{
+	return ((cpu >= 386) ? MPmul386 : MPmul086)(x, y);
+}
+
+struct MP *MPdiv(struct MP x, struct MP y)
+{
+	return ((cpu >= 386) ? MPdiv386 : MPdiv086)(x, y);
+}
+
+int MPcmp(struct MP x, struct MP y)
+{
+	return ((cpu >= 386) ? MPcmp386 : MPcmp086)(x, y);
+}
+
+/*
+fg2MP086    PROC     x:DWORD, fg:WORD
+   mov   ax, WORD PTR [x]
+   mov   dx, WORD PTR [x+2]
+   mov   cx, ax
+   or    cx, dx
+   jz    ExitFg2MP
+
+   mov   cx, 1 SHL 14 + 30
+   sub   cx, fg
+
+   or    dx, dx
+   jns   BitScanRight
+
+   or    ch, 80h
+   not   ax
+   not   dx
+   add   ax, 1
+   adc   dx, 0
+
+BitScanRight:
+   shl   ax, 1
+   rcl   dx, 1
+   dec   cx
+   or    dx, dx
+   jns   BitScanRight
+
+ExitFg2MP:
+   mov   Ans.Exp, cx
+   mov   WORD PTR Ans.Mant+2, dx
+   mov   WORD PTR Ans.Mant, ax
+   lea   ax, Ans
+   mov   dx, ds
+   ret
+fg2MP086    ENDP
+*/
+struct MP *fg2MP086(long x, int fg)
+{
+	_ASSERTE(0 && "fg2MP086 called");
+	return &Ans;
+}
+
+/*
+fg2MP386    PROC     x:DWORD, fg:WORD
+   mov   bx, 1 SHL 14 + 30
+   sub   bx, fg
+.386
+   mov   edx, x
+
+   or    edx, edx
+   jnz   ChkNegMP
+
+   mov   bx, dx
+   jmp   StoreAns
+
+ChkNegMP:
+   jns   BitScanRight
+
+   or    bh, 80h
+   neg   edx
+
+BitScanRight:
+   bsr   ecx, edx
+   neg   cx
+   add   cx, 31
+   sub   bx, cx
+   shl   edx, cl
+
+StoreAns:
+   mov   Ans.Exp, bx
+   mov   Ans.Mant, edx
+.8086
+   lea   ax, Ans
+   mov   dx, ds
+   ret
+fg2MP386    ENDP
+*/
+struct MP *fg2MP386(long x, int fg)
+{
+	_ASSERTE(0 && "fg2MP386 called");
+	return &Ans;
+}
+
+struct MP *fg2MP(long x, int fg)
+{
+	return ((cpu >= 386) ? fg2MP386 : fg2MP086)(x, fg);
+}
 #endif

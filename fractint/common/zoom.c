@@ -8,8 +8,13 @@
   /* see Fractint.c for a description of the "include"  hierarchy */
 #include "port.h"
 #include "prototyp.h"
+#include "drivers.h"
 
 #define PIXELROUND 0.00001
+
+int boxx[NUM_BOXES] = { 0 };
+int boxy[NUM_BOXES] = { 0 };
+int boxvalues[NUM_BOXES] = { 0 };
 
 static void _fastcall zmo_calc(double, double, double *, double *, double);
 static void _fastcall zmo_calcbf(bf_t,bf_t,bf_t,bf_t,bf_t,bf_t,bf_t,bf_t,bf_t);
@@ -44,47 +49,43 @@ void dispbox(void)
    int boxc = (colors-1)&boxcolor;
    unsigned char *values = (unsigned char *)boxvalues;
    int rgb[3];
-   xorTARGA = 1;
-   for(i=0;i<boxcount;i++)
+   for (i=0; i<boxcount; i++)
    {
-      if(istruecolor && truemode)
+      if (g_is_true_color && truemode)
       {
-         gettruecolor(boxx[i]-sxoffs,boxy[i]-syoffs,&rgb[0],&rgb[1],&rgb[2]);
-         puttruecolor(boxx[i]-sxoffs,boxy[i]-syoffs,
-                      rgb[0]^255,rgb[1]^255,rgb[2]^255);
+         driver_get_truecolor(boxx[i]-sxoffs,boxy[i]-syoffs,&rgb[0],&rgb[1],&rgb[2],NULL);
+         driver_put_truecolor(boxx[i]-sxoffs,boxy[i]-syoffs,
+                      rgb[0]^255,rgb[1]^255,rgb[2]^255,255);
       }
       else
          values[i] = (unsigned char)getcolor(boxx[i]-sxoffs,boxy[i]-syoffs);
    }
 /* There is an interaction between getcolor and putcolor, so separate them */
-   if (!(istruecolor && truemode)) /* don't need this for truecolor with truemode set */
-      for(i=0;i<boxcount;i++)
+   if (!(g_is_true_color && truemode)) /* don't need this for truecolor with truemode set */
+      for (i=0; i<boxcount; i++)
       {
          if (colors == 2)
             putcolor(boxx[i]-sxoffs,boxy[i]-syoffs,(1 - values[i]));
          else
             putcolor(boxx[i]-sxoffs,boxy[i]-syoffs,boxc);
       }
-   xorTARGA = 0;
 }
 
 void clearbox(void)
 {
    int i;
-   xorTARGA = 1;
-   if(istruecolor && truemode)
+   if (g_is_true_color && truemode)
    {
       dispbox();
    }
    else
    {
       unsigned char *values = (unsigned char *)boxvalues;
-      for(i=0;i<boxcount;i++)
+      for (i=0; i<boxcount; i++)
       {
          putcolor(boxx[i]-sxoffs,boxy[i]-syoffs,values[i]);
       }
    }
-   xorTARGA = 0;
 }
 #endif
 
@@ -101,7 +102,7 @@ void drawbox(int drawit)
             boxcount = 0; }
         reset_zoom_corners();
         return; }
-    if(bf_math)
+    if (bf_math)
     {
        saved = save_stack();
        bffxwidth = alloc_stack(rbflength+2);
@@ -121,7 +122,7 @@ void drawbox(int drawit)
     fyskew  = symin-sy3rd;
     fxadj   = zwidth*zskew;
 
-    if(bf_math)
+    if (bf_math)
     {
        /* do some calcs just once here to reduce fp work a bit */
        sub_bf(bffxwidth,bfsxmax,bfsx3rd);
@@ -145,7 +146,7 @@ void drawbox(int drawit)
     tl.y   = (int)(ftemp2*(dysize+PIXELROUND));
     xxmin  = sxmin + ftemp1*fxwidth + ftemp2*fxskew; /* real co-ords */
     yymax  = symax + ftemp2*fydepth + ftemp1*fyskew;
-    if(bf_math)
+    if (bf_math)
     {
        calc_corner(bfxmin,bfsxmin,ftemp1,bffxwidth,ftemp2,bffxskew);
        calc_corner(bfymax,bfsymax,ftemp2,bffydepth,ftemp1,bffyskew);
@@ -158,7 +159,7 @@ void drawbox(int drawit)
     br.y   = (int)(ftemp2*(dysize+PIXELROUND));
     xxmax  = sxmin + ftemp1*fxwidth + ftemp2*fxskew;
     yymin  = symax + ftemp2*fydepth + ftemp1*fyskew;
-    if(bf_math)
+    if (bf_math)
     {
        calc_corner(bfxmax,bfsxmin,ftemp1,bffxwidth,ftemp2,bffxskew);
        calc_corner(bfymin,bfsymax,ftemp2,bffydepth,ftemp1,bffyskew);
@@ -174,7 +175,7 @@ void drawbox(int drawit)
     bl.y   = (int)(ftemp2*(dysize+PIXELROUND));
     xx3rd  = sxmin + ftemp1*fxwidth + ftemp2*fxskew;
     yy3rd  = symax + ftemp2*fydepth + ftemp1*fyskew;
-    if(bf_math)
+    if (bf_math)
     {
        calc_corner(bfx3rd,bfsxmin,ftemp1,bffxwidth,ftemp2,bffxskew);
        calc_corner(bfy3rd,bfsymax,ftemp2,bffydepth,ftemp1,bffyskew);
@@ -270,6 +271,9 @@ void _fastcall drawlines(struct coords fr, struct coords to,
 
 void _fastcall addbox(struct coords point)
 {
+#if defined(_WIN32)
+	_ASSERTE(boxcount < NUM_BOXES);
+#endif
     point.x += sxoffs;
     point.y += syoffs;
     if (point.x >= 0 && point.x < sxdots && 
@@ -306,7 +310,7 @@ void moveboxf(double dx, double dy)
             zby = (double)row/dysize; }
         }
 #ifndef XFRACT
-    if (video_scroll != 0) {  /* scroll screen center to the box center */
+    if (g_video_scroll != 0) {  /* scroll screen center to the box center */
         col = (int)((zbx + zwidth/2)*(dxsize + PIXELROUND)) + sxoffs;
         row = (int)((zby + zdepth/2)*(dysize + PIXELROUND)) + syoffs;
         switch (zscroll) {
@@ -314,9 +318,9 @@ void moveboxf(double dx, double dy)
                 scroll_center(col,row);
                 break;
             case 1:  /* relaxed - as the zoombox center leaves the screen */
-                if ((col -= video_startx) > 0 && (col -= vesa_xres - 1) < 0)
+                if ((col -= g_video_start_x) > 0 && (col -= g_vesa_x_res - 1) < 0)
                     col = 0;
-                if ((row -= video_starty) > 0 && (row -= vesa_yres - 1) < 0)
+                if ((row -= g_video_start_y) > 0 && (row -= g_vesa_y_res - 1) < 0)
                     row = 0;
                 if (col != 0 || row != 0)
                     scroll_relative(col, row);
@@ -518,7 +522,7 @@ void zoomoutdbl(void) /* for ctl-enter, calc corners for zooming out */
 
 void zoomout(void) /* for ctl-enter, calc corners for zooming out */
 {
-   if(bf_math)
+   if (bf_math)
    {
       zoomoutbf();
    }
@@ -555,7 +559,7 @@ void aspectratio_crop(float oldaspect,float newaspect)
 
 static int check_pan(void) /* return 0 if can't, alignment requirement if can */
 {   int i,j;
-    if ((calc_status != 2 && calc_status != 4) || evolving)
+    if ((calc_status != CALCSTAT_RESUMABLE && calc_status != CALCSTAT_COMPLETED) || evolving)
         return(0); /* not resumable, not complete */
     if ( curfractalspecific->calctype != StandardFractal
       && curfractalspecific->calctype != calcmand
@@ -574,7 +578,7 @@ static int check_pan(void) /* return 0 if can't, alignment requirement if can */
 
     /* can pan if we get this far */
 
-    if (calc_status == 4)
+    if (calc_status == CALCSTAT_COMPLETED)
         return(1); /* image completed, align on any pixel */
     if (potflag && pot16bit)
         return(1); /* 1 pass forced so align on any pixel */
@@ -622,7 +626,7 @@ int init_pan_or_recalc(int do_zoomout) /* decide to recalc, or to chg worklist &
         return(0); /* no zoombox, leave calc_status as is */
     /* got a zoombox */
     if ((alignmask=check_pan()-1) < 0 || evolving) {
-        calc_status = 0; /* can't pan, trigger recalc */
+        calc_status = CALCSTAT_PARAMS_CHANGED; /* can't pan, trigger recalc */
         return(0); }
     if (zbx == 0.0 && zby == 0.0) {
         clearbox();
@@ -633,11 +637,11 @@ int init_pan_or_recalc(int do_zoomout) /* decide to recalc, or to chg worklist &
         row = 0-row;
         col = 0-col; }
     if ((row&alignmask) != 0 || (col&alignmask) != 0) {
-        calc_status = 0; /* not on useable pixel alignment, trigger recalc */
+        calc_status = CALCSTAT_PARAMS_CHANGED; /* not on useable pixel alignment, trigger recalc */
         return(0); }
     /* pan */
     num_worklist = 0;
-    if (calc_status == 2) {
+    if (calc_status == CALCSTAT_RESUMABLE) {
        start_resume();
        get_resume(sizeof(num_worklist),&num_worklist,sizeof(worklist),worklist,0);
        } /* don't do end_resume! we might still change our mind */
@@ -664,17 +668,16 @@ int init_pan_or_recalc(int do_zoomout) /* decide to recalc, or to chg worklist &
     if (col > 0)
         listfull |= add_worklist(xdots-col,xdots-1,xdots-col,i,j,i,0,0);
     if (listfull != 0) {
-    static FCODE msg[] = {"\
-Tables full, can't pan current image.\n\
-Cancel resumes old image, continue pans and calculates a new one."};
-        if (stopmsg(2,msg)) {
+        if (stopmsg(STOPMSG_CANCEL,
+				"Tables full, can't pan current image.\n"
+				"Cancel resumes old image, continue pans and calculates a new one.")) {
             zwidth = 0; /* cancel the zoombox */
             drawbox(1); }
         else
-            calc_status = 0; /* trigger recalc */
+            calc_status = CALCSTAT_PARAMS_CHANGED; /* trigger recalc */
         return(0); }
     /* now we're committed */
-    calc_status = 2;
+    calc_status = CALCSTAT_RESUMABLE;
     clearbox();
     if (row > 0) /* move image up */
         for (y=0; y<ydots; ++y) move_row(y+row,y,col);

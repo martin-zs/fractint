@@ -1,7 +1,5 @@
 #include <string.h>
-#ifdef __TURBOC__
-#include <alloc.h>
-#else
+#if !defined(_WIN32)
 #include <malloc.h>
 #endif
 
@@ -9,6 +7,7 @@
 #include "port.h"
 #include "prototyp.h"
 #include "lsys.h"
+#include "drivers.h"
 
 #ifdef max
 #undef max
@@ -27,16 +26,16 @@ struct lsys_cmd {
 #define sins_f ((LDBL *)(boxy))
 #define coss_f (((LDBL *)(boxy)+50))
 
-static struct lsys_cmd far * _fastcall findsize(struct lsys_cmd far *,struct lsys_turtlestatef *, struct lsys_cmd far **,int);
+static struct lsys_cmd * _fastcall findsize(struct lsys_cmd *,struct lsys_turtlestatef *, struct lsys_cmd **,int);
 
 /* Define blanks for portability */
-#ifdef XFRACT
+#if defined(XFRACT) || defined(_WIN32)
 void lsysf_prepfpu(struct lsys_turtlestatef *x) { }
 void lsysf_donefpu(struct lsys_turtlestatef *x) { }
 #endif
 
 
-#ifdef XFRACT
+#if defined(XFRACT) || defined(_WIN32)
 static void lsysf_doplus(struct lsys_turtlestatef *cmd)
 {
     if (cmd->reverse) {
@@ -54,7 +53,7 @@ static void lsysf_doplus(struct lsys_turtlestatef *cmd)
 extern void lsysf_doplus(struct lsys_turtlestatef *cmd);
 #endif
 
-#ifdef XFRACT
+#if defined(XFRACT) || defined(_WIN32)
 /* This is the same as lsys_doplus, except maxangle is a power of 2. */
 static void lsysf_doplus_pow2(struct lsys_turtlestatef *cmd)
 {
@@ -71,7 +70,7 @@ static void lsysf_doplus_pow2(struct lsys_turtlestatef *cmd)
 extern void lsysf_doplus_pow2(struct lsys_turtlestatef *cmd);
 #endif
 
-#ifdef XFRACT
+#if defined(XFRACT) || defined(_WIN32)
 static void lsysf_dominus(struct lsys_turtlestatef *cmd)
 {
     if (cmd->reverse) {
@@ -89,7 +88,7 @@ static void lsysf_dominus(struct lsys_turtlestatef *cmd)
 extern void lsysf_dominus(struct lsys_turtlestatef *cmd);
 #endif
 
-#ifdef XFRACT
+#if defined(XFRACT) || defined(_WIN32)
 static void lsysf_dominus_pow2(struct lsys_turtlestatef *cmd)
 {
     if (cmd->reverse) {
@@ -105,7 +104,7 @@ static void lsysf_dominus_pow2(struct lsys_turtlestatef *cmd)
 extern void lsysf_dominus_pow2(struct lsys_turtlestatef *cmd);
 #endif
 
-#ifdef XFRACT
+#if defined(XFRACT) || defined(_WIN32)
 static void lsysf_doslash(struct lsys_turtlestatef *cmd)
 {
     if (cmd->reverse)
@@ -117,7 +116,7 @@ static void lsysf_doslash(struct lsys_turtlestatef *cmd)
 extern void lsysf_doslash(struct lsys_turtlestatef *cmd);
 #endif
 
-#ifdef XFRACT
+#if defined(XFRACT) || defined(_WIN32)
 static void lsysf_dobslash(struct lsys_turtlestatef *cmd)
 {
     if (cmd->reverse)
@@ -129,7 +128,7 @@ static void lsysf_dobslash(struct lsys_turtlestatef *cmd)
 extern void lsysf_dobslash(struct lsys_turtlestatef *cmd);
 #endif
 
-#ifdef XFRACT
+#if defined(XFRACT) || defined(_WIN32)
 static void lsysf_doat(struct lsys_turtlestatef *cmd)
 {
     cmd->size *= cmd->parm.nf;
@@ -145,7 +144,7 @@ lsysf_dopipe(struct lsys_turtlestatef *cmd)
     cmd->angle %= cmd->maxangle;
 }
 
-#ifdef XFRACT
+#if defined(XFRACT) || defined(_WIN32)
 static void lsysf_dopipe_pow2(struct lsys_turtlestatef *cmd)
 {
     cmd->angle += cmd->maxangle >> 1;
@@ -155,7 +154,7 @@ static void lsysf_dopipe_pow2(struct lsys_turtlestatef *cmd)
 extern void lsysf_dopipe_pow2(struct lsys_turtlestatef *cmd);
 #endif
 
-#ifdef XFRACT
+#if defined(XFRACT) || defined(_WIN32)
 static void lsysf_dobang(struct lsys_turtlestatef *cmd)
 {
     cmd->reverse = ! cmd->reverse;
@@ -164,7 +163,7 @@ static void lsysf_dobang(struct lsys_turtlestatef *cmd)
 extern void lsysf_dobang(struct lsys_turtlestatef *cmd);
 #endif
 
-#ifdef XFRACT
+#if defined(XFRACT) || defined(_WIN32)
 static void lsysf_dosizedm(struct lsys_turtlestatef *cmd)
 {
     double angle = (double) cmd->realangle;
@@ -185,7 +184,7 @@ static void lsysf_dosizedm(struct lsys_turtlestatef *cmd)
 extern void lsysf_dosizedm(struct lsys_turtlestatef *cmd, long n);
 #endif
 
-#ifdef XFRACT
+#if defined(XFRACT) || defined(_WIN32)
 static void lsysf_dosizegf(struct lsys_turtlestatef *cmd)
 {
     cmd->xpos += cmd->size * coss_f[(int)cmd->angle];
@@ -200,7 +199,7 @@ static void lsysf_dosizegf(struct lsys_turtlestatef *cmd)
 extern void lsysf_dosizegf(struct lsys_turtlestatef *cmd);
 #endif
 
-#ifdef XFRACT
+#if defined(XFRACT) || defined(_WIN32)
 static void lsysf_dodrawd(struct lsys_turtlestatef *cmd)
 {
     double angle = (double) cmd->realangle;
@@ -215,13 +214,13 @@ static void lsysf_dodrawd(struct lsys_turtlestatef *cmd)
     cmd->xpos += cmd->size * cmd->aspect * c;
     cmd->ypos += cmd->size * s;
 
-    draw_line(lastx, lasty, (int) cmd->xpos, (int) cmd->ypos, cmd->curcolor);
+    driver_draw_line(lastx, lasty, (int) cmd->xpos, (int) cmd->ypos, cmd->curcolor);
 }
 #else
 extern void lsysf_dodrawd(struct lsys_turtlestatef *cmd);
 #endif
 
-#ifdef XFRACT
+#if defined(XFRACT) || defined(_WIN32)
 static void lsysf_dodrawm(struct lsys_turtlestatef *cmd)
 {
     double angle = (double) cmd->realangle;
@@ -237,7 +236,7 @@ static void lsysf_dodrawm(struct lsys_turtlestatef *cmd)
 extern void lsysf_dodrawm(struct lsys_turtlestatef *cmd);
 #endif
 
-#ifdef XFRACT
+#if defined(XFRACT) || defined(_WIN32)
 static void lsysf_dodrawg(struct lsys_turtlestatef *cmd)
 {
     cmd->xpos += cmd->size * coss_f[(int)cmd->angle];
@@ -247,14 +246,14 @@ static void lsysf_dodrawg(struct lsys_turtlestatef *cmd)
 extern void lsysf_dodrawg(struct lsys_turtlestatef *cmd);
 #endif
 
-#ifdef XFRACT
+#if defined(XFRACT) || defined(_WIN32)
 static void lsysf_dodrawf(struct lsys_turtlestatef *cmd)
 {
     int lastx = (int) cmd->xpos;
     int lasty = (int) cmd->ypos;
     cmd->xpos += cmd->size * coss_f[(int)cmd->angle];
     cmd->ypos += cmd->size * sins_f[(int)cmd->angle];
-    draw_line(lastx,lasty,(int) cmd->xpos, (int) cmd->ypos, cmd->curcolor);
+    driver_draw_line(lastx,lasty,(int) cmd->xpos, (int) cmd->ypos, cmd->curcolor);
 }
 #else
 extern void lsysf_dodrawf(struct lsys_turtlestatef *cmd);
@@ -268,21 +267,23 @@ static void lsysf_dodrawc(struct lsys_turtlestatef *cmd)
 static void lsysf_dodrawgt(struct lsys_turtlestatef *cmd)
 {
     cmd->curcolor = (char)(cmd->curcolor - cmd->parm.n);
-    if ((cmd->curcolor %= colors) == 0)
+    cmd->curcolor %= colors;
+	if (cmd->curcolor == 0)
         cmd->curcolor = (char)(colors-1);
 }
 
 static void lsysf_dodrawlt(struct lsys_turtlestatef *cmd)
 {
     cmd->curcolor = (char)(cmd->curcolor + cmd->parm.n);
-    if ((cmd->curcolor %= colors) == 0)
+    cmd->curcolor %= colors;
+	if (cmd->curcolor == 0)
         cmd->curcolor = 1;
 }
 
-static struct lsys_cmd far * _fastcall
-findsize(struct lsys_cmd far *command, struct lsys_turtlestatef *ts, struct lsys_cmd far **rules, int depth)
+static struct lsys_cmd * _fastcall
+findsize(struct lsys_cmd *command, struct lsys_turtlestatef *ts, struct lsys_cmd **rules, int depth)
 {
-   struct lsys_cmd far **rulind;
+   struct lsys_cmd **rulind;
    int tran;
 
    if (overflow)     /* integer math routines overflowed */
@@ -296,16 +297,15 @@ findsize(struct lsys_cmd far *command, struct lsys_turtlestatef *ts, struct lsys
 
    while (command->ch && command->ch !=']') {
       if (! (ts->counter++)) {
-         static FCODE msg[]={"L-System thinking (higher orders take longer)"};
          /* let user know we're not dead */
-         if (thinking(1,msg)) {
+         if (thinking(1, "L-System thinking (higher orders take longer)")) {
             ts->counter--;
             return NULL;
          }
       }
       tran=0;
       if (depth) {
-         for(rulind=rules;*rulind;rulind++)
+         for (rulind=rules; *rulind; rulind++)
             if ((*rulind)->ch==command->ch) {
                tran=1;
                if (findsize((*rulind)+1,ts,rules,depth-1) == NULL)
@@ -338,7 +338,8 @@ findsize(struct lsys_cmd far *command, struct lsys_turtlestatef *ts, struct lsys
           savex=ts->xpos;
           savey=ts->ypos;
           lsys_prepfpu(ts);
-          if ((command=findsize(command+1,ts,rules,depth)) == NULL)
+          command = findsize(command+1, ts, rules, depth);
+		  if (command == NULL)
              return(NULL);
           lsys_donefpu(ts);
           ts->angle=saveang;
@@ -356,13 +357,13 @@ findsize(struct lsys_cmd far *command, struct lsys_turtlestatef *ts, struct lsys
 }
 
 int _fastcall
-lsysf_findscale(struct lsys_cmd far *command, struct lsys_turtlestatef *ts, struct lsys_cmd far **rules, int depth)
+lsysf_findscale(struct lsys_cmd *command, struct lsys_turtlestatef *ts, struct lsys_cmd **rules, int depth)
 {
    float horiz,vert;
    LDBL xmin, xmax, ymin, ymax;
    LDBL locsize;
    LDBL locaspect;
-   struct lsys_cmd far *fsret;
+   struct lsys_cmd *fsret;
 
    locaspect=screenaspect*xdots/ydots;
    ts->aspect = locaspect;
@@ -413,10 +414,10 @@ lsysf_findscale(struct lsys_cmd far *command, struct lsys_turtlestatef *ts, stru
    return 1;
 }
 
-struct lsys_cmd far * _fastcall
-drawLSysF(struct lsys_cmd far *command,struct lsys_turtlestatef *ts, struct lsys_cmd far **rules,int depth)
+struct lsys_cmd * _fastcall
+drawLSysF(struct lsys_cmd *command,struct lsys_turtlestatef *ts, struct lsys_cmd **rules,int depth)
 {
-   struct lsys_cmd far **rulind;
+   struct lsys_cmd **rulind;
    int tran;
 
    if (overflow)     /* integer math routines overflowed */
@@ -431,14 +432,14 @@ drawLSysF(struct lsys_cmd far *command,struct lsys_turtlestatef *ts, struct lsys
 
    while (command->ch && command->ch !=']') {
       if (!(ts->counter++)) {
-         if (keypressed()) {
+         if (driver_key_pressed()) {
             ts->counter--;
             return NULL;
          }
       }
       tran=0;
       if (depth) {
-         for(rulind=rules;*rulind;rulind++)
+         for (rulind=rules; *rulind; rulind++)
             if ((*rulind)->ch == command->ch) {
                tran=1;
                if (drawLSysF((*rulind)+1,ts,rules,depth-1) == NULL)
@@ -472,7 +473,8 @@ drawLSysF(struct lsys_cmd far *command,struct lsys_turtlestatef *ts, struct lsys
           savey=ts->ypos;
           savecolor=ts->curcolor;
           lsys_prepfpu(ts);
-          if ((command=drawLSysF(command+1,ts,rules,depth)) == NULL)
+          command = drawLSysF(command+1, ts, rules, depth);
+		  if (command == NULL)
              return(NULL);
           lsys_donefpu(ts);
           ts->angle=saveang;
@@ -490,11 +492,11 @@ drawLSysF(struct lsys_cmd far *command,struct lsys_turtlestatef *ts, struct lsys
    return command;
 }
 
-struct lsys_cmd far *
-LSysFSizeTransform(char far *s, struct lsys_turtlestatef *ts)
+struct lsys_cmd *
+LSysFSizeTransform(char *s, struct lsys_turtlestatef *ts)
 {
-  struct lsys_cmd far *ret;
-  struct lsys_cmd far *doub;
+  struct lsys_cmd *ret;
+  struct lsys_cmd *doub;
   int max = 10;
   int n = 0;
   void (*f)();
@@ -511,7 +513,7 @@ LSysFSizeTransform(char far *s, struct lsys_turtlestatef *ts)
   void (*at)() =     lsysf_doat;
   void (*dogf)() =   lsysf_dosizegf;
 
-  ret = (struct lsys_cmd far *) farmemalloc((long) max * sizeof(struct lsys_cmd));
+  ret = (struct lsys_cmd *) malloc((long) max * sizeof(struct lsys_cmd));
   if (ret == NULL) {
        ts->stackoflow = 1;
        return NULL;
@@ -539,7 +541,7 @@ LSysFSizeTransform(char far *s, struct lsys_turtlestatef *ts)
         num = 3;
         break;
     }
-#ifdef XFRACT
+#if defined(XFRACT)
     ret[n].f = (void (*)())f;
 #else
     ret[n].f = (void (*)(struct lsys_turtlestatef *))f;
@@ -548,14 +550,14 @@ LSysFSizeTransform(char far *s, struct lsys_turtlestatef *ts)
         ret[n].parm.n = num;
     ret[n].ptype = ptype;
     if (++n == max) {
-      doub = (struct lsys_cmd far *) farmemalloc((long) max*2*sizeof(struct lsys_cmd));
+      doub = (struct lsys_cmd *) malloc((long) max*2*sizeof(struct lsys_cmd));
       if (doub == NULL) {
-         farmemfree(ret);
+         free(ret);
          ts->stackoflow = 1;
          return NULL;
          }
-      far_memcpy(doub, ret, max*sizeof(struct lsys_cmd));
-      farmemfree(ret);
+      memcpy(doub, ret, max*sizeof(struct lsys_cmd));
+      free(ret);
       ret = doub;
       max <<= 1;
     }
@@ -566,22 +568,22 @@ LSysFSizeTransform(char far *s, struct lsys_turtlestatef *ts)
   ret[n].parm.n = 0;
   n++;
 
-  doub = (struct lsys_cmd far *) farmemalloc((long) n*sizeof(struct lsys_cmd));
+  doub = (struct lsys_cmd *) malloc((long) n*sizeof(struct lsys_cmd));
   if (doub == NULL) {
-       farmemfree(ret);
+       free(ret);
        ts->stackoflow = 1;
        return NULL;
        }
-  far_memcpy(doub, ret, n*sizeof(struct lsys_cmd));
-  farmemfree(ret);
+  memcpy(doub, ret, n*sizeof(struct lsys_cmd));
+  free(ret);
   return doub;
 }
 
-struct lsys_cmd far *
-LSysFDrawTransform(char far *s, struct lsys_turtlestatef *ts)
+struct lsys_cmd *
+LSysFDrawTransform(char *s, struct lsys_turtlestatef *ts)
 {
-  struct lsys_cmd far *ret;
-  struct lsys_cmd far *doub;
+  struct lsys_cmd *ret;
+  struct lsys_cmd *doub;
   int max = 10;
   int n = 0;
   void (*f)();
@@ -598,7 +600,7 @@ LSysFDrawTransform(char far *s, struct lsys_turtlestatef *ts)
   void (*at)() =     lsysf_doat;
   void (*drawg)() =  lsysf_dodrawg;
 
-  ret = (struct lsys_cmd far *) farmemalloc((long) max * sizeof(struct lsys_cmd));
+  ret = (struct lsys_cmd *) malloc((long) max * sizeof(struct lsys_cmd));
   if (ret == NULL) {
        ts->stackoflow = 1;
        return NULL;
@@ -629,7 +631,7 @@ LSysFDrawTransform(char far *s, struct lsys_turtlestatef *ts)
         num = 3;
         break;
     }
-#ifdef XFRACT
+#if defined(XFRACT)
     ret[n].f = (void (*)())f;
 #else
     ret[n].f = (void (*)(struct lsys_turtlestatef *))f;
@@ -638,14 +640,14 @@ LSysFDrawTransform(char far *s, struct lsys_turtlestatef *ts)
         ret[n].parm.n = (long)num;
     ret[n].ptype = ptype;
     if (++n == max) {
-      doub = (struct lsys_cmd far *) farmemalloc((long) max*2*sizeof(struct lsys_cmd));
+      doub = (struct lsys_cmd *) malloc((long) max*2*sizeof(struct lsys_cmd));
       if (doub == NULL) {
-           farmemfree(ret);
+           free(ret);
            ts->stackoflow = 1;
            return NULL;
            }
-      far_memcpy(doub, ret, max*sizeof(struct lsys_cmd));
-      farmemfree(ret);
+      memcpy(doub, ret, max*sizeof(struct lsys_cmd));
+      free(ret);
       ret = doub;
       max <<= 1;
     }
@@ -656,14 +658,14 @@ LSysFDrawTransform(char far *s, struct lsys_turtlestatef *ts)
   ret[n].parm.n = 0;
   n++;
 
-  doub = (struct lsys_cmd far *) farmemalloc((long) n*sizeof(struct lsys_cmd));
+  doub = (struct lsys_cmd *) malloc((long) n*sizeof(struct lsys_cmd));
   if (doub == NULL) {
-       farmemfree(ret);
+       free(ret);
        ts->stackoflow = 1;
        return NULL;
        }
-  far_memcpy(doub, ret, n*sizeof(struct lsys_cmd));
-  farmemfree(ret);
+  memcpy(doub, ret, n*sizeof(struct lsys_cmd));
+  free(ret);
   return doub;
 }
 
@@ -677,7 +679,7 @@ void _fastcall lsysf_dosincos(void)
 
    locaspect=screenaspect*xdots/ydots;
    twopimax = TWOPI / maxangle;
-   for(i=0;i<maxangle;i++) {
+   for (i=0; i<maxangle; i++) {
       twopimaxi = i * twopimax;
       sins_f[i]= sinl(twopimaxi);
       coss_f[i]= locaspect * cosl(twopimaxi);

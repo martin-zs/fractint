@@ -365,12 +365,20 @@ bn_t unsafe_full_mult_bn(bn_t r, bn_t n1, bn_t n2)
     bn_t rp1, rp2, rp3; /* pointers for r */
     U32 prod, sum;
 
-    if ((sign1 = is_bn_neg(n1)) != 0) /* =, not == */
+    sign1 = is_bn_neg(n1);
+	if (sign1 != 0) /* =, not == */
+	{
         neg_a_bn(n1);
-        samevar = (n1 == n2);
-        if (!samevar) /* check to see if they're the same pointer */
-        if ((sign2 = is_bn_neg(n2)) != 0) /* =, not == */
-            neg_a_bn(n2);
+	}
+    samevar = (n1 == n2);
+    if (!samevar) /* check to see if they're the same pointer */
+	{
+		sign2 = is_bn_neg(n2);
+		if (sign2 != 0) /* =, not == */
+		{
+			neg_a_bn(n2);
+		}
+	}
 
     n1p = n1;
     steps = bnlength>>1; /* two bytes at a time */
@@ -434,12 +442,16 @@ bn_t unsafe_mult_bn(bn_t r, bn_t n1, bn_t n2)
     int bnl; /* temp bnlength holder */
 
     bnl = bnlength;
-    if ((sign1 = is_bn_neg(n1)) != 0) /* =, not == */
+    sign1 = is_bn_neg(n1);
+	if (sign1 != 0) /* =, not == */
         neg_a_bn(n1);
-        samevar = (n1 == n2);
-        if (!samevar) /* check to see if they're the same pointer */
-        if ((sign2 = is_bn_neg(n2)) != 0) /* =, not == */
-            neg_a_bn(n2);
+    samevar = (n1 == n2);
+    if (!samevar) /* check to see if they're the same pointer */
+	{
+		sign2 = is_bn_neg(n2);
+		if (sign2 != 0) /* =, not == */
+			neg_a_bn(n2);
+	}
     n1p = n1;
     n2 += (bnlength<<1) - rlength;  /* shift n2 over to where it is needed */
 
@@ -888,7 +900,7 @@ LDBL bntofloat(bn_t n)
 /* r = 0 */
 bf_t clear_bf(bf_t r)
     {
-    _fmemset( r, 0, bflength+2); /* set array to zero */
+    memset( r, 0, bflength+2); /* set array to zero */
     return r;
     }
 
@@ -896,7 +908,7 @@ bf_t clear_bf(bf_t r)
 /* r = n */
 bf_t copy_bf(bf_t r, bf_t n)
     {
-    _fmemcpy( r, n, bflength+2);
+    memcpy( r, n, bflength+2);
     return r;
     }
 

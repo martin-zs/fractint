@@ -7,7 +7,9 @@ is in the allocations of memory for the big numbers.
 */
 
 #include <string.h>
+#if !defined(_WIN32)
 #include <malloc.h>
+#endif
   /* see Fractint.c for a description of the "include"  hierarchy */
 #include "port.h"
 #include "prototyp.h"
@@ -24,41 +26,42 @@ is in the allocations of memory for the big numbers.
 #ifdef BIG_BASED
 _segment bignum_seg;
 #endif
-int bnstep, bnlength, intlength, rlength, padding, shiftfactor, decimals;
-int bflength, rbflength, bfdecimals;
+int bnstep = 0, bnlength = 0, intlength = 0, rlength = 0, padding = 0, shiftfactor = 0, decimals = 0;
+int bflength = 0, rbflength = 0, bfdecimals = 0;
 
 /* used internally by bignum.c routines */
-static bn_t bnroot=BIG_NULL;
-static bn_t stack_ptr; /* memory allocator base after global variables */
-bn_t bntmp1, bntmp2, bntmp3, bntmp4, bntmp5, bntmp6; /* rlength  */
-bn_t bntmpcpy1, bntmpcpy2;                           /* bnlength */
+static char s_storage[4096];
+static bn_t bnroot = BIG_NULL;
+static bn_t stack_ptr = BIG_NULL; /* memory allocator base after global variables */
+bn_t bntmp1 = BIG_NULL, bntmp2 = BIG_NULL, bntmp3 = BIG_NULL, bntmp4 = BIG_NULL, bntmp5 = BIG_NULL, bntmp6 = BIG_NULL; /* rlength  */
+bn_t bntmpcpy1 = BIG_NULL, bntmpcpy2 = BIG_NULL;                           /* bnlength */
 
 /* used by other routines */
-bn_t bnxmin, bnxmax, bnymin, bnymax, bnx3rd, bny3rd;        /* bnlength */
-bn_t bnxdel, bnydel, bnxdel2, bnydel2, bnclosenuff;         /* bnlength */
-bn_t bntmpsqrx, bntmpsqry, bntmp;                           /* rlength  */
-_BNCMPLX bnold, /* bnnew, */ bnparm, bnsaved;               /* bnlength */
-_BNCMPLX bnnew;                                              /* rlength */
-bn_t bn_pi;                                           /* TAKES NO SPACE */
+bn_t bnxmin = BIG_NULL, bnxmax = BIG_NULL, bnymin = BIG_NULL, bnymax = BIG_NULL, bnx3rd = BIG_NULL, bny3rd = BIG_NULL;        /* bnlength */
+bn_t bnxdel = BIG_NULL, bnydel = BIG_NULL, bnxdel2 = BIG_NULL, bnydel2 = BIG_NULL, bnclosenuff = BIG_NULL;         /* bnlength */
+bn_t bntmpsqrx = BIG_NULL, bntmpsqry = BIG_NULL, bntmp = BIG_NULL;                           /* rlength  */
+_BNCMPLX bnold = { BIG_NULL, BIG_NULL }, /* bnnew, */ bnparm = { BIG_NULL, BIG_NULL }, bnsaved = { BIG_NULL, BIG_NULL };               /* bnlength */
+_BNCMPLX bnnew = { BIG_NULL, BIG_NULL };                                              /* rlength */
+bn_t bn_pi = BIG_NULL;                                           /* TAKES NO SPACE */
 
-bf_t bftmp1, bftmp2, bftmp3, bftmp4, bftmp5, bftmp6;     /* rbflength+2 */
-bf_t bftmpcpy1, bftmpcpy2;                               /* rbflength+2 */
-bf_t bfxdel, bfydel, bfxdel2, bfydel2, bfclosenuff;      /* rbflength+2 */
-bf_t bftmpsqrx, bftmpsqry;                               /* rbflength+2 */
-_BFCMPLX /* bfold,  bfnew, */ bfparm, bfsaved;            /* bflength+2 */
-_BFCMPLX bfold,  bfnew;                                  /* rbflength+2 */
-bf_t bf_pi;                                           /* TAKES NO SPACE */
-bf_t big_pi;                                              /* bflength+2 */
+bf_t bftmp1 = BIG_NULL, bftmp2 = BIG_NULL, bftmp3 = BIG_NULL, bftmp4 = BIG_NULL, bftmp5 = BIG_NULL, bftmp6 = BIG_NULL;     /* rbflength+2 */
+bf_t bftmpcpy1 = BIG_NULL, bftmpcpy2 = BIG_NULL;                               /* rbflength+2 */
+bf_t bfxdel = BIG_NULL, bfydel = BIG_NULL, bfxdel2 = BIG_NULL, bfydel2 = BIG_NULL, bfclosenuff = BIG_NULL;      /* rbflength+2 */
+bf_t bftmpsqrx = BIG_NULL, bftmpsqry = BIG_NULL;                               /* rbflength+2 */
+_BFCMPLX /* bfold,  bfnew, */ bfparm = { BIG_NULL, BIG_NULL }, bfsaved = { BIG_NULL, BIG_NULL };            /* bflength+2 */
+_BFCMPLX bfold = { BIG_NULL, BIG_NULL },  bfnew = { BIG_NULL, BIG_NULL };                                  /* rbflength+2 */
+bf_t bf_pi = BIG_NULL;                                           /* TAKES NO SPACE */
+bf_t big_pi = BIG_NULL;                                              /* bflength+2 */
 
 /* for testing only */
 
 /* used by other routines */
-bf_t bfxmin, bfxmax, bfymin, bfymax, bfx3rd, bfy3rd;      /* bflength+2 */
-bf_t bfsxmin, bfsxmax, bfsymin, bfsymax, bfsx3rd, bfsy3rd;/* bflength+2 */
+bf_t bfxmin = BIG_NULL, bfxmax = BIG_NULL, bfymin = BIG_NULL, bfymax = BIG_NULL, bfx3rd = BIG_NULL, bfy3rd = BIG_NULL;      /* bflength+2 */
+bf_t bfsxmin = BIG_NULL, bfsxmax = BIG_NULL, bfsymin = BIG_NULL, bfsymax = BIG_NULL, bfsx3rd = BIG_NULL, bfsy3rd = BIG_NULL;/* bflength+2 */
 bf_t bfparms[10];                                    /* (bflength+2)*10 */
-bf_t bftmp;
+bf_t bftmp = BIG_NULL;
 
-bf_t bf10tmp;                                              /* dec+4 */
+bf_t bf10tmp = BIG_NULL;                                              /* dec+4 */
 
 #define LOG10_256 2.4082399653118
 #define LOG_256   5.5451774444795
@@ -109,10 +112,6 @@ long startstack = 0;
 long maxstack = 0;
 int bf_save_len = 0;
 
-/* ??? for some strange reason, msc 7.0 hangs here without this pragma. ??? */
-#ifndef XFRACT
-#pragma optimize( "", off )
-#endif
 static void init_bf_2(void)
     {
     int i;
@@ -121,20 +120,13 @@ static void init_bf_2(void)
 
     calc_lengths();
 
-    /* allocate all the memory at once within the same segment (DOS) */
-#if defined(BIG_FAR) || defined(BIG_ANSI_C)
-    bnroot = (bf_t)MK_FP(extraseg,ENDVID); /* ENDVID is to avoid videotable */
-#else /* BASED or NEAR  */
-    bnroot = (bf_t)ENDVID;  /* ENDVID is to avoid videotable */
-#endif
-#ifdef BIG_BASED
-    bignum_seg = (_segment)extraseg;
-#endif
+    bnroot = (bf_t) &s_storage[0];
+
     /* at present time one call would suffice, but this logic allows
        multiple kinds of alternate math eg long double */
-    if((i = find_alternate_math(fractype, BIGNUM)) > -1)
+    if ((i = find_alternate_math(fractype, BIGNUM)) > -1)
        bf_math = alternatemath[i].math;
-    else if((i = find_alternate_math(fractype, BIGFLT)) > -1)
+    else if ((i = find_alternate_math(fractype, BIGFLT)) > -1)
        bf_math = alternatemath[i].math;
     else
        bf_math = 1; /* maybe called from cmdfiles.c and fractype not set */
@@ -223,13 +215,10 @@ static void init_bf_2(void)
     /* sanity check */
     /* leave room for NUMVARS variables allocated from stack */
     /* also leave room for the safe area at top of segment */
-    if(ptr + NUMVARS*(bflength+2) > maxstack)
+    if (ptr + NUMVARS*(bflength+2) > maxstack)
        {
        char msg[80];
-       char nmsg[80];
-       static FCODE fmsg[] = {"Requested precision of %d too high, aborting"};
-       far_strcpy(nmsg,fmsg);
-       sprintf(msg,nmsg,decimals);
+       sprintf(msg,"Requested precision of %d too high, aborting",decimals);
        stopmsg(0,msg);
        goodbye();
        }
@@ -244,7 +233,7 @@ static void init_bf_2(void)
     bfymax     = bnroot+ptr; ptr += bflength+2;
     bfx3rd     = bnroot+ptr; ptr += bflength+2;
     bfy3rd     = bnroot+ptr; ptr += bflength+2;
-    for(i=0;i<10;i++)
+    for (i=0; i<10; i++)
        {
        bfparms[i]  = bnroot+ptr; ptr += bflength+2;
        }
@@ -257,14 +246,14 @@ static void init_bf_2(void)
     /* end safe vars */
 
     /* good citizens initialize variables */
-    if(bf_save_len)  /* leave save area */
-       far_memset(bnroot+(bf_save_len+2)*22,0,(unsigned)(startstack-(bf_save_len+2)*22));
+    if (bf_save_len)  /* leave save area */
+       memset(bnroot+(bf_save_len+2)*22,0,(unsigned)(startstack-(bf_save_len+2)*22));
     else /* first time through - nothing saved */
        {
        /* high variables */
-       far_memset(bnroot+maxstack,0,(bflength+2)*22);
+       memset(bnroot+maxstack,0,(bflength+2)*22);
        /* low variables */
-       far_memset(bnroot,0,(unsigned)startstack);
+       memset(bnroot,0,(unsigned)startstack);
        }
 
     restore_bf_vars();
@@ -284,13 +273,13 @@ static int save_bf_vars(void)
    {
    int ret;
    unsigned int mem;
-   if(bnroot != BIG_NULL)
+   if (bnroot != BIG_NULL)
       {
       mem = (bflength+2)*22;  /* 6 corners + 6 save corners + 10 params */
       bf_save_len = bflength;
-      far_memcpy(bnroot,bfxmin,mem);
+      memcpy(bnroot,bfxmin,mem);
       /* scrub old high area */
-      far_memset(bfxmin,0,mem);
+      memset(bfxmin,0,mem);
       ret = 0;
       }
    else
@@ -307,7 +296,7 @@ static int restore_bf_vars(void)
    {
    bf_t ptr;
    int i;
-   if(bf_save_len == 0)
+   if (bf_save_len == 0)
       return(-1);
    ptr  = bnroot;
    convert_bf(bfxmin,ptr,bflength,bf_save_len); ptr += bf_save_len+2;
@@ -316,7 +305,7 @@ static int restore_bf_vars(void)
    convert_bf(bfymax,ptr,bflength,bf_save_len); ptr += bf_save_len+2;
    convert_bf(bfx3rd,ptr,bflength,bf_save_len); ptr += bf_save_len+2;
    convert_bf(bfy3rd,ptr,bflength,bf_save_len); ptr += bf_save_len+2;
-   for(i=0;i<10;i++)
+   for (i=0; i<10; i++)
       {
       convert_bf(bfparms[i],ptr,bflength,bf_save_len);
       ptr += bf_save_len+2;
@@ -329,7 +318,7 @@ static int restore_bf_vars(void)
    convert_bf(bfsy3rd,ptr,bflength,bf_save_len); ptr += bf_save_len+2;
 
    /* scrub save area */
-   far_memset(bnroot,0,(bf_save_len+2)*22);
+   memset(bnroot,0,(bf_save_len+2)*22);
    return(0);
    }
 
@@ -342,10 +331,6 @@ void free_bf_vars()
    bflength=rbflength=bfdecimals=0;
    }
 
-#ifndef XFRACT
-#pragma optimize( "", on )
-#endif
-
 /************************************************************************/
 /* Memory allocator routines start here.                                */
 /************************************************************************/
@@ -353,22 +338,20 @@ void free_bf_vars()
 bn_t alloc_stack(size_t size)
    {
    long stack_addr;
-   if(bf_math == 0)
+   if (bf_math == 0)
       {
-      static FCODE msg[] = {"alloc_stack called with bf_math==0"};
-      stopmsg(0,msg);
+      stopmsg(0,"alloc_stack called with bf_math==0");
       return(0);
       }
-   stack_addr = (long)(stack_ptr-bnroot)+size; /* +ENDVID, part of bnroot */
+   stack_addr = (long)((stack_ptr-bnroot)+size); /* +ENDVID, part of bnroot */
 
-   if(stack_addr > maxstack)
+   if (stack_addr > maxstack)
       {
-      static FCODE msg[] = {"Aborting, Out of Bignum Stack Space"};
-      stopmsg(0,msg);
+      stopmsg(0,"Aborting, Out of Bignum Stack Space");
       goodbye();
       }
    /* keep track of max ptr */
-   if(stack_addr > maxptr)
+   if (stack_addr > maxptr)
       maxptr = stack_addr;
    stack_ptr += size;   /* increment stack pointer */
    return(stack_ptr - size);
@@ -378,7 +361,7 @@ bn_t alloc_stack(size_t size)
 /* Returns stack pointer offset so it can be saved.                            */
 int save_stack(void)
    {
-   return(stack_ptr - bnroot);
+   return (int) (stack_ptr - bnroot);
    }
 
 /************************************************************************/
@@ -400,17 +383,17 @@ void restore_stack(int old_offset)
 
 void init_bf_dec(int dec)
     {
-    if(bfdigits)
+    if (bfdigits)
        decimals=bfdigits;   /* blindly force */
     else
        decimals = dec;
-    if(bailout > 10)    /* arbitrary value */
+    if (bailout > 10)    /* arbitrary value */
        /* using 2 doesn't gain much and requires another test */
        intlength = 4;
     else if (fractype == FPMANDELZPOWER || fractype == FPJULIAZPOWER)
        intlength = 2;
     /* the bailout tests need greater dynamic range */
-    else if(bailoutest == Real || bailoutest == Imag || bailoutest == And ||
+    else if (bailoutest == Real || bailoutest == Imag || bailoutest == And ||
             bailoutest == Manr)
        intlength = 2;
     else
@@ -428,13 +411,13 @@ void init_bf_length(int bnl)
     {
     bnlength = bnl;
 
-    if(bailout > 10)    /* arbitrary value */
+    if (bailout > 10)    /* arbitrary value */
        /* using 2 doesn't gain much and requires another test */
        intlength = 4;
     else if (fractype == FPMANDELZPOWER || fractype == FPJULIAZPOWER)
        intlength = 2;
     /* the bailout tests need greater dynamic range */
-    else if(bailoutest == Real || bailoutest == Imag || bailoutest == And ||
+    else if (bailoutest == Real || bailoutest == Imag || bailoutest == And ||
             bailoutest == Manr)
        intlength = 2;
     else
@@ -450,7 +433,7 @@ void init_big_pi(void)
     /* What, don't you recognize the first 700 digits of pi, */
     /* in base 256, in reverse order?                        */
     int length, pi_offset;
-    static BFCODE pi_table[] = {
+    static BYTE pi_table[] = {
          0x44, 0xD5, 0xDB, 0x69, 0x17, 0xDF, 0x2E, 0x56, 0x87, 0x1A,
          0xA0, 0x8C, 0x6F, 0xCA, 0xBB, 0x57, 0x5C, 0x9E, 0x82, 0xDF,
          0x00, 0x3E, 0x48, 0x7B, 0x31, 0x53, 0x60, 0x87, 0x23, 0xFD,
@@ -528,7 +511,7 @@ void init_big_pi(void)
 
     length = bflength+2; /* 2 byte exp */
     pi_offset = sizeof pi_table - length;
-    _fmemcpy(big_pi, pi_table + pi_offset, length);
+    memcpy(big_pi, pi_table + pi_offset, length);
 
     /* notice that bf_pi and bn_pi can share the same memory space */
     bf_pi = big_pi;

@@ -14,31 +14,31 @@ extern int waitkeypressed (int);
 WINDOW *curwin;
 
 int fake_lut = 0;
-int istruecolor = 0;
-int daclearn = 0;
+int g_is_true_color = 0;
+int g_dac_learn = 0;
 int dacnorm = 0;
-int daccount = 0;
+int g_dac_count = 0;
 int ShadowColors;
-int goodmode = 0;		/* if non-zero, OK to read/write pixels */
+int g_good_mode = 0;		/* if non-zero, OK to read/write pixels */
 void (*dotwrite) (int, int, int);
 				/* write-a-dot routine */
 int (*dotread) (int, int);	/* read-a-dot routine */
 void (*linewrite) ();		/* write-a-line routine */
 void (*lineread) ();		/* read-a-line routine */
-int andcolor = 0;		/* "and" value used for color selection */
-int diskflag = 0;		/* disk video active flag */
+int g_and_color = 0;		/* "and" value used for color selection */
+int g_disk_flag = 0;		/* disk video active flag */
 
 int videoflag = 0;		/* special "your-own-video" flag */
 
 void (*swapsetup) (void) = NULL;	/* setfortext/graphics setup routine */
-int color_dark = 0;		/* darkest color in palette */
-int color_bright = 0;		/* brightest color in palette */
-int color_medium = 0;		/* nearest to medbright grey in palette
+int g_color_dark = 0;		/* darkest color in palette */
+int g_color_bright = 0;		/* brightest color in palette */
+int g_color_medium = 0;		/* nearest to medbright grey in palette
 				   Zoom-Box values (2K x 2K screens max) */
 int boxcolor = 0;		/* Zoom-Box color */
-int reallyega = 0;		/* 1 if its an EGA posing as a VGA */
-int gotrealdac = 0;		/* 1 if loaddac has a dacbox */
-int rowcount = 0;		/* row-counter for decoder and out_line */
+int g_really_ega = 0;		/* 1 if its an EGA posing as a VGA */
+int g_got_real_dac = 0;		/* 1 if loaddac has a dacbox */
+int g_row_count = 0;		/* row-counter for decoder and out_line */
 int video_type = 0;		/* actual video adapter type:
 				   0  = type not yet determined
 				   1  = Hercules
@@ -75,22 +75,21 @@ int textsafe = 0;		/* 0 = default, runup chgs to 1
 				   2 = no, use 640x200
 				   3 = bios, yes plus use int 10h-1Ch
 				   4 = save, save entire image */
-int text_type = 1;		/* current mode's type of text:
+int g_text_type = 1;		/* current mode's type of text:
 				   0  = real text, mode 3 (or 7)
 				   1  = 640x200x2, mode 6
 				   2  = some other mode, graphics */
-int textrow = 0;		/* for putstring(-1,...) */
-int textcol = 0;		/* for putstring(..,-1,...) */
-int textrbase = 0;		/* textrow is relative to this */
-int textcbase = 0;		/* textcol is relative to this */
+int g_text_row = 0;		/* for putstring(-1,...) */
+int g_text_col = 0;		/* for putstring(..,-1,...) */
+int g_text_rbase = 0;		/* g_text_row is relative to this */
+int g_text_cbase = 0;		/* g_text_col is relative to this */
 
-int vesa_detect = 1;		/* set to 0 to disable VESA-detection */
-int virtual = 0;                /* no virtual screens, it's a DOS thing */
-int video_scroll = 0;
-int video_startx = 0;
-int video_starty = 0;
-int vesa_xres;
-int vesa_yres;
+int g_vesa_detect = 1;		/* set to 0 to disable VESA-detection */
+int g_video_scroll = 0;
+int g_video_start_x = 0;
+int g_video_start_y = 0;
+int g_vesa_x_res;
+int g_vesa_y_res;
 int chkd_vvs = 0;
 int video_vram = 0;
 
@@ -102,11 +101,9 @@ int video_vram = 0;
 ;	    |key|--AX---BX---CX---DX|Mode|--X-|--Y-|Color|
 */
 
-struct videoinfo videotable[MAXVIDEOTABLE] = {
+VIDEOINFO x11_video_table[] = {
   {"xfractint mode           ", "                         ",
    999, 0, 0, 0, 0, 19, 640, 480, 256},
-  {"unused  mode             ", "                         ",
-   0, 0, 0, 0, 0, 0, 0, 0, 0},
 };
 
 void setforgraphics ();
@@ -179,7 +176,7 @@ void
 setvideomode (ax, bx, cx, dx)
      int ax, bx, cx, dx;
 {
-  if (diskflag)
+  if (g_disk_flag)
     {
       enddisk ();
     }
@@ -188,7 +185,7 @@ setvideomode (ax, bx, cx, dx)
       endvideo ();
       videoflag = 0;
     }
-  goodmode = 1;
+  g_good_mode = 1;
   switch (dotmode)
     {
     case 0:			/* text */
@@ -222,11 +219,11 @@ setvideomode (ax, bx, cx, dx)
   if (dotmode != 0)
     {
       loaddac ();
-      andcolor = colors - 1;
+      g_and_color = colors - 1;
       boxcount = 0;
     }
-  vesa_xres = sxdots;
-  vesa_yres = sydots;
+  g_vesa_x_res = sxdots;
+  g_vesa_y_res = sydots;
 }
 
 
@@ -256,7 +253,7 @@ void
 putcolor_a (xdot, ydot, color)
      int xdot, ydot, color;
 {
-  dotwrite (xdot + sxoffs, ydot + syoffs, color & andcolor);
+  dotwrite (xdot + sxoffs, ydot + syoffs, color & g_and_color);
 }
 
 /*
@@ -270,19 +267,19 @@ movecursor (row, col)
 {
   if (row == -1)
     {
-      row = textrow;
+      row = g_text_row;
     }
   else
     {
-      textrow = row;
+      g_text_row = row;
     }
   if (col == -1)
     {
-      col = textcol;
+      col = g_text_col;
     }
   else
     {
-      textcol = col;
+      g_text_col = col;
     }
   wmove (curwin, row, col);
 }
@@ -321,30 +318,30 @@ keycursor (row, col)
 void
 putstring (row, col, attr, msg)
      int row, col, attr;
-     CHAR far *msg;
+     CHAR *msg;
 {
   int so = 0;
 
   if (row != -1)
-    textrow = row;
+    g_text_row = row;
   if (col != -1)
-    textcol = col;
+    g_text_col = col;
 
   if (attr & INVERSE || attr & BRIGHT)
     {
       wstandout (curwin);
       so = 1;
     }
-  wmove (curwin, textrow + textrbase, textcol + textcbase);
+  wmove (curwin, g_text_row + g_text_rbase, g_text_col + g_text_cbase);
   while (1)
     {
       if (*msg == '\0')
 	break;
       if (*msg == '\n')
 	{
-	  textcol = 0;
-	  textrow++;
-	  wmove (curwin, textrow + textrbase, textcol + textcbase);
+	  g_text_col = 0;
+	  g_text_row++;
+	  wmove (curwin, g_text_row + g_text_rbase, g_text_col + g_text_cbase);
 	}
       else
 	{
@@ -369,9 +366,9 @@ putstring (row, col, attr, msg)
 
   wrefresh (curwin);
   fflush (stdout);
-  getyx (curwin, textrow, textcol);
-  textrow -= textrbase;
-  textcol -= textcbase;
+  getyx (curwin, g_text_row, g_text_col);
+  g_text_row -= g_text_rbase;
+  g_text_col -= g_text_cbase;
 }
 
 /*
@@ -397,8 +394,8 @@ void
 home (void)
 {
   wmove (curwin, 0, 0);
-  textrow = 0;
-  textcol = 0;
+  g_text_row = 0;
+  g_text_col = 0;
 }
 
 
@@ -434,12 +431,12 @@ spindac (dir, inc)
   int len;
   if (colors < 16)
     return;
-  if (istruecolor && truemode)
+  if (g_is_true_color && truemode)
     return;
   if (dir != 0 && rotate_lo < colors && rotate_lo < rotate_hi)
     {
       top = rotate_hi > colors ? colors - 1 : rotate_hi;
-      dacbot = (unsigned char *) dacbox + 3 * rotate_lo;
+      dacbot = (unsigned char *) g_dac_box + 3 * rotate_lo;
       len = (top - rotate_lo) * 3 * sizeof (unsigned char);
       if (dir > 0)
 	{
@@ -461,7 +458,7 @@ spindac (dir, inc)
 	}
     }
   writevideopalette ();
-  delay (colors - daccount - 1);
+  delay (colors - g_dac_count - 1);
 }
 
 /*
@@ -496,7 +493,7 @@ unsigned char *fontTab = NULL;
 /*
 ; ************** Function findfont(n) ******************************
 
-;       findfont(0) returns far pointer to 8x8 font table if it can
+;       findfont(0) returns pointer to 8x8 font table if it can
 ;                   find it, NULL otherwise;
 ;                   nonzero parameter reserved for future use
 */
@@ -639,55 +636,55 @@ find_special_colors (void)
   int brt;
   int i;
 
-  color_dark = 0;
-  color_medium = 7;
-  color_bright = 15;
+  g_color_dark = 0;
+  g_color_medium = 7;
+  g_color_bright = 15;
 
   if (colors == 2)
     {
-      color_medium = 1;
-      color_bright = 1;
+      g_color_medium = 1;
+      g_color_bright = 1;
       return;
     }
 
-  if (!(gotrealdac || fake_lut))
+  if (!(g_got_real_dac || fake_lut))
     return;
 
   for (i = 0; i < colors; i++)
     {
-      brt = (int) dacbox[i][0] + (int) dacbox[i][1] + (int) dacbox[i][2];
+      brt = (int) g_dac_box[i][0] + (int) g_dac_box[i][1] + (int) g_dac_box[i][2];
       if (brt > maxb)
 	{
 	  maxb = brt;
-	  color_bright = i;
+	  g_color_bright = i;
 	}
       if (brt < minb)
 	{
 	  minb = brt;
-	  color_dark = i;
+	  g_color_dark = i;
 	}
       if (brt < 150 && brt > 80)
 	{
-	  maxgun = mingun = (int) dacbox[i][0];
-	  if ((int) dacbox[i][1] > (int) dacbox[i][0])
+	  maxgun = mingun = (int) g_dac_box[i][0];
+	  if ((int) g_dac_box[i][1] > (int) g_dac_box[i][0])
 	    {
-	      maxgun = (int) dacbox[i][1];
+	      maxgun = (int) g_dac_box[i][1];
 	    }
 	  else
 	    {
-	      mingun = (int) dacbox[i][1];
+	      mingun = (int) g_dac_box[i][1];
 	    }
-	  if ((int) dacbox[i][2] > maxgun)
+	  if ((int) g_dac_box[i][2] > maxgun)
 	    {
-	      maxgun = (int) dacbox[i][2];
+	      maxgun = (int) g_dac_box[i][2];
 	    }
-	  if ((int) dacbox[i][2] < mingun)
+	  if ((int) g_dac_box[i][2] < mingun)
 	    {
-	      mingun = (int) dacbox[i][2];
+	      mingun = (int) g_dac_box[i][2];
 	    }
 	  if (brt - (maxgun - mingun) / 2 > med)
 	    {
-	      color_medium = i;
+	      g_color_medium = i;
 	      med = brt - (maxgun - mingun) / 2;
 	    }
 	}
@@ -762,15 +759,15 @@ out_line (pixels, linelen)
      BYTE *pixels;
      int linelen;
 {
-  if (rowcount + syoffs >= sydots)
+  if (g_row_count + syoffs >= sydots)
     return 0;
-  linewrite (rowcount + syoffs, sxoffs, linelen + sxoffs - 1, pixels);
-  rowcount++;
+  linewrite (g_row_count + syoffs, sxoffs, linelen + sxoffs - 1, pixels);
+  g_row_count++;
   return 0;
 }
 
 /*
-; far move routine for savegraphics/restoregraphics
+; move routine for savegraphics/restoregraphics
 */
 void
 movewords (len, fromptr, toptr)
@@ -835,22 +832,22 @@ static int screenctr = 0;
 
 #define MAXSCREENS 3
 
-static BYTE far *savescreen[MAXSCREENS];
+static BYTE *savescreen[MAXSCREENS];
 static int saverc[MAXSCREENS+1];
 
 void stackscreen()
 {
 #ifdef USE_XFRACT_STACK_FUNCTIONS
    int i;
-   BYTE far *ptr;
-   saverc[screenctr+1] = textrow*80 + textcol;
+   BYTE *ptr;
+   saverc[screenctr+1] = g_text_row*80 + g_text_col;
    if (++screenctr) { /* already have some stacked */
-         static char far msg[]={"stackscreen overflow"};
+         static char msg[]={"stackscreen overflow"};
       if ((i = screenctr - 1) >= MAXSCREENS) { /* bug, missing unstack? */
          stopmsg(1,msg);
          exit(1);
          }
-      if ((ptr = (savescreen[i] = (BYTE far *)farmemalloc(sizeof(int *)))))
+      if ((ptr = (savescreen[i] = (BYTE *)malloc(sizeof(int *)))))
          savecurses((WINDOW **)ptr);
       else {
          stopmsg(1,msg);
@@ -866,13 +863,13 @@ void stackscreen()
 void unstackscreen()
 {
 #ifdef USE_XFRACT_STACK_FUNCTIONS
-   BYTE far *ptr;
-   textrow = saverc[screenctr] / 80;
-   textcol = saverc[screenctr] % 80;
+   BYTE *ptr;
+   g_text_row = saverc[screenctr] / 80;
+   g_text_col = saverc[screenctr] % 80;
    if (--screenctr >= 0) { /* unstack */
       ptr = savescreen[screenctr];
       restorecurses((WINDOW **)ptr);
-      farmemfree(ptr);
+      free(ptr);
       }
    else
       setforgraphics();
@@ -885,7 +882,7 @@ void discardscreen()
    if (--screenctr >= 0) { /* unstack */
       if (savescreen[screenctr]) {
 #ifdef USE_XFRACT_STACK_FUNCTIONS
-         farmemfree(savescreen[screenctr]);
+         free(savescreen[screenctr]);
 #endif
       }
    }
