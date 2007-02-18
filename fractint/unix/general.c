@@ -24,7 +24,7 @@ int overflow = 0;
 int boxx[2304], boxy[1024];
 int boxvalues[512];
 char tstack[4096];
-BYTE dacbox[256][3];
+BYTE g_dac_box[256][3];
 BYTE olddacbox[256][3];
 
 extern int tabmode;
@@ -33,44 +33,14 @@ int DivideOverflow = 0;
 int cpu=0;		/* cpu type: 86, 186, 286, or 386 */
 int fpu=0;		/* fpu type: 0, 87, 287, 387 */
 
-SEGTYPE extraseg=0;		/* extra 64K segment (allocated by init) */
 /* ********************** Mouse Support Variables ************************** */
 
 int lookatmouse=0;	/* see notes at mouseread routine */
-long savebase=0;		/* base clock ticks */ 
-long saveticks=0;	/* save after this many ticks */ 
 int finishrow=0;	/* save when this row is finished */
 
 int inside_help = 0;
 
-extern int slides;	/* 1 for playback */
-
-unsigned int toextra(tooffset, fromaddr, fromcount)
-unsigned int tooffset;
-char *fromaddr;
-int fromcount;
-{
-    bcopy(fromaddr,(char *)(extraseg+tooffset),fromcount);
-    return tooffset;
-}
-
-unsigned int fromextra(fromoffset, toaddr, tocount)
-unsigned int fromoffset;
-char *toaddr;
-int tocount;
-{
-    bcopy((char *)(extraseg+fromoffset),toaddr,tocount);
-    return fromoffset;
-}
-
-unsigned int
-cmpextra(cmpoffset,cmpaddr,cmpcount)
-unsigned int cmpoffset;
-char *cmpaddr;
-int cmpcount;
-{
-    return bcmp((char *)(extraseg+cmpoffset),cmpaddr,cmpcount);
-}
+extern int g_slides;	/* 1 for playback */
 
 /*
 ; ****************** Function initasmvars() *****************************
@@ -80,7 +50,6 @@ initasmvars(void)
 {
     if (cpu!=0) return;
     overflow = 0;
-    extraseg = malloc(0x18000);
 
     /* set cpu type */
     cpu = 1;
@@ -170,13 +139,13 @@ keypressed(void) {
     ch = getkeynowait();
     if (!ch) return 0;
     keybuffer = ch;
-    if (ch==F1 && helpmode) {
+    if (ch==FIK_F1 && helpmode) {
 	keybuffer = 0;
 	inside_help = 1;
 	help(0);
 	inside_help = 0;
 	return 0;
-    } else if (ch==TAB && tabmode) {
+    } else if (ch==FIK_TAB && tabmode) {
 	keybuffer = 0;
 	tab_display();
 	return 0;
@@ -208,7 +177,7 @@ getakeynohelp(void) {
     int ch;
     while (1) {
 	ch = getakey();
-	if (ch != F1) break;
+	if (ch != FIK_F1) break;
     }
     return ch;
 }
@@ -253,24 +222,24 @@ int block;
 	return ch;
     }
     curkey = xgetkey(0);
-    if (slides==1 && curkey == ESC) {
+    if (g_slides==SLIDES_PLAY && curkey == FIK_ESC) {
 	stopslideshow();
 	return 0;
     }
 
-    if (curkey==0 && slides==1) {
+    if (curkey==0 && g_slides==SLIDES_PLAY) {
 	curkey = slideshw();
     }
 
     if (curkey==0 && block) {
 	curkey = xgetkey(1);
-	if (slides==1 && curkey == ESC) {
+	if (g_slides==SLIDES_PLAY && curkey == FIK_ESC) {
 	    stopslideshow();
 	    return 0;
 	}
     }
 
-    if (curkey && slides==2) {
+    if (curkey && g_slides==SLIDES_RECORD) {
 	recordshw(curkey);
     }
 
@@ -364,23 +333,9 @@ readticker(void)
 ; ************************* Far Segment RAM Support **************************
 ;
 ;
-;       farptr = (char far *)farmemalloc(long bytestoalloc);
-;       (void)farmemfree(farptr);
+;       farptr = (char *)malloc(long bytestoalloc);
+;       (void)free(farptr);
 */
-
-VOIDPTR 
-farmemalloc(len)
-long len;
-{
-    return (VOIDPTR )malloc((unsigned)len);
-}
-
-void
-farmemfree(addr)
-VOIDPTR addr;
-{
-    free((char *)addr);
-}
 
 void erasesegment(segaddress,segvalue)
 int segaddress;
@@ -389,110 +344,11 @@ int segvalue;
 }
 
 
-int
-farread(handle, buf, len)
-int handle;
-VOIDPTR buf;
-unsigned len;
-{
-    return read(handle, buf, len);
-}
-
-int
-farwrite(handle, buf, len)
-int handle;
-VOIDPTR buf;
-unsigned len;
-{
-    return write(handle,buf,len);
-}
-
-
 long
 normalize(ptr)
 char *ptr;
 {
     return (long) ptr;
-}
-
-/*
-; *************** Far string/memory functions *********
-*/
-int
-far_strlen (a)
-char *a;
-{
-    return strlen(a);
-}
-
-
-void
-far_strcpy (a,b)
-char *a,*b;
-{
-    strcpy(a,b);
-}
-
-int
-far_strcmp (a,b)
-char *a, *b;
-{
-    return strcmp(a,b);
-}
-
-int
-far_stricmp(a,b)
-char *a,*b;
-{
-   return stricmp(a,b);
-}
-
-int
-far_strnicmp(a,b,n)
-char *a,*b;
-int n;
-{
-    return strnicmp(a,b,n);
-}
-
-void
-far_strcat (a,b)
-char *a,*b;
-{
-    strcat(a,b);
-}
-
-void
-far_memset ( a,c,len)
-VOIDFARPTR a;
-int c;
-unsigned int len;
-{
-    memset(a,c,len);
-}
-
-void
-far_memcpy ( a,b,len)
-VOIDFARPTR a,b;
-int len;
-{
-    memcpy(a,b,len);
-}
-
-int
-far_memcmp (a,b,len)
-VOIDFARPTR a,b;
-int len;
-{
-    return memcmp(a,b,len);
-}
-
-void
-far_memicmp(a,b,len)
-VOIDFARPTR a,b;
-int len;
-{
-    memicmp(a,b,len);
 }
 
 /* --------------------------------------------------------------------

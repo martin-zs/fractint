@@ -1,3 +1,4 @@
+#include <string.h>
 #include "port.h"
 #include "prototyp.h"
 #include "fractype.h"
@@ -9,7 +10,7 @@ U16 gene_handle = 0;
 /* evolving = flag, gridsz = dimensions of image grid (gridsz x gridsz) */
 int px,py,evolving,gridsz;
 #define MAXGRIDSZ 51  /* This is arbitrary, = 1024/20 */
-static int far ecountbox[MAXGRIDSZ][MAXGRIDSZ];
+static int ecountbox[MAXGRIDSZ][MAXGRIDSZ];
 
 unsigned int this_gen_rseed;
 /* used to replay random sequences to obtain correct values when selecting a
@@ -32,10 +33,6 @@ U16 prmboxhandle = 0;
 U16 imgboxhandle = 0;
 int prmboxcount,imgboxcount;
 U16 oldhistory_handle = 0;
-char s_random[] = "random";
-char s_spread[] = "spread";
-char s_xplusy[] = "x+y";
-char s_xminusy[] = "x-y";
 
 struct phistory_info      /* for saving evolution data of center image */
 {
@@ -89,77 +86,34 @@ void initgene(void) /* set up pointers and mutation params for all usable image
  int i = 0;
  /* 0 = dont vary, 1= with x axis, 2 = with y */
  /* 3 = with x+y, 4 = with x-y, 5 = random, 6 = weighted random */
- /* Use only 15 letters below: 123456789012345 */
-  static FCODE s_Param0[] =  {"Param 1 real"};
-  static FCODE s_Param1[] =  {"Param 1 imag"};
-  static FCODE s_Param2[] =  {"Param 2 real"};
-  static FCODE s_Param3[] =  {"Param 2 imag"};
-  static FCODE s_Param4[] =  {"Param 3 real"};
-  static FCODE s_Param5[] =  {"Param 3 imag"};
-  static FCODE s_Param6[] =  {"Param 4 real"};
-  static FCODE s_Param7[] =  {"Param 4 imag"};
-  static FCODE s_Param8[] =  {"Param 5 real"};
-  static FCODE s_Param9[] =  {"Param 5 imag"};
-  static FCODE s_inside[] =  {"inside colour"};
-  static FCODE s_outside[] = {"outside colour"};
-  static FCODE s_decomp[] =  {"decomposition"};
-  static FCODE s_trigfn1[] = {"trig function 1"};
-  static FCODE s_trigfn2[] = {"trig fn 2"};
-  static FCODE s_trigfn3[] = {"trig fn 3"};
-  static FCODE s_trigfn4[] = {"trig fn 4"};
-  static FCODE s_botest[]  = {"bailout test"};
-  static FCODE s_invertr[] = {"invert radius"};
-  static FCODE s_invertx[] = {"invert center x"};
-  static FCODE s_inverty[] = {"invert center y"};
-
+  /*     Use only 15 letters below: 123456789012345 */
   GENEBASE gene[NUMGENES] = {
-    { &param[0],   varydbl,     5, "",1 },
-    { &param[1],   varydbl,     5, "",1 },
-    { &param[2],   varydbl,     0, "",1 },
-    { &param[3],   varydbl,     0, "",1 },
-    { &param[4],   varydbl,     0, "",1 },
-    { &param[5],   varydbl,     0, "",1 },
-    { &param[6],   varydbl,     0, "",1 },
-    { &param[7],   varydbl,     0, "",1 },
-    { &param[8],   varydbl,     0, "",1 },
-    { &param[9],   varydbl,     0, "",1 },
-    { &inside,     varyinside,  0, "",2 },
-    { &outside,    varyoutside, 0, "",3 },
-    { &decomp[0],  varypwr2,    0, "",4 },
-    { &inversion[0],varyinv,    0, "",7 },
-    { &inversion[1],varyinv,    0, "",7 },
-    { &inversion[2],varyinv,    0, "",7 },
-    { &trigndx[0], varytrig,    0, "",5 },
-    { &trigndx[1], varytrig,    0, "",5 },
-    { &trigndx[2], varytrig,    0, "",5 },
-    { &trigndx[3], varytrig,    0, "",5 },
-    { &bailoutest, varybotest,  0, "",6 }
+    { &param[0],   varydbl,     5, "Param 1 real",1 },
+    { &param[1],   varydbl,     5, "Param 1 imag",1 },
+    { &param[2],   varydbl,     0, "Param 2 real",1 },
+    { &param[3],   varydbl,     0, "Param 2 imag",1 },
+    { &param[4],   varydbl,     0, "Param 3 real",1 },
+    { &param[5],   varydbl,     0, "Param 3 imag",1 },
+    { &param[6],   varydbl,     0, "Param 4 real",1 },
+    { &param[7],   varydbl,     0, "Param 4 imag",1 },
+    { &param[8],   varydbl,     0, "Param 5 real",1 },
+    { &param[9],   varydbl,     0, "Param 5 imag",1 },
+    { &inside,     varyinside,  0, "inside color",2 },
+    { &outside,    varyoutside, 0, "outside color",3 },
+    { &decomp[0],  varypwr2,    0, "decomposition",4 },
+    { &inversion[0],varyinv,    0, "invert radius",7 },
+    { &inversion[1],varyinv,    0, "invert center x",7 },
+    { &inversion[2],varyinv,    0, "invert center y",7 },
+    { &trigndx[0], varytrig,    0, "trig function 1",5 },
+    { &trigndx[1], varytrig,    0, "trig fn 2",5 },
+    { &trigndx[2], varytrig,    0, "trig fn 3",5 },
+    { &trigndx[3], varytrig,    0, "trig fn 4",5 },
+    { &bailoutest, varybotest,  0, "bailout test",6 }
   };
-  i = -1;
-  far_strcpy(gene[++i].name, s_Param0); /* name of var for menus */
-  far_strcpy(gene[++i].name, s_Param1);
-  far_strcpy(gene[++i].name, s_Param2);
-  far_strcpy(gene[++i].name, s_Param3);
-  far_strcpy(gene[++i].name, s_Param4);
-  far_strcpy(gene[++i].name, s_Param5);
-  far_strcpy(gene[++i].name, s_Param6);
-  far_strcpy(gene[++i].name, s_Param7);
-  far_strcpy(gene[++i].name, s_Param8);
-  far_strcpy(gene[++i].name, s_Param9);
-  far_strcpy(gene[++i].name, s_inside);
-  far_strcpy(gene[++i].name, s_outside);
-  far_strcpy(gene[++i].name, s_decomp);
-  far_strcpy(gene[++i].name, s_invertr);
-  far_strcpy(gene[++i].name, s_invertx);
-  far_strcpy(gene[++i].name, s_inverty);
-  far_strcpy(gene[++i].name, s_trigfn1);
-  far_strcpy(gene[++i].name, s_trigfn2);
-  far_strcpy(gene[++i].name, s_trigfn3);
-  far_strcpy(gene[++i].name, s_trigfn4);
-  far_strcpy(gene[++i].name, s_botest);
 
+  /* TODO: MemoryAlloc, MoveToMemory */
   if (gene_handle == 0)
-     gene_handle = MemoryAlloc((U16)sizeof(gene),1L,FARMEM);
+     gene_handle = MemoryAlloc((U16)sizeof(gene),1L,MEMORY);
   MoveToMemory((BYTE *)&gene, (U16)sizeof(gene), 1L, 0L, gene_handle);
 }
 
@@ -169,8 +123,9 @@ void param_history(int mode)
 
    PARAMHIST oldhistory;
 
+   /* TODO: MemoryAlloc */
    if (oldhistory_handle == 0)
-      oldhistory_handle = MemoryAlloc((U16)sizeof(oldhistory),1L,FARMEM);
+      oldhistory_handle = MemoryAlloc((U16)sizeof(oldhistory),1L,MEMORY);
 
    if (mode == 0) { /* save the old parameter history */
       oldhistory.param0 = param[0];
@@ -227,7 +182,7 @@ void param_history(int mode)
 void varydbl(GENEBASE gene[],int randval,int i) /* routine to vary doubles */
 {
 int lclpy = gridsz - py - 1;
-   switch(gene[i].mutate) {
+   switch (gene[i].mutate) {
     default:
     case 0:
        break;
@@ -261,7 +216,7 @@ int varyint( int randvalue, int limit, int mode)
 {
 int ret = 0;
 int lclpy = gridsz - py - 1;
- switch(mode) {
+ switch (mode) {
    default:
    case 0:
      break;
@@ -356,13 +311,6 @@ void varyinv(GENEBASE gene[], int randval, int i)
    invert = (inversion[0] == 0.0) ? 0 : 3 ;
   }
 
-#define LOADCHOICES(X)     {\
-   static FCODE tmp[] = { X };\
-   far_strcpy(ptr,(char far *)tmp);\
-   choices[++k]= ptr;\
-   ptr += sizeof(tmp);\
-   }
-
 /* --------------------------------------------------------------------- */
 /*
     get_evolve_params() is called from FRACTINT.C whenever the 'ctrl_e' key
@@ -373,22 +321,19 @@ void varyinv(GENEBASE gene[], int randval, int i)
 */
 int get_the_rest(void)
 {
-  char *evolvmodes[]={s_no,s_x,s_y,s_xplusy,s_xminusy,s_random,s_spread};
-  static FCODE o_hdg[]={"Variable tweak central 2 of 2"};
+  char *evolvmodes[]={"no","x","y","x+y","x-y","random","spread"};
   int i,k,num, numtrig;
-  char hdg[sizeof(o_hdg)];
-  char far *choices[20];
-  char far *ptr;
+  char *choices[20];
   struct fullscreenvalues uvalues[20];
   GENEBASE gene[NUMGENES];
 
-  far_strcpy(hdg,o_hdg);
-  ptr = (char far *)MK_FP(extraseg,0);
+   /* TODO: allocate real memory, not reuse shared segment */
+//  ptr = (char *) extraseg;
 
    MoveFromMemory((BYTE *)&gene, (U16)sizeof(gene), 1L, 0L, gene_handle);
 
    numtrig = (curfractalspecific->flags >> 6) & 7;
-   if(fractype==FORMULA || fractype==FFORMULA ) {
+   if (fractype==FORMULA || fractype==FFORMULA ) {
       numtrig = maxfn;
       }
 
@@ -423,27 +368,27 @@ choose_vars_restart:
       uvalues[k].uval.ch.val =  gene[NUMGENES - 1].mutate;
    }
 
-   LOADCHOICES("");
+   choices[++k]= "";
    uvalues[k].type = '*';
-   LOADCHOICES("Press F2 to set all to off");
+   choices[++k]= "Press F2 to set all to off";
    uvalues[k].type ='*';
-   LOADCHOICES("Press F3 to set all on");
+   choices[++k]= "Press F3 to set all on";
    uvalues[k].type = '*';
-   LOADCHOICES("Press F4 to randomize all");
+   choices[++k]= "Press F4 to randomize all";
    uvalues[k].type = '*';
 
-   i = fullscreen_prompt(hdg,k+1,choices,uvalues,28,NULL);
+   i = fullscreen_prompt("Variable tweak central 2 of 2",k+1,choices,uvalues,28,NULL);
 
-   switch(i) {
-     case F2: /* set all off */
+   switch (i) {
+     case FIK_F2: /* set all off */
        for (num = MAXPARAMS; num < NUMGENES; num++)
           gene[num].mutate = 0;
        goto choose_vars_restart;
-     case F3: /* set all on..alternate x and y for field map */
+     case FIK_F3: /* set all on..alternate x and y for field map */
        for (num = MAXPARAMS; num < NUMGENES; num ++ )
           gene[num].mutate = (char)((num % 2) + 1);
        goto choose_vars_restart;
-     case F4: /* Randomize all */
+     case FIK_F4: /* Randomize all */
        for (num =MAXPARAMS; num < NUMGENES; num ++ )
           gene[num].mutate = (char)(rand() % 6);
        goto choose_vars_restart;
@@ -471,42 +416,39 @@ choose_vars_restart:
 
 int get_variations(void)
 {
-  char *evolvmodes[]={s_no,s_x,s_y,s_xplusy,s_xminusy,s_random,s_spread};
-  static FCODE o_hdg[]={"Variable tweak central 1 of 2"};
+  char *evolvmodes[]={"no","x","y","x+y","x-y","random","spread"};
   int i,k,num, numparams;
-  char hdg[sizeof(o_hdg)];
-  char far *choices[20];
-  char far *ptr;
+  char *choices[20];
   struct fullscreenvalues uvalues[20];
   GENEBASE gene[NUMGENES];
   int firstparm = 0;
   int lastparm  = MAXPARAMS;
   int chngd = -1;
 
-  far_strcpy(hdg,o_hdg);
-  ptr = (char far *)MK_FP(extraseg,0);
+   /* TODO: allocate real memory, not reuse shared segment */
+//  ptr = (char *) extraseg;
 
    MoveFromMemory((BYTE *)&gene, (U16)sizeof(gene), 1L, 0L, gene_handle);
 
-   if(fractype == FORMULA || fractype == FFORMULA) {
-      if(uses_p1)  /* set first parameter */
+   if (fractype == FORMULA || fractype == FFORMULA) {
+      if (uses_p1)  /* set first parameter */
          firstparm = 0;
-      else if(uses_p2)
+      else if (uses_p2)
          firstparm = 2;
-      else if(uses_p3)
+      else if (uses_p3)
          firstparm = 4;
-      else if(uses_p4)
+      else if (uses_p4)
          firstparm = 6;
       else
          firstparm = 8; /* uses_p5 or no parameter */
 
-      if(uses_p5) /* set last parameter */
+      if (uses_p5) /* set last parameter */
          lastparm = 10;
-      else if(uses_p4)
+      else if (uses_p4)
          lastparm = 8;
-      else if(uses_p3)
+      else if (uses_p3)
          lastparm = 6;
-      else if(uses_p2)
+      else if (uses_p2)
          lastparm = 4;
       else
          lastparm = 2; /* uses_p1 or no parameter */
@@ -516,8 +458,8 @@ int get_variations(void)
    for (i = firstparm; i < lastparm; i++)
    {
       if (typehasparm(julibrot?neworbittype:fractype,i,NULL)==0) {
-         if(fractype == FORMULA || fractype == FFORMULA)
-           if(paramnotused(i))
+         if (fractype == FORMULA || fractype == FFORMULA)
+           if (paramnotused(i))
               continue;
          break;
       }
@@ -531,8 +473,8 @@ choose_vars_restart:
 
    k = -1;
    for (num = firstparm; num < lastparm; num++) {
-      if(fractype == FORMULA || fractype == FFORMULA)
-        if(paramnotused(num))
+      if (fractype == FORMULA || fractype == FFORMULA)
+        if (paramnotused(num))
            continue;
       choices[++k]=gene[num].name;
       uvalues[k].type = 'l';
@@ -542,33 +484,33 @@ choose_vars_restart:
       uvalues[k].uval.ch.val =  gene[num].mutate;
    }
 
-   LOADCHOICES("");
+   choices[++k]= "";
    uvalues[k].type = '*';
-   LOADCHOICES("Press F2 to set all to off");
+   choices[++k]= "Press F2 to set all to off";
    uvalues[k].type ='*';
-   LOADCHOICES("Press F3 to set all on");
+   choices[++k]= "Press F3 to set all on";
    uvalues[k].type = '*';
-   LOADCHOICES("Press F4 to randomize all");
+   choices[++k]= "Press F4 to randomize all";
    uvalues[k].type = '*';
-   LOADCHOICES("Press F6 for second page"); /* F5 gets eaten */
+   choices[++k]= "Press F6 for second page"; /* F5 gets eaten */
    uvalues[k].type = '*';
 
-   i = fullscreen_prompt(hdg,k+1,choices,uvalues,92,NULL);
+   i = fullscreen_prompt("Variable tweak central 1 of 2",k+1,choices,uvalues,92,NULL);
 
-   switch(i) {
-     case F2: /* set all off */
+   switch (i) {
+     case FIK_F2: /* set all off */
        for (num = 0; num < MAXPARAMS; num++)
           gene[num].mutate = 0;
        goto choose_vars_restart;
-     case F3: /* set all on..alternate x and y for field map */
+     case FIK_F3: /* set all on..alternate x and y for field map */
        for (num = 0; num < MAXPARAMS; num ++ )
           gene[num].mutate = (char)((num % 2) + 1);
        goto choose_vars_restart;
-     case F4: /* Randomize all */
+     case FIK_F4: /* Randomize all */
        for (num =0; num < MAXPARAMS; num ++ )
           gene[num].mutate = (char)(rand() % 6);
        goto choose_vars_restart;
-     case F6: /* go to second screen, put array away first */
+     case FIK_F6: /* go to second screen, put array away first */
        MoveToMemory((BYTE *)&gene, (U16)sizeof(gene), 1L, 0L, gene_handle);
        chngd = get_the_rest();
        MoveFromMemory((BYTE *)&gene, (U16)sizeof(gene), 1L, 0L, gene_handle);
@@ -582,8 +524,8 @@ choose_vars_restart:
    /* read out values */
    k = -1;
    for (num = firstparm; num < lastparm; num++) {
-      if(fractype == FORMULA || fractype == FFORMULA)
-        if(paramnotused(num))
+      if (fractype == FORMULA || fractype == FFORMULA)
+        if (paramnotused(num))
            continue;
       gene[num].mutate = (char)(uvalues[++k].uval.ch.val);
    }
@@ -598,26 +540,23 @@ void set_mutation_level(int strength)
 /* are suitable for this level of mutation */
  int i;
  GENEBASE gene[NUMGENES];
- /* get the gene array from far memory */
+ /* get the gene array from memory */
  MoveFromMemory((BYTE *)&gene, (U16)sizeof(gene), 1L, 0L, gene_handle);
 
  for (i=0;i<NUMGENES;i++) {
-   if(gene[i].level <= strength)
+   if (gene[i].level <= strength)
       gene[i].mutate = 5; /* 5 = random mutation mode */
    else
       gene[i].mutate = 0;
  }
- /* now put the gene array back in far memory */
+ /* now put the gene array back in memory */
  MoveToMemory((BYTE *)&gene, (U16)sizeof(gene), 1L, 0L, gene_handle);
  return;
 }
 
 int get_evolve_Parms(void)
 {
-   static FCODE o_hdg[]={"Evolution Mode Options"};
-   char hdg[sizeof(o_hdg)];
-   char far *choices[20];
-   char far *ptr;
+   char *choices[20];
    int oldhelpmode;
    struct fullscreenvalues uvalues[20];
    int i,j, k, tmp;
@@ -636,8 +575,8 @@ int get_evolve_Parms(void)
 
 get_evol_restart:
 
-   far_strcpy(hdg,o_hdg);
-   ptr = (char far *)MK_FP(extraseg,0);
+   /* TODO: allocate real memory, not reuse shared segment */
+//   ptr = (char *) extraseg;
    if ((evolving & RANDWALK)||(evolving & RANDPARAM)) {
    /* adjust field param to make some sense when changing from random modes*/
    /* maybe should adjust for aspect ratio here? */
@@ -649,66 +588,66 @@ get_evol_restart:
 
    k = -1;
 
-   LOADCHOICES("Evolution mode? (no for full screen)");
+   choices[++k]= "Evolution mode? (no for full screen)";
    uvalues[k].type = 'y';
    uvalues[k].uval.ch.val = evolving&1;
 
-   LOADCHOICES("Image grid size (odd numbers only)");
+   choices[++k]= "Image grid size (odd numbers only)";
    uvalues[k].type = 'i';
    uvalues[k].uval.ival = gridsz;
 
    if (explore_check()) {  /* test to see if any parms are set to linear */
                            /* variation 'explore mode' */
-     LOADCHOICES("Show parameter zoom box?")
+     choices[++k]= "Show parameter zoom box?";
      uvalues[k].type = 'y';
      uvalues[k].uval.ch.val = ((evolving & PARMBOX) / PARMBOX);
 
-     LOADCHOICES("x parameter range (across screen)");
+     choices[++k]= "x parameter range (across screen)";
      uvalues[k].type = 'f';
      uvalues[k].uval.dval = paramrangex;
 
-     LOADCHOICES("x parameter offset (left hand edge)");
+     choices[++k]= "x parameter offset (left hand edge)";
      uvalues[k].type = 'f';
      uvalues[k].uval.dval = opx;
 
-     LOADCHOICES("y parameter range (up screen)");
+     choices[++k]= "y parameter range (up screen)";
      uvalues[k].type = 'f';
      uvalues[k].uval.dval = paramrangey;
 
-     LOADCHOICES("y parameter offset (lower edge)");
+     choices[++k]= "y parameter offset (lower edge)";
      uvalues[k].type = 'f';
      uvalues[k].uval.dval= opy;
    }
 
-     LOADCHOICES("Max random mutation");
+     choices[++k]= "Max random mutation";
      uvalues[k].type = 'f';
      uvalues[k].uval.dval = fiddlefactor;
 
-     LOADCHOICES("Mutation reduction factor (between generations)");
+     choices[++k]= "Mutation reduction factor (between generations)";
      uvalues[k].type = 'f';
      uvalues[k].uval.dval = fiddle_reduction;
 
-   LOADCHOICES("Grouting? ");
+   choices[++k]= "Grouting? ";
    uvalues[k].type = 'y';
    uvalues[k].uval.ch.val = !((evolving & NOGROUT) / NOGROUT); 
 
-   LOADCHOICES("");
+   choices[++k]= "";
    uvalues[k].type = '*';
 
-   LOADCHOICES("Press F4 to reset view parameters to defaults.");
+   choices[++k]= "Press F4 to reset view parameters to defaults.";
    uvalues[k].type = '*';
 
-   LOADCHOICES("Press F2 to halve mutation levels");
+   choices[++k]= "Press F2 to halve mutation levels";
    uvalues[k].type = '*';
 
-   LOADCHOICES("Press F3 to double mutation levels" );
+   choices[++k]= "Press F3 to double mutation levels" ;
    uvalues[k].type ='*';
 
-   LOADCHOICES("Press F6 to control which parameters are varied");
+   choices[++k]= "Press F6 to control which parameters are varied";
    uvalues[k].type = '*';
    oldhelpmode = helpmode;     /* this prevents HELP from activating */
    helpmode = HELPEVOL; 
-   i = fullscreen_prompt(hdg,k+1,choices,uvalues,255,NULL);
+   i = fullscreen_prompt("Evolution Mode Options",k+1,choices,uvalues,255,NULL);
    helpmode = oldhelpmode;     /* re-enable HELP */
    if (i < 0) {
    /* in case this point has been reached after calling sub menu with F6 */
@@ -723,13 +662,13 @@ get_evol_restart:
       return(-1);
    }
 
-   if (i == F4) {
+   if (i == FIK_F4) {
       set_current_params();
       fiddlefactor = 1;
       fiddle_reduction = 1.0;
       goto get_evol_restart;
    }
-   if (i==F2 ) {
+   if (i==FIK_F2 ) {
       paramrangex = paramrangex / 2;
       opx = newopx = opx + paramrangex / 2;
       paramrangey = paramrangey / 2;
@@ -737,7 +676,7 @@ get_evol_restart:
       fiddlefactor = fiddlefactor / 2;
       goto get_evol_restart;
    }
-   if (i==F3 ) {
+   if (i==FIK_F3 ) {
     double centerx, centery;
       centerx = opx + paramrangex / 2;
       paramrangex = paramrangex * 2;
@@ -757,7 +696,7 @@ get_evol_restart:
 
    viewwindow = evolving = uvalues[++k].uval.ch.val;
 
-   if (!evolving && i != F6)  /* don't need any of the other parameters JCO 12JUL2002 */
+   if (!evolving && i != FIK_F6)  /* don't need any of the other parameters JCO 12JUL2002 */
       return(1);              /* the following code can set evolving even if it's off */
 
    gridsz = uvalues[++k].uval.ival;
@@ -805,7 +744,7 @@ get_evol_restart:
 
    if (!evolving && (evolving == old_evolving)) i = 0;
 
-if (j==F6) {
+if (j==FIK_F6) {
       old_variations = get_variations();
       set_current_params();
       if (old_variations > 0)
@@ -828,22 +767,22 @@ void SetupParamBox(void)
 /* need to allocate 2 int arrays for boxx and boxy plus 1 byte array for values */  
    vidsize = (xdots+ydots) * 4 * sizeof(int) ;
    vidsize = vidsize + xdots + ydots + 2 ;
+   /* TODO: MemoryAlloc */
    if (prmboxhandle == 0)
-      prmboxhandle = MemoryAlloc((U16)(vidsize),1L,FARMEM);
+      prmboxhandle = MemoryAlloc((U16)(vidsize),1L,MEMORY);
    if (prmboxhandle == 0 ) {
-     static FCODE msg[] = {"Sorry...can't allocate mem for parmbox"};
-     texttempmsg(msg);
+     texttempmsg("Sorry...can't allocate mem for parmbox");
      evolving=0;
    }
    prmboxcount=0;
 
 /* vidsize = (vidsize / gridsz)+3 ; */ /* allocate less mem for smaller box */
 /* taken out above as *all* pixels get plotted in small boxes */
+   /* TODO: MemoryAlloc */
    if (imgboxhandle == 0)
-      imgboxhandle = MemoryAlloc((U16)(vidsize),1L,FARMEM);
+      imgboxhandle = MemoryAlloc((U16)(vidsize),1L,MEMORY);
    if (!imgboxhandle) {
-     static FCODE msg[] = {"Sorry...can't allocate mem for imagebox"};
-     texttempmsg(msg);
+     texttempmsg("Sorry...can't allocate mem for imagebox");
    }
 }
 
@@ -977,7 +916,7 @@ int grout;
  boxy[3] = bl.y + syoffs;
  boxcount = 8;
 #endif
- if(boxcount) {
+ if (boxcount) {
    dispbox();
    /* stash pixel values for later */
    MoveToMemory((BYTE *)boxx,(U16)(boxcount*2),1L,0L,prmboxhandle);
@@ -986,7 +925,7 @@ int grout;
    }
  prmboxcount = boxcount;
  boxcount = imgboxcount;
- if(imgboxcount) {
+ if (imgboxcount) {
    /* and move back old values so that everything can proceed as normal */
    MoveFromMemory((BYTE *)boxx,(U16)(boxcount*2),1L,0L,imgboxhandle);
    MoveFromMemory((BYTE *)boxy,(U16)(boxcount*2),1L,1L,imgboxhandle);
@@ -1023,10 +962,10 @@ void spiralmap(int count)
     px = py = mid;
     return;
   }
-  for(offset = 1; offset <= mid; offset ++) {
+  for (offset = 1; offset <= mid; offset ++) {
     /* first do the top row */
     py = (mid - offset);
-    for(px = (mid - offset)+1; px <mid+offset; px++) {
+    for (px = (mid - offset)+1; px <mid+offset; px++) {
       i++;
       if (i==count) return;
     }

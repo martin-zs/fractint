@@ -26,7 +26,7 @@ int wintext_texton();
 int wintext_textoff();
     Removes the text window.  No parameters.
 
-void wintext_putstring(int xpos, int ypos, int attrib, char far *string);
+void wintext_putstring(int xpos, int ypos, int attrib, char *string);
     Sends a character string to the screen starting at (xpos, ypos)
     using the (CGA-style and, yes, it should be a 'char') specified attribute.
 void wintext_paintscreen(int xmin, int xmax, int ymin, int ymax);
@@ -37,8 +37,8 @@ void wintext_paintscreen(int xmin, int xmax, int ymin, int ymax);
     also be called  manually by your program when it wants a portion
     of the screen updated (the actual data is kept in two arrays, which
     your program has presumably updated:)
-       unsigned char far wintext_chars[25][80]  holds the text
-       unsigned char far wintext_attrs[25][80]  holds the (CGA-style) attributes
+       unsigned char wintext_chars[25][80]  holds the text
+       unsigned char wintext_attrs[25][80]  holds the (CGA-style) attributes
 
 void wintext_cursor(int xpos, int ypos, int cursor_type);
     Sets the cursor to character position (xpos, ypos) and switches to
@@ -87,8 +87,8 @@ long FAR PASCAL wintext_proc(HANDLE, UINT, WPARAM, LPARAM);
         but the application program hasn't officially closed the window yet.
 */
 
-int far wintext_textmode = 0;
-int far wintext_AltF4hit = 0;
+int wintext_textmode = 0;
+int wintext_AltF4hit = 0;
 
 /* function prototypes */
 
@@ -97,7 +97,7 @@ void wintext_destroy(void);
 long FAR PASCAL wintext_proc(HWND, UINT, WPARAM, LPARAM);
 int wintext_texton(void);
 int wintext_textoff(void);
-void wintext_putstring(int, int, int, char far *);
+void wintext_putstring(int, int, int, char *);
 void wintext_paintscreen(int, int, int, int);
 void wintext_cursor(int, int, int);
 int wintext_look_for_activity(int);
@@ -106,46 +106,46 @@ unsigned int wintext_getkeypress(int);
 
 /* Local copy of the "screen" characters and attributes */
 
-unsigned char far wintext_chars[25][80];
-unsigned char far wintext_attrs[25][80];
-int far wintext_buffer_init;     /* zero if 'screen' is uninitialized */
+unsigned char wintext_chars[25][80];
+unsigned char wintext_attrs[25][80];
+int wintext_buffer_init;     /* zero if 'screen' is uninitialized */
 
 /* font information */
 
-HFONT far wintext_hFont;
-int far wintext_char_font;
-int far wintext_char_width;
-int far wintext_char_height;
-int far wintext_char_xchars;
-int far wintext_char_ychars;
-int far wintext_max_width;
-int far wintext_max_height;
+HFONT wintext_hFont;
+int wintext_char_font;
+int wintext_char_width;
+int wintext_char_height;
+int wintext_char_xchars;
+int wintext_char_ychars;
+int wintext_max_width;
+int wintext_max_height;
 
 /* "cursor" variables (AKA the "caret" in Window-Speak) */
-int far wintext_cursor_x;
-int far wintext_cursor_y;
-int far wintext_cursor_type;
-int far wintext_cursor_owned;
-HBITMAP far wintext_bitmap[3];
-short far wintext_cursor_pattern[3][40];
+int wintext_cursor_x;
+int wintext_cursor_y;
+int wintext_cursor_type;
+int wintext_cursor_owned;
+HBITMAP wintext_bitmap[3];
+short wintext_cursor_pattern[3][40];
 
 LPSTR wintext_title_text;         /* title-bar text */
 
 /* a few Windows variables we need to remember globally */
 
-HWND far wintext_hWndCopy;                /* a Global copy of hWnd */
-HWND far wintext_hWndParent;              /* a Global copy of hWnd's Parent */
-HANDLE far wintext_hInstance;             /* a global copy of hInstance */
+HWND wintext_hWndCopy;                /* a Global copy of hWnd */
+HWND wintext_hWndParent;              /* a Global copy of hWnd's Parent */
+HANDLE wintext_hInstance;             /* a global copy of hInstance */
 
 /* the keypress buffer */
 
 #define BUFMAX 80
-unsigned int  far wintext_keypress_count;
-unsigned int  far wintext_keypress_head;
-unsigned int  far wintext_keypress_tail;
-unsigned char far wintext_keypress_initstate;
-unsigned int  far wintext_keypress_buffer[BUFMAX];
-unsigned char far wintext_keypress_state[BUFMAX];
+unsigned int  wintext_keypress_count;
+unsigned int  wintext_keypress_head;
+unsigned int  wintext_keypress_tail;
+unsigned char wintext_keypress_initstate;
+unsigned int  wintext_keypress_buffer[BUFMAX];
+unsigned char wintext_keypress_state[BUFMAX];
 
 /* EGA/VGA 16-color palette (which doesn't match Windows palette exactly) */
 /*
@@ -481,54 +481,79 @@ LPARAM lParam;
 
 void wintext_addkeypress(unsigned int keypress)
 {
+	if (wintext_textmode != 2)  /* not in the right mode */
+	{
+		return;
+	}
 
-if (wintext_textmode != 2)  /* not in the right mode */
-    return;
+	if (wintext_keypress_count >= BUFMAX)
+		/* no room */
+		return;
 
-if (wintext_keypress_count >= BUFMAX)
-    /* no room */
-    return;
-
-if ((keypress & 0xfe00) == 0xfe00) {
-    if (keypress == 0xff10) wintext_keypress_initstate |= 0x01;
-    if (keypress == 0xfe10) wintext_keypress_initstate &= 0xfe;
-    if (keypress == 0xff11) wintext_keypress_initstate |= 0x02;
-    if (keypress == 0xfe11) wintext_keypress_initstate &= 0xfd;
-    return;
+	if ((keypress & 0xfe00) == 0xfe00)
+	{
+		if (keypress == 0xff10) wintext_keypress_initstate |= 0x01;
+		if (keypress == 0xfe10) wintext_keypress_initstate &= 0xfe;
+		if (keypress == 0xff11) wintext_keypress_initstate |= 0x02;
+		if (keypress == 0xfe11) wintext_keypress_initstate &= 0xfd;
+		return;
     }
 
-if (wintext_keypress_initstate != 0) {              /* shift/ctl key down */
-    if ((wintext_keypress_initstate & 1) != 0) {    /* shift key down */
-        if ((keypress & 0x00ff) == 9)             /* TAB key down */
-                keypress = (15 << 8);             /* convert to shift-tab */
-        if ((keypress & 0x00ff) == 0) {           /* special character */
-            int i;
-            i = (keypress >> 8) & 0xff;
-            if (i >= 59 && i <= 68)               /* F1 thru F10 */
-                keypress = ((i + 25) << 8);       /* convert to Shifted-Fn */
-            }
-        }
-    else {                                        /* control key down */
-        if ((keypress & 0x00ff) == 0) {           /* special character */
-            int i;
-            i = ((keypress & 0xff00) >> 8);
-            if (i >= 59 && i <= 68)               /* F1 thru F10 */
-                keypress = ((i + 35) << 8);       /* convert to Ctl-Fn */
-            if (i == 71)
-                keypress = (119 << 8);
-            if (i == 73)
-                keypress = (unsigned int)(132 << 8);
-            if (i == 75)
-                keypress = (115 << 8);
-            if (i == 77)
-                keypress = (116 << 8);
-            if (i == 79)
-                keypress = (117 << 8);
-            if (i == 81)
-                keypress = (118 << 8);
-            }
-        }
-    }
+	if (wintext_keypress_initstate != 0)              /* shift/ctl key down */
+	{
+		if ((wintext_keypress_initstate & 1) != 0)    /* shift key down */
+		{
+			if ((keypress & 0x00ff) == 9)             /* TAB key down */
+			{
+				keypress = (15 << 8);             /* convert to shift-tab */
+			}
+			if ((keypress & 0x00ff) == 0)           /* special character */
+			{
+				int i;
+				i = (keypress >> 8) & 0xff;
+				if (i >= 59 && i <= 68)               /* F1 thru F10 */
+				{
+					keypress = ((i + 25) << 8);       /* convert to Shifted-Fn */
+				}
+			}
+		}
+		else
+		{                                        /* control key down */
+			if ((keypress & 0x00ff) == 0)
+			{           /* special character */
+				int i;
+				i = ((keypress & 0xff00) >> 8);
+				if (i >= 59 && i <= 68)               /* F1 thru F10 */
+				{
+					keypress = ((i + 35) << 8);       /* convert to Ctl-Fn */
+				}
+				if (i == 71)
+				{
+					keypress = (119 << 8);
+				}
+				if (i == 73)
+				{
+					keypress = (unsigned int)(132 << 8);
+				}
+				if (i == 75)
+				{
+					keypress = (115 << 8);
+				}
+				if (i == 77)
+				{
+					keypress = (116 << 8);
+				}
+				if (i == 79)
+				{
+					keypress = (117 << 8);
+				}
+				if (i == 81)
+				{
+					keypress = (118 << 8);
+				}
+			}
+		}
+	}
 
 wintext_keypress_buffer[wintext_keypress_head] = keypress;
 wintext_keypress_state[wintext_keypress_head] = wintext_keypress_initstate;
@@ -600,7 +625,7 @@ return(wintext_keypress_count == 0 ? 0 : 1);
         general routine to send a string to the screen
 */
 
-void wintext_putstring(int xpos, int ypos, int attrib, char far *string)
+void wintext_putstring(int xpos, int ypos, int attrib, char *string)
 {
     int i, j, k, maxrow, maxcol;
     char xc, xa;
