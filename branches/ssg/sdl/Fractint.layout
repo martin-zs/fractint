@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_layout_file>
+	<ActiveTarget name="default" />
+	<File name="common\3d.c" open="0" top="0" tabpos="0">
+		<Cursor position="405" topLine="3" />
+	</File>
+	<File name="common\ant.c" open="0" top="0" tabpos="0">
+		<Cursor position="11692" topLine="364" />
+	</File>
+	<File name="common\biginit.c" open="0" top="0" tabpos="0">
+		<Cursor position="8637" topLine="292" />
+	</File>
+	<File name="common\cmdfiles.c" open="1" top="0" tabpos="3">
+		<Cursor position="94928" topLine="2656" />
+	</File>
+	<File name="common\editpal.c" open="0" top="0" tabpos="0">
+		<Cursor position="7020" topLine="190" />
+	</File>
+	<File name="common\encoder.c" open="0" top="0" tabpos="0">
+		<Cursor position="759" topLine="16" />
+	</File>
+	<File name="common\gifview.c" open="0" top="0" tabpos="0">
+		<Cursor position="10481" topLine="309" />
+	</File>
+	<File name="common\hcmplx.c" open="0" top="0" tabpos="0">
+		<Cursor position="360" topLine="75" />
+	</File>
+	<File name="common\help.c" open="0" top="0" tabpos="0">
+		<Cursor position="28730" topLine="1101" />
+	</File>
+	<File name="common\intro.c" open="0" top="0" tabpos="0">
+		<Cursor position="189" topLine="84" />
+	</File>
+	<File name="common\math_c.c" open="0" top="0" tabpos="0">
+		<Cursor position="1557" topLine="45" />
+	</File>
+	<File name="common\memory.c" open="0" top="0" tabpos="0">
+		<Cursor position="7159" topLine="251" />
+	</File>
+	<File name="common\miscfrac.c" open="0" top="0" tabpos="0">
+		<Cursor position="33381" topLine="1094" />
+	</File>
+	<File name="headers\externs.h" open="1" top="0" tabpos="4">
+		<Cursor position="27705" topLine="664" />
+	</File>
+	<File name="headers\fmath.h" open="0" top="0" tabpos="0">
+		<Cursor position="1485" topLine="31" />
+	</File>
+	<File name="headers\fractint.h" open="1" top="1" tabpos="2">
+		<Cursor position="140" topLine="0" />
+	</File>
+	<File name="headers\mpmath.h" open="0" top="0" tabpos="2">
+		<Cursor position="5503" topLine="120" />
+	</File>
+	<File name="headers\port.h" open="0" top="0" tabpos="0">
+		<Cursor position="2390" topLine="79" />
+	</File>
+	<File name="sdl\main.c" open="1" top="0" tabpos="1">
+		<Cursor position="6339" topLine="135" />
+	</File>
+	<File name="sdl\sdl_scr.c" open="1" top="0" tabpos="1">
+		<Cursor position="3168" topLine="111" />
+	</File>
+	<File name="sstools.ini" open="0" top="0" tabpos="0">
+		<Cursor position="230" topLine="0" />
+	</File>
+</CodeBlocks_layout_file>

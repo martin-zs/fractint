@@ -1,0 +1,69 @@
+Setting up Code::Blocks to complile Fractint port to SDL
+
+Download from:
+ http://www.codeblocks.org/downloads/5
+
+For Windows 2000 / XP / Vista:
+ codeblocks-8.02mingw-setup.exe
+
+Run this file to install.  I picked the default installation.
+
+
+Download from:
+ http://www.libsdl.org/download-1.2.php
+
+ SDL-devel-1.2.14-mingw32.tar.gz (Mingw32)
+  Unpack to C drive.  Will create C:\SDL-1.2.14
+
+ SDL-1.2.14-win32.zip
+  Contains SDL.dll, which must be in your working directory
+   (Will be included in fractint svn checkout)
+
+
+Download from:
+ http://www.libsdl.org/projects/SDL_image/
+
+ SDL_image-1.2.10.zip
+  Unpack and copy SDL-image.h to:
+   C:\SDL-1.2.14\include\SDL
+
+ SDL_image-1.2.10-win32.zip
+  Unpack and copy SDL_image.dll and libpng12-0.dll to your working directory
+   (Will be included in fractint svn checkout)
+
+
+Download from:
+ http://www.libsdl.org/projects/SDL_ttf/
+
+ SDL_ttf-2.0.9-win32.zip
+Not using this yet.
+
+
+Project options:
+
+Include directories:
+
+C:\SDL-1.2.14\include\SDL
+
+Library directories:
+
+C:\SDL-1.2.14\lib
+
+
+linker options
+-lmingw32 -lSDLmain -lSDL
+-lSDL_image.dll
+
+
+Linux:
+The following packages (and their dependencies) are needed:
+codeblocks
+codeblocks-contrib
+libsdl1.2-dev
+libsdl1.2debian-alsa
+libsdl-image1.2
+libsdl-ttf2.0-0
+
+
+For help with SDL, start with:
+ http://gpwiki.org/index.php/SDL:Tutorials:Setup
