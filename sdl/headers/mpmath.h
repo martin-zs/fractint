@@ -14,46 +14,8 @@
 #define far
 #endif
 
-
-#ifndef XFRACT
-struct MP {
-   int Exp;
-        unsigned long Mant;
-};
-#else
-struct MP {
-   double val;
-};
-#endif
-
-struct MPC {
-        struct MP x, y;
-};
-
-extern int MPOverflow;
-extern int DivideOverflow;
-
-/* Mark Peterson's expanded floating point operators.  Automatically uses
-   either the 8086 or 80386 processor type specified in global 'cpu'. If
-   the operation results in an overflow (result < 2**(2**14), or division
-   by zero) the global 'MPoverflow' is set to one. */
-
-/* function pointer support added by Tim Wegner 12/07/89 */
-extern int         (*pMPcmp)(struct MP , struct MP );
-extern struct MP  *(*pMPmul)(struct MP , struct MP );
-extern struct MP  *(*pMPdiv)(struct MP , struct MP );
-extern struct MP  *(*pMPadd)(struct MP , struct MP );
-extern struct MP  *(*pMPsub)(struct MP , struct MP );
-extern struct MP  *(*pd2MP)(double )                ;
-extern double     *(*pMP2d)(struct MP )             ;
-
-
 /*** Formula Declarations ***/
-#ifndef XFRACT
-enum MATH_TYPE { D_MATH, M_MATH, L_MATH };
-#else
-enum MATH_TYPE { D_MATH};
-#endif
+enum MATH_TYPE { D_MATH, L_MATH };
 extern enum MATH_TYPE MathType;
 
 #define fDiv(x, y, z) (void)((*(long*)&z) = RegDivFloat(*(long*)&x, *(long*)&y))
@@ -72,7 +34,6 @@ extern enum MATH_TYPE MathType;
 /* to 2D */
 union Arg {
    _CMPLX     d;
-   struct MPC m;
    _LCMPLX    l;
 /*
    _DHCMPLX   dh;

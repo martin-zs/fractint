@@ -11,9 +11,8 @@
 
 #define dac ((Palettetype *)dacbox)
 
-#ifndef WINFRACT
 void SetTgaColors() {
-unsigned        r, g, b, index;
+unsigned int    r, g, b, index;
     if (tga16 != NULL)
         for( index = 0; index < 256; index++ ) {
                 r = dac[index].red      << 2;
@@ -23,7 +22,6 @@ unsigned        r, g, b, index;
                 tga32[index] = ((long)r<<16) | (g<<8) | b;
         }
 }
-#endif
 
 void get_map_name( char * from_str, char * to_str)
 { /* called once we know from_str contains ".map" */
@@ -46,7 +44,7 @@ unsigned int position, name_length;
 int ValidateLuts( char * fn )
 {
 FILE * f;
-unsigned        r, g, b, index;
+unsigned int    r, g, b, index;
 char    line[160];
 char    temp[FILE_MAX_PATH+1];
 char    temp_fn[FILE_MAX_PATH];
@@ -104,14 +102,14 @@ int SetColorPaletteName( char * fn )
 {
         if( ValidateLuts( fn ) != 0)
                 return 1;
-        if( mapdacbox == NULL && (mapdacbox = (char far *)farmemalloc(768L)) == NULL) {
+        if( mapdacbox == NULL && (mapdacbox = (char *)malloc(768L)) == NULL) {
                 static FCODE o_msg[]={"Insufficient memory for color map."};
                 char msg[sizeof(o_msg)];
-                far_strcpy(msg,o_msg);
+                strcpy(msg,o_msg);
                 stopmsg(0,msg);
                 return 1;
                 }
-        far_memcpy((char far *)mapdacbox,(char far *)dacbox,768);
+        memcpy((char *)mapdacbox,(char *)dacbox,768);
         /* PB, 900829, removed atexit(RestoreMap) stuff, goodbye covers it */
         return 0;
 }

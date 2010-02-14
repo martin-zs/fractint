@@ -8,11 +8,7 @@ fractal routines.
 
 #include <limits.h>
 #include <string.h>
-#ifdef __TURBOC__
-#include <alloc.h>
-#elif !defined(__386BSD__)
 #include <malloc.h>
-#endif
   /* see Fractint.c for a description of the "include"  hierarchy */
 #include "port.h"
 #include "prototyp.h"
@@ -22,10 +18,6 @@ fractal routines.
 
 int bf_math = 0;
 double b_const;
-
-#if (_MSC_VER >= 700)
-#pragma code_seg ("bigsetup_text")     /* place following in an overlay */
-#endif
 
 #ifdef DEBUG
 
@@ -37,7 +29,7 @@ void show_var_bn(char *s, bn_t n)
         strcat(msg," ");
         bntostr(msg+strlen(s),40,n);
         msg[79] = 0;
-        stopmsg(0,(char far *)msg);
+        stopmsg(0,(char *)msg);
     }
 
 void showcornersdbl(char *s)
@@ -251,9 +243,6 @@ void bfcornerstofloat(void)
          param[i] = (double)bftofloat(bfparms[i]);
 }
 
-#if (_MSC_VER >= 700)
-#pragma code_seg ( )     /* back to normal segment */
-#endif
 
 /* -------------------------------------------------------------------- */
 /*    Bignumber Bailout Routines                                        */
@@ -488,9 +477,6 @@ int near bfMANRbailout()
    return(0);
 }
 
-#if (_MSC_VER >= 700)
-#pragma code_seg ("bigsetup_text")     /* place following in an overlay */
-#endif
 
 int MandelbnSetup()
 {
@@ -657,9 +643,6 @@ int MandelbfSetup()
    return (1);
 }
 
-#if (_MSC_VER >= 700)
-#pragma code_seg ( )     /* back to normal segment */
-#endif
 
 int mandelbn_per_pixel()
 {

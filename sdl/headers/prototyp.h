@@ -9,125 +9,6 @@
 #include "helpcom.h"
 #include "externs.h"
 
-/* maintain the common prototypes in this file
- * split the dos/win/unix prototypes into separate files.
- */
-
-#ifdef XFRACT
-#include "unixprot.h"
-#endif
-
-#ifdef WINFRACT
-#include "winprot.h"
-#endif
-
-#if (!defined(XFRACT) && !defined(WINFRACT))
-#include "dosprot.h"
-#endif
-
-/*  calcmand -- assembler file prototypes */
-
-extern long cdecl calcmandasm(void);
-
-/*  calmanfp -- assembler file prototypes */
-
-extern void cdecl calcmandfpasmstart(void);
-/* extern long  cdecl calcmandfpasm(void); */
-extern long  cdecl calcmandfpasm_287(void);
-extern long  cdecl calcmandfpasm_87(void);
-extern long (*calcmandfpasm)(void);
-
-/*  fpu087 -- assembler file prototypes */
-
-extern void cdecl FPUcplxmul(_CMPLX *, _CMPLX *, _CMPLX *);
-extern void cdecl FPUcplxdiv(_CMPLX *, _CMPLX *, _CMPLX *);
-extern void cdecl FPUsincos(double *, double *, double *);
-extern void cdecl FPUsinhcosh(double *, double *, double *);
-extern void cdecl FPUcplxlog(_CMPLX *, _CMPLX *);
-extern void cdecl SinCos086(long , long *, long *);
-extern void cdecl SinhCosh086(long , long *, long *);
-extern long far cdecl r16Mul(long , long );
-extern long far cdecl RegFloat2Fg(long , int );
-extern long cdecl Exp086(long);
-extern unsigned long far cdecl ExpFudged(long , int );
-extern long far cdecl RegDivFloat(long , long );
-extern long far cdecl LogFudged(unsigned long , int );
-extern long far cdecl LogFloat14(unsigned long );
-#ifndef XFRACT
-extern long far cdecl RegFg2Float(long, char);
-extern long far cdecl RegSftFloat(long, char);
-#else
-extern long far cdecl RegFg2Float(long , int );
-extern long far cdecl RegSftFloat(long , int );
-#endif
-
-/*  fpu387 -- assembler file prototypes */
-
-extern void cdecl FPUaptan387(double *, double *, double *);
-extern void cdecl FPUcplxexp387(_CMPLX *, _CMPLX *);
-
-/*  fracsuba -- assembler file prototypes */
-
-extern int near asmlMODbailout(void);
-extern int near asmlREALbailout(void);
-extern int near asmlIMAGbailout(void);
-extern int near asmlORbailout(void);
-extern int near asmlANDbailout(void);
-extern int near asmlMANHbailout(void);
-extern int near asmlMANRbailout(void);
-extern int near asm386lMODbailout(void);
-extern int near asm386lREALbailout(void);
-extern int near asm386lIMAGbailout(void);
-extern int near asm386lORbailout(void);
-extern int near asm386lANDbailout(void);
-extern int near asm386lMANHbailout(void);
-extern int near asm386lMANRbailout(void);
-extern int FManOWarfpFractal( void );
-extern int FJuliafpFractal( void );
-extern int FBarnsley1FPFractal( void );
-extern int FBarnsley2FPFractal( void );
-extern int FLambdaFPFractal( void );
-extern int near asmfpMODbailout(void);
-extern int near asmfpREALbailout(void);
-extern int near asmfpIMAGbailout(void);
-extern int near asmfpORbailout(void);
-extern int near asmfpANDbailout(void);
-extern int near asmfpMANHbailout(void);
-extern int near asmfpMANRbailout(void);
-
-/*  mpmath_a -- assembler file prototypes */
-
-extern struct MP * MPmul086(struct MP , struct MP );
-extern struct MP * MPdiv086(struct MP , struct MP );
-extern struct MP * MPadd086(struct MP , struct MP );
-extern int         MPcmp086(struct MP , struct MP );
-extern struct MP * d2MP086(double );
-extern double    * MP2d086(struct MP );
-extern struct MP * fg2MP086(long , int );
-extern struct MP * MPmul386(struct MP , struct MP );
-extern struct MP * MPdiv386(struct MP , struct MP );
-extern struct MP * MPadd386(struct MP , struct MP );
-extern int         MPcmp386(struct MP , struct MP );
-extern struct MP * d2MP386(double );
-extern double    * MP2d386(struct MP );
-extern struct MP * fg2MP386(long , int );
-extern double *    MP2d(struct MP );
-extern int         MPcmp(struct MP , struct MP );
-extern struct MP * MPmul(struct MP , struct MP );
-extern struct MP * MPadd(struct MP , struct MP );
-extern struct MP * MPdiv(struct MP , struct MP );
-extern struct MP * d2MP(double );  /* Convert double to type MP */
-extern struct MP * fg2MP(long , int ); /* Convert fudged to type MP */
-
-/*  newton -- assembler file prototypes */
-
-extern int cdecl    NewtonFractal2( void );
-extern void cdecl   invertz2(_CMPLX *);
-
-/*  tplus_a -- assembler file prototypes */
-
-extern void WriteTPlusBankedPixel(int, int, unsigned long);
-extern unsigned long ReadTPlusBankedPixel(int, int);
 
 /*  3d -- C file prototypes */
 
@@ -228,7 +109,7 @@ extern void writedisk(int, int, int );
 extern void targa_readdisk(unsigned int ,unsigned int ,BYTE *,BYTE *,BYTE *);
 extern void targa_writedisk(unsigned int ,unsigned int ,BYTE ,BYTE ,BYTE );
 extern void dvid_status(int ,char far *);
-extern int  _fastcall common_startdisk(long, long, int);
+extern int  common_startdisk(long, long, int);
 extern int FromMemDisk(long,int,void far *);
 extern int ToMemDisk(long,int,void far *);
 
@@ -262,7 +143,7 @@ extern void displayc(int, int, int, int, int);
 
 extern int savetodisk(char *);
 extern int encoder(void);
-extern int _fastcall new_to_old(int new_fractype);
+extern int new_to_old(int new_fractype);
 
 /*  evolve -- C file prototypes */
 
@@ -280,11 +161,6 @@ extern  int unspiralmap(void);
 extern  int explore_check(void);
 extern  void SetupParamBox(void);
 extern  void ReleaseParamBox(void);
-
-/*  f16 -- C file prototypes */
-
-extern FILE *t16_open(char *,int *,int *,int *,U8 *);
-extern int t16_getline(FILE *,int ,U16 *);
 
 /*  fracsubr -- C file prototypes */
 
@@ -309,16 +185,16 @@ extern int add_worklist(int ,int, int ,int ,int ,int ,int ,int );
 extern void tidy_worklist(void);
 extern void get_julia_attractor(double ,double );
 extern int ssg_blocksize(void);
-extern void _fastcall symPIplot(int ,int ,int );
-extern void _fastcall symPIplot2J(int ,int ,int );
-extern void _fastcall symPIplot4J(int ,int ,int );
-extern void _fastcall symplot2(int ,int ,int );
-extern void _fastcall symplot2Y(int ,int ,int );
-extern void _fastcall symplot2J(int ,int ,int );
-extern void _fastcall symplot4(int ,int ,int );
-extern void _fastcall symplot2basin(int ,int ,int );
-extern void _fastcall symplot4basin(int ,int ,int );
-extern void _fastcall noplot(int ,int ,int );
+extern void symPIplot(int ,int ,int );
+extern void symPIplot2J(int ,int ,int );
+extern void symPIplot4J(int ,int ,int );
+extern void symplot2(int ,int ,int );
+extern void symplot2Y(int ,int ,int );
+extern void symplot2J(int ,int ,int );
+extern void symplot4(int ,int ,int );
+extern void symplot2basin(int ,int ,int );
+extern void symplot4basin(int ,int ,int );
+extern void noplot(int ,int ,int );
 extern void fractal_floattobf(void);
 extern void adjust_cornerbf(void);
 extern void set_grid_pointers(void);
@@ -340,7 +216,6 @@ extern void FloatPreCalcMagnet2(void);
 extern void cpower(_CMPLX *,int ,_CMPLX *);
 extern int lcpower(_LCMPLX *,int ,_LCMPLX *,int );
 extern int lcomplex_mult(_LCMPLX ,_LCMPLX ,_LCMPLX *,int );
-extern int MPCNewtonFractal(void);
 extern int Barnsley1Fractal(void);
 extern int Barnsley1FPFractal(void);
 extern int Barnsley2Fractal(void);
@@ -436,7 +311,6 @@ extern int marksmandelfp_per_pixel(void);
 extern int marks_mandelpwrfp_per_pixel(void);
 extern int mandelfp_per_pixel(void);
 extern int juliafp_per_pixel(void);
-extern int MPCjulia_per_pixel(void);
 extern int otherrichard8fp_per_pixel(void);
 extern int othermandelfp_per_pixel(void);
 extern int otherjuliafp_per_pixel(void);
@@ -447,8 +321,6 @@ extern int JuliaTrigOrTrigFractal(void);
 extern int JuliaTrigOrTrigfpFractal(void);
 extern int HalleyFractal(void);
 extern int Halley_per_pixel(void);
-extern int MPCHalleyFractal(void);
-extern int MPCHalley_per_pixel(void);
 extern int dynamfloat(double *,double *,double*);
 extern int mandelcloudfloat(double *,double *,double*);
 extern int dynam2dfloat(void);
@@ -464,31 +336,31 @@ extern int mandphoenix_per_pixel(void);
 extern int HyperComplexFPFractal(void);
 extern int LongPhoenixFractalcplx(void);
 extern int PhoenixFractalcplx(void);
-extern int (near *floatbailout)(void);
-extern int (near *longbailout)(void);
-extern int (near *bignumbailout)(void);
-extern int (near *bigfltbailout)(void);
-extern int near fpMODbailout(void);
-extern int near fpREALbailout(void);
-extern int near fpIMAGbailout(void);
-extern int near fpORbailout(void);
-extern int near fpANDbailout(void);
-extern int near fpMANHbailout(void);
-extern int near fpMANRbailout(void);
-extern int near bnMODbailout(void);
-extern int near bnREALbailout(void);
-extern int near bnIMAGbailout(void);
-extern int near bnORbailout(void);
-extern int near bnANDbailout(void);
-extern int near bnMANHbailout(void);
-extern int near bnMANRbailout(void);
-extern int near bfMODbailout(void);
-extern int near bfREALbailout(void);
-extern int near bfIMAGbailout(void);
-extern int near bfORbailout(void);
-extern int near bfANDbailout(void);
-extern int near bfMANHbailout(void);
-extern int near bfMANRbailout(void);
+extern int (*floatbailout)(void);
+extern int (*longbailout)(void);
+extern int (*bignumbailout)(void);
+extern int (*bigfltbailout)(void);
+extern int fpMODbailout(void);
+extern int fpREALbailout(void);
+extern int fpIMAGbailout(void);
+extern int fpORbailout(void);
+extern int fpANDbailout(void);
+extern int fpMANHbailout(void);
+extern int fpMANRbailout(void);
+extern int bnMODbailout(void);
+extern int bnREALbailout(void);
+extern int bnIMAGbailout(void);
+extern int bnORbailout(void);
+extern int bnANDbailout(void);
+extern int bnMANHbailout(void);
+extern int bnMANRbailout(void);
+extern int bfMODbailout(void);
+extern int bfREALbailout(void);
+extern int bfIMAGbailout(void);
+extern int bfORbailout(void);
+extern int bfANDbailout(void);
+extern int bfMANHbailout(void);
+extern int bfMANRbailout(void);
 extern int ant(void);
 extern int LongPhoenixFractal(void);
 extern int PhoenixFractal(void);
@@ -516,11 +388,7 @@ extern int DivideBrot5Setup(void);
 
 /*  fractint -- C file prototypes */
 
-#ifdef XFRACT
 extern int main(int argc,char **argv );
-#else
-extern void main(int argc,char **argv );
-#endif
 extern int elapsed_time(int);
 
 /*  framain2 -- C file prototypes */
@@ -616,8 +484,8 @@ extern void end_help(void );
 
 /*  history -- C file prototypes */
 
-void _fastcall restore_history_info(int);
-void _fastcall save_history_info(void);
+void restore_history_info(int);
+void save_history_info(void);
 
 /*  intro -- C file prototypes */
 
@@ -657,14 +525,10 @@ extern int    EnQueueFloat    (float,  float);
 /*  line3d -- C file prototypes */
 
 extern int line3d(BYTE *,unsigned int );
-extern int _fastcall targa_color(int ,int ,int );
+extern int targa_color(int ,int ,int );
 extern int targa_validate(char *);
 extern int startdisk1(char *, FILE *, int);
 
-/*  loadfdos -- C file prototypes */
-#ifndef WINFRACT
-extern int get_video_mode(struct fractal_info *,struct ext_blk_3 *);
-#endif
 /*  loadfile -- C file prototypes */
 
 extern int read_overlay(void);
@@ -1136,19 +1000,6 @@ extern int testpt(double ,double ,double ,double ,long ,int );
 
 extern int tgaview(void);
 extern int outlin16(BYTE*,int );
-
-/*  yourvid -- C file prototypes */
-
-extern int startvideo(void);
-extern int endvideo(void);
-extern void writevideo(int ,int ,int );
-extern int readvideo(int ,int );
-extern int readvideopalette(void);
-extern int writevideopalette(void);
-#ifdef XFRACT
-extern void readvideoline(int ,int, int, BYTE * );
-extern void writevideoline(int ,int, int, BYTE * );
-#endif
 
 /*  zoom -- C file prototypes */
 

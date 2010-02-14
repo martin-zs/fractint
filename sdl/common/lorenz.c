@@ -78,7 +78,7 @@ static void setupmatrix(MATRIX);
 static int  long3dviewtransf(struct long3dvtinf *inf);
 static int  float3dviewtransf(struct float3dvtinf *inf);
 static FILE *open_orbitsave(void);
-static void _fastcall plothist(int x, int y, int color);
+static void plothist(int x, int y, int color);
 static int realtime;
 static char orbitsavename[]    = {"orbits.raw"};
 static char orbitsave_format[] = {"%g %g %g 15\n"};
@@ -1967,7 +1967,6 @@ int setup_orbits_to_screen(struct affine *scrn_cnvt)
 int plotorbits2dsetup(void)
 {
 
-#ifndef XFRACT
    if (curfractalspecific->isinteger != 0) {
       int tofloat;
       if ((tofloat = curfractalspecific->tofloat) == NOFRACTAL)
@@ -1976,7 +1975,6 @@ int plotorbits2dsetup(void)
       curfractalspecific = &fractalspecific[tofloat];
       fractype = tofloat;
    }
-#endif
 
    PER_IMAGE();
 
@@ -2165,7 +2163,7 @@ static int ifs3dfloat(void)
 
    struct float3dvtinf inf;
 
-   float far *ffptr;
+   float *ffptr;
 
    /* setup affine screen coord conversion */
    setup_convert_to_screen(&inf.cvt);
@@ -2280,8 +2278,8 @@ static int ifs2d(void)
    int row;
    int color;
    int ret;
-   long far *localifs;
-   long far *lfptr;
+   long *localifs;
+   long *lfptr;
    long x,y,newx,newy,r,sum, tempr;
 
    int i,j,k;
@@ -2291,7 +2289,7 @@ static int ifs2d(void)
 
    srand(1);
    color_method = (int)param[0];
-   if((localifs=(long far *)farmemalloc((long)numaffine*IFSPARM*sizeof(long)))==NULL)
+   if((localifs=(long *)malloc((long)numaffine*IFSPARM*sizeof(long)))==NULL)
    {
       stopmsg(0,insufficient_ifs_mem);
       return(-1);
@@ -2356,7 +2354,7 @@ static int ifs2d(void)
    }
    if(fp)
       fclose(fp);
-   farmemfree(localifs);
+   free(localifs);
    return(ret);
 }
 
@@ -2367,8 +2365,8 @@ static int ifs3dlong(void)
    int color;
    int ret;
 
-   long far *localifs;
-   long far *lfptr;
+   long *localifs;
+   long *lfptr;
    long newx,newy,newz,r,sum, tempr;
 
    int i,j,k;
@@ -2376,7 +2374,7 @@ static int ifs3dlong(void)
    struct long3dvtinf inf;
    srand(1);
    color_method = (int)param[0];
-   if((localifs=(long far *)farmemalloc((long)numaffine*IFS3DPARM*sizeof(long)))==NULL)
+   if((localifs=(long *)malloc((long)numaffine*IFS3DPARM*sizeof(long)))==NULL)
    {
       stopmsg(0,insufficient_ifs_mem);
       return(-1);
@@ -2476,7 +2474,7 @@ static int ifs3dlong(void)
    }
    if(fp)
       fclose(fp);
-   farmemfree(localifs);
+   free(localifs);
    return(ret);
 }
 
@@ -2791,7 +2789,7 @@ static FILE *open_orbitsave(void)
 }
 
 /* Plot a histogram by incrementing the pixel each time it it touched */
-static void _fastcall plothist(int x, int y, int color)
+static void plothist(int x, int y, int color)
 {
     color = getcolor(x,y)+1;
     if (color >= colors)

@@ -16,9 +16,6 @@
 
 #define INCLUDE_COMMON  /* include common code in helpcom.h */
 
-#ifndef XFRACT
-#include <io.h>
-#endif
 #include <fcntl.h>
 #include <string.h>
 #include <time.h>
@@ -93,15 +90,15 @@ static int            curr_hist = 0;  /* current pos in history */
 
 /* these items alloc'ed in init_help... */
 
-static long      far *topic_offset;        /* 4*num_topic */
-static LABEL     far *label;               /* 4*num_label */
-static HIST      far *hist;                /* 6*MAX_HIST (96 bytes) */
+static long       *topic_offset;        /* 4*num_topic */
+static LABEL      *label;               /* 4*num_label */
+static HIST       *hist;                /* 6*MAX_HIST (96 bytes) */
 
 /* these items alloc'ed only while help is active... */
 
-static char       far *buffer;           /* MAX_PAGE_SIZE (2048 bytes) */
-static LINK       far *link_table;       /* 10*max_links */
-static PAGE       far *page_table;       /* 4*max_pages  */
+static char        *buffer;           /* MAX_PAGE_SIZE (2048 bytes) */
+static LINK        *link_table;       /* 10*max_links */
+static PAGE        *page_table;       /* 4*max_pages  */
 
 static void help_seek(long pos)
    {
@@ -110,11 +107,7 @@ static void help_seek(long pos)
 
 static void displaycc(int row, int col, int color, int ch)
    {
-#ifndef XFRACT
-   static char *s = "?";
-#else
    static char s[] = "?";
-#endif
 
    if (text_type == 1)   /* if 640x200x2 mode */
       {
@@ -141,7 +134,7 @@ static void displaycc(int row, int col, int color, int ch)
    putstring(row, col, color, s);
    }
 
-static void display_text(int row, int col, int color, char far *text, unsigned len)
+static void display_text(int row, int col, int color, char *text, unsigned len)
    {
    while (len-- != 0)
       {
@@ -154,9 +147,9 @@ static void display_text(int row, int col, int color, char far *text, unsigned l
       }
    }
 
-static void display_parse_text(char far *text, unsigned len, int start_margin, int *num_link, LINK far *link)
+static void display_parse_text(char *text, unsigned len, int start_margin, int *num_link, LINK *link)
    {
-   char far  *curr;
+   char      *curr;
    int        row, col;
    int        tok;
    int        size,
@@ -247,7 +240,7 @@ static void display_parse_text(char far *text, unsigned len, int start_margin, i
                      }
                   }
                else if (tok == TOK_WORD )
-		  display_text(row, col, C_HELP_BODY, curr, width);
+                     display_text(row, col, C_HELP_BODY, curr, width);
 
                col += width;
                curr += size;
@@ -310,7 +303,7 @@ static void display_parse_text(char far *text, unsigned len, int start_margin, i
    textrbase = 0;
    }
 
-static void color_link(LINK far *link, int color)
+static void color_link(LINK *link, int color)
    {
    textcbase = SCREEN_INDENT;
    textrbase = TEXT_START_ROW;
@@ -343,11 +336,7 @@ static void helpinstr(void)
 
    movecursor(24, 1);
    PUT_KEY("F1",               "Index");
-#ifndef XFRACT
    PUT_KEY("\030\031\033\032", "Select");
-#else
-   PUT_KEY("K J H L", "Select");
-#endif
    PUT_KEY("Enter",            "Go to");
    PUT_KEY("Backspace",        "Last topic");
    PUT_KEY("Escape",           "Exit help");
@@ -366,7 +355,7 @@ static void printinstr(void)
 
 #undef PUT_KEY
 
-static void display_page(char far *title, char far *text, unsigned text_len, int page, int num_pages, int start_margin, int *num_link, LINK far *link)
+static void display_page(char *title, char *text, unsigned text_len, int page, int num_pages, int start_margin, int *num_link, LINK *link)
    {
    char temp[9];
 
@@ -375,12 +364,7 @@ static void display_page(char far *title, char far *text, unsigned text_len, int
    setattr(2, 0, C_HELP_BODY, 80*22);
    putstringcenter(1, 0, 80, C_HELP_HDG, title);
    sprintf(temp, "%2d of %d", page+1, num_pages);
-#ifndef XFRACT
    putstring(1, 79-(6 + ((num_pages>=10)?2:1)), C_HELP_INSTR, temp);
-#else
-   /* Some systems (Ultrix) mess up if you write to column 80 */
-   putstring(1, 78-(6 + ((num_pages>=10)?2:1)), C_HELP_INSTR, temp);
-#endif
 
    if (text != NULL)
       display_parse_text(text, text_len, start_margin, num_link, link);
@@ -439,19 +423,16 @@ static int dist1(int a, int b)
    return (abs(t));
    }
 
-#ifdef __TURBOC__
-#   pragma warn -def /* turn off "Possible use before definition" warning */
-#endif
 
-static int find_link_updown(LINK far *link, int num_link, int curr_link, int up)
+static int find_link_updown(LINK *link, int num_link, int curr_link, int up)
    {
    int       ctr,
              curr_c2,
              best_overlap = 0,
              temp_overlap;
-   LINK far *curr,
-        far *temp,
-        far *best;
+   LINK     *curr,
+            *temp,
+            *best;
    int       temp_dist;
 
    curr    = &link[curr_link];
@@ -493,7 +474,7 @@ static int find_link_updown(LINK far *link, int num_link, int curr_link, int up)
    return ( (best==NULL) ? -1 : (int)(best-link) );
    }
 
-static int find_link_leftright(LINK far *link, int num_link, int curr_link, int left)
+static int find_link_leftright(LINK *link, int num_link, int curr_link, int left)
    {
    int       ctr,
              curr_c2,
@@ -501,9 +482,9 @@ static int find_link_leftright(LINK far *link, int num_link, int curr_link, int 
              temp_c2,
              best_dist = 0,
              temp_dist;
-   LINK far *curr,
-        far *temp,
-        far *best;
+   LINK     *curr,
+            *temp,
+            *best;
 
    curr    = &link[curr_link];
    best    = NULL;
@@ -545,16 +526,8 @@ static int find_link_leftright(LINK far *link, int num_link, int curr_link, int 
    return ( (best==NULL) ? -1 : (int)(best-link) );
    }
 
-#ifdef __TURBOC__
-#   pragma warn .def   /* back to default */
-#   pragma warn -par   /* now turn off "Parameter not used" warning */
-#endif
 
-#ifdef __CLINT__
-#   pragma argsused
-#endif
-
-static int find_link_key(LINK far *link, int num_link, int curr_link, int key)
+static int find_link_key(LINK *link, int num_link, int curr_link, int key)
    {
    link = NULL;   /* just for warning */
    switch (key)
@@ -565,11 +538,8 @@ static int find_link_key(LINK far *link, int num_link, int curr_link, int key)
       }
    }
 
-#ifdef __TURBOC__
-#   pragma warn .par /* back to default */
-#endif
 
-static int do_move_link(LINK far *link, int num_link, int *curr, int (*f)(LINK far *,int,int,int), int val)
+static int do_move_link(LINK *link, int num_link, int *curr, int (*f)(LINK *,int,int,int), int val)
    {
    int t;
 
@@ -615,7 +585,7 @@ static int help_topic(HIST *curr, HIST *next, int flags)
    dummy = read(help_file, (char *)&num_pages, sizeof(int));
    assert(num_pages>0 && num_pages<=max_pages);
 
-   farread(help_file, (char far *)page_table, 3*sizeof(int)*num_pages);
+   read(help_file, (char *)page_table, 3*sizeof(int)*num_pages);
 
    dummy = read(help_file, &ch, 1);
    len = ch;
@@ -640,7 +610,7 @@ static int help_topic(HIST *curr, HIST *next, int flags)
       if (draw_page)
          {
          help_seek(where+page_table[page].offset);
-         farread(help_file, buffer, page_table[page].len);
+         read(help_file, buffer, page_table[page].len);
 
          num_link = 0;
          display_page(title, buffer, page_table[page].len, page, num_pages,
@@ -799,7 +769,7 @@ int help(int action)
       return (0);
       }
 
-   buffer = (char far *)farmemalloc((long)MAX_PAGE_SIZE + sizeof(LINK)*max_links +
+   buffer = (char *)malloc((long)MAX_PAGE_SIZE + sizeof(LINK)*max_links +
                         sizeof(PAGE)*max_pages);
 
    if (buffer == NULL)
@@ -808,8 +778,8 @@ int help(int action)
       return (0);
       }
 
-   link_table = (LINK far *)(&buffer[MAX_PAGE_SIZE]);
-   page_table = (PAGE far *)(&link_table[max_links]);
+   link_table = (LINK *)(&buffer[MAX_PAGE_SIZE]);
+   page_table = (PAGE *)(&link_table[max_links]);
 
    oldlookatmouse = lookatmouse;
    lookatmouse = 0;
@@ -913,7 +883,7 @@ int help(int action)
       }
    while (action != ACTION_QUIT);
 
-   farmemfree((BYTE far *)buffer);
+   free((BYTE *)buffer);
 
    unstackscreen();
    lookatmouse = oldlookatmouse;
@@ -924,16 +894,6 @@ int help(int action)
    }
 
 #ifndef XFRACT
-static int dos_version(void)
-   {
-   union REGS r;
-
-   r.x.ax = 0x3000;
-   intdos(&r, &r);
-
-   return (r.h.al*100 + r.h.ah);
-   }
-
 static char s_fractintexe[] = "FRACTINT.EXE";
 #endif
 
@@ -941,11 +901,7 @@ static int can_read_file(char *path)
    {
    int handle;
 
-#ifdef __TURBOC__
-   if ( (handle=open(path, O_RDONLY|O_DENYWRITE)) != -1)
-#else
    if ( (handle=open(path, O_RDONLY)) != -1)
-#endif
       {
       close(handle);
       return (1);
@@ -962,12 +918,8 @@ static int exe_path(char *filename, char *path)
 
    if (dos_version() >= 300)  /* DOS version 3.00+ ? */
       {
-#ifdef __TURBOC__
-      strcpy(path, _argv[0]);
-#else  /* assume MSC */
       extern char **__argv;
       strcpy(path, __argv[0]);   /* note: __argv may be undocumented in MSC */
-#endif
       if(strcmp(filename,s_fractintexe)==0)
          if (can_read_file(path))
             return (1);
@@ -1038,7 +990,7 @@ static int _read_help_topic(int topic, int off, int len, VOIDFARPTR buf)
    if (read_len > 0)
       {
       help_seek(curr_base + off);
-      farread(help_file, (char far *)buf, read_len);
+      read(help_file, (char *)buf, read_len);
       }
 
    return ( curr_len - (off+len) );
@@ -1076,7 +1028,7 @@ typedef struct PRINT_DOC_INFO
 
    int       topic_num[MAX_NUM_TOPIC_SEC]; /* topic_num[] for current CONTENT entry */
 
-   char far *buffer;        /* text buffer */
+   char     *buffer;        /* text buffer */
 
    char      id[81];        /* buffer to store id in */
    char      title[81];     /* buffer to store title in */
@@ -1129,7 +1081,7 @@ static void printerc(PRINT_DOC_INFO *info, int c, int n)
       }
    }
 
-static void printers(PRINT_DOC_INFO *info, char far *s, int n)
+static void printers(PRINT_DOC_INFO *info, char *s, int n)
    {
    if (n > 0)
       {
@@ -1357,7 +1309,7 @@ void print_document(char *outfname, int (*msg_func)(int,int), int save_extraseg 
    PRINT_DOC_INFO info;
    int            success   = 0;
    int            temp_file = -1;
-   char      far *msg = NULL;
+   char          *msg = NULL;
    int            dummy; /* to quiet compiler */
 
    info.buffer = MK_FP(extraseg, 0);
@@ -1382,7 +1334,7 @@ void print_document(char *outfname, int (*msg_func)(int,int), int save_extraseg 
          goto ErrorAbort;
          }
 
-      if ( farwrite(temp_file, info.buffer, PRINT_BUFFER_SIZE) != PRINT_BUFFER_SIZE )
+      if ( write(temp_file, info.buffer, PRINT_BUFFER_SIZE) != PRINT_BUFFER_SIZE )
          {
          msg = err_badwrite;
          goto ErrorAbort;
@@ -1411,7 +1363,7 @@ void print_document(char *outfname, int (*msg_func)(int,int), int save_extraseg 
          goto ErrorAbort;
          }
 
-      if ( farread(temp_file, info.buffer, PRINT_BUFFER_SIZE) != PRINT_BUFFER_SIZE )
+      if ( read(temp_file, info.buffer, PRINT_BUFFER_SIZE) != PRINT_BUFFER_SIZE )
          {
          msg = err_badread;
          goto ErrorAbort;
@@ -1444,75 +1396,11 @@ int init_help(void)
 
    help_file = -1;
 
-#ifndef WINFRACT
-#ifndef XFRACT
-   if (help_file == -1)         /* now look for help files in FRACTINT.EXE */
-      {
-      static FCODE err_no_open[]    = "Help system was unable to open FRACTINT.EXE!\n";
-      static FCODE err_no_exe[]     = "Help system couldn't find FRACTINT.EXE!\n";
-      static FCODE err_wrong_ver[]  = "Wrong help version in FRACTINT.EXE!\n";
-/*
-      static FCODE err_not_in_exe[] = "Help not found in FRACTINT.EXE!\n";
-*/
-
-      if ( find_file(s_fractintexe, path) )
-         {
-#ifdef __TURBOC__
-     if ( (help_file = open(path, O_RDONLY|O_BINARY|O_DENYWRITE)) != -1 )
-#else
-     if ( (help_file = open(path, O_RDONLY|O_BINARY)) != -1 )
-#endif
-            {
-            long help_offset;
-
-            for (help_offset = -((long)sizeof(hs)); help_offset >= -128L; help_offset--)
-               {
-               lseek(help_file, help_offset, SEEK_END);
-               dummy = read(help_file, (char *)&hs, sizeof(hs));
-               if (hs.sig == HELP_SIG)  break;
-               }
-
-            if ( hs.sig != HELP_SIG )
-               {
-               close(help_file);
-               help_file = -1;
-               /* (leave out the error message)
-               stopmsg(1, err_not_in_exe);
-               */
-               }
-
-            else
-               {
-               if ( hs.version != HELP_VERSION )
-                  {
-                  close(help_file);
-                  help_file = -1;
-                  stopmsg(1, err_wrong_ver);
-                  }
-               else
-                  base_off = hs.base;
-
-               }
-            }
-         else
-            stopmsg(1, err_no_open);
-         }
-      else
-         stopmsg(1, err_no_exe);
-
-      }
-#endif
-#endif
-
 if (help_file == -1)            /* look for FRACTINT.HLP */
    {
    if ( find_file("fractint.hlp", path) )
       {
-#ifdef __TURBOC__
-      if ( (help_file = open(path, O_RDONLY|O_BINARY|O_DENYWRITE)) != -1 )
-#else
       if ( (help_file = open(path, O_RDONLY|O_BINARY)) != -1 )
-#endif
      {
          dummy = read(help_file, (char *)&hs, sizeof(long)+sizeof(int));
 
@@ -1539,11 +1427,7 @@ if (help_file == -1)            /* look for FRACTINT.HLP */
    if (help_file == -1)         /* Can't find the help files anywhere! */
       {
       static FCODE msg[] =
-#ifndef XFRACT
-         {"Help Files aren't in FRACTINT.EXE, and couldn't find FRACTINT.HLP!\n"};
-#else
          {"Couldn't find fractint.hlp; set FRACTDIR to proper directory with setenv.\n"};
-#endif
       stopmsg(1, msg);
       }
 
@@ -1562,7 +1446,7 @@ if (help_file == -1)            /* look for FRACTINT.HLP */
 
    /* allocate one big chunk for all three arrays */
 
-   topic_offset = (long far *)farmemalloc(sizeof(long)*num_topic + 2L*sizeof(int)*num_label + sizeof(HIST)*MAX_HIST);
+   topic_offset = (long *)malloc(sizeof(long)*num_topic + 2L*sizeof(int)*num_label + sizeof(HIST)*MAX_HIST);
 
    if (topic_offset == NULL)
       {
@@ -1576,13 +1460,13 @@ if (help_file == -1)            /* look for FRACTINT.HLP */
 
    /* split off the other arrays */
 
-   label = (LABEL far *)(&topic_offset[num_topic]);
-   hist  = (HIST far *)(&label[num_label]);
+   label = (LABEL *)(&topic_offset[num_topic]);
+   hist  = (HIST *)(&label[num_label]);
 
    /* read in the tables... */
 
-   farread(help_file, topic_offset, num_topic*sizeof(long));
-   farread(help_file, label, num_label*2*sizeof(int));
+   read(help_file, topic_offset, num_topic*sizeof(long));
+   read(help_file, label, num_label*2*sizeof(int));
 
    /* finished! */
 
@@ -1594,7 +1478,7 @@ void end_help(void)
    if (help_file != -1)
       {
       close(help_file);
-      farmemfree((BYTE far *)topic_offset);
+      free((BYTE *)topic_offset);
       help_file = -1;
       }
    }

@@ -46,10 +46,6 @@
 #include <varargs.h>
 #endif
 
-#ifdef __TURBOC__
-#   include <mem.h>   /* to get mem...() declarations */
-#endif
-
   /* see Fractint.c for a description of the "include"  hierarchy */
 #include "port.h"
 #include "prototyp.h"
@@ -59,7 +55,7 @@
 #define FAR_RESERVE     8192L     /* amount of far mem we will leave avail. */
 #define MAXRECT         1024      /* largest width of SaveRect/RestoreRect */
 
-#define newx(size)     mem_alloc(size)
+#define newx(size)     malloc(size)
 #define delete(block)  block=NULL
 
 int show_numbers =0;              /* toggle for display of coords */
@@ -96,7 +92,7 @@ void SetAspect(double aspect)
    }
 }
 
-void _fastcall c_putcolor(int x, int y, int color)
+void c_putcolor(int x, int y, int color)
    {
    /* avoid writing outside window */
    if ( x < xc || y < yc || x >= xc + xd || y >= yc + yd )
@@ -239,20 +235,7 @@ ClearQueue()
 
 int Init_Queue(unsigned long request)
 {
-   if (dotmode == 11)
-   {
-      static FCODE nono[] = "Don't try this in disk video mode, kids...\n";
-      stopmsg(0, nono);
-      ListSize = 0;
-      return 0;
-   }
-
-#if 0
-   if (xmmquery() && debugflag != 420)  /* use LARGEST extended mem */
-      if ((largest = xmmlongest()) > request / 128)
-         request   = (unsigned long) largest * 128L;
-#endif
-
+/* following will need to be changed JCO 02/09/2010 */
    for (ListSize = request; ListSize > 1024; ListSize /= 2)
       switch (common_startdisk(ListSize * 8, 1, 256))
       {
@@ -553,7 +536,7 @@ void Jiim(int which)         /* called by fractint */
 
 /*
  * MIIM code:
- * Grab far memory for Queue/Stack before SaveRect gets it.
+ * Grab memory for Queue/Stack before SaveRect gets it.
  */
    OKtoMIIM  = 0;
    if (which == JIIM && debugflag != 300)
@@ -567,6 +550,7 @@ void Jiim(int which)         /* called by fractint */
  * end MIIM code.
  */
 
+/* need to put following back to how it was before we added video_scroll. JCO 02/09/2010 */
    if (!video_scroll) {
       vesa_xres = sxdots;
       vesa_yres = sydots;
@@ -658,6 +642,7 @@ void Jiim(int which)         /* called by fractint */
    row = (int)(cvt.c*cr + cvt.d*ci + cvt.f + .5);
 
    /* possible extraseg arrays have been trashed, so set up again */
+/* following shouldn't be needed. JCO 02/09/2010 */
    if(integerfractal)
       fill_lx_array();
    else
@@ -1252,7 +1237,7 @@ finish:
 #if 0
    if (memory)                  /* done with memory, free it */
    {
-      farmemfree(memory);
+      free(memory);
       memory = NULL;
    }
 #endif
