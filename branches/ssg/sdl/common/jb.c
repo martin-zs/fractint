@@ -38,9 +38,8 @@ struct Perspectivefp LeftEyefp, RightEyefp, *Perfp;
 _LCMPLX jbc;
 _CMPLX jbcfp;
 
-#ifndef XFRACT
 static double fg, fg16;
-#endif
+
 int zdots = 128;
 
 float originfp  = (float)8.0;
@@ -51,9 +50,7 @@ float eyesfp    = (float)2.5;
 float depthfp   = (float)8.0;
 float brratiofp = (float)1.0;
 static long width, dist, depth, brratio;
-#ifndef XFRACT
 static long eyes;
-#endif
 int juli3Dmode = 0;
 
 int neworbittype = JULIA;
@@ -97,7 +94,6 @@ JulibrotSetup(void)
    LeftEyefp.zy = RightEyefp.zy = distfp;
    bbase = 128;
 
-#ifndef XFRACT
    if (fractalspecific[fractype].isinteger > 0)
    {
       long jxmin, jxmax, jymin, jymax, mxmax, mymax;
@@ -145,7 +141,6 @@ JulibrotSetup(void)
       LeftEye.zy = RightEye.zy = dist;
       bbase = (int) (128.0 * brratiofp);
    }
-#endif
 
    if (juli3Dmode == 3)
    {

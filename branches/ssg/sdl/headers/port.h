@@ -10,17 +10,16 @@
 #ifndef PORT_H          /* If this is defined, this file has been       */
 #define PORT_H          /* included already in this module.             */
 
-#ifndef XFRACT
-#include        <dos.h>
-#else
+// is next defined??? JCO 02/11/2010
 #include  <unistd.h>
-#endif
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <float.h>
 
-
+// do we need STDC defined??? JCO 02/11/2010
 #if (defined(__STDC__) || defined(__cplusplus) || defined(_MSC_VER) || defined(__TURBOC__)) && !defined(STDC)
 #  define STDC
 #endif
@@ -35,21 +34,9 @@
 #  endif
 #endif
 
-#ifdef __TURBOC__
-#define _matherr matherr
-#define _stackavail stackavail
-#define USE_BIGNUM_C_CODE
-#endif
-
 /* If endian.h is not present, it can be handled in the code below, */
 /* but if you have this file, it can make it more fool proof. */
-#if (defined(XFRACT) && !defined(__sun))
-#if defined(sgi)
-#include <sys/endian.h>
-#else
 #include <endian.h>
-#endif
-#endif
 #ifndef BIG_ENDIAN
 #define BIG_ENDIAN    4321  /* to show byte order (taken from gcc) */
 #endif
@@ -57,13 +44,11 @@
 #define LITTLE_ENDIAN 1234
 #endif
 
-#define MSDOS 1
-
 #define overwrite   fract_overwrite      /* avoid name conflict with curses */
 
 #ifdef XFRACT           /* XFRACT forces unix configuration! --CWM-- */
 
-#ifdef BIG_ANSI_C       /* remove far's */
+/* remove far's */
 #ifdef far
 #undef far
 #endif
@@ -82,110 +67,9 @@
 #ifndef USE_BIGNUM_C_CODE
 #define USE_BIGNUM_C_CODE
 #endif
-#endif
- /* CAE added ltoa, overwrite fix for HP-UX v9 26Jan95  */
-#ifdef _HPUX_SOURCE
-#define ltoa fr_ltoa
-#endif
-
-#ifdef MSDOS
-#undef MSDOS
-#endif
-
-#ifdef __MSDOS__
-#undef __MSDOS__
-#endif
-
-#ifndef unix
-#define unix
-#endif
 
 #endif  /* XFRACT  */
 
-#ifdef __TURBOC__
-   #define __cdecl cdecl
-#endif
-
-#ifdef MSDOS            /* Microsoft C 5.1 for OS/2 and MSDOS */
-                        /* NOTE: this is always true on DOS!  */
-                        /*       (MSDOS is defined above)  */
-#define timebx timeb
-
-#ifndef BYTE_ORDER
-#define BYTE_ORDER LITTLE_ENDIAN
-#endif
-
-#ifdef _MSC_VER         /* MSC assert does nothing under MSDOS */
-#ifdef assert
-#undef assert
-#define assert(X)
-#endif
-#endif
-
-        typedef unsigned char  U8;
-        typedef signed char    S8;
-        typedef unsigned short U16;
-        typedef signed short   S16;
-        typedef unsigned long  U32;
-        typedef signed long    S32;
-        typedef unsigned char  BYTE;
-        typedef unsigned char  CHAR;
-        typedef void          *VOIDPTR;
-        typedef void far      *VOIDFARPTR;
-        typedef const void    *VOIDCONSTPTR;
-
-        #define CONST          const
-        #define PRINTER        "/dev/prn"
-        #define LOBYTEFIRST    1
-        #define SLASHC         '\\'
-        #define SLASH          "\\"
-        #define SLASHSLASH     "\\\\"
-        #define SLASHDOT       "\\."
-        #define DOTSLASH       ".\\"
-        #define DOTDOTSLASH    "..\\"
-        #define READMODE        "rb"    /* Correct DOS text-mode        */
-        #define WRITEMODE       "wb"    /* file open "feature".         */
-
-        #define write1(ptr,len,n,stream) fwrite(ptr,len,n,stream)
-        #define write2(ptr,len,n,stream) fwrite(ptr,len,n,stream)
-        #define rand15() rand()
-
-#else                   /* Have to nest because #elif is not portable */
-#ifdef AMIGA            /* Lattice C 3.02 for Amiga */
-        typedef UBYTE          U8;
-        typedef BYTE           S8;
-        typedef UWORD          U16;
-        typedef WORD           S16;
-        typedef unsigned int   U32;
-        typedef int            S32;
-        typedef UBYTE          BYTE;
-        typedef UBYTE          CHAR;
-
-        typedef void          *VOIDPTR;
-        typedef void          *VOIDFARPTR;
-        typedef const void    *VOIDCONSTPTR;
-
-        #define PRINTER        "PRT:"
-        #define LOBYTEFIRST    0
-        #define SLASHC         '/'
-        #define SLASH          "/"
-        #define SLASHSLASH     "//"
-        #define SLASHDOT       "/."
-        #define DOTSLASH       "./"
-        #define DOTDOTSLASH    "../"
-        #define READMODE        "rb"
-        #define WRITEMODE       "wb"
-
-        #define write1(ptr,len,n,stream) (fputc(*(ptr),stream),1)
-        #define write2(ptr,len,n,stream) (fputc((*(ptr))&255,stream),fputc((*(ptr))>>8,stream),1)
-        #define rand15() (rand()&0x7FFF)
-
-#define BYTE_ORDER BIG_ENDIAN
-#define USE_BIGNUM_C_CODE
-#define BIG_ANSI_C
-
-#else
-#ifdef unix                     /* Unix machine */
         typedef unsigned char  U8;
         typedef signed char    S8;
         typedef unsigned short U16;
@@ -199,11 +83,6 @@
 #define __cdecl
 #endif
 
-#ifdef __SVR4
-  typedef void          *VOIDPTR;
-  typedef void          *VOIDFARPTR;
-  typedef const void    *VOIDCONSTPTR;
-#else
 # ifdef BADVOID
    typedef char          *VOIDPTR;
    typedef char          *VOIDFARPTR;
@@ -213,15 +92,9 @@
    typedef void          *VOIDFARPTR;
    typedef const void    *VOIDCONSTPTR;
 # endif
-#endif
 
-#ifdef __SVR4
-# include <fcntl.h>
-typedef void sigfunc(int);
-#else
 typedef int sigfunc(int);
-#endif
-  
+
 #ifndef BYTE_ORDER
 /* change for little endians that don't have this defined elsewhere (endian.h) */
 #ifdef LINUX
@@ -308,16 +181,12 @@ extern struct DIR_SEARCH DTA;   /* Disk Transfer Area */
 #define ACCESS_BY_BYTE
 #endif
 
-
 #ifdef LOBYTEFIRST
 #define GET16(c,i)              (i) = *((U16*)(&(c)))
 #else
 #define GET16(c,i)              (i) = (*(unsigned char *)&(c))+\
                                 ((*((unsigned char*)&(c)+1))<<8)
 #endif
-
-
-
 
 /* Some compiler libraries don't correctly handle long double.*/
 /* If you want to force the use of doubles, or                */
@@ -326,30 +195,6 @@ extern struct DIR_SEARCH DTA;   /* Disk Transfer Area */
 /* to read in a long double, then uncomment this next line    */
 /* #define DO_NOT_USE_LONG_DOUBLE */
 /* #define USE_BIGNUM_C_CODE */  /* ASM code requires using long double */
-
-
-/* HP-UX support long doubles and allows them to be read in with  */
-/*   scanf(), but does not support the functions sinl, cosl, fabsl, etc.  */
-/* CAE added this 26Jan95 so it would compile (altered by Wes to new macro) */
-#ifdef _HPUX_SOURCE
-#define DO_NOT_USE_LONG_DOUBLE
-#endif
-
-/* Solaris itself does not provide long double arithmetics like sinl.
- * However, the "sunmath" library that comes bundled with Sun C does
- * provide them. */
-#ifdef sun
-#ifdef USE_SUNMATH
-#include <sunmath.h>
-#else
-#define DO_NOT_USE_LONG_DOUBLE
-#endif
-#endif
-
-/* This should not be neccessary, but below appears to not work */
-#ifdef CYGWIN
-#define DO_NOT_USE_LONG_DOUBLE
-#endif
 
 #ifndef DO_NOT_USE_LONG_DOUBLE
 #ifdef LDBL_DIG

@@ -9,7 +9,7 @@ U16 gene_handle = 0;
 /* evolving = flag, gridsz = dimensions of image grid (gridsz x gridsz) */
 int px,py,evolving,gridsz;
 #define MAXGRIDSZ 51  /* This is arbitrary, = 1024/20 */
-static int far ecountbox[MAXGRIDSZ][MAXGRIDSZ];
+static int ecountbox[MAXGRIDSZ][MAXGRIDSZ];
 
 unsigned int this_gen_rseed;
 /* used to replay random sequences to obtain correct values when selecting a
@@ -136,27 +136,27 @@ void initgene(void) /* set up pointers and mutation params for all usable image
     { &bailoutest, varybotest,  0, "",6 }
   };
   i = -1;
-  far_strcpy(gene[++i].name, s_Param0); /* name of var for menus */
-  far_strcpy(gene[++i].name, s_Param1);
-  far_strcpy(gene[++i].name, s_Param2);
-  far_strcpy(gene[++i].name, s_Param3);
-  far_strcpy(gene[++i].name, s_Param4);
-  far_strcpy(gene[++i].name, s_Param5);
-  far_strcpy(gene[++i].name, s_Param6);
-  far_strcpy(gene[++i].name, s_Param7);
-  far_strcpy(gene[++i].name, s_Param8);
-  far_strcpy(gene[++i].name, s_Param9);
-  far_strcpy(gene[++i].name, s_inside);
-  far_strcpy(gene[++i].name, s_outside);
-  far_strcpy(gene[++i].name, s_decomp);
-  far_strcpy(gene[++i].name, s_invertr);
-  far_strcpy(gene[++i].name, s_invertx);
-  far_strcpy(gene[++i].name, s_inverty);
-  far_strcpy(gene[++i].name, s_trigfn1);
-  far_strcpy(gene[++i].name, s_trigfn2);
-  far_strcpy(gene[++i].name, s_trigfn3);
-  far_strcpy(gene[++i].name, s_trigfn4);
-  far_strcpy(gene[++i].name, s_botest);
+  strcpy(gene[++i].name, s_Param0); /* name of var for menus */
+  strcpy(gene[++i].name, s_Param1);
+  strcpy(gene[++i].name, s_Param2);
+  strcpy(gene[++i].name, s_Param3);
+  strcpy(gene[++i].name, s_Param4);
+  strcpy(gene[++i].name, s_Param5);
+  strcpy(gene[++i].name, s_Param6);
+  strcpy(gene[++i].name, s_Param7);
+  strcpy(gene[++i].name, s_Param8);
+  strcpy(gene[++i].name, s_Param9);
+  strcpy(gene[++i].name, s_inside);
+  strcpy(gene[++i].name, s_outside);
+  strcpy(gene[++i].name, s_decomp);
+  strcpy(gene[++i].name, s_invertr);
+  strcpy(gene[++i].name, s_invertx);
+  strcpy(gene[++i].name, s_inverty);
+  strcpy(gene[++i].name, s_trigfn1);
+  strcpy(gene[++i].name, s_trigfn2);
+  strcpy(gene[++i].name, s_trigfn3);
+  strcpy(gene[++i].name, s_trigfn4);
+  strcpy(gene[++i].name, s_botest);
 
   if (gene_handle == 0)
      gene_handle = MemoryAlloc((U16)sizeof(gene),1L,FARMEM);
@@ -358,7 +358,7 @@ void varyinv(GENEBASE gene[], int randval, int i)
 
 #define LOADCHOICES(X)     {\
    static FCODE tmp[] = { X };\
-   far_strcpy(ptr,(char far *)tmp);\
+   strcpy(ptr,(char *)tmp);\
    choices[++k]= ptr;\
    ptr += sizeof(tmp);\
    }
@@ -377,12 +377,12 @@ int get_the_rest(void)
   static FCODE o_hdg[]={"Variable tweak central 2 of 2"};
   int i,k,num, numtrig;
   char hdg[sizeof(o_hdg)];
-  char far *choices[20];
-  char far *ptr;
+  char *choices[20];
+  char *ptr;
   struct fullscreenvalues uvalues[20];
   GENEBASE gene[NUMGENES];
 
-  far_strcpy(hdg,o_hdg);
+  strcpy(hdg,o_hdg);
   ptr = (char far *)MK_FP(extraseg,0);
 
    MoveFromMemory((BYTE *)&gene, (U16)sizeof(gene), 1L, 0L, gene_handle);
@@ -475,16 +475,16 @@ int get_variations(void)
   static FCODE o_hdg[]={"Variable tweak central 1 of 2"};
   int i,k,num, numparams;
   char hdg[sizeof(o_hdg)];
-  char far *choices[20];
-  char far *ptr;
+  char *choices[20];
+  char *ptr;
   struct fullscreenvalues uvalues[20];
   GENEBASE gene[NUMGENES];
   int firstparm = 0;
   int lastparm  = MAXPARAMS;
   int chngd = -1;
 
-  far_strcpy(hdg,o_hdg);
-  ptr = (char far *)MK_FP(extraseg,0);
+  strcpy(hdg,o_hdg);
+  ptr = (char *)MK_FP(extraseg,0);
 
    MoveFromMemory((BYTE *)&gene, (U16)sizeof(gene), 1L, 0L, gene_handle);
 
@@ -616,8 +616,8 @@ int get_evolve_Parms(void)
 {
    static FCODE o_hdg[]={"Evolution Mode Options"};
    char hdg[sizeof(o_hdg)];
-   char far *choices[20];
-   char far *ptr;
+   char *choices[20];
+   char *ptr;
    int oldhelpmode;
    struct fullscreenvalues uvalues[20];
    int i,j, k, tmp;
@@ -636,8 +636,8 @@ int get_evolve_Parms(void)
 
 get_evol_restart:
 
-   far_strcpy(hdg,o_hdg);
-   ptr = (char far *)MK_FP(extraseg,0);
+   strcpy(hdg,o_hdg);
+   ptr = (char *)MK_FP(extraseg,0);
    if ((evolving & RANDWALK)||(evolving & RANDPARAM)) {
    /* adjust field param to make some sense when changing from random modes*/
    /* maybe should adjust for aspect ratio here? */

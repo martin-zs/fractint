@@ -9,8 +9,8 @@
 
 /* routines in this module      */
 /*
-void _fastcall restore_history_info(int);
-void _fastcall save_history_info(void);
+void restore_history_info(int);
+void save_history_info(void);
 */
 
 int                historyptr = -1;     /* user pointer into history tbl  */
@@ -18,7 +18,7 @@ static  int        saveptr = 0;         /* save ptr into history tbl      */
 int                historyflag;         /* are we backing off in history? */
 
 
-void _fastcall save_history_info()
+void save_history_info()
 {
    HISTORY current,last;
 
@@ -26,7 +26,7 @@ void _fastcall save_history_info()
       return;
    MoveFromMemory((BYTE far *)&last,(U16)sizeof(HISTORY),1L,(long)saveptr,history);
 
-   far_memset((void far *)&current,0,sizeof(HISTORY));
+   memset((void *)&current,0,sizeof(HISTORY));
    current.fractal_type    = (short)fractype                  ;
    current.xmin       = xxmin                     ;
    current.xmax       = xxmax                     ;
@@ -147,22 +147,22 @@ void _fastcall save_history_info()
    current.oy3rd           = oy3rd;
    current.keep_scrn_coords= (short)keep_scrn_coords;
    current.drawmode        = drawmode;
-   far_memcpy(current.dac,dacbox,256*3);
+   memcpy(current.dac,dacbox,256*3);
    switch(fractype)
    {
    case FORMULA:
    case FFORMULA:
-      far_strncpy(current.filename,FormFileName,FILE_MAX_PATH);
-      far_strncpy(current.itemname,FormName,ITEMNAMELEN+1);
+      strncpy(current.filename,FormFileName,FILE_MAX_PATH);
+      strncpy(current.itemname,FormName,ITEMNAMELEN+1);
       break;
    case IFS:
    case IFS3D:
-      far_strncpy(current.filename,IFSFileName,FILE_MAX_PATH);
-      far_strncpy(current.itemname,IFSName,ITEMNAMELEN+1);
+      strncpy(current.filename,IFSFileName,FILE_MAX_PATH);
+      strncpy(current.itemname,IFSName,ITEMNAMELEN+1);
       break;
    case LSYSTEM:
-      far_strncpy(current.filename,LFileName,FILE_MAX_PATH);
-      far_strncpy(current.itemname,LName,ITEMNAMELEN+1);
+      strncpy(current.filename,LFileName,FILE_MAX_PATH);
+      strncpy(current.itemname,LName,ITEMNAMELEN+1);
       break;
    default:
       *(current.filename) = 0;
@@ -173,27 +173,27 @@ void _fastcall save_history_info()
    {
       int i;
       for (i = 0; i < maxhistory; i++)
-         MoveToMemory((BYTE far *)&current,(U16)sizeof(HISTORY),1L,(long)i,history);
+         MoveToMemory((BYTE *)&current,(U16)sizeof(HISTORY),1L,(long)i,history);
       historyflag = saveptr = historyptr = 0;   /* initialize history ptr */
    }
    else if(historyflag == 1)
       historyflag = 0;   /* coming from user history command, don't save */
-   else if(far_memcmp(&current,&last,sizeof(HISTORY)))
+   else if(memcmp(&current,&last,sizeof(HISTORY)))
    {
       if(++saveptr >= maxhistory)  /* back to beginning of circular buffer */
          saveptr = 0;
       if(++historyptr >= maxhistory)  /* move user pointer in parallel */
          historyptr = 0;
-      MoveToMemory((BYTE far *)&current,(U16)sizeof(HISTORY),1L,(long)saveptr,history);
+      MoveToMemory((BYTE *)&current,(U16)sizeof(HISTORY),1L,(long)saveptr,history);
    }
 }
 
-void _fastcall restore_history_info(int i)
+void restore_history_info(int i)
 {
    HISTORY last;
    if(maxhistory <= 0 || bf_math || history == 0)
       return;
-   MoveFromMemory((BYTE far *)&last,(U16)sizeof(HISTORY),1L,(long)i,history);
+   MoveFromMemory((BYTE *)&last,(U16)sizeof(HISTORY),1L,(long)i,history);
    invert = 0;
    calc_status = 0;
    resuming = 0;
@@ -327,10 +327,10 @@ void _fastcall restore_history_info(int i)
    if (keep_scrn_coords) set_orbit_corners = 1;
    drawmode = last.drawmode;
    usr_floatflag = (char)((curfractalspecific->isinteger) ? 0 : 1);
-   far_memcpy(dacbox,last.dac,256*3);
-   far_memcpy(olddacbox,last.dac,256*3);
+   memcpy(dacbox,last.dac,256*3);
+   memcpy(olddacbox,last.dac,256*3);
    if(mapdacbox)
-      far_memcpy(mapdacbox,last.dac,256*3);
+      memcpy(mapdacbox,last.dac,256*3);
    spindac(0,1);
    if(fractype == JULIBROT || fractype == JULIBROTFP)
       savedac = 0;
@@ -340,17 +340,17 @@ void _fastcall restore_history_info(int i)
    {
    case FORMULA:
    case FFORMULA:
-      far_strncpy(FormFileName,last.filename,FILE_MAX_PATH);
-      far_strncpy(FormName,    last.itemname,ITEMNAMELEN+1);
+      strncpy(FormFileName,last.filename,FILE_MAX_PATH);
+      strncpy(FormName,    last.itemname,ITEMNAMELEN+1);
       break;
    case IFS:
    case IFS3D:
-      far_strncpy(IFSFileName,last.filename,FILE_MAX_PATH);
-      far_strncpy(IFSName    ,last.itemname,ITEMNAMELEN+1);
+      strncpy(IFSFileName,last.filename,FILE_MAX_PATH);
+      strncpy(IFSName    ,last.itemname,ITEMNAMELEN+1);
       break;
    case LSYSTEM:
-      far_strncpy(LFileName,last.filename,FILE_MAX_PATH);
-      far_strncpy(LName    ,last.itemname,ITEMNAMELEN+1);
+      strncpy(LFileName,last.filename,FILE_MAX_PATH);
+      strncpy(LName    ,last.itemname,ITEMNAMELEN+1);
       break;
    default:
       break;

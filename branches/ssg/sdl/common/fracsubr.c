@@ -9,9 +9,6 @@ FRACTALS.C, i.e. which are non-fractal-specific fractal engine subroutines.
 #include <varargs.h>
 #endif
 
-#ifndef XFRACT
-#include <sys/timeb.h>
-#endif
 #include <sys/types.h>
 #include <time.h>
   /* see Fractint.c for a description of the "include"  hierarchy */
@@ -22,16 +19,16 @@ FRACTALS.C, i.e. which are non-fractal-specific fractal engine subroutines.
 
 /* routines in this module      */
 
-static long   _fastcall fudgetolong(double d);
-static double _fastcall fudgetodouble(long l);
-static void   _fastcall adjust_to_limits(double);
-static void   _fastcall smallest_add(double *);
-static int    _fastcall ratio_bad(double,double);
-static void   _fastcall plotdorbit(double,double,int);
-static int    _fastcall combine_worklist(void);
+static long   fudgetolong(double d);
+static double fudgetodouble(long l);
+static void   adjust_to_limits(double);
+static void   smallest_add(double *);
+static int    ratio_bad(double,double);
+static void   plotdorbit(double,double,int);
+static int    combine_worklist(void);
 
-static void   _fastcall adjust_to_limitsbf(double);
-static void   _fastcall smallest_add_bf(bf_t);
+static void   adjust_to_limitsbf(double);
+static void   smallest_add_bf(bf_t);
        int    resume_len;               /* length of resume info */
 static int    resume_offset;            /* offset in resume info gets */
        int    taborhelp;    /* kludge for sound and tab or help key press */
@@ -105,13 +102,6 @@ void fractal_floattobf(void)
 }
 
 
-#ifdef _MSC_VER
-#if _MSC_VER == 800
-/* MSC8 doesn't correctly calculate the address of certain arrays here */
-#pragma optimize( "", off )
-#endif
-#endif
-
 int use_grid;
 
 void calcfracinit(void) /* initialize a *pile* of stuff for fractal calculation */
@@ -120,7 +110,8 @@ void calcfracinit(void) /* initialize a *pile* of stuff for fractal calculation 
    int i, gotprec;
    long xytemp;
    double ftemp;
-   coloriter=oldcoloriter = 0L;
+
+   coloriter = oldcoloriter = 0L;
    for(i=0;i<10;i++)
       rhombus_stack[i] = 0;
  
@@ -238,9 +229,7 @@ init_restart:
    potflag = 0;
    if (potparam[0] != 0.0
      && colors >= 64
-     && (curfractalspecific->calctype == StandardFractal
-         || curfractalspecific->calctype == calcmand
-         || curfractalspecific->calctype == calcmandfp)) {
+     && (curfractalspecific->calctype == StandardFractal) {
       potflag = 1;
       distest = usr_distest = 0;    /* can't do distest too */
       }
@@ -316,6 +305,7 @@ init_restart:
          bitshift = 16;  /* to allow larger corners */
    }
 /* We want this code if we're using the assembler calcmand */
+/* not needed any more??? JCO */
    if (fractype == MANDEL || fractype == JULIA) { /* adust shift bits if.. */
       if (potflag == 0                            /* not using potential */
         && (param[0] > -2.0 && param[0] < 2.0)  /* parameters not too large */
@@ -364,6 +354,7 @@ init_restart:
       dely2 = fudgetolong((double)delyy2);
    }
 
+/* following should be okay since extraseg no longer used.  JCO */
    /* skip this if plasma to avoid 3d problems */
    /* skip if bf_math to avoid extraseg conflict with dx0 arrays */
    /* skip if ifs, ifs3d, or lsystem to avoid crash when mathtolerance */
@@ -531,29 +522,20 @@ expand_retry:
    }
 }
 
-#ifdef _MSC_VER
-#if _MSC_VER == 800
-#pragma optimize( "", on ) /* restore optimization options */
-#endif
-#endif
 
-static long _fastcall fudgetolong(double d)
+static long fudgetolong(double d)
 {
    if ((d *= fudge) > 0) d += 0.5;
    else                  d -= 0.5;
    return (long)d;
 }
 
-static double _fastcall fudgetodouble(long l)
+static double fudgetodouble(long l)
 {
    char buf[30];
    double d;
    sprintf(buf,"%.9g",(double)l / fudge);
-#ifndef XFRACT
-   sscanf(buf,"%lg",&d);
-#else
    sscanf(buf,"%lf",&d);
-#endif
    return d;
 }
 
@@ -668,7 +650,7 @@ void adjust_corner(void)
 
 }
 
-static void _fastcall adjust_to_limitsbf(double expand)
+static void adjust_to_limitsbf(double expand)
 {
    LDBL limit;
    bf_t bcornerx[4],bcornery[4];
@@ -877,7 +859,7 @@ static void _fastcall adjust_to_limitsbf(double expand)
    restore_stack(saved);
 }
 
-static void _fastcall adjust_to_limits(double expand)
+static void adjust_to_limits(double expand)
 {
    double cornerx[4],cornery[4];
    double lowx,highx,lowy,highy,limit,ftemp;
@@ -980,12 +962,12 @@ static void _fastcall adjust_to_limits(double expand)
    adjust_corner(); /* make 3rd corner exact if very near other co-ords */
 }
 
-static void _fastcall smallest_add(double *num)
+static void smallest_add(double *num)
 {
    *num += *num * 5.0e-16;
 }
 
-static void _fastcall smallest_add_bf(bf_t num)
+static void smallest_add_bf(bf_t num)
 {
    bf_t btmp1;
    int saved; saved = save_stack();
@@ -995,7 +977,7 @@ static void _fastcall smallest_add_bf(bf_t num)
    restore_stack(saved);
 }
 
-static int _fastcall ratio_bad(double actual, double desired)
+static int ratio_bad(double actual, double desired)
 {  
    double ftemp, tol;
    if(integerfractal)
@@ -1380,7 +1362,7 @@ void close_snd(void)
    snd_fp = NULL;
 }
 
-static void _fastcall plotdorbit(double dx, double dy, int color)
+static void plotdorbit(double dx, double dy, int color)
 {
    int i, j, c;
    int save_sxoffs,save_syoffs;
@@ -1479,7 +1461,7 @@ int pass, int sym)
    return(0);
 }
 
-static int _fastcall combine_worklist(void) /* look for 2 entries which can freely merge */
+static int combine_worklist(void) /* look for 2 entries which can freely merge */
 {
    int i,j;
    for (i=0; i<num_worklist; ++i)

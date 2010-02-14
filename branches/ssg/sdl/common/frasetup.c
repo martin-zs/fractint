@@ -1,19 +1,12 @@
 #include <limits.h>
 #include <string.h>
-#ifdef __TURBOC__
-#include <alloc.h>
-#elif !defined(__386BSD__)
 #include <malloc.h>
-#endif
   /* see Fractint.c for a description of the "include"  hierarchy */
 #include "port.h"
 #include "prototyp.h"
 #include "helpdefs.h"
 #include "fractype.h"
 
-#ifndef XFRACT
-#define MPCmod(m) (*pMPadd(*pMPmul((m).x, (m).x), *pMPmul((m).y, (m).y)))
-#endif
 
 /* -------------------------------------------------------------------- */
 /*              Setup (once per fractal image) routines                 */
@@ -62,33 +55,12 @@ int
 NewtonSetup(void)           /* Newton/NewtBasin Routines */
 {
    int i;
-#ifndef XFRACT
-   if (debugflag != 1010)
-   {
-      if(fpu != 0)
-      {
-         if(fractype == MPNEWTON)
-            fractype = NEWTON;
-         else if(fractype == MPNEWTBASIN)
-            fractype = NEWTBASIN;
-      }
-      else
-      {
-         if(fractype == NEWTON)
-               fractype = MPNEWTON;
-         else if(fractype == NEWTBASIN)
-               fractype = MPNEWTBASIN;
-      }
-      curfractalspecific = &fractalspecific[fractype];
-   }
-#else
-   if(fractype == MPNEWTON)
+   if(fractype == MPNEWTON)  /* MP routines have been removed JCO 02/09/2010 */
       fractype = NEWTON;
    else if(fractype == MPNEWTBASIN)
       fractype = NEWTBASIN;
 
    curfractalspecific = &fractalspecific[fractype];
-#endif
    /* set up table of roots of 1 along unit circle */
    degree = (int)parm.x;
    if(degree < 2)
@@ -100,14 +72,6 @@ NewtonSetup(void)           /* Newton/NewtBasin Routines */
    d1overd      = (double)(degree - 1) / (double)degree;
    maxcolor     = 0;
    threshold    = .3*PI/degree; /* less than half distance between roots */
-#ifndef XFRACT
-   if (fractype == MPNEWTON || fractype == MPNEWTBASIN) {
-      mproverd     = *pd2MP(roverd);
-      mpd1overd    = *pd2MP(d1overd);
-      mpthreshold  = *pd2MP(threshold);
-      mpone        = *pd2MP(1.0);
-   }
-#endif
 
    floatmin = FLT_MIN;
    floatmax = FLT_MAX;
@@ -142,33 +106,6 @@ NewtonSetup(void)           /* Newton/NewtBasin Routines */
          roots[i].y = sin(i*twopi/(double)degree);
       }
    }
-#ifndef XFRACT
-   else if (fractype==MPNEWTBASIN)
-   {
-     if(parm.y)
-         basin = 2; /*stripes */
-      else
-         basin = 1;
-
-      if(degree > 16)
-      {
-         if((MPCroots=(struct MPC *)malloc(degree*sizeof(struct MPC)))==NULL)
-         {
-            MPCroots = (struct MPC *)staticroots;
-            degree = 16;
-         }
-      }
-      else
-         MPCroots = (struct MPC *)staticroots;
-
-      /* list of roots to discover where we converged for newtbasin */
-      for(i=0;i<degree;i++)
-      {
-         MPCroots[i].x = *pd2MP(cos(i*twopi/(double)degree));
-         MPCroots[i].y = *pd2MP(sin(i*twopi/(double)degree));
-      }
-   }
-#endif
 
    param[0] = (double)degree; /* JCO 7/1/92 */
    if (degree%4 == 0)
@@ -177,10 +114,6 @@ NewtonSetup(void)           /* Newton/NewtBasin Routines */
       symmetry = XAXIS;
 
    calctype=StandardFractal;
-#ifndef XFRACT
-   if (fractype == MPNEWTON || fractype == MPNEWTBASIN)
-      setMPfunctions();
-#endif
    return(1);
 }
 
@@ -243,39 +176,6 @@ MandelfpSetup(void)
             && (orbitsave&2) == 0)
         {
            calctype = calcmandfp; /* the normal case - use calcmandfp */
-#ifndef XFRACT
-           if (cpu >= 386 && fpu >= 387)
-           {
-              calcmandfpasmstart_p5();
-              calcmandfpasm = (long (*)(void))calcmandfpasm_p5;
-           }
-           else if (cpu == 286 && fpu >= 287)
-           {
-              calcmandfpasmstart();
-              calcmandfpasm = (long (*)(void))calcmandfpasm_287;
-           }
-           else
-
-           {
-              calcmandfpasmstart();
-              calcmandfpasm = (long (*)(void))calcmandfpasm_87;
-           }
-#else
-           {
-#ifdef NASM
-            if (fpu == -1)
-            {
-              calcmandfpasmstart_p5();
-              calcmandfpasm = (long (*)(void))calcmandfpasm_p5;
-            }
-            else
-#endif
-            {
-              calcmandfpasmstart();
-              calcmandfpasm = (long (*)(void))calcmandfpasm_c;
-            }
-           }
-#endif
         }
         else
         {
@@ -382,38 +282,6 @@ JuliafpSetup(void)
             && (orbitsave&2) == 0)
         {
            calctype = calcmandfp; /* the normal case - use calcmandfp */
-#ifndef XFRACT
-           if (cpu >= 386 && fpu >= 387)
-           {
-              calcmandfpasmstart_p5();
-              calcmandfpasm = (long (*)(void))calcmandfpasm_p5;
-           }
-           else if (cpu == 286 && fpu >= 287)
-           {
-              calcmandfpasmstart();
-              calcmandfpasm = (long (*)(void))calcmandfpasm_287;
-           }
-           else
-           {
-              calcmandfpasmstart();
-              calcmandfpasm = (long (*)(void))calcmandfpasm_87;
-           }
-#else
-           {
-#ifdef NASM
-            if (fpu == -1)
-            {
-              calcmandfpasmstart_p5();
-              calcmandfpasm = (long (*)(void))calcmandfpasm_p5;
-            }
-            else
-#endif
-            {
-              calcmandfpasmstart();
-              calcmandfpasm = (long (*)(void))calcmandfpasm_c;
-            }
-           }
-#endif
         }
         else
         {
@@ -1029,7 +897,6 @@ MandelTrigSetup(void)
 int
 MarksJuliaSetup(void)
 {
-#ifndef XFRACT
    if(param[2] < 1)
       param[2] = 1;
    c_exp = (int)param[2];
@@ -1049,7 +916,6 @@ MarksJuliaSetup(void)
       lcoefficient.y = 0L;
    }
    get_julia_attractor (0.0, 0.0);      /* an attractor? */
-#endif
    return(1);
 }
 
@@ -1108,7 +974,8 @@ HalleySetup(void)
    if(usr_floatflag)
      fractype = HALLEY; /* float on */
    else
-     fractype = MPHALLEY;
+; // force float here, MP math is being removed. JCO 02/09/2010
+//     fractype = MPHALLEY;
 
    curfractalspecific = &fractalspecific[fractype];
 
@@ -1120,18 +987,6 @@ HalleySetup(void)
 /*  precalculated values */
    AplusOne = degree + 1; /* a+1 */
    Ap1deg = AplusOne * degree;
-
-#ifndef XFRACT
-   if(fractype == MPHALLEY) {
-      setMPfunctions();
-      mpAplusOne = *pd2MP((double)AplusOne);
-      mpAp1deg = *pd2MP((double)Ap1deg);
-      mpctmpparm.x = *pd2MP(parm.y);
-      mpctmpparm.y = *pd2MP(parm2.y);
-      mptmpparm2x = *pd2MP(parm2.x);
-      mpone        = *pd2MP(1.0);
-   }
-#endif
 
    if(degree % 2)
      symmetry = XAXIS;   /* odd */

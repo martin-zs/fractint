@@ -5,33 +5,17 @@
 
 typedef BYTE BOOLEAN;
 
+// FIXME (jonathan#1#): Remove the following after cleaning up all usages 02/14/2010
 #ifndef C6
 #ifndef _fastcall
 #define _fastcall       /* _fastcall is a Microsoft C6.00 extension */
 #endif
 #endif
 
-#ifndef XFRACT
-#define ftimex ftime
-typedef int SEGTYPE;
-typedef unsigned USEGTYPE;
-#ifdef __TURBOC__
-#   define _bios_printer(a,b,c)   biosprint((a),(c),(b))
-#   define _bios_serialcom(a,b,c) bioscom((a),(c),(b))
-#else
-#ifndef __WATCOMC__
-#ifndef MK_FP
-#   define MK_FP(seg,off) (VOIDFARPTR )( (((long)(seg))<<16) | \
-                                          ((unsigned)(off)) )
-#endif
-#endif
-#endif
-#else
 typedef char * SEGTYPE;
 typedef char * USEGTYPE;
-#   define MK_FP(seg,off) (VOIDFARPTR )((long)seg + (long)off)
+#define MK_FP(seg,off) (VOIDFARPTR )((long)seg + (long)off)
 #include <sys/types.h> /* need size_t */
-#endif
 
 #ifndef XFRACT
 #define clock_ticks() clock()
@@ -109,7 +93,7 @@ typedef    struct fractal_info FRACTAL_INFO;
 
 #define VERSION 17  /* file version, independent of system */
    /* increment this EVERY time the fractal_info structure changes */
-   
+
 struct fractal_info         /*  for saving data in GIF file     */
 {
     char  info_id[8];       /* Unique identifier for info block */
@@ -911,16 +895,6 @@ extern BYTE txtcolor[];
 #define C_PRIMARY         txtcolor[29]
 #define C_CONTRIB         txtcolor[30]
 
-/* structure for xmmmoveextended parameter */
-struct XMM_Move
-  {
-    unsigned long   Length;
-    unsigned int    SourceHandle;
-    unsigned long   SourceOffset;
-    unsigned int    DestHandle;
-    unsigned long   DestOffset;
-  };
-
 /* structure passed to fullscreen_prompts */
 struct fullscreenvalues
 {
@@ -1070,7 +1044,7 @@ struct baseunit { /* smallest part of a fractint 'gene' */
                               /* takes random number and pointer to var*/
    int mutate ;  /* flag to switch on variation of this variable */
                   /* 0 for no mutation, 1 for x axis, 2 for y axis */
-                  /* in steady field maps, either x or y=yes in random modes*/ 
+                  /* in steady field maps, either x or y=yes in random modes*/
    char name[16]; /* name of variable (for menu ) */
    char level;    /* mutation level at which this should become active */
 };
@@ -1079,7 +1053,7 @@ typedef struct baseunit    GENEBASE;
 
 #define sign(x) (((x) < 0) ? -1 : ((x) != 0)  ? 1 : 0)
 
-/* 
+/*
  * The following typedefs allow declaring based data
  * types that are stored in the code segment under MSC,
  * and thus may be overlaid. Use only for constant data.

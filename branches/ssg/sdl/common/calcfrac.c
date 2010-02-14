@@ -28,30 +28,30 @@ Additional fractal-specific modules are also invoked from CALCFRAC:
 /* routines in this module      */
 static void perform_worklist(void);
 static int  OneOrTwoPass(void);
-static int  _fastcall StandardCalc(int);
-static int  _fastcall potential(double,long);
+static int  StandardCalc(int);
+static int  potential(double,long);
 static void decomposition(void);
 static int  bound_trace_main(void);
 static void step_col_row(void);
 static int  solidguess(void);
-static int  _fastcall guessrow(int,int,int);
-static void _fastcall plotblock(int,int,int,int);
-static void _fastcall setsymmetry(int,int);
-static int  _fastcall xsym_split(int,int);
-static int  _fastcall ysym_split(int,int);
-static void _fastcall puttruecolor_disk(int,int,int);
-static int diffusion_engine (void);
-static int sticky_orbits(void);
+static int  guessrow(int,int,int);
+static void plotblock(int,int,int,int);
+static void setsymmetry(int,int);
+static int  xsym_split(int,int);
+static int  ysym_split(int,int);
+static void puttruecolor_disk(int,int,int);
+static int  diffusion_engine (void);
+static int  sticky_orbits(void);
 
 /**CJLT new function prototypes: */
-static int tesseral(void);
-static int _fastcall tesschkcol(int,int,int);
-static int _fastcall tesschkrow(int,int,int);
-static int _fastcall tesscol(int,int,int);
-static int _fastcall tessrow(int,int,int);
+static int  tesseral(void);
+static int  tesschkcol(int,int,int);
+static int  tesschkrow(int,int,int);
+static int  tesscol(int,int,int);
+static int  tessrow(int,int,int);
 
 /* new drawing method by HB */
-static int diffusion_scan(void);
+static int  diffusion_scan(void);
 
 /* lookup tables to avoid too much bit fiddling : */
 char far dif_la[] = {
@@ -93,10 +93,10 @@ long coloriter, oldcoloriter, realcoloriter;
 int row, col, passes;
 int iterations, invert;
 double f_radius,f_xcenter, f_ycenter; /* for inversion */
-void (_fastcall *putcolor)(int,int,int) = putcolor_a;
-void (_fastcall *plot)(int,int,int) = putcolor_a;
-typedef void (_fastcall *PLOTC)(int,int,int);
-typedef void (_fastcall *GETC)(int,int,int);
+void (*putcolor)(int,int,int) = putcolor_a;
+void (*plot)(int,int,int) = putcolor_a;
+typedef void (*PLOTC)(int,int,int);
+typedef void (*GETC)(int,int,int);
 
 double magnitude, rqlim, rqlim2, rqlim_save;
 int no_mag_calc = 0;
@@ -115,7 +115,7 @@ unsigned long lm;               /* magnitude limit (CALCMAND) */
 /* ORBIT variables */
 int     show_orbit;                     /* flag to turn on and off */
 int     orbit_ptr;                      /* pointer into save_orbit array */
-int far *save_orbit;                    /* array to save orbit values */
+int     *save_orbit;                    /* array to save orbit values */
 int     orbit_color=15;                 /* XOR color */
 
 int     ixstart, ixstop, iystart, iystop;       /* start, stop here */
@@ -170,10 +170,8 @@ typedef int (*TPREFIX)[2][maxyblk][maxxblk];
 #define tprefix   (*((TPREFIX)prefix))
 
 /* size of next puts a limit of MAXPIXELS pixels across on solid guessing logic */
-#ifdef XFRACT
 BYTE dstack[4096];              /* common temp, two put_line calls */
 unsigned int prefix[2][maxyblk][maxxblk]; /* common temp */
-#endif
 
 int nxtscreenflag; /* for cellular next screen generation */
 int     attractors;                 /* number of finite attractors  */
@@ -509,10 +507,6 @@ int logtable_in_extra_ok(void)
 
 /******* calcfract - the top level routine for generating an image *******/
 
-#if (_MSC_VER >= 700)
-#pragma code_seg ("calcfra1_text")     /* place following in an overlay */
-#endif
-
 int calcfract(void)
 {
    matherr_ct = 0;
@@ -591,10 +585,7 @@ int calcfract(void)
 
    if ((LogFlag || rangeslen) && !Log_Calc)
    {
-      if(logtable_in_extra_ok())
-         LogTable = (BYTE far *)(dx0 + 2*(xdots+ydots));
-      else
-         LogTable = (BYTE far *)farmemalloc((long)MaxLTSize + 1);
+      LogTable = (BYTE *)malloc((long)MaxLTSize + 1);
 
       if(LogTable == NULL)
       {
@@ -645,7 +636,7 @@ int calcfract(void)
       atan_colors = 180;
 
    /* ORBIT stuff */
-   save_orbit = (int far *)((double huge *)dx0 + 4*OLDMAXPIXELS);
+   save_orbit = (int *)((double *)dx0 + 4*OLDMAXPIXELS);
    show_orbit = start_showorbit;
    orbit_ptr = 0;
    orbit_color = 15;
@@ -716,8 +707,6 @@ int calcfract(void)
    }
 
    if (curfractalspecific->calctype != StandardFractal
-       && curfractalspecific->calctype != calcmand
-       && curfractalspecific->calctype != calcmandfp
        && curfractalspecific->calctype != lyapunov
        && curfractalspecific->calctype != calcfroth)
    {
@@ -788,8 +777,7 @@ int calcfract(void)
 
    if(LogTable && !Log_Calc)
    {
-      if(!logtable_in_extra_ok())
-         farmemfree(LogTable);   /* free if not using extraseg */
+      free(LogTable);   /* free memory */
       LogTable = NULL;
    }
    if(typespecific_workarea)
@@ -1016,7 +1004,7 @@ static void perform_worklist()
                We're using near memory, so get the amount down
                to something reasonable. The polynomial used to
                calculate savedotslen is exactly right for the
-               triangular-shaped shotdot cursor. The that cursor
+               triangular-shaped shotdot cursor. If that cursor
                is changed, this formula must match.
             */
             while((savedotslen=sqr(showdot_width)+5*showdot_width+4) > 1000)
@@ -1115,9 +1103,6 @@ static void perform_worklist()
    }
 }
 
-#if (_MSC_VER >= 700)
-#pragma code_seg ()     /* back to normal segment */
-#endif
 
 static int diffusion_scan(void)
 {
@@ -1610,7 +1595,7 @@ static int OneOrTwoPass(void)
    return(0);
 }
 
-static int _fastcall StandardCalc(int passnum)
+static int StandardCalc(int passnum)
 {
    got_status = 0;
    curpass = passnum;
@@ -2785,7 +2770,7 @@ static void decomposition(void)
 /*                                                                */
 /******************************************************************/
 
-static int _fastcall potential(double mag, long iterations)
+static int potential(double mag, long iterations)
 {
    float f_mag,f_tmp,pot;
    double d_tmp;
@@ -3274,7 +3259,7 @@ static int solidguess(void)
 
 #define calcadot(c,x,y) { col=x; row=y; if((c=(*calctype)())== -1) return -1; }
 
-static int _fastcall guessrow(int firstpass,int y,int blocksize)
+static int guessrow(int firstpass,int y,int blocksize)
 {
    int x,i,j,color;
    int xplushalf,xplusblock;
@@ -3510,7 +3495,7 @@ static int _fastcall guessrow(int firstpass,int y,int blocksize)
    return 0;
 }
 
-static void _fastcall plotblock(int buildrow,int x,int y,int color)
+static void plotblock(int buildrow,int x,int y,int color)
 {
    int i,xlim,ylim;
    if((xlim=x+halfblock)>ixstop)
@@ -3543,7 +3528,7 @@ static void _fastcall plotblock(int buildrow,int x,int y,int color)
 
 /************************* symmetry plot setup ************************/
 
-static int _fastcall xsym_split(int xaxis_row,int xaxis_between)
+static int xsym_split(int xaxis_row,int xaxis_between)
 {
    int i;
    if ((worksym&0x11) == 0x10) /* already decided not sym */
@@ -3583,7 +3568,7 @@ static int _fastcall xsym_split(int xaxis_row,int xaxis_between)
    return(0); /* tell set_symmetry its a go */
 }
 
-static int _fastcall ysym_split(int yaxis_col,int yaxis_between)
+static int ysym_split(int yaxis_col,int yaxis_between)
 {
    int i;
    if ((worksym&0x22) == 0x20) /* already decided not sym */
@@ -3623,15 +3608,8 @@ static int _fastcall ysym_split(int yaxis_col,int yaxis_between)
    return(0); /* tell set_symmetry its a go */
 }
 
-#ifdef _MSC_VER
-#pragma optimize ("ea", off)
-#endif
 
-#if (_MSC_VER >= 700)
-#pragma code_seg ("calcfra1_text")     /* place following in an overlay */
-#endif
-
-static void _fastcall setsymmetry(int sym, int uselist) /* set up proper symmetrical plot functions */
+static void setsymmetry(int sym, int uselist) /* set up proper symmetrical plot functions */
 {
    int i;
    int parmszero, parmsnoreal, parmsnoimag;
@@ -3876,13 +3854,6 @@ static void _fastcall setsymmetry(int sym, int uselist) /* set up proper symmetr
       restore_stack(saved);
 }
 
-#ifdef _MSC_VER
-#pragma optimize ("ea", on)
-#endif
-
-#if (_MSC_VER >= 700)
-#pragma code_seg ()       /* back to normal segment */
-#endif
 
 /**************** tesseral method by CJLT begins here*********************/
 /*  reworked by PB for speed and resumeability */
@@ -4093,7 +4064,7 @@ static int tesseral(void)
 
 } /* tesseral */
 
-static int _fastcall tesschkcol(int x,int y1,int y2)
+static int tesschkcol(int x,int y1,int y2)
 {
    int i;
    i = getcolor(x,++y1);
@@ -4102,7 +4073,7 @@ static int _fastcall tesschkcol(int x,int y1,int y2)
    return i;
 }
 
-static int _fastcall tesschkrow(int x1,int x2,int y)
+static int tesschkrow(int x1,int x2,int y)
 {
    int i;
    i = getcolor(x1,y);
@@ -4113,7 +4084,7 @@ static int _fastcall tesschkrow(int x1,int x2,int y)
    return i;
 }
 
-static int _fastcall tesscol(int x,int y1,int y2)
+static int tesscol(int x,int y1,int y2)
 {
    int colcolor,i;
    col = x;
@@ -4128,7 +4099,7 @@ static int _fastcall tesscol(int x,int y1,int y2)
    return colcolor;
 }
 
-static int _fastcall tessrow(int x1,int x2,int y)
+static int tessrow(int x1,int x2,int y)
 {
    int rowcolor,i;
    row = y;
@@ -4216,7 +4187,7 @@ static long autologmap(void)   /*RB*/
 }
 
 /* Symmetry plot for period PI */
-void _fastcall symPIplot(int x, int y, int color)
+void symPIplot(int x, int y, int color)
 {
    while(x <= xxstop)
    {
@@ -4225,7 +4196,7 @@ void _fastcall symPIplot(int x, int y, int color)
    }
 }
 /* Symmetry plot for period PI plus Origin Symmetry */
-void _fastcall symPIplot2J(int x, int y, int color)
+void symPIplot2J(int x, int y, int color)
 {
    int i,j;
    while(x <= xxstop)
@@ -4238,7 +4209,7 @@ void _fastcall symPIplot2J(int x, int y, int color)
    }
 }
 /* Symmetry plot for period PI plus Both Axis Symmetry */
-void _fastcall symPIplot4J(int x, int y, int color)
+void symPIplot4J(int x, int y, int color)
 {
    int i,j;
    while(x <= (xxstart+xxstop)/2)
@@ -4258,7 +4229,7 @@ void _fastcall symPIplot4J(int x, int y, int color)
 }
 
 /* Symmetry plot for X Axis Symmetry */
-void _fastcall symplot2(int x, int y, int color)
+void symplot2(int x, int y, int color)
 {
    int i;
    putcolor(x, y, color) ;
@@ -4267,7 +4238,7 @@ void _fastcall symplot2(int x, int y, int color)
 }
 
 /* Symmetry plot for Y Axis Symmetry */
-void _fastcall symplot2Y(int x, int y, int color)
+void symplot2Y(int x, int y, int color)
 {
    int i;
    putcolor(x, y, color) ;
@@ -4276,7 +4247,7 @@ void _fastcall symplot2Y(int x, int y, int color)
 }
 
 /* Symmetry plot for Origin Symmetry */
-void _fastcall symplot2J(int x, int y, int color)
+void symplot2J(int x, int y, int color)
 {
    int i,j;
    putcolor(x, y, color) ;
@@ -4286,7 +4257,7 @@ void _fastcall symplot2J(int x, int y, int color)
 }
 
 /* Symmetry plot for Both Axis Symmetry */
-void _fastcall symplot4(int x, int y, int color)
+void symplot4(int x, int y, int color)
 {
    int i,j;
    j = xxstop-(x-xxstart);
@@ -4302,7 +4273,7 @@ void _fastcall symplot4(int x, int y, int color)
 }
 
 /* Symmetry plot for X Axis Symmetry - Striped Newtbasin version */
-void _fastcall symplot2basin(int x, int y, int color)
+void symplot2basin(int x, int y, int color)
 {
    int i,stripe;
    putcolor(x, y, color) ;
@@ -4320,7 +4291,7 @@ void _fastcall symplot2basin(int x, int y, int color)
 }
 
 /* Symmetry plot for Both Axis Symmetry  - Newtbasin version */
-void _fastcall symplot4basin(int x, int y, int color)
+void symplot4basin(int x, int y, int color)
 {
    int i,j,color1,stripe;
    if(color == 0) /* assumed to be "inside" color */
@@ -4350,7 +4321,7 @@ void _fastcall symplot4basin(int x, int y, int color)
    }
 }
 
-static void _fastcall puttruecolor_disk(int x, int y, int color)
+static void puttruecolor_disk(int x, int y, int color)
 {
    putcolor_a(x,y,color);
 
@@ -4362,11 +4333,8 @@ static void _fastcall puttruecolor_disk(int x, int y, int color)
 }
 
 /* Do nothing plot!!! */
-#ifdef __CLINT__
-#pragma argsused
-#endif
 
-void _fastcall noplot(int x,int y,int color)
+void noplot(int x,int y,int color)
 {
    x = y = color = 0;  /* just for warning */
 }
