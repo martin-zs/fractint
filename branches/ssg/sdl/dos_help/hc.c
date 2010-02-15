@@ -51,12 +51,7 @@
 
 #define INCLUDE_COMMON  /* tell helpcom.h to include common code */
 
-
-#ifdef XFRACT
-#define strupr strlwr
-#else
 #include <io.h>
-#endif
 
 #ifndef USE_VARARGS
 #include <stdarg.h>
@@ -68,29 +63,15 @@
 #include <string.h>
 #include <ctype.h>
 
-#ifdef __TURBOC__
-#   include <dir.h>
-#   define FNSPLIT fnsplit
-#else
 #   define MAXFILE FILE_MAX_FNAME
 #   define MAXEXT  FILE_MAX_EXT
 #   define FNSPLIT _splitpath
-#endif
 
 
 #include <assert.h>
   /* see Fractint.c for a description of the "include"  hierarchy */
 #include "port.h"
 #include "helpcom.h"
-
-#ifdef XFRACT
-#ifndef HAVESTRI
-extern int stricmp(char *, char *);
-extern int strnicmp(char *, char *, int);
-#endif
-extern int filelength(int);
-extern int _splitpath(char *,char *,char *,char *,char *);
-#endif
 
 /*
  * When defined, SHOW_ERROR_LINE will cause the line number in HC.C where

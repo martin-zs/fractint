@@ -170,6 +170,12 @@ May need defines for LINUX and/or WIN32.]]>
 		<Unit filename="common\zoom.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="dos_help\help.src" />
+		<Unit filename="dos_help\help2.src" />
+		<Unit filename="dos_help\help3.src" />
+		<Unit filename="dos_help\help4.src" />
+		<Unit filename="dos_help\help5.src" />
+		<Unit filename="headers\HELPDEFS.H" />
 		<Unit filename="headers\big.h">
 			<Option compilerVar="CC" />
 		</Unit>
