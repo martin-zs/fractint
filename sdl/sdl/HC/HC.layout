@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_layout_file>
+	<ActiveTarget name="Release" />
+	<File name="..\..\dos_help\hc.c" open="0" top="0" tabpos="0">
+		<Cursor position="211" topLine="57" />
+	</File>
+	<File name="..\..\headers\helpcom.h" open="0" top="0" tabpos="0">
+		<Cursor position="4414" topLine="6" />
+	</File>
+	<File name="..\..\headers\port.h" open="0" top="0" tabpos="0">
+		<Cursor position="532" topLine="10" />
+	</File>
+	<File name="..\..\headers\unix.h" open="0" top="0" tabpos="0">
+		<Cursor position="1692" topLine="74" />
+	</File>
+	<File name="..\..\unix\unix.c" open="0" top="0" tabpos="0">
+		<Cursor position="5765" topLine="300" />
+	</File>
+</CodeBlocks_layout_file>

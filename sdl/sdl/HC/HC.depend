@@ -1,0 +1,12 @@
+# depslib dependency file v1.0
+1266178444 source:c:\svn\sdl\dos_help\hc.c
+	<io.h>
+	<stdarg.h>
+	<varargs.h>
+	<fcntl.h>
+	<string.h>
+	<ctype.h>
+	<assert.h>
+	"port.h"
+	"helpcom.h"
+
