@@ -35,9 +35,9 @@ int iocount;
 long
 clock_ticks()
 {
-    struct timeval tim;
-    gettimeofday(&tim,NULL);
-    return tim.tv_sec*CLK_TCK + tim.tv_usec*CLK_TCK/1000000;
+  struct timeval tim;
+  gettimeofday(&tim,NULL);
+  return tim.tv_sec*CLK_TCK + tim.tv_usec*CLK_TCK/1000000;
 }
 
 /* stub */
@@ -62,7 +62,7 @@ intdos() {}
 int
 kbhit()
 {
-    return 0;
+  return 0;
 }
 
 /*
@@ -83,10 +83,10 @@ kbhit()
 long
 stackavail()
 {
-    return 8192;
+  return 8192;
 }
 
-#ifndef HAVESTRI
+#if 0
 /*
  *----------------------------------------------------------------------
  *
@@ -104,21 +104,24 @@ stackavail()
  */
 int
 stricmp(s1, s2)
-    char *s1, *s2;		/* Strings to compare. */
+char *s1, *s2;		/* Strings to compare. */
 {
-    int c1, c2;
+  int c1, c2;
 
-    while (1) {
-	c1 = *s1++;
-	c2 = *s2++;
-	if (isupper(c1)) c1 = tolower(c1);
-	if (isupper(c2)) c2 = tolower(c2);
-	if (c1 != c2) {
-	    return c1 - c2;
-	}
-	if (c1 == 0) {
-	    return 0;
-	}
+  while (1)
+    {
+      c1 = *s1++;
+      c2 = *s2++;
+      if (isupper(c1)) c1 = tolower(c1);
+      if (isupper(c2)) c2 = tolower(c2);
+      if (c1 != c2)
+        {
+          return c1 - c2;
+        }
+      if (c1 == 0)
+        {
+          return 0;
+        }
     }
 }
 /*
@@ -138,26 +141,28 @@ stricmp(s1, s2)
  */
 int
 strnicmp(s1, s2, numChars)
-    char *s1, *s2;		/* Strings to compare. */
-    int numChars;		/* Max number of chars to compare. */
+char *s1, *s2;		/* Strings to compare. */
+int numChars;		/* Max number of chars to compare. */
 {
-    register char c1, c2;
+  register char c1, c2;
 
-    for ( ; numChars > 0; --numChars) {
-	c1 = *s1++;
-	c2 = *s2++;
-	if (isupper(c1)) c1 = tolower(c1);
-	if (isupper(c2)) c2 = tolower(c2);
-	if (c1 != c2) {
-	    return c1 - c2;
-	}
-	if (c1 == '\0') {
-	    return 0;
-	}
+  for ( ; numChars > 0; --numChars)
+    {
+      c1 = *s1++;
+      c2 = *s2++;
+      if (isupper(c1)) c1 = tolower(c1);
+      if (isupper(c2)) c2 = tolower(c2);
+      if (c1 != c2)
+        {
+          return c1 - c2;
+        }
+      if (c1 == '\0')
+        {
+          return 0;
+        }
     }
-    return 0;
+  return 0;
 }
-#endif
 
 /*
  *----------------------------------------------------------------------
@@ -176,16 +181,18 @@ strnicmp(s1, s2, numChars)
  */
 char *
 strlwr(s)
-    char *s;
+char *s;
 {
-    register char *sptr=s;
-    while (*sptr != '\0') {
-	if (isupper(*sptr)) {
-	    *sptr = tolower(*sptr);
-	}
-	sptr++;
+  register char *sptr=s;
+  while (*sptr != '\0')
+    {
+      if (isupper(*sptr))
+        {
+          *sptr = tolower(*sptr);
+        }
+      sptr++;
     }
-    return s;
+  return s;
 }
 /*
  *----------------------------------------------------------------------
@@ -204,16 +211,18 @@ strlwr(s)
  */
 char *
 strupr(s)
-    char *s;
+char *s;
 {
-    register char *sptr=s;
-    while (*sptr != '\0') {
-	if (islower(*sptr)) {
-	    *sptr = toupper(*sptr);
-	}
-	sptr++;
+  register char *sptr=s;
+  while (*sptr != '\0')
+    {
+      if (islower(*sptr))
+        {
+          *sptr = toupper(*sptr);
+        }
+      sptr++;
     }
-    return s;
+  return s;
 }
 /*
  *----------------------------------------------------------------------
@@ -232,20 +241,22 @@ strupr(s)
  */
 int
 memicmp(s1, s2, n)
-        char *s1, *s2;
-        int n;
+char *s1, *s2;
+int n;
 {
-        register char c1,c2;
-        while (--n >= 0) {
-		c1 = *s1++;
-		if (isupper(c1)) c1 = tolower(c1);
-		c2 = *s2++;
-		if (isupper(c2)) c2 = tolower(c2);
-                if (c1 != c2)
-                        return (c1 - c2);
-        }
-        return (0);
+  register char c1,c2;
+  while (--n >= 0)
+    {
+      c1 = *s1++;
+      if (isupper(c1)) c1 = tolower(c1);
+      c2 = *s2++;
+      if (isupper(c2)) c2 = tolower(c2);
+      if (c1 != c2)
+        return (c1 - c2);
+    }
+  return (0);
 }
+#endif
 
 /*
  *----------------------------------------------------------------------
@@ -269,46 +280,54 @@ void
 findpath(filename, fullpathname)
 char *filename, *fullpathname;
 {
-    int fd;
-    char *fractdir;
+  int fd;
+  char *fractdir;
 
-    if (filename[0]=='/') {
-	strcpy(fullpathname,filename);
-	fd = open(fullpathname,O_RDONLY);
-	if (fd != -1) {
-	    close(fd);
-	    return;
-	}
+  if (filename[0]=='/')
+    {
+      strcpy(fullpathname,filename);
+      fd = open(fullpathname,O_RDONLY);
+      if (fd != -1)
+        {
+          close(fd);
+          return;
+        }
     }
-    fractdir = getenv("FRACTDIR");
-    if (fractdir != NULL) {
-	strcpy(fullpathname,fractdir);
-	strcat(fullpathname,"/");
-	strcat(fullpathname,filename);
-	fd = open(fullpathname,O_RDONLY);
-	if (fd != -1) {
-	    close(fd);
-	    return;
-	}
+  fractdir = getenv("FRACTDIR");
+  if (fractdir != NULL)
+    {
+      strcpy(fullpathname,fractdir);
+      strcat(fullpathname,"/");
+      strcat(fullpathname,filename);
+      fd = open(fullpathname,O_RDONLY);
+      if (fd != -1)
+        {
+          close(fd);
+          return;
+        }
     }
-    strcpy(fullpathname,SRCDIR);
-    strcat(fullpathname,"/");
-    strcat(fullpathname,filename);
-    fd = open(fullpathname,O_RDONLY);
-    if (fd != -1) {
-	close(fd);
-	return;
+// FIXME (jonathan#1#): This will need to be fixed.  02/14/2010
+//  strcpy(fullpathname,SRCDIR);
+//  strcat(fullpathname,"/");
+//  strcat(fullpathname,filename);
+//  fd = open(fullpathname,O_RDONLY);
+//  if (fd != -1)
+//    {
+//      close(fd);
+//      return;
+//    }
+  strcpy(fullpathname,"./");
+  strcat(fullpathname,filename);
+  fd = open(fullpathname,O_RDONLY);
+  if (fd != -1)
+    {
+      close(fd);
+      return;
     }
-    strcpy(fullpathname,"./");
-    strcat(fullpathname,filename);
-    fd = open(fullpathname,O_RDONLY);
-    if (fd != -1) {
-	close(fd);
-	return;
-    }
-    fullpathname=NULL;
+  fullpathname=NULL;
 }
 
+#if 0
 /*
  *----------------------------------------------------------------------
  *
@@ -329,8 +348,8 @@ long num;
 char *str;
 int len;
 {
-    sprintf(str,"%10d",(int)num);
-    return 0;
+  sprintf(str,"%10d",(int)num);
+  return 0;
 }
 
 /*
@@ -351,9 +370,9 @@ int len;
 int filelength(fd)
 int fd;
 {
-    struct stat buf;
-    fstat(fd,&buf);
-    return buf.st_size;
+  struct stat buf;
+  fstat(fd,&buf);
+  return buf.st_size;
 }
 
 /*
@@ -374,122 +393,126 @@ int fd;
 int
 splitpath(char *template,char *drive,char *dir,char *fname,char *ext)
 {
-   int length;
-   int len;
-   int offset;
-   char *tmp;
+  int length;
+  int len;
+  int offset;
+  char *tmp;
 
-   if(drive)
-      drive[0] = 0;
-   if(dir)
-      dir[0]   = 0;
-   if(fname)
-      fname[0] = 0;
-   if(ext)
-      ext[0]   = 0;
+  if (drive)
+    drive[0] = 0;
+  if (dir)
+    dir[0]   = 0;
+  if (fname)
+    fname[0] = 0;
+  if (ext)
+    ext[0]   = 0;
 
-   if((length = strlen(template)) == 0)
-      return(0);
-   offset = 0;
+  if ((length = strlen(template)) == 0)
+    return(0);
+  offset = 0;
 
-   /* get drive */
-   if(length >= 2)
-      if(template[1] == ':')
+  /* get drive */
+  if (length >= 2)
+    if (template[1] == ':')
       {
-	 if(drive)
-	 {
-	    drive[0] = template[offset++];
-	    drive[1] = template[offset++];
-	    drive[2] = 0;
-	 }
-	 else
-	 {
-	    offset++;
-	    offset++;
-	 }
+        if (drive)
+          {
+            drive[0] = template[offset++];
+            drive[1] = template[offset++];
+            drive[2] = 0;
+          }
+        else
+          {
+            offset++;
+            offset++;
+          }
       }
 
-   /* get dir */
-   if(offset < length)
-   {
+  /* get dir */
+  if (offset < length)
+    {
       tmp = strrchr(template,SLASHC);
-      if(tmp)
-      {
-	 tmp++;  /* first character after slash */
-	 len = tmp - &template[offset];
-	 if(len >=0 && len < FILE_MAX_DIR && dir)
-	    strncpy(dir,&template[offset],min(len,FILE_MAX_DIR));
-	 if(len < FILE_MAX_DIR && dir)
-	    dir[len] = 0;
-	 offset += len;
-      }
-   }
-   else
-      return(0);
+      if (tmp)
+        {
+          tmp++;  /* first character after slash */
+          len = tmp - &template[offset];
+          if (len >=0 && len < FILE_MAX_DIR && dir)
+            strncpy(dir,&template[offset],min(len,FILE_MAX_DIR));
+          if (len < FILE_MAX_DIR && dir)
+            dir[len] = 0;
+          offset += len;
+        }
+    }
+  else
+    return(0);
 
-   /* get fname */
-   if(offset < length)
-   {
+  /* get fname */
+  if (offset < length)
+    {
       tmp = strrchr(template,'.');
-      if(tmp < strrchr(template,SLASHC) || tmp < strrchr(template,':'))
-	 tmp = 0; /* in this case the '.' must be a directory */
-      if(tmp)
-      {
-	 /* tmp++; */ /* first character past "." */
-	 len = tmp - &template[offset];
-	 if((len > 0) && (offset+len < length) && fname)
-	 {
-	    strncpy(fname,&template[offset],min(len,FILE_MAX_FNAME));
-            if(len < FILE_MAX_FNAME)
-               fname[len] = 0;
-            else
-               fname[FILE_MAX_FNAME-1] = 0;
-	 }
-	 offset += len;
-	 if((offset < length) && ext)
-	 {
-	    strncpy(ext,&template[offset],FILE_MAX_EXT);
-            ext[FILE_MAX_EXT-1] = 0;
-	 }
-      }
-      else if((offset < length) && fname)
-      {
-         strncpy(fname,&template[offset],FILE_MAX_FNAME);
-         fname[FILE_MAX_FNAME-1] = 0;
-      }
-   }
-   return(0);
+      if (tmp < strrchr(template,SLASHC) || tmp < strrchr(template,':'))
+        tmp = 0; /* in this case the '.' must be a directory */
+      if (tmp)
+        {
+          /* tmp++; */ /* first character past "." */
+          len = tmp - &template[offset];
+          if ((len > 0) && (offset+len < length) && fname)
+            {
+              strncpy(fname,&template[offset],min(len,FILE_MAX_FNAME));
+              if (len < FILE_MAX_FNAME)
+                fname[len] = 0;
+              else
+                fname[FILE_MAX_FNAME-1] = 0;
+            }
+          offset += len;
+          if ((offset < length) && ext)
+            {
+              strncpy(ext,&template[offset],FILE_MAX_EXT);
+              ext[FILE_MAX_EXT-1] = 0;
+            }
+        }
+      else if ((offset < length) && fname)
+        {
+          strncpy(fname,&template[offset],FILE_MAX_FNAME);
+          fname[FILE_MAX_FNAME-1] = 0;
+        }
+    }
+  return(0);
 }
 
 int
 _splitpath(char *template,char *drive,char *dir,char *fname,char *ext)
 {
-    return splitpath(template,drive,dir,fname,ext);
+  return splitpath(template,drive,dir,fname,ext);
 }
+#endif
 
 /* This ftime simulation routine is from Frank Chen */
 void ftimex(tp)
 struct timebx    *tp;
 {
-        struct timeval  timep;
-        struct timezone timezp;
+  struct timeval  timep;
+  struct timezone timezp;
 
-        if ( gettimeofday(&timep,&timezp) != 0) {
-                perror("error in gettimeofday");
-                exit(0);
-        }
-        tp->time = timep.tv_sec;
-        tp->millitm = timep.tv_usec/1000;
-        tp->timezone = timezp.tz_minuteswest;
-        tp->dstflag = timezp.tz_dsttime;
+  if ( gettimeofday(&timep,&timezp) != 0)
+    {
+      perror("error in gettimeofday");
+      exit(0);
+    }
+  tp->time = timep.tv_sec;
+  tp->millitm = timep.tv_usec/1000;
+  tp->timezone = timezp.tz_minuteswest;
+  tp->dstflag = timezp.tz_dsttime;
 }
 
+#if 0
 unsigned short _rotl(unsigned short num, short bits)
 {
-   unsigned long ll;
-   ll = (((unsigned long)num << 16) + num) << (bits&15);
-   return((unsigned short)(ll>>16)); 
+  unsigned long ll;
+  ll = (((unsigned long)num << 16) + num) << (bits&15);
+  return((unsigned short)(ll>>16));
 }
+#endif
 
 /* sound.c file prototypes */
 int get_sound_params(void)
@@ -517,27 +540,27 @@ static struct timeval tv_start;
 
 void restart_uclock(void)
 {
-   gettimeofday(&tv_start, NULL);
+  gettimeofday(&tv_start, NULL);
 }
 
 typedef unsigned long uclock_t;
 uclock_t usec_clock(void)
 {
-   uclock_t result;
+  uclock_t result;
 
-   struct timeval tv, elapsed;
-   gettimeofday(&tv, NULL);
+  struct timeval tv, elapsed;
+  gettimeofday(&tv, NULL);
 
-   elapsed.tv_usec  = tv.tv_usec -  tv_start.tv_sec;
-   elapsed.tv_sec   = tv.tv_sec -   tv_start.tv_sec;
+  elapsed.tv_usec  = tv.tv_usec -  tv_start.tv_sec;
+  elapsed.tv_sec   = tv.tv_sec -   tv_start.tv_sec;
 
-   if(elapsed.tv_usec < 0)
-   {
+  if (elapsed.tv_usec < 0)
+    {
       /* "borrow */
       elapsed.tv_usec += 1000000;
       elapsed.tv_sec--;
-   }
-   result  = (unsigned long)(elapsed.tv_sec*10000 +  elapsed.tv_usec/100);
-   return(result); 
+    }
+  result  = (unsigned long)(elapsed.tv_sec*10000 +  elapsed.tv_usec/100);
+  return(result);
 }
 

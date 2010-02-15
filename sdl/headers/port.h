@@ -10,17 +10,14 @@
 #ifndef PORT_H          /* If this is defined, this file has been       */
 #define PORT_H          /* included already in this module.             */
 
-// is next defined??? JCO 02/11/2010
-#include  <unistd.h>
-
-
+#include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <float.h>
 
-// do we need STDC defined??? JCO 02/11/2010
-#if (defined(__STDC__) || defined(__cplusplus) || defined(_MSC_VER) || defined(__TURBOC__)) && !defined(STDC)
+// TODO (jonathan#1#): Do we need STDC defined??? 02/11/2010
+#if (defined(__STDC__) || defined(__cplusplus)) && !defined(STDC)
 #  define STDC
 #endif
 
@@ -36,7 +33,8 @@
 
 /* If endian.h is not present, it can be handled in the code below, */
 /* but if you have this file, it can make it more fool proof. */
-#include <endian.h>
+// TODO (jonathan#1#): Found SDL_endian.h, use SDL_BIG_ENDIAN & SDL_LIL_ENDIAN
+// #include <endian.h>
 #ifndef BIG_ENDIAN
 #define BIG_ENDIAN    4321  /* to show byte order (taken from gcc) */
 #endif
@@ -127,11 +125,6 @@ typedef int sigfunc(int);
 #       define rand15() (rand()&0x7FFF)
 
 #       include "unix.h"
-
-
-#endif
-#endif
-#endif
 
 
 /* The following FILE_* #defines were moved here from fractint.h to

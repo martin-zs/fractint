@@ -2,16 +2,16 @@
 <CodeBlocks_layout_file>
 	<ActiveTarget name="default" />
 	<File name="common\3d.c" open="0" top="0" tabpos="0">
-		<Cursor position="405" topLine="3" />
+		<Cursor position="3138" topLine="80" />
 	</File>
 	<File name="common\ant.c" open="0" top="0" tabpos="0">
-		<Cursor position="11692" topLine="364" />
+		<Cursor position="1116" topLine="13" />
 	</File>
 	<File name="common\biginit.c" open="0" top="0" tabpos="0">
 		<Cursor position="8637" topLine="292" />
 	</File>
 	<File name="common\cmdfiles.c" open="1" top="0" tabpos="3">
-		<Cursor position="94928" topLine="2656" />
+		<Cursor position="94928" topLine="2602" />
 	</File>
 	<File name="common\editpal.c" open="0" top="0" tabpos="0">
 		<Cursor position="7020" topLine="190" />
@@ -26,7 +26,7 @@
 		<Cursor position="360" topLine="75" />
 	</File>
 	<File name="common\help.c" open="0" top="0" tabpos="0">
-		<Cursor position="28730" topLine="1101" />
+		<Cursor position="499" topLine="16" />
 	</File>
 	<File name="common\intro.c" open="0" top="0" tabpos="0">
 		<Cursor position="189" topLine="84" />
@@ -40,23 +40,29 @@
 	<File name="common\miscfrac.c" open="0" top="0" tabpos="0">
 		<Cursor position="33381" topLine="1094" />
 	</File>
-	<File name="headers\externs.h" open="1" top="0" tabpos="4">
+	<File name="headers\externs.h" open="0" top="0" tabpos="4">
 		<Cursor position="27705" topLine="664" />
 	</File>
 	<File name="headers\fmath.h" open="0" top="0" tabpos="0">
 		<Cursor position="1485" topLine="31" />
 	</File>
-	<File name="headers\fractint.h" open="1" top="1" tabpos="2">
-		<Cursor position="140" topLine="0" />
+	<File name="headers\fractint.h" open="1" top="0" tabpos="2">
+		<Cursor position="140" topLine="12" />
+	</File>
+	<File name="headers\helpcom.h" open="1" top="0" tabpos="0">
+		<Cursor position="0" topLine="0" />
 	</File>
 	<File name="headers\mpmath.h" open="0" top="0" tabpos="2">
 		<Cursor position="5503" topLine="120" />
 	</File>
-	<File name="headers\port.h" open="0" top="0" tabpos="0">
+	<File name="headers\port.h" open="1" top="0" tabpos="0">
 		<Cursor position="2390" topLine="79" />
 	</File>
-	<File name="sdl\main.c" open="1" top="0" tabpos="1">
-		<Cursor position="6339" topLine="135" />
+	<File name="headers\unix.h" open="1" top="0" tabpos="0">
+		<Cursor position="0" topLine="0" />
+	</File>
+	<File name="sdl\main.c" open="1" top="1" tabpos="4">
+		<Cursor position="8455" topLine="255" />
 	</File>
 	<File name="sdl\sdl_scr.c" open="1" top="0" tabpos="1">
 		<Cursor position="3168" topLine="111" />
