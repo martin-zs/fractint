@@ -10,14 +10,20 @@
 	<File name="common\biginit.c" open="0" top="0" tabpos="0">
 		<Cursor position="8637" topLine="292" />
 	</File>
-	<File name="common\cmdfiles.c" open="1" top="0" tabpos="3">
-		<Cursor position="94928" topLine="2602" />
+	<File name="common\cmdfiles.c" open="1" top="0" tabpos="5">
+		<Cursor position="11458" topLine="201" />
 	</File>
 	<File name="common\editpal.c" open="0" top="0" tabpos="0">
 		<Cursor position="7020" topLine="190" />
 	</File>
 	<File name="common\encoder.c" open="0" top="0" tabpos="0">
 		<Cursor position="759" topLine="16" />
+	</File>
+	<File name="common\fractint.c" open="1" top="0" tabpos="6">
+		<Cursor position="12150" topLine="310" />
+	</File>
+	<File name="common\framain2.c" open="1" top="1" tabpos="7">
+		<Cursor position="16224" topLine="405" />
 	</File>
 	<File name="common\gifview.c" open="0" top="0" tabpos="0">
 		<Cursor position="10481" topLine="309" />
@@ -31,6 +37,9 @@
 	<File name="common\intro.c" open="0" top="0" tabpos="0">
 		<Cursor position="189" topLine="84" />
 	</File>
+	<File name="common\loadfile.c" open="0" top="0" tabpos="0">
+		<Cursor position="11772" topLine="328" />
+	</File>
 	<File name="common\math_c.c" open="0" top="0" tabpos="0">
 		<Cursor position="1557" topLine="45" />
 	</File>
@@ -40,13 +49,19 @@
 	<File name="common\miscfrac.c" open="0" top="0" tabpos="0">
 		<Cursor position="33381" topLine="1094" />
 	</File>
+	<File name="common\miscovl.c" open="0" top="0" tabpos="0">
+		<Cursor position="21192" topLine="697" />
+	</File>
+	<File name="dos_help\help.src" open="0" top="0" tabpos="0">
+		<Cursor position="40" topLine="264" />
+	</File>
 	<File name="headers\externs.h" open="0" top="0" tabpos="4">
-		<Cursor position="27705" topLine="664" />
+		<Cursor position="212" topLine="2" />
 	</File>
 	<File name="headers\fmath.h" open="0" top="0" tabpos="0">
 		<Cursor position="1485" topLine="31" />
 	</File>
-	<File name="headers\fractint.h" open="1" top="0" tabpos="2">
+	<File name="headers\fractint.h" open="1" top="0" tabpos="4">
 		<Cursor position="140" topLine="12" />
 	</File>
 	<File name="headers\helpcom.h" open="1" top="0" tabpos="0">
@@ -55,16 +70,16 @@
 	<File name="headers\mpmath.h" open="0" top="0" tabpos="2">
 		<Cursor position="5503" topLine="120" />
 	</File>
-	<File name="headers\port.h" open="1" top="0" tabpos="0">
+	<File name="headers\port.h" open="1" top="0" tabpos="1">
 		<Cursor position="2390" topLine="79" />
 	</File>
-	<File name="headers\unix.h" open="1" top="0" tabpos="0">
+	<File name="headers\prototyp.h" open="0" top="0" tabpos="0">
+		<Cursor position="100" topLine="0" />
+	</File>
+	<File name="headers\unix.h" open="1" top="0" tabpos="2">
 		<Cursor position="0" topLine="0" />
 	</File>
-	<File name="sdl\main.c" open="1" top="1" tabpos="4">
-		<Cursor position="8455" topLine="255" />
-	</File>
-	<File name="sdl\sdl_scr.c" open="1" top="0" tabpos="1">
+	<File name="sdl\sdl_scr.c" open="1" top="0" tabpos="3">
 		<Cursor position="3168" topLine="111" />
 	</File>
 	<File name="sstools.ini" open="0" top="0" tabpos="0">

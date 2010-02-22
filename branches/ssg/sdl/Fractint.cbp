@@ -77,6 +77,12 @@ May need defines for LINUX and/or WIN32.]]>
 		<Unit filename="common\fractals.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="common\fractint.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common\framain2.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="common\frasetup.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -219,9 +225,6 @@ May need defines for LINUX and/or WIN32.]]>
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="headers\xfcurses.h">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="sdl\main.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="sdl\sdl_scr.c">

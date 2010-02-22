@@ -84,7 +84,7 @@ extern int load_commands(FILE *);
 extern void set_3d_defaults(void);
 extern int get_curarg_len(char *curarg);
 extern int get_max_curarg_len(char *floatvalstr[], int totparm);
-extern int init_msg(int,char *,char far *,int);
+extern int init_msg(int,char *,char *,int);
 extern int cmdarg(char *curarg,int mode);
 extern int getpower10(LDBL x);
 extern void dopause(int);
@@ -99,19 +99,14 @@ extern void set_byte_buff(BYTE *ptr);
 extern int pot_startdisk(void);
 extern int targa_startdisk(FILE *,int );
 extern void enddisk(void);
-#ifndef XFRACT
-extern int readdisk(unsigned int, unsigned int );
-extern void writedisk(unsigned int, unsigned int, unsigned int );
-#else
 extern int readdisk(int, int );
 extern void writedisk(int, int, int );
-#endif
 extern void targa_readdisk(unsigned int ,unsigned int ,BYTE *,BYTE *,BYTE *);
 extern void targa_writedisk(unsigned int ,unsigned int ,BYTE ,BYTE ,BYTE );
-extern void dvid_status(int ,char far *);
+extern void dvid_status(int ,char *);
 extern int  common_startdisk(long, long, int);
-extern int FromMemDisk(long,int,void far *);
-extern int ToMemDisk(long,int,void far *);
+extern int FromMemDisk(long,int,void *);
+extern int ToMemDisk(long,int,void *);
 
 /*  editpal -- C file prototypes */
 
@@ -414,9 +409,7 @@ extern int timer();
 
 extern void clear_zoombox(void);
 extern void flip_image(int kbdchar);
-#ifndef WINFRACT
 extern void reset_zoom_corners(void);
-#endif
 extern void setup287code(void);
 extern void checkfreemem(int);
 
@@ -471,9 +464,9 @@ extern void HComplexTrig0(_HCMPLX *,_HCMPLX *);
 
 /*  help -- C file prototypes */
 
-extern int _find_token_length(char far *,unsigned int ,int *,int *);
-extern int find_token_length(int ,char far *,unsigned int ,int *,int *);
-extern int find_line_width(int ,char far *,unsigned int );
+extern int _find_token_length(char *,unsigned int ,int *,int *);
+extern int find_token_length(int ,char *,unsigned int ,int *,int *);
+extern int find_line_width(int ,char *,unsigned int );
 extern int process_document(PD_FUNC ,PD_FUNC ,VOIDPTR );
 extern int help(int );
 extern int read_help_topic(int ,int ,int ,VOIDFARPTR );
@@ -586,7 +579,7 @@ extern int plotorbits2dfloat(void);
 
 /*  lsys -- C file prototypes */
 
-extern LDBL  _fastcall getnumber(char far **);
+extern LDBL  _fastcall getnumber(char **);
 extern int _fastcall ispow2(int);
 extern int Lsystem(void);
 extern int LLoad(void);
@@ -611,12 +604,12 @@ extern int getprecbf_mag(void);
 extern void parse_comments(char *value);
 extern void init_comments(void);
 extern void write_batch_parms(char *, int, int, int, int);
-extern void expand_comments(char far *, char far *);
+extern void expand_comments(char *, char *);
 
 /*  miscres -- C file prototypes */
 
 extern void restore_active_ovly(void);
-extern void findpath(char far *,char *);
+extern void findpath(char *,char *);
 extern void notdiskmsg(void);
 extern void cvtcentermag(double *,double *,LDBL *, double *,double *,double *);
 extern void cvtcorners(double,double,LDBL,double,double,double);
@@ -629,7 +622,7 @@ extern void showtrig(char *);
 extern int set_trig_array(int ,char *);
 extern void set_trig_pointers(int );
 extern int tab_display(void);
-extern int endswithslash(char far *);
+extern int endswithslash(char *);
 extern int ifsload(void);
 extern int find_file_item(char *,char *,FILE **, int);
 extern int file_gets(char *,int ,FILE *);
@@ -640,25 +633,10 @@ extern void get_calculation_time(char *, long);
 
 /*  mpmath_c -- C file prototypes */
 
-extern struct MP *MPsub(struct MP ,struct MP );
-extern struct MP *MPsub086(struct MP ,struct MP );
-extern struct MP *MPsub386(struct MP ,struct MP );
-extern struct MP *MPabs(struct MP );
-extern struct MPC MPCsqr(struct MPC );
-extern struct MP MPCmod(struct MPC );
-extern struct MPC MPCmul(struct MPC ,struct MPC );
-extern struct MPC MPCdiv(struct MPC ,struct MPC );
-extern struct MPC MPCadd(struct MPC ,struct MPC );
-extern struct MPC MPCsub(struct MPC ,struct MPC );
-extern struct MPC MPCpow(struct MPC ,int );
-extern int MPCcmp(struct MPC ,struct MPC );
-extern _CMPLX MPC2cmplx(struct MPC );
-extern struct MPC cmplx2MPC(_CMPLX );
-extern void setMPfunctions(void );
 extern _CMPLX ComplexPower(_CMPLX ,_CMPLX );
 extern void SetupLogTable(void );
 extern long logtablecalc(long);
-extern long far ExpFloat14(long );
+extern long ExpFloat14(long );
 extern int ComplexNewtonSetup(void );
 extern int ComplexNewton(void );
 extern int ComplexBasin(void );
@@ -677,182 +655,129 @@ extern double _cos(double );
 /*  parser -- C file prototypes */
 
 struct fls { /* function, load, store pointers  CAE fp */
-   void (near *function)(void);
-   union Arg near *operand;
+   void (*function)(void);
+   union Arg *operand;
 };
 
 extern unsigned int SkipWhiteSpace(char *);
 extern unsigned long NewRandNum(void );
 extern void lRandom(void );
 extern void dRandom(void );
-extern void mRandom(void );
 extern void SetRandFnct(void );
 extern void RandomSeed(void );
 extern void lStkSRand(void );
-extern void mStkSRand(void );
 extern void dStkSRand(void );
 extern void dStkAbs(void );
-extern void mStkAbs(void );
 extern void lStkAbs(void );
 extern void dStkSqr(void );
-extern void mStkSqr(void );
 extern void lStkSqr(void );
 extern void dStkAdd(void );
-extern void mStkAdd(void );
 extern void lStkAdd(void );
 extern void dStkSub(void );
-extern void mStkSub(void );
 extern void lStkSub(void );
 extern void dStkConj(void );
-extern void mStkConj(void );
 extern void lStkConj(void );
 extern void dStkZero(void );
-extern void mStkZero(void );
 extern void lStkZero(void );
 extern void dStkOne(void );
-extern void mStkOne(void );
 extern void lStkOne(void );
 extern void dStkReal(void );
-extern void mStkReal(void );
 extern void lStkReal(void );
 extern void dStkImag(void );
-extern void mStkImag(void );
 extern void lStkImag(void );
 extern void dStkNeg(void );
-extern void mStkNeg(void );
 extern void lStkNeg(void );
 extern void dStkMul(void );
-extern void mStkMul(void );
 extern void lStkMul(void );
 extern void dStkDiv(void );
-extern void mStkDiv(void );
 extern void lStkDiv(void );
 extern void StkSto(void );
 extern void StkLod(void );
 extern void dStkMod(void );
-extern void mStkMod(void );
 extern void lStkMod(void );
 extern void StkClr(void );
 extern void dStkFlip(void );
-extern void mStkFlip(void );
 extern void lStkFlip(void );
 extern void dStkSin(void );
-extern void mStkSin(void );
 extern void lStkSin(void );
 extern void dStkTan(void );
-extern void mStkTan(void );
 extern void lStkTan(void );
 extern void dStkTanh(void );
-extern void mStkTanh(void );
 extern void lStkTanh(void );
 extern void dStkCoTan(void );
-extern void mStkCoTan(void );
 extern void lStkCoTan(void );
 extern void dStkCoTanh(void );
-extern void mStkCoTanh(void );
 extern void lStkCoTanh(void );
 extern void dStkRecip(void );
-extern void mStkRecip(void );
 extern void lStkRecip(void );
 extern void StkIdent(void );
 extern void dStkSinh(void );
-extern void mStkSinh(void );
 extern void lStkSinh(void );
 extern void dStkCos(void );
-extern void mStkCos(void );
 extern void lStkCos(void );
 extern void dStkCosXX(void );
-extern void mStkCosXX(void );
 extern void lStkCosXX(void );
 extern void dStkCosh(void );
-extern void mStkCosh(void );
 extern void lStkCosh(void );
 extern void dStkLT(void );
-extern void mStkLT(void );
 extern void lStkLT(void );
 extern void dStkGT(void );
-extern void mStkGT(void );
 extern void lStkGT(void );
 extern void dStkLTE(void );
-extern void mStkLTE(void );
 extern void lStkLTE(void );
 extern void dStkGTE(void );
-extern void mStkGTE(void );
 extern void lStkGTE(void );
 extern void dStkEQ(void );
-extern void mStkEQ(void );
 extern void lStkEQ(void );
 extern void dStkNE(void );
-extern void mStkNE(void );
 extern void lStkNE(void );
 extern void dStkOR(void );
-extern void mStkOR(void );
 extern void lStkOR(void );
 extern void dStkAND(void );
-extern void mStkAND(void );
 extern void lStkAND(void );
 extern void dStkLog(void );
-extern void mStkLog(void );
 extern void lStkLog(void );
 extern void FPUcplxexp(_CMPLX *,_CMPLX *);
 extern void dStkExp(void );
-extern void mStkExp(void );
 extern void lStkExp(void );
 extern void dStkPwr(void );
-extern void mStkPwr(void );
 extern void lStkPwr(void );
 extern void dStkASin(void );
-extern void mStkASin(void );
 extern void lStkASin(void );
 extern void dStkASinh(void );
-extern void mStkASinh(void );
 extern void lStkASinh(void );
 extern void dStkACos(void );
-extern void mStkACos(void );
 extern void lStkACos(void );
 extern void dStkACosh(void );
-extern void mStkACosh(void );
 extern void lStkACosh(void );
 extern void dStkATan(void );
-extern void mStkATan(void );
 extern void lStkATan(void );
 extern void dStkATanh(void );
-extern void mStkATanh(void );
 extern void lStkATanh(void );
 extern void dStkCAbs(void );
-extern void mStkCAbs(void );
 extern void lStkCAbs(void );
 extern void dStkSqrt(void );
-extern void mStkSqrt(void );
 extern void lStkSqrt(void );
 extern void dStkFloor(void );
-extern void mStkFloor(void );
 extern void lStkFloor(void );
 extern void dStkCeil(void );
-extern void mStkCeil(void );
 extern void lStkCeil(void );
 extern void dStkTrunc(void );
-extern void mStkTrunc(void );
 extern void lStkTrunc(void );
 extern void dStkRound(void );
-extern void mStkRound(void );
 extern void lStkRound(void );
 extern void (*mtrig0)(void);
 extern void (*mtrig1)(void);
 extern void (*mtrig2)(void);
 extern void (*mtrig3)(void);
 extern void EndInit(void );
-extern struct ConstArg far *isconst(char *,int );
+extern struct ConstArg *isconst(char *,int );
 extern void NotAFnct(void );
 extern void FnctNotFound(void );
 extern int whichfn(char *,int );
-extern int CvtStk(void);
+extern int CvtStk(void );
 extern int fFormula(void );
-#ifndef XFRACT
-extern void (far *isfunct(char *,int ))(void );
-#else
-extern void (far *isfunct(char *,int ))();
-#endif
+extern void (*isfunct(char *,int ))(void );
 extern void RecSortPrec(void );
 extern int Formula(void );
 extern int BadFormula(void );
@@ -868,10 +793,10 @@ extern int fill_if_group(int endif_index, JUMP_PTRS_ST *jump_data);
 /*  plot3d -- C file prototypes */
 
 extern void cdecl draw_line(int ,int ,int ,int ,int );
-extern void _fastcall plot3dsuperimpose16(int ,int ,int );
-extern void _fastcall plot3dsuperimpose256(int ,int ,int );
-extern void _fastcall plotIFS3dsuperimpose256(int ,int ,int );
-extern void _fastcall plot3dalternate(int ,int ,int );
+extern void plot3dsuperimpose16(int ,int ,int );
+extern void plot3dsuperimpose256(int ,int ,int );
+extern void plotIFS3dsuperimpose256(int ,int ,int );
+extern void plot3dalternate(int ,int ,int );
 extern void plot_setup(void);
 
 /*  printer -- C file prototypes */
@@ -880,7 +805,7 @@ extern void Print_Screen(void);
 
 /*  prompts1 -- C file prototypes */
 
-extern int fullscreen_prompt(char far*,int ,char far **,struct fullscreenvalues *,int ,char far *);
+extern int fullscreen_prompt(char *,int ,char **,struct fullscreenvalues *,int ,char *);
 extern long get_file_entry(int,char *,char *,char *,char *);
 extern int get_fracttype(void);
 extern int get_fract_params(int );
@@ -891,7 +816,7 @@ extern void setbailoutformula(enum bailouts);
 extern int find_extra_param(int);
 extern void load_params(int fractype);
 extern int check_orbit_name(char *);
-extern int scan_entries(FILE *infile, void far *ch, char *itemname);
+extern int scan_entries(FILE *infile, void *ch, char *itemname);
 
 /*  prompts2 -- C file prototypes */
 
@@ -904,14 +829,11 @@ extern int get_commands(void);
 extern void goodbye(void);
 extern int isadirectory(char *s);
 extern int getafilename(char *,char *,char *);
-extern int splitpath(char far *template,char *drive,char *dir,char *fname,char *ext);
+extern int splitpath(char *template,char *drive,char *dir,char *fname,char *ext);
 extern int makepath(char *template,char *drive,char *dir,char *fname,char *ext);
 extern int fr_findfirst(char *path);
 extern int fr_findnext(void );
-extern void shell_sort(void far *,int n,unsigned,int (__cdecl *fct)(VOIDFARPTR,VOIDFARPTR));
-extern void far_strncpy(char far *, char far *, int len);
-extern char far *far_strchr(char far *str, char c);
-extern char far *far_strrchr(char far *str, char c);
+extern void shell_sort(void *,int n,unsigned,int (__cdecl *fct)(VOIDFARPTR,VOIDFARPTR));
 extern void fix_dirname(char *dirname);
 extern int merge_pathnames(char *, char *, int);
 extern int get_browse_params(void);
@@ -928,27 +850,23 @@ extern char *has_ext(char *source);
 
 /*  realdos -- C file prototypes */
 
-#ifndef WINFRACT
 extern int showvidlength(void);
-extern int stopmsg(int ,char far *);
-extern int texttempmsg(char far *);
-extern int showtempmsg(char far *);
+extern int stopmsg(int ,char *);
+extern int texttempmsg(char *);
+extern int showtempmsg(char *);
 extern void cleartempmsg(void);
 extern void blankrows(int ,int ,int );
 extern void helptitle(void);
-extern int putstringcenter(int ,int ,int ,int ,char far *);
+extern int putstringcenter(int ,int ,int ,int ,char *);
 extern void stackscreen(void);
 extern void unstackscreen(void);
 extern void discardscreen(void);
-extern int fullscreen_choice(int options, char far *hdg, char far *hdg2, char far *instr, int numchoices, char far *far *choices, int far *attributes, int boxwidth, int boxdepth, int colwidth, int current
+extern int fullscreen_choice(int options, char *hdg, char *hdg2, char *instr, int numchoices, char **choices, int *attributes, int boxwidth, int boxdepth, int colwidth, int current
 , void (*formatitem)(int, char *), char *speedstring, int (*speedprompt)(int, int, int, char *, int), int (*checkkey)(int, int));
-#ifndef XFRACT /* Unix should have this in string.h */
-extern int strncasecmp(char far *,char far *,int );
-#endif
 extern int main_menu(int );
 extern int input_field(int ,int ,char *,int ,int ,int ,int (*)(int));
-extern int field_prompt(int ,char far *,char far *,char *,int ,int (*)(int));
-extern int thinking(int ,char far *);
+extern int field_prompt(int ,char *,char *,char *,int ,int (*)(int));
+extern int thinking(int ,char *);
 extern void clear_screen(int );
 extern int savegraphics(void);
 extern int restoregraphics(void);
@@ -962,7 +880,6 @@ extern void vidmode_keyname(int ,char *);
 extern void freetempmsg(void);
 extern char *despace(char *);
 extern int menu_checkkey(int ,int );
-#endif
 
 /*  rotate -- C file prototypes */
 
@@ -981,25 +898,6 @@ extern void recordshw(int );
 
 extern int do_AutoStereo(void);
 extern int outline_stereo(BYTE *, int);
-
-/*  targa -- C file prototypes */
-
-extern void WriteTGA(int ,int ,int );
-extern int ReadTGA(int ,int );
-extern void EndTGA(void );
-extern void StartTGA(void);
-extern void ReopenTGA(void);
-
-/*  testpt -- C file prototypes */
-
-extern int teststart(void);
-extern void testend(void);
-extern int testpt(double ,double ,double ,double ,long ,int );
-
-/*  tgaview -- C file prototypes */
-
-extern int tgaview(void);
-extern int outlin16(BYTE*,int );
 
 /*  zoom -- C file prototypes */
 
@@ -1057,8 +955,8 @@ extern void InitMemory (void);
 extern void ExitCheck (void);
 extern U16 MemoryAlloc(U16 size, long count, int stored_at);
 extern void MemoryRelease(U16 handle);
-extern int MoveToMemory(BYTE far *buffer,U16 size,long count,long offset,U16 handle);
-extern int MoveFromMemory(BYTE far *buffer,U16 size,long count,long offset,U16 handle);
+extern int MoveToMemory(BYTE *buffer,U16 size,long count,long offset,U16 handle);
+extern int MoveFromMemory(BYTE *buffer,U16 size,long count,long offset,U16 handle);
 extern int SetMemory(int value,U16 size,long count,long offset,U16 handle);
 
 /*  soi -- C file prototypes */
@@ -1067,7 +965,7 @@ extern void soi (void);
 extern void soi_ldbl (void);
 
 /*
- *  uclock -- C file prototypes 
+ *  uclock -- C file prototypes
  *  The  uclock_t typedef placed here because uclock.h
  *  prototype is for DOS version only.
  */
@@ -1076,10 +974,5 @@ typedef unsigned long uclock_t;
 extern uclock_t usec_clock(void);
 extern void restart_uclock(void);
 extern void wait_until(int index, uclock_t wait_time);
-
-
-#ifndef DEBUG
-/*#define DEBUG */
-#endif
 
 #endif
