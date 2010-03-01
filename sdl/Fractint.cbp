@@ -194,9 +194,6 @@ May need defines for LINUX and/or WIN32.]]>
 		<Unit filename="headers\externs.h">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="headers\fmath.h">
-			<Option compilerVar="CC" />
-		</Unit>
 		<Unit filename="headers\fractint.h">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -207,9 +204,6 @@ May need defines for LINUX and/or WIN32.]]>
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="headers\lsys.h">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="headers\mpmath.h">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="headers\port.h">

@@ -19,10 +19,9 @@
 /* #include hierarchy for fractint is a follows:
       Each module should include port.h as the first fractint specific
           include. port.h includes <stdlib.h>, <stdio.h>, <math.h>,
-          <float.h>; and, ifndef XFRACT, <dos.h>.
+          <unistd.h>, and <float.h>.
       Most modules should include prototyp.h, which incorporates by
           direct or indirect reference the following header files:
-              mpmath.h
               cmplx.h
               fractint.h
               big.h
@@ -38,7 +37,7 @@
               targa_lc.h
               tplus.h
       If included separately from prototyp.h, big.h includes cmplx.h
-         and biginit.h; and mpmath.h includes cmplx.h
+         and biginit.h
  */
 
 #include "port.h"
@@ -294,7 +293,6 @@ restart:   /* insert key re-starts here */
 
   dopause(0);                  /* pause for error msg if not batch */
   init_msg(0,"",NULL,0);  /* this causes getakey if init_msg called on runup */
-  checkfreemem(1);
   if (debugflag==450 && initbatch==1)  /* abort if savename already exists */
     check_samename();
   memcpy(olddacbox,dacbox,256*3);      /* save in case colors= present */

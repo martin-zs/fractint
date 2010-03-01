@@ -2067,7 +2067,7 @@ LDBL scale_10( LDBL f, int n )
 /**********************************************************
 (Just when you thought it was safe to go back in the water.)
 Just when you thought you seen every type of format possible,
-16 bit integer, 32 bit integer, double, long double, mpmath,
+16 bit integer, 32 bit integer, double, long double,
 bn_t, bf_t, I now give you bf10_t (big float base 10)!
 
 Why, because this is the only way (I can think of) to properly do a

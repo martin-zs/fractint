@@ -3,7 +3,7 @@
 
 /* includes needed to define the prototypes */
 
-#include "mpmath.h"
+#include "cmplx.h"
 #include "big.h"
 #include "fractint.h"
 #include "helpcom.h"
@@ -208,9 +208,6 @@ extern int paramnotused(int);
 /*  fractals -- C file prototypes */
 
 extern void FloatPreCalcMagnet2(void);
-extern void cpower(_CMPLX *,int ,_CMPLX *);
-extern int lcpower(_LCMPLX *,int ,_LCMPLX *,int );
-extern int lcomplex_mult(_LCMPLX ,_LCMPLX ,_LCMPLX *,int );
 extern int Barnsley1Fractal(void);
 extern int Barnsley1FPFractal(void);
 extern int Barnsley2Fractal(void);
@@ -373,13 +370,14 @@ extern int long_phoenix_per_pixel(void);
 extern int phoenix_per_pixel(void);
 extern int long_mandphoenix_per_pixel(void);
 extern int mandphoenix_per_pixel(void);
-extern void set_pixel_calc_functions(void);
 extern int MandelbrotMix4fp_per_pixel(void);
 extern int MandelbrotMix4fpFractal(void);
 extern int MandelbrotMix4Setup(void);
 extern int DivideBrot5fp_per_pixel(void);
 extern int DivideBrot5fpFractal(void);
 extern int DivideBrot5Setup(void);
+extern int ComplexNewton(void );
+extern int ComplexBasin(void );
 
 /*  fractint -- C file prototypes */
 
@@ -406,12 +404,9 @@ extern int timer(int,int (*subrtn)(),...);
 extern int timer();
 #endif
 
-
 extern void clear_zoombox(void);
 extern void flip_image(int kbdchar);
 extern void reset_zoom_corners(void);
-extern void setup287code(void);
-extern void checkfreemem(int);
 
 /*  frasetup -- C file prototypes */
 
@@ -451,6 +446,7 @@ extern int PhoenixSetup(void);
 extern int MandPhoenixSetup(void);
 extern int PhoenixCplxSetup(void);
 extern int MandPhoenixCplxSetup(void);
+extern int ComplexNewtonSetup(void );
 
 /*  gifview -- C file prototypes */
 
@@ -497,7 +493,7 @@ extern int Std4dfpFractal(void );
 
 /*  jiim -- C file prototypes */
 
-extern void Jiim(int);
+extern void   Jiim            (int);
 extern LCMPLX PopLong         (void);
 extern _CMPLX PopFloat        (void);
 extern LCMPLX DeQueueLong     (void);
@@ -579,10 +575,29 @@ extern int plotorbits2dfloat(void);
 
 /*  lsys -- C file prototypes */
 
-extern LDBL  _fastcall getnumber(char **);
-extern int _fastcall ispow2(int);
+extern LDBL  getnumber(char **);
+extern int ispow2(int);
 extern int Lsystem(void);
 extern int LLoad(void);
+
+/*  math_c -- C file prototypes */
+
+extern _CMPLX ComplexPower(_CMPLX ,_CMPLX );
+extern void cpower(_CMPLX *,int ,_CMPLX *);
+extern int lcpower(_LCMPLX *,int ,_LCMPLX *,int );
+extern int complex_div(_CMPLX arg1,_CMPLX arg2,_CMPLX *pz);
+extern int complex_mult(_CMPLX arg1,_CMPLX arg2,_CMPLX *pz);
+extern void SetupLogTable(void );
+extern long logtablecalc(long);
+extern long ExpFloat14(long );
+extern int GausianNumber(int ,int );
+extern void Arcsinz(_CMPLX z, _CMPLX *rz);
+extern void Arccosz(_CMPLX z, _CMPLX *rz);
+extern void Arcsinhz(_CMPLX z, _CMPLX *rz);
+extern void Arccoshz(_CMPLX z, _CMPLX *rz);
+extern void Arctanhz(_CMPLX z, _CMPLX *rz);
+extern void Arctanz(_CMPLX z, _CMPLX *rz);
+extern void set_pixel_calc_functions(void);
 
 /*  miscfrac -- C file prototypes */
 
@@ -630,23 +645,6 @@ extern void roundfloatd(double *);
 extern void fix_inversion(double *);
 extern int ungetakey(int);
 extern void get_calculation_time(char *, long);
-
-/*  mpmath_c -- C file prototypes */
-
-extern _CMPLX ComplexPower(_CMPLX ,_CMPLX );
-extern void SetupLogTable(void );
-extern long logtablecalc(long);
-extern long ExpFloat14(long );
-extern int ComplexNewtonSetup(void );
-extern int ComplexNewton(void );
-extern int ComplexBasin(void );
-extern int GausianNumber(int ,int );
-extern void Arcsinz(_CMPLX z, _CMPLX *rz);
-extern void Arccosz(_CMPLX z, _CMPLX *rz);
-extern void Arcsinhz(_CMPLX z, _CMPLX *rz);
-extern void Arccoshz(_CMPLX z, _CMPLX *rz);
-extern void Arctanhz(_CMPLX z, _CMPLX *rz);
-extern void Arctanz(_CMPLX z, _CMPLX *rz);
 
 /*  msccos -- C file prototypes */
 
