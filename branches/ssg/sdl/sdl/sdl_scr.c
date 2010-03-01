@@ -23,6 +23,62 @@ void Sulock(SDL_Surface *screen)
     }
 }
 
+/* Set video mode */
+
+
+/*
+; **************** Function setvideomode(dotmode) ****************
+;       This function sets the (alphanumeric or graphic) video mode
+;       of the monitor.   Called with the proper value of dotmode.
+;       No returned values, as there is no particular standard to
+;       adhere to in this case.  Dotmode is 0 for test and 1 for graphics.
+
+*/
+void
+setvideomode (int dotmode)
+{
+  if (diskflag)
+    {
+      enddisk ();
+    }
+  if (videoflag)
+    {
+      endvideo ();
+      videoflag = 0;
+    }
+  goodmode = 1;
+  switch (dotmode)
+    {
+    case 0:   /* text */
+      clear ();
+// FIXME (jonathan#1#): Add code to setup text screen.
+      break;
+    case 1:   /* video window */
+      putprompt ();
+      dotwrite = writevideo;
+      dotread = readvideo;
+      lineread = readvideoline;
+      linewrite = writevideoline;
+      videoflag = 1;
+      startvideo ();
+      setforgraphics ();
+      break;
+    default:
+      printf ("Bad mode %d\n", dotmode);
+      exit (-1);
+    }
+  if (dotmode != 0)
+    {
+      loaddac ();
+      andcolor = colors - 1;
+      boxcount = 0;
+    }
+}
+
+// NOTE (jonathan#1#): Need to decide if passing screen around is appropriate.  Don't really need dotread and dotwrite since not using disk video.
+
+
+
 /*
  * Return the pixel value at (x, y)
  * NOTE: The surface must be locked before calling this!

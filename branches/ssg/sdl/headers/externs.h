@@ -132,13 +132,13 @@ extern double                dpy;
 extern char                  drawmode;
 extern BYTE                  dstack[];
 extern U16                   dv_handle;
-extern double far *          dx0;
-extern double far *          dx1;
-extern double (_fastcall *   dxpixel)(void); /* set in FRACTALS.C */
+extern double     *          dx0;
+extern double     *          dx1;
+extern double             (* dxpixel)(void); /* set in MATH_C.C */
 extern double                dxsize;
-extern double far *          dy0;
-extern double far *          dy1;
-extern double (_fastcall *   dypixel)(void); /* set in FRACTALS.C */
+extern double     *          dy0;
+extern double     *          dy1;
+extern double             (* dypixel)(void); /* set in MATH_C.C */
 extern double                dysize;
 extern int                   EPSFileType;
 extern int                   escape_exit;

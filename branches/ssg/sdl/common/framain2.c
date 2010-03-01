@@ -107,7 +107,7 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
           else
             {
 // FIXME (jonathan#1#): How will next work? JCO 02/20/2010
-              setvideomode(axmode,bxmode,cxmode,dxmode); /* switch video modes */
+              setvideomode(dotmode); /* switch video modes */
               if (goodmode == 0)
                 {
                   static FCODE msg[] = {"That video mode is not available with your adapter."};
@@ -2162,20 +2162,6 @@ void reset_zoom_corners()
     }
 }
 
-/*
-   Function setup287code is called by main() when a 287
-   or better fpu is detected.
-*/
-#define ORBPTR(x) fractalspecific[x].orbitcalc
-void setup287code()
-{
-  ORBPTR(MANDELFP)       = ORBPTR(JULIAFP)      = FJuliafpFractal;
-  ORBPTR(BARNSLEYM1FP)   = ORBPTR(BARNSLEYJ1FP) = FBarnsley1FPFractal;
-  ORBPTR(BARNSLEYM2FP)   = ORBPTR(BARNSLEYJ2FP) = FBarnsley2FPFractal;
-  ORBPTR(MANOWARFP)      = ORBPTR(MANOWARJFP)   = FManOWarfpFractal;
-  ORBPTR(MANDELLAMBDAFP) = ORBPTR(LAMBDAFP)     = FLambdaFPFractal;
-}
-
 /* read keystrokes while = specified key, return 1+count;       */
 /* used to catch up when moving zoombox is slower than keyboard */
 int key_count(int keynum)
@@ -2189,45 +2175,3 @@ int key_count(int keynum)
     }
   return ctr;
 }
-
-void checkfreemem(int secondpass)
-{
-  int oldmaxhistory;
-  char *tmp;
-  static FCODE msg[] =
-    {" I'm sorry, but you don't have enough free memory \n to run this program.\n\n"};
-  static FCODE msg2[] = {"To save memory, reduced maxhistory to "};
-  tmp = (char *)malloc(4096L);
-  oldmaxhistory = maxhistory;
-  if (secondpass && !history)
-    {
-      while (maxhistory > 0) /* decrease history if necessary */
-        {
-          history = MemoryAlloc((U16)sizeof(HISTORY),(long)maxhistory,EXPANDED);
-          if (history)
-            break;
-          maxhistory--;
-        }
-    }
-  if (extraseg == 0 || tmp == NULL)
-    {
-      buzzer(2);
-#ifndef XFRACT
-      printf("%Fs",(char *)msg);
-#else
-      printf("%s",msg);
-#endif
-      exit(1);
-    }
-  free(tmp); /* was just to check for min space */
-  if (secondpass && (maxhistory < oldmaxhistory || (history == 0 && oldmaxhistory != 0)))
-    {
-#ifndef XFRACT
-      printf("%Fs%d\n%Fs\n",(char *)msg2,maxhistory,s_pressanykeytocontinue);
-#else
-      printf("%s%d\n%s\n",(char *)msg2,maxhistory,s_pressanykeytocontinue);
-#endif
-      getakey();
-    }
-}
-
