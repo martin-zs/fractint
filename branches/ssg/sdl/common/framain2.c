@@ -88,7 +88,6 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
           colors  = videoentry.colors;      /* # colors available */
 // FIXME (jonathan#1#): Don't need next.  JCO 02/20/201
           dotmode %= 1000;
-          textsafe2 = dotmode / 100;
           dotmode  %= 100;
 
           sxdots  = xdots;
@@ -106,30 +105,9 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
 
           else
             {
-// FIXME (jonathan#1#): How will next work? JCO 02/20/2010
-              setvideomode(dotmode); /* switch video modes */
-              if (goodmode == 0)
-                {
-                  static FCODE msg[] = {"That video mode is not available with your adapter."};
-                    if (dotmode == 11)
-                      {
-                        askvideo = TRUE;
-                      }
-                    else
-                      {
-                        stopmsg(0,msg);
-                        askvideo = TRUE;
-                      }
-                  initmode = -1;
-                  setvideotext(); /* switch to text mode */
-                  /* goto restorestart; */
-                  return(RESTORESTART);
-                }
 
               xdots = sxdots;
               ydots = sydots;
-              videoentry.xdots = xdots;
-              videoentry.ydots = ydots;
             }
 
           diskisactive = 0;              /* flag for disk-video routines */
@@ -474,7 +452,7 @@ done:
         }
 #endif
 
-      if (fractype == PLASMA && cpu > 88)
+      if (fractype == PLASMA)
         {
           cyclelimit = 256;              /* plasma clouds need quick spins */
           daccount = 256;
@@ -504,11 +482,7 @@ resumeloop:                             /* return here on failed overlays */
             }
           else if (initbatch == 0)       /* not batch mode */
             {
-#ifndef XFRACT
-              lookatmouse = (zwidth == 0 && !video_scroll) ? -PAGE_UP : 3;
-#else
               lookatmouse = (zwidth == 0) ? -PAGE_UP : 3;
-#endif
               if (calc_status == 2 && zwidth == 0 && !keypressed())
                 {
                   kbdchar = ENTER ;  /* no visible reason to stop, continue */
@@ -1453,18 +1427,6 @@ do_3d_transform:
       /* fall through */
     }
     default:                     /* other (maybe a valid Fn key) */
-      if ((k = check_vidmode_key(0, *kbdchar)) >= 0)
-        {
-          adapter = k;
-          /*                if (videotable[adapter].dotmode != 11       Took out so that */
-          /*                  || videotable[adapter].colors != colors)  DAC is not reset */
-          /*                   savedac = 0;                    when changing video modes */
-          if (videotable[adapter].colors != colors)
-            savedac = 0;
-          calc_status = 0;
-          *kbdmore = 0;
-          return(CONTINUE);
-        }
       break;
     }                            /* end of the big switch */
   return(0);
@@ -1976,15 +1938,6 @@ int evolver_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stack
         unstackscreen();
       /* fall through */
     default:             /* other (maybe valid Fn key */
-      if ((k = check_vidmode_key(0, *kbdchar)) >= 0)
-        {
-          adapter = k;
-          if (videotable[adapter].colors != colors)
-            savedac = 0;
-          calc_status = 0;
-          *kbdmore = 0;
-          return(CONTINUE);
-        }
       break;
     }                            /* end of the big evolver switch */
   return(0);

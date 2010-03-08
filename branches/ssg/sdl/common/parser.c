@@ -1415,21 +1415,6 @@ void lStkLog(void)
 
 void (*StkLog)(void) = dStkLog;
 
-void FPUcplxexp(_CMPLX *x, _CMPLX *z)
-{
-  double e2x, siny, cosy;
-
-  if (fpu >= 387)
-    FPUcplxexp387(x, z);
-  else
-    {
-      e2x = exp(x->x);
-      FPUsincos(&x->y, &siny, &cosy);
-      z->x = e2x * cosy;
-      z->y = e2x * siny;
-    }
-}
-
 void dStkExp(void)
 {
   FPUcplxexp(&Arg1->d, &Arg1->d);

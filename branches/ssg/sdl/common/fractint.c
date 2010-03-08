@@ -56,7 +56,6 @@ char *fract_dir1="", *fract_dir2="";
 */
 int     active_system = 0;      /* 0 for DOS, WINFRAC for Windows */
 int     dotmode;                /* video access method      */
-int     textsafe2;              /* textsafe override from videotable */
 int     oktoprint;              /* 0 if printf() won't work */
 int     sxdots,sydots;          /* # of dots on the physical screen    */
 int     sxoffs,syoffs;          /* physical top left of logical screen */
@@ -158,6 +157,9 @@ int     scale_map[12] = {1,2,3,4,5,6,7,8,9,10,11,12}; /*RB, array for mapping no
 
 int     adapter = 0; // TODO (jonathan#1#): Set to zero for now. Delete later. JCO 02/20/2010
 
+/* SDL global variables */
+SDL_Surface *screen;
+
 #define RESTART           1
 #define IMAGESTART        2
 #define RESTORESTART      3
@@ -203,7 +205,6 @@ static void quit_fractint( int code )
 int
 main(int argc, char **argv)
 {
-  SDL_Surface *screen;
   SDL_Event event;
 
   int     resumeflag;
@@ -269,20 +270,22 @@ restart:   /* insert key re-starts here */
    * Initialize the display in a 800x600 16-bit mode,
    * requesting a software surface
    */
+  xdots = 800;
+  ydots = 600;
 // FIXME (jonathan#1#): Need to work out changing window size.
-  screen = SDL_SetVideoMode(800, 600, 0, SDL_HWSURFACE|SDL_DOUBLEBUF);
+  screen = SDL_SetVideoMode(xdots, ydots, 0, SDL_HWSURFACE|SDL_DOUBLEBUF);
   if (screen == NULL )
     {
-      screen = SDL_SetVideoMode(800, 600, 16, SDL_SWSURFACE|SDL_ANYFORMAT);
+      screen = SDL_SetVideoMode(xdots, ydots, 16, SDL_SWSURFACE|SDL_ANYFORMAT);
       /* need flags for no double buffering */
     }
   if ( screen == NULL )
     {
-      fprintf(stderr, "Couldn't set 800x600x16 video mode: %s\n",
+      fprintf(stderr, "Couldn't set %dx%dx16 video mode: %s\n", xdots, ydots,
               SDL_GetError());
       exit(1);
     }
-  printf("Set 800x600 at %d bits-per-pixel mode\n",
+  printf("Set %dx%d at %d bits-per-pixel mode\n", xdots, ydots,
          screen->format->BitsPerPixel);
 
   atexit(SDL_Quit);
@@ -306,7 +309,7 @@ restart:   /* insert key re-starts here */
   savedac = 0;                         /* don't save the VGA DAC */
 
   max_colors = 256;                    /* the Windows version is lower */
-  max_kbdcount=(cpu>=386) ? 80 : 30;   /* check the keyboard this often */
+  max_kbdcount = 80;                   /* check the keyboard this often */
 
   if (showfile && initmode < 0)
     {

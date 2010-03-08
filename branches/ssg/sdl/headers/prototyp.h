@@ -582,22 +582,23 @@ extern int LLoad(void);
 
 /*  math_c -- C file prototypes */
 
-extern _CMPLX ComplexPower(_CMPLX ,_CMPLX );
-extern void cpower(_CMPLX *,int ,_CMPLX *);
-extern int lcpower(_LCMPLX *,int ,_LCMPLX *,int );
-extern int complex_div(_CMPLX arg1,_CMPLX arg2,_CMPLX *pz);
-extern int complex_mult(_CMPLX arg1,_CMPLX arg2,_CMPLX *pz);
-extern void SetupLogTable(void );
+extern void FPUcplxexp(_CMPLX *, _CMPLX *)
+extern _CMPLX ComplexPower(_CMPLX, _CMPLX);
+extern void cpower(_CMPLX *, int , _CMPLX *);
+extern int  lcpower(_LCMPLX *, int , _LCMPLX *, int);
+extern int  complex_div(_CMPLX, _CMPLX, _CMPLX *);
+extern int  complex_mult(_CMPLX, _CMPLX, _CMPLX *);
+extern void SetupLogTable(void);
 extern long logtablecalc(long);
-extern long ExpFloat14(long );
-extern int GausianNumber(int ,int );
-extern void Arcsinz(_CMPLX z, _CMPLX *rz);
-extern void Arccosz(_CMPLX z, _CMPLX *rz);
-extern void Arcsinhz(_CMPLX z, _CMPLX *rz);
-extern void Arccoshz(_CMPLX z, _CMPLX *rz);
-extern void Arctanhz(_CMPLX z, _CMPLX *rz);
-extern void Arctanz(_CMPLX z, _CMPLX *rz);
+extern long ExpFloat14(long);
+extern void Arcsinz(_CMPLX, _CMPLX *);
+extern void Arccosz(_CMPLX, _CMPLX *);
+extern void Arcsinhz(_CMPLX, _CMPLX *);
+extern void Arccoshz(_CMPLX, _CMPLX *);
+extern void Arctanhz(_CMPLX, _CMPLX *);
+extern void Arctanz(_CMPLX, _CMPLX *);
 extern void set_pixel_calc_functions(void);
+extern int  GausianNumber(int ,int);
 
 /*  miscfrac -- C file prototypes */
 
@@ -735,7 +736,6 @@ extern void dStkAND(void );
 extern void lStkAND(void );
 extern void dStkLog(void );
 extern void lStkLog(void );
-extern void FPUcplxexp(_CMPLX *,_CMPLX *);
 extern void dStkExp(void );
 extern void lStkExp(void );
 extern void dStkPwr(void );
@@ -869,12 +869,6 @@ extern void clear_screen(int );
 extern int savegraphics(void);
 extern int restoregraphics(void);
 extern void discardgraphics(void);
-extern int load_fractint_cfg(int );
-extern void bad_fractint_cfg_msg(void);
-extern void load_videotable(int );
-extern int check_vidmode_key(int ,int );
-extern int check_vidmode_keyname(char *);
-extern void vidmode_keyname(int ,char *);
 extern void freetempmsg(void);
 extern char *despace(char *);
 extern int menu_checkkey(int ,int );

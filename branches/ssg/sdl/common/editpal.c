@@ -3408,16 +3408,10 @@ static PalTable *PalTable_Construct(void)
   RGBEditor_SetRGB(this->rgb[0], this->curr[0], &this->pal[this->curr[0]]);
   RGBEditor_SetRGB(this->rgb[1], this->curr[1], &this->pal[this->curr[0]]);
 
-  if (video_scroll)
-    {
-      PalTable__SetPos(this, video_startx, video_starty);
-      csize = ( (vesa_yres-(PalTable_PALY+1+1)) / 2 ) / 16;
-    }
-  else
-    {
-      PalTable__SetPos(this, 0, 0);
-      csize = ( (sydots-(PalTable_PALY+1+1)) / 2 ) / 16;
-    }
+
+  PalTable__SetPos(this, 0, 0);
+  csize = ( (sydots-(PalTable_PALY+1+1)) / 2 ) / 16;
+
 
   if (csize<CSIZE_MIN)
     csize = CSIZE_MIN;

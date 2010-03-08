@@ -260,7 +260,6 @@ char s_finattract[] =       "finattract";
 char s_float[] =            "float";
 char s_formulafile[] =      "formulafile";
 char s_formulaname[] =      "formulaname";
-char s_fpu[] =              "fpu";
 char s_fract001ps[] =       "fract001.ps";
 char s_fullcolor[] =        "fullcolor";
 char s_function[] =         "function";
@@ -733,10 +732,11 @@ static void initvars_fractal()          /* init vars affecting calculation */
 
    old_demm_colors = 0;
    bailoutest    = Mod;
-   floatbailout  = (int (near *)(void))fpMODbailout;
-   longbailout   = (int (near *)(void))asmlMODbailout;
-   bignumbailout = (int (near *)(void))bnMODbailout;
-   bigfltbailout = (int (near *)(void))bfMODbailout;
+   floatbailout  = (int *)(void)fpMODbailout;
+// FIXME (jonathan#1#): Need to code long bailout routines.
+   longbailout   = (int *)(void)asmlMODbailout;
+   bignumbailout = (int *)(void)bnMODbailout;
+   bigfltbailout = (int *)(void)bfMODbailout;
 
    functionpreloaded = 0; /* for old bifs  JCO 7/5/92 */
    mxminfp = -.83;
