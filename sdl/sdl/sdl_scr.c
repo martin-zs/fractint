@@ -31,7 +31,7 @@ void Sulock(SDL_Surface *screen)
 ;       This function sets the (alphanumeric or graphic) video mode
 ;       of the monitor.   Called with the proper value of dotmode.
 ;       No returned values, as there is no particular standard to
-;       adhere to in this case.  Dotmode is 0 for test and 1 for graphics.
+;       adhere to in this case.  Dotmode is 0 for text and 1 for graphics.
 
 */
 void
@@ -75,19 +75,16 @@ setvideomode (int dotmode)
     }
 }
 
-// NOTE (jonathan#1#): Need to decide if passing screen around is appropriate.  Don't really need dotread and dotwrite since not using disk video.
-
-
 
 /*
  * Return the pixel value at (x, y)
  * NOTE: The surface must be locked before calling this!
  */
-Uint32 getpixel(SDL_Surface *surface, int x, int y)
+Uint32 readvideo(int x, int y)
 {
-  int bpp = surface->format->BytesPerPixel;
+  int bpp = screen->format->BytesPerPixel;
   /* Here p is the address to the pixel we want to retrieve */
-  Uint8 *p = (Uint8 *)surface->pixels + y * surface->pitch + x * bpp;
+  Uint8 *p = (Uint8 *)screen->pixels + y * screen->pitch + x * bpp;
 
   switch (bpp)
     {
@@ -115,11 +112,11 @@ Uint32 getpixel(SDL_Surface *surface, int x, int y)
  * Set the pixel at (x, y) to the given value
  * NOTE: The surface must be locked before calling this!
  */
-void putpixel(SDL_Surface *surface, int x, int y, Uint32 pixel)
+void writevideo(int x, int y, Uint32 pixel)
 {
-  int bpp = surface->format->BytesPerPixel;
+  int bpp = screen->format->BytesPerPixel;
   /* Here p is the address to the pixel we want to set */
-  Uint8 *p = (Uint8 *)surface->pixels + y * surface->pitch + x * bpp;
+  Uint8 *p = (Uint8 *)screen->pixels + y * screen->pitch + x * bpp;
 
   switch (bpp)
     {
@@ -152,15 +149,66 @@ void putpixel(SDL_Surface *surface, int x, int y, Uint32 pixel)
     }
 }
 
-
-void apply_surface( int x, int y, SDL_Surface* source, SDL_Surface* destination )
+void apply_surface( int x, int y, SDL_Surface* source)
 {
   SDL_Rect offset;
 
   offset.x = x;
   offset.y = y;
-  SDL_BlitSurface( source, NULL, destination, &offset );
+  SDL_BlitSurface( source, NULL, screen, &offset );
 }
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * writevideoline --
+ *
+ *  Write a line of pixels to the screen.
+ *
+ * Results:
+ *  None.
+ *
+ * Side effects:
+ *  Draws pixels.
+ *
+ *----------------------------------------------------------------------
+ */
+void writevideoline(int y, int x, int lastx, Uint32 *pixels)
+{
+  int width;
+  int i;
+
+  width = lastx-x+1;
+  for (i=0;i<width;i++)
+    {
+      writevideo(x+i,y,pixels[i]);
+    }
+}
+/*
+ *----------------------------------------------------------------------
+ *
+ * readvideoline --
+ *
+ *  Reads a line of pixels from the screen.
+ *
+ * Results:
+ *  None.
+ *
+ * Side effects:
+ *  Gets pixels
+ *
+ *----------------------------------------------------------------------
+ */
+void readvideoline(int y, int x, int lastx, Uint32 *pixels)
+{
+  int i,width;
+  width = lastx-x+1;
+  for (i=0;i<width;i++)
+    {
+      pixels[i] = readvideo(x+i,y);
+    }
+}
+
 
 /* the following should return a value for success or failure */
 void ShowBMP(char *filename, SDL_Surface* destination)

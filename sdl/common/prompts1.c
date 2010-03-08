@@ -1027,17 +1027,17 @@ sel_type_restart:
      !((oldfractype == BIFADSINPI) || (oldfractype == LBIFADSINPI)))
         set_trig_array(0,s_sin);
 
-   /* 
+   /*
     * Next assumes that user going between popcorn and popcornjul
-    * might not want to change function variables 
+    * might not want to change function variables
     */
    if(((fractype    == FPPOPCORN   ) || (fractype    == LPOPCORN   ) ||
        (fractype    == FPPOPCORNJUL) || (fractype    == LPOPCORNJUL)) &&
      !((oldfractype == FPPOPCORN   ) || (oldfractype == LPOPCORN   ) ||
        (oldfractype == FPPOPCORNJUL) || (oldfractype == LPOPCORNJUL)))
       set_function_parm_defaults();
-        
-   /* set LATOO function defaults */     
+
+   /* set LATOO function defaults */
    if(fractype == LATOO && oldfractype != LATOO)
    {
       set_function_parm_defaults();
@@ -1685,7 +1685,7 @@ gfp_top:
          major_method = (enum Major)paramvalues[promptnum++].uval.ch.val;
          minor_method = (enum Minor)paramvalues[promptnum++].uval.ch.val;
       }
-     if((curtype==FORMULA || curtype==FFORMULA) && uses_ismand) 
+     if((curtype==FORMULA || curtype==FFORMULA) && uses_ismand)
      {
         if (ismand != (short int)paramvalues[promptnum].uval.ch.val)
         {
@@ -3011,88 +3011,46 @@ void setbailoutformula(enum bailouts test) {
    switch(test) {
      case Mod:
      default:{
-         if (fpu >= 287 && debugflag != 72)     /* Fast 287 math */
-           floatbailout = (int (near *)(void))asmfpMODbailout;
-         else
-           floatbailout = (int (near *)(void))fpMODbailout;
-         if (cpu >=386 && debugflag != 8088)    /* Fast 386 math */
-           longbailout = (int (near *)(void))asm386lMODbailout;
-         else
-           longbailout = (int (near *)(void))asmlMODbailout;
-         bignumbailout = (int (near *)(void))bnMODbailout;
-         bigfltbailout = (int (near *)(void))bfMODbailout;
+         floatbailout  = (int *)(void)fpMODbailout;
+         longbailout   = (int *)(void)asmlMODbailout;
+         bignumbailout = (int *)(void)bnMODbailout;
+         bigfltbailout = (int *)(void)bfMODbailout;
          break;}
      case Real: {
-         if (fpu >= 287 && debugflag != 72)     /* Fast 287 math */
-           floatbailout = (int (near *)(void))asmfpREALbailout;
-         else
-           floatbailout = (int (near *)(void))fpREALbailout;
-         if (cpu >=386 && debugflag != 8088)    /* Fast 386 math */
-           longbailout = (int (near *)(void))asm386lREALbailout;
-         else
-           longbailout = (int (near *)(void))asmlREALbailout;
-         bignumbailout = (int (near *)(void))bnREALbailout;
-         bigfltbailout = (int (near *)(void))bfREALbailout;
+         floatbailout  = (int *)(void)fpREALbailout;
+         longbailout   = (int *)(void)asmlREALbailout;
+         bignumbailout = (int *)(void)bnREALbailout;
+         bigfltbailout = (int *)(void)bfREALbailout;
          break;}
      case Imag:{
-         if (fpu >= 287 && debugflag != 72)     /* Fast 287 math */
-           floatbailout = (int (near *)(void))asmfpIMAGbailout;
-         else
-           floatbailout = (int (near *)(void))fpIMAGbailout;
-         if (cpu >=386 && debugflag != 8088)    /* Fast 386 math */
-           longbailout = (int (near *)(void))asm386lIMAGbailout;
-         else
-           longbailout = (int (near *)(void))asmlIMAGbailout;
-         bignumbailout = (int (near *)(void))bnIMAGbailout;
-         bigfltbailout = (int (near *)(void))bfIMAGbailout;
+         floatbailout  = (int *)(void)fpIMAGbailout;
+         longbailout   = (int *)(void)asmlIMAGbailout;
+         bignumbailout = (int *)(void)bnIMAGbailout;
+         bigfltbailout = (int *)(void)bfIMAGbailout;
          break;}
      case Or:{
-         if (fpu >= 287 && debugflag != 72)     /* Fast 287 math */
-           floatbailout = (int (near *)(void))asmfpORbailout;
-         else
-           floatbailout = (int (near *)(void))fpORbailout;
-         if (cpu >=386 && debugflag != 8088)    /* Fast 386 math */
-           longbailout = (int (near *)(void))asm386lORbailout;
-         else
-           longbailout = (int (near *)(void))asmlORbailout;
-         bignumbailout = (int (near *)(void))bnORbailout;
-         bigfltbailout = (int (near *)(void))bfORbailout;
+         floatbailout  = (int *)(void)fpORbailout;
+         longbailout   = (int *)(void)asmlORbailout;
+         bignumbailout = (int *)(void)bnORbailout;
+         bigfltbailout = (int *)(void)bfORbailout;
          break;}
      case And:{
-         if (fpu >= 287 && debugflag != 72)     /* Fast 287 math */
-           floatbailout = (int (near *)(void))asmfpANDbailout;
-         else
-           floatbailout = (int (near *)(void))fpANDbailout;
-         if (cpu >=386 && debugflag != 8088)    /* Fast 386 math */
-           longbailout = (int (near *)(void))asm386lANDbailout;
-         else
-           longbailout = (int (near *)(void))asmlANDbailout;
-         bignumbailout = (int (near *)(void))bnANDbailout;
-         bigfltbailout = (int (near *)(void))bfANDbailout;
+         floatbailout  = (int *)(void)fpANDbailout;
+         longbailout   = (int *)(void)asmlANDbailout;
+         bignumbailout = (int *)(void)bnANDbailout;
+         bigfltbailout = (int *)(void)bfANDbailout;
          break;}
      case Manh:{
-         if (fpu >= 287 && debugflag != 72)     /* Fast 287 math */
-           floatbailout = (int (near *)(void))asmfpMANHbailout;
-         else
-           floatbailout = (int (near *)(void))fpMANHbailout;
-         if (cpu >=386 && debugflag != 8088)    /* Fast 386 math */
-           longbailout = (int (near *)(void))asm386lMANHbailout;
-         else
-           longbailout = (int (near *)(void))asmlMANHbailout;
-         bignumbailout = (int (near *)(void))bnMANHbailout;
-         bigfltbailout = (int (near *)(void))bfMANHbailout;
+         floatbailout  = (int *)(void)fpMANHbailout;
+         longbailout   = (int *)(void)asmlMANHbailout;
+         bignumbailout = (int *)(void)bnMANHbailout;
+         bigfltbailout = (int *)(void)bfMANHbailout;
          break;}
      case Manr:{
-         if (fpu >= 287 && debugflag != 72)     /* Fast 287 math */
-           floatbailout = (int (near *)(void))asmfpMANRbailout;
-         else
-           floatbailout = (int (near *)(void))fpMANRbailout;
-         if (cpu >=386 && debugflag != 8088)    /* Fast 386 math */
-           longbailout = (int (near *)(void))asm386lMANRbailout;
-         else
-           longbailout = (int (near *)(void))asmlMANRbailout;
-         bignumbailout = (int (near *)(void))bnMANRbailout;
-         bigfltbailout = (int (near *)(void))bfMANRbailout;
+         floatbailout  = (int *)(void)fpMANRbailout;
+         longbailout   = (int *)(void)asmlMANRbailout;
+         bignumbailout = (int *)(void)bnMANRbailout;
+         bigfltbailout = (int *)(void)bfMANRbailout;
          break;}
    }
 }

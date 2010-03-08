@@ -7,6 +7,16 @@
 #define sqr(x) ((x)*(x))
 #endif
 
+void FPUcplxexp(_CMPLX *x, _CMPLX *z)
+{
+  double e2x, y;
+
+  y = x->y;
+  e2x = exp(x->x);
+  z->x = e2x * cos(y);
+  z->y = e2x * sin(y);
+}
+
 _CMPLX ComplexPower(_CMPLX xx, _CMPLX yy)
 {
   _CMPLX z, cLog, t;
@@ -24,18 +34,8 @@ _CMPLX ComplexPower(_CMPLX xx, _CMPLX yy)
   FPUcplxlog(&xx, &cLog);
   FPUcplxmul(&cLog, &yy, &t);
 
-  if (fpu >= 387)
-    FPUcplxexp387(&t, &z);
-  else
-    {
-      if (t.x < -690)
-        e2x = 0;
-      else
-        e2x = exp(t.x);
-      FPUsincos(&t.y, &siny, &cosy);
-      z.x = e2x * cosy;
-      z.y = e2x * siny;
-    }
+  FPUcplxexp(&t, &z);
+
   return(z);
 }
 

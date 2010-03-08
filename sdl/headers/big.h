@@ -15,9 +15,9 @@
 /* uncomment only ONE of these or declare on compiler command line */
 /* #define BIG_NEAR   */
 #if defined(_MSC_VER)
-#   define BIG_BASED    
-#elif defined( __BORLANDC__)  
-#   define BIG_FAR    
+#   define BIG_BASED
+#elif defined( __BORLANDC__)
+#   define BIG_FAR
 #endif
 /* #define BIG_HUGE   */  /* C code only */
 /* #define BIG_ANSI_C */  /* C code only */
@@ -131,9 +131,6 @@ struct BNComplex
 typedef struct BNComplex  _BNCMPLX;
 
 /* globals */
-extern int fpu;
-extern int cpu;
-
 extern int bf_math;
 
 extern int bnstep, intlength;

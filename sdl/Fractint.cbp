@@ -221,6 +221,15 @@ May need defines for LINUX and/or WIN32.]]>
 		<Unit filename="headers\xfcurses.h">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="sdl\calmanfp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="sdl\fpu087.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="sdl\general.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="sdl\sdl_scr.c">
 			<Option compilerVar="CC" />
 		</Unit>

@@ -431,15 +431,7 @@ struct orbits_info      /* for saving orbits data in a GIF file */
    short future[74];      /* total of 200 bytes */
 };
 
-#define MAXVIDEOMODES 300       /* maximum entries in fractint.cfg        */
-#ifndef XFRACT
-#define MAXVIDEOTABLE 40        /* size of the resident video modes table */
-#else
-#define MAXVIDEOTABLE 2         /* size of the resident video modes table */
-#endif
-
 #define AUTOINVERT -123456.789
-#define ENDVID 22400   /* video table uses extra seg up to here */
 
 #define N_ATTR 8                        /* max number of attractors     */
 
