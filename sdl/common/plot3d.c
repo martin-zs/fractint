@@ -145,7 +145,7 @@ void cdecl draw_line (int X1, int Y1, int X2, int Y2, int color)
 
 #if 0
 /* use this for continuous colors later */
-void _fastcall plot3dsuperimpose16b(int x,int y,int color)
+void plot3dsuperimpose16b(int x,int y,int color)
 {
     int tmp;
     if (color != 0)         /* Keeps index 0 still 0 */
@@ -180,7 +180,7 @@ void _fastcall plot3dsuperimpose16b(int x,int y,int color)
 
 #endif
 
-void _fastcall plot3dsuperimpose16(int x,int y,int color)
+void plot3dsuperimpose16(int x,int y,int color)
 {
     int tmp;
 
@@ -211,7 +211,7 @@ void _fastcall plot3dsuperimpose16(int x,int y,int color)
 }
 
 
-void _fastcall plot3dsuperimpose256(int x,int y,int color)
+void plot3dsuperimpose256(int x,int y,int color)
 {
     int tmp;
     BYTE t_c;
@@ -261,7 +261,7 @@ void _fastcall plot3dsuperimpose256(int x,int y,int color)
         }
 }
 
-void _fastcall plotIFS3dsuperimpose256(int x,int y,int color)
+void plotIFS3dsuperimpose256(int x,int y,int color)
 {
     int tmp;
     BYTE t_c;
@@ -311,7 +311,7 @@ void _fastcall plotIFS3dsuperimpose256(int x,int y,int color)
         }
 }
 
-void _fastcall plot3dalternate(int x,int y,int color)
+void plot3dalternate(int x,int y,int color)
 {
     BYTE t_c;
 
@@ -349,7 +349,7 @@ void _fastcall plot3dalternate(int x,int y,int color)
     }
 }
 
-void _fastcall plot3dcrosseyedA(int x,int y,int color)
+void plot3dcrosseyedA(int x,int y,int color)
 {
    x /= 2;
    y /= 2;
@@ -362,7 +362,7 @@ void _fastcall plot3dcrosseyedA(int x,int y,int color)
    putcolor(x,y,color);
 }
 
-void _fastcall plot3dcrosseyedB(int x,int y,int color)
+void plot3dcrosseyedB(int x,int y,int color)
 {
    x /= 2;
    y /= 2;
@@ -371,7 +371,7 @@ void _fastcall plot3dcrosseyedB(int x,int y,int color)
    putcolor(x,y,color);
 }
 
-void _fastcall plot3dcrosseyedC(int x,int y,int color)
+void plot3dcrosseyedC(int x,int y,int color)
 {
    if(rowcount >= ydots/2)
       /* hidden surface kludge */

@@ -19,6 +19,9 @@ May need defines for LINUX and/or WIN32.]]>
 				<Option output="Fractint" prefix_auto="1" extension_auto="1" />
 				<Option type="0" />
 				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-fno-builtin" />
+				</Compiler>
 			</Target>
 		</Build>
 		<Compiler>
@@ -221,7 +224,13 @@ May need defines for LINUX and/or WIN32.]]>
 		<Unit filename="headers\xfcurses.h">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="sdl\calcmand.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="sdl\calmanfp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="sdl\diskvidu.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="sdl\fpu087.c">

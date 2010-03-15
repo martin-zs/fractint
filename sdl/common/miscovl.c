@@ -1643,6 +1643,7 @@ void make_mig(unsigned int xmult, unsigned int ymult)
   unsigned char *temp;
   FILE *out, *in;
   char msgbuf[81];
+  int gif87a_flag;
 
   errorflag = 0;                          /* no errors so */
   inputerrorflag = 0;
@@ -2007,7 +2008,6 @@ static char *expand_var(char *var, char *buf)
   static FCODE s_patch   [] = {"patch"   };
   static FCODE s_xdots   [] = {"xdots"   };
   static FCODE s_ydots   [] = {"ydots"   };
-  static FCODE s_vidkey  [] = {"vidkey"  };
 
   time_t ltime;
   char *str, *out;
@@ -2085,13 +2085,6 @@ static char *expand_var(char *var, char *buf)
   else if (strcmp(var,s_ydots) == 0)  /* 2 to 4 chars */
     {
       sprintf(buf,"%d",ydots);
-      out = buf;
-    }
-  else if (strcmp(var,s_vidkey) == 0)  /* 2 to 3 chars */
-    {
-      char vidmde[5];
-      vidmode_keyname(videoentry.keynum, vidmde);
-      sprintf(buf,"%s",vidmde);
       out = buf;
     }
   else

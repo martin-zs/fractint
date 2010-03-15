@@ -2,97 +2,109 @@
 <CodeBlocks_layout_file>
 	<ActiveTarget name="default" />
 	<File name="common\3d.c" open="0" top="0" tabpos="0">
-		<Cursor position="3138" topLine="80" />
+		<Cursor position="2429" topLine="53" />
 	</File>
 	<File name="common\ant.c" open="0" top="0" tabpos="0">
-		<Cursor position="1116" topLine="13" />
+		<Cursor position="80" topLine="0" />
 	</File>
 	<File name="common\bigflt.c" open="0" top="0" tabpos="0">
-		<Cursor position="61954" topLine="2059" />
+		<Cursor position="10895" topLine="348" />
 	</File>
 	<File name="common\biginit.c" open="0" top="0" tabpos="8">
 		<Cursor position="2917" topLine="66" />
 	</File>
-	<File name="common\calcfrac.c" open="1" top="0" tabpos="4">
-		<Cursor position="135870" topLine="4073" />
+	<File name="common\calcfrac.c" open="0" top="0" tabpos="4">
+		<Cursor position="95683" topLine="2925" />
 	</File>
-	<File name="common\cmdfiles.c" open="0" top="0" tabpos="6">
-		<Cursor position="13548" topLine="252" />
+	<File name="common\cmdfiles.c" open="1" top="0" tabpos="4">
+		<Cursor position="97746" topLine="2765" />
 	</File>
 	<File name="common\editpal.c" open="0" top="0" tabpos="0">
-		<Cursor position="85229" topLine="3400" />
+		<Cursor position="7966" topLine="199" />
 	</File>
-	<File name="common\encoder.c" open="0" top="0" tabpos="0">
-		<Cursor position="759" topLine="16" />
+	<File name="common\encoder.c" open="1" top="1" tabpos="5">
+		<Cursor position="4219" topLine="140" />
 	</File>
-	<File name="common\fracsubr.c" open="1" top="0" tabpos="8">
-		<Cursor position="42520" topLine="1271" />
+	<File name="common\fracsubr.c" open="0" top="0" tabpos="8">
+		<Cursor position="6723" topLine="224" />
+	</File>
+	<File name="common\fractalp.c" open="0" top="0" tabpos="0">
+		<Cursor position="62671" topLine="1870" />
 	</File>
 	<File name="common\fractals.c" open="0" top="0" tabpos="0">
-		<Cursor position="76786" topLine="2920" />
+		<Cursor position="80474" topLine="3080" />
 	</File>
-	<File name="common\fractint.c" open="1" top="0" tabpos="2">
-		<Cursor position="11511" topLine="301" />
+	<File name="common\fractint.c" open="0" top="0" tabpos="2">
+		<Cursor position="1174" topLine="36" />
 	</File>
-	<File name="common\framain2.c" open="1" top="0" tabpos="3">
-		<Cursor position="18395" topLine="450" />
+	<File name="common\framain2.c" open="0" top="0" tabpos="3">
+		<Cursor position="7301" topLine="196" />
 	</File>
 	<File name="common\frasetup.c" open="0" top="0" tabpos="0">
-		<Cursor position="34027" topLine="1179" />
+		<Cursor position="194" topLine="0" />
 	</File>
 	<File name="common\gifview.c" open="0" top="0" tabpos="0">
-		<Cursor position="6822" topLine="233" />
+		<Cursor position="2399" topLine="62" />
 	</File>
 	<File name="common\hcmplx.c" open="0" top="0" tabpos="0">
 		<Cursor position="360" topLine="75" />
 	</File>
 	<File name="common\help.c" open="0" top="0" tabpos="0">
-		<Cursor position="499" topLine="16" />
+		<Cursor position="292" topLine="13" />
 	</File>
 	<File name="common\intro.c" open="0" top="0" tabpos="0">
 		<Cursor position="189" topLine="84" />
 	</File>
+	<File name="common\jb.c" open="0" top="0" tabpos="0">
+		<Cursor position="1439" topLine="60" />
+	</File>
 	<File name="common\jiim.c" open="0" top="0" tabpos="0">
-		<Cursor position="16696" topLine="666" />
+		<Cursor position="13588" topLine="536" />
 	</File>
 	<File name="common\line3d.c" open="0" top="0" tabpos="0">
-		<Cursor position="76" topLine="6" />
+		<Cursor position="4949" topLine="113" />
 	</File>
 	<File name="common\loadfile.c" open="0" top="0" tabpos="0">
-		<Cursor position="11772" topLine="328" />
+		<Cursor position="296" topLine="2" />
 	</File>
 	<File name="common\lorenz.c" open="0" top="0" tabpos="0">
 		<Cursor position="58430" topLine="2104" />
 	</File>
 	<File name="common\lsys.c" open="0" top="0" tabpos="0">
-		<Cursor position="10864" topLine="398" />
+		<Cursor position="16891" topLine="618" />
+	</File>
+	<File name="common\lsysf.c" open="0" top="0" tabpos="0">
+		<Cursor position="17992" topLine="665" />
 	</File>
 	<File name="common\math_c.c" open="0" top="0" tabpos="0">
-		<Cursor position="178" topLine="3" />
+		<Cursor position="16669" topLine="648" />
 	</File>
 	<File name="common\memory.c" open="0" top="0" tabpos="0">
 		<Cursor position="7159" topLine="251" />
 	</File>
 	<File name="common\miscfrac.c" open="0" top="0" tabpos="0">
-		<Cursor position="33430" topLine="1093" />
+		<Cursor position="9637" topLine="342" />
 	</File>
 	<File name="common\miscovl.c" open="0" top="0" tabpos="0">
-		<Cursor position="52851" topLine="1620" />
+		<Cursor position="67891" topLine="2095" />
 	</File>
 	<File name="common\miscres.c" open="0" top="0" tabpos="0">
-		<Cursor position="28685" topLine="896" />
+		<Cursor position="883" topLine="65" />
 	</File>
 	<File name="common\parser.c" open="0" top="0" tabpos="0">
 		<Cursor position="33520" topLine="1409" />
 	</File>
-	<File name="common\prompts1.c" open="1" top="0" tabpos="7">
-		<Cursor position="96916" topLine="3009" />
+	<File name="common\plot3d.c" open="0" top="0" tabpos="0">
+		<Cursor position="5743" topLine="169" />
+	</File>
+	<File name="common\prompts1.c" open="0" top="0" tabpos="7">
+		<Cursor position="72651" topLine="2156" />
 	</File>
 	<File name="common\prompts2.c" open="0" top="0" tabpos="11">
-		<Cursor position="19354" topLine="625" />
+		<Cursor position="78697" topLine="2753" />
 	</File>
 	<File name="common\realdos.c" open="0" top="0" tabpos="10">
-		<Cursor position="12748" topLine="453" />
+		<Cursor position="8162" topLine="275" />
 	</File>
 	<File name="common\zoom.c" open="0" top="0" tabpos="0">
 		<Cursor position="10035" topLine="280" />
@@ -107,13 +119,16 @@
 		<Cursor position="3537" topLine="124" />
 	</File>
 	<File name="headers\cmplx.h" open="0" top="0" tabpos="0">
-		<Cursor position="5279" topLine="95" />
+		<Cursor position="2627" topLine="15" />
 	</File>
-	<File name="headers\externs.h" open="1" top="0" tabpos="5">
-		<Cursor position="3367" topLine="73" />
+	<File name="headers\externs.h" open="0" top="0" tabpos="5">
+		<Cursor position="10592" topLine="250" />
 	</File>
-	<File name="headers\fractint.h" open="1" top="0" tabpos="6">
-		<Cursor position="13132" topLine="425" />
+	<File name="headers\fractint.h" open="0" top="0" tabpos="6">
+		<Cursor position="25089" topLine="755" />
+	</File>
+	<File name="headers\fractype.h" open="0" top="0" tabpos="0">
+		<Cursor position="6544" topLine="170" />
 	</File>
 	<File name="headers\helpcom.h" open="0" top="0" tabpos="1">
 		<Cursor position="0" topLine="0" />
@@ -121,8 +136,8 @@
 	<File name="headers\port.h" open="0" top="0" tabpos="1">
 		<Cursor position="472" topLine="6" />
 	</File>
-	<File name="headers\prototyp.h" open="0" top="0" tabpos="5">
-		<Cursor position="33123" topLine="950" />
+	<File name="headers\prototyp.h" open="1" top="0" tabpos="3">
+		<Cursor position="33548" topLine="972" />
 	</File>
 	<File name="headers\uclock.h" open="0" top="0" tabpos="0">
 		<Cursor position="997" topLine="32" />
@@ -130,14 +145,20 @@
 	<File name="headers\unix.h" open="0" top="0" tabpos="3">
 		<Cursor position="90" topLine="46" />
 	</File>
+	<File name="sdl\calcmand.c" open="0" top="0" tabpos="0">
+		<Cursor position="227" topLine="2" />
+	</File>
+	<File name="sdl\diskvidu.c" open="0" top="0" tabpos="0">
+		<Cursor position="3636" topLine="206" />
+	</File>
 	<File name="sdl\fpu087.c" open="0" top="0" tabpos="0">
 		<Cursor position="1712" topLine="32" />
 	</File>
-	<File name="sdl\general.c" open="1" top="1" tabpos="9">
-		<Cursor position="552" topLine="0" />
+	<File name="sdl\general.c" open="1" top="0" tabpos="2">
+		<Cursor position="29130" topLine="1240" />
 	</File>
 	<File name="sdl\sdl_scr.c" open="1" top="0" tabpos="1">
-		<Cursor position="1358" topLine="46" />
+		<Cursor position="15909" topLine="655" />
 	</File>
 	<File name="sstools.ini" open="0" top="0" tabpos="0">
 		<Cursor position="230" topLine="0" />

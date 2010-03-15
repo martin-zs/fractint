@@ -103,8 +103,8 @@ NewtonSetup(void)           /* Newton/NewtBasin Routines */
       /* list of roots to discover where we converged for newtbasin */
       for (i=0;i<degree;i++)
         {
-          roots[i].x = cos(i*twopi/(double)degree);
-          roots[i].y = sin(i*twopi/(double)degree);
+          roots[i].x = cos(i*TWOPI/(double)degree);
+          roots[i].y = sin(i*TWOPI/(double)degree);
         }
     }
 
@@ -1193,7 +1193,7 @@ int ComplexNewtonSetup(void)
       cdegree.x = param[0];
       cdegree.y = param[1];
       FPUcplxlog(&croot, &BaseLog);
-      TwoPi = asin(1.0) * 4;
+/*      TwoPi = asin(1.0) * 4; use TWOPI */
     }
   return(1);
 }

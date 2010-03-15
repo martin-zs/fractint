@@ -227,7 +227,7 @@ static FCODE instr0b[] = {"Press ENTER to exit, ESC to back out, "FK_F1" for hel
    if(in_scrolling_mode && scroll_row_status == 0
              && lines_in_entry == extralines - 2
              && scroll_column_status == 0
-             && far_strchr(extrainfo, '\021') == NULL) {
+             && strchr(extrainfo, '\021') == NULL) {
       in_scrolling_mode = 0;
       fclose(scroll_file);
       scroll_file = NULL;
@@ -322,10 +322,10 @@ static FCODE instr0b[] = {"Press ENTER to exit, ESC to back out, "FK_F1" for hel
       for(i=0;i<titlelines-1;i++)
       {
          char far *next;
-         if((next = far_strchr(hdgline,'\n')) == NULL)
+         if((next = strchr(hdgline,'\n')) == NULL)
             break; /* shouldn't happen */
          *next = '\0';
-         titlewidth = far_strlen(hdgline);
+         titlewidth = strlen(hdgline);
          textcbase = boxcol + (boxwidth - titlewidth) / 2;
          putstring(titlerow+i,0,C_PROMPT_HI,hdgline);
          *next = '\n';
@@ -438,7 +438,7 @@ static FCODE instr0b[] = {"Press ENTER to exit, ESC to back out, "FK_F1" for hel
                }
                break;
             case RIGHT_ARROW_2:   /* scrolling key - right one column */
-               if(in_scrolling_mode && far_strchr(extrainfo, '\021') != NULL) {
+               if(in_scrolling_mode && strchr(extrainfo, '\021') != NULL) {
                   scroll_column_status++;
                   rewrite_extrainfo = 1;
                }
@@ -614,7 +614,7 @@ static FCODE instr0b[] = {"Press ENTER to exit, ESC to back out, "FK_F1" for hel
             }
             break;
          case RIGHT_ARROW_2:    /* scrolling key - right one column */
-            if(in_scrolling_mode && far_strchr(extrainfo, '\021') != NULL) {
+            if(in_scrolling_mode && strchr(extrainfo, '\021') != NULL) {
                scroll_column_status++;
                rewrite_extrainfo = 1;
             }
@@ -2164,7 +2164,7 @@ static int check_gfe_key(int curkey,int choice)
                   }
                   break;
                case RIGHT_ARROW: case RIGHT_ARROW_2: /* right one column */
-                  if(in_scrolling_mode && far_strchr(infbuf, '\021') != NULL) {
+                  if(in_scrolling_mode && strchr(infbuf, '\021') != NULL) {
                      left_column++;
                      rewrite_infbuf = 1;
                   }
@@ -3011,46 +3011,46 @@ void setbailoutformula(enum bailouts test) {
    switch(test) {
      case Mod:
      default:{
-         floatbailout  = (int *)(void)fpMODbailout;
-         longbailout   = (int *)(void)asmlMODbailout;
-         bignumbailout = (int *)(void)bnMODbailout;
-         bigfltbailout = (int *)(void)bfMODbailout;
+         floatbailout  = fpMODbailout;
+         longbailout   = lMODbailout;
+         bignumbailout = bnMODbailout;
+         bigfltbailout = bfMODbailout;
          break;}
      case Real: {
-         floatbailout  = (int *)(void)fpREALbailout;
-         longbailout   = (int *)(void)asmlREALbailout;
-         bignumbailout = (int *)(void)bnREALbailout;
-         bigfltbailout = (int *)(void)bfREALbailout;
+         floatbailout  = fpREALbailout;
+         longbailout   = lREALbailout;
+         bignumbailout = bnREALbailout;
+         bigfltbailout = bfREALbailout;
          break;}
      case Imag:{
-         floatbailout  = (int *)(void)fpIMAGbailout;
-         longbailout   = (int *)(void)asmlIMAGbailout;
-         bignumbailout = (int *)(void)bnIMAGbailout;
-         bigfltbailout = (int *)(void)bfIMAGbailout;
+         floatbailout  = fpIMAGbailout;
+         longbailout   = lIMAGbailout;
+         bignumbailout = bnIMAGbailout;
+         bigfltbailout = bfIMAGbailout;
          break;}
      case Or:{
-         floatbailout  = (int *)(void)fpORbailout;
-         longbailout   = (int *)(void)asmlORbailout;
-         bignumbailout = (int *)(void)bnORbailout;
-         bigfltbailout = (int *)(void)bfORbailout;
+         floatbailout  = fpORbailout;
+         longbailout   = lORbailout;
+         bignumbailout = bnORbailout;
+         bigfltbailout = bfORbailout;
          break;}
      case And:{
-         floatbailout  = (int *)(void)fpANDbailout;
-         longbailout   = (int *)(void)asmlANDbailout;
-         bignumbailout = (int *)(void)bnANDbailout;
-         bigfltbailout = (int *)(void)bfANDbailout;
+         floatbailout  = fpANDbailout;
+         longbailout   = lANDbailout;
+         bignumbailout = bnANDbailout;
+         bigfltbailout = bfANDbailout;
          break;}
      case Manh:{
-         floatbailout  = (int *)(void)fpMANHbailout;
-         longbailout   = (int *)(void)asmlMANHbailout;
-         bignumbailout = (int *)(void)bnMANHbailout;
-         bigfltbailout = (int *)(void)bfMANHbailout;
+         floatbailout  = fpMANHbailout;
+         longbailout   = lMANHbailout;
+         bignumbailout = bnMANHbailout;
+         bigfltbailout = bfMANHbailout;
          break;}
      case Manr:{
-         floatbailout  = (int *)(void)fpMANRbailout;
-         longbailout   = (int *)(void)asmlMANRbailout;
-         bignumbailout = (int *)(void)bnMANRbailout;
-         bigfltbailout = (int *)(void)bfMANRbailout;
+         floatbailout  = fpMANRbailout;
+         longbailout   = lMANRbailout;
+         bignumbailout = bnMANRbailout;
+         bigfltbailout = bfMANRbailout;
          break;}
    }
 }

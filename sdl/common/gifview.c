@@ -67,7 +67,7 @@ static char *ditherbuf = NULL;
 
 /* Main entry decoder */
 
-int gifview()
+int gifview(void)
 {
   BYTE buffer[16];
   unsigned top, left, width, finished;

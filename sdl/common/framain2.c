@@ -75,20 +75,11 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
             }
 #endif
 // FIXME (jonathan#1#): Don't need next.  JCO 02/20/2010
-          memcpy((char *)&videoentry,(char *)&videotable[adapter],
-                     sizeof(videoentry));
-          axmode  = videoentry.videomodeax; /* video mode (BIOS call)   */
-          bxmode  = videoentry.videomodebx; /* video mode (BIOS call)   */
-          cxmode  = videoentry.videomodecx; /* video mode (BIOS call)   */
-          dxmode  = videoentry.videomodedx; /* video mode (BIOS call)   */
-          dotmode = videoentry.dotmode;     /* assembler dot read/write */
+//          dotmode = videoentry.dotmode;     /* assembler dot read/write */
 // FIXME (jonathan#1#): Next should come from sstools.ini or command line. JCO 02/20/2010
-          xdots   = videoentry.xdots;       /* # dots across the screen */
-          ydots   = videoentry.ydots;       /* # dots down the screen   */
-          colors  = videoentry.colors;      /* # colors available */
-// FIXME (jonathan#1#): Don't need next.  JCO 02/20/201
-          dotmode %= 1000;
-          dotmode  %= 100;
+//          xdots   = videoentry.xdots;       /* # dots across the screen */
+//          ydots   = videoentry.ydots;       /* # dots down the screen   */
+//          colors  = videoentry.colors;      /* # colors available */
 
           sxdots  = xdots;
           sydots  = ydots;
@@ -129,10 +120,8 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
 // NOTE (jonathan#1#): viewwindow is used by evolver
           if (viewwindow)
             {
-              ftemp = finalaspectratio    /* bypass for VESA virtual screen */
-                      * ((dotmode == 28 && ((vesa_xres && vesa_xres != sxdots)
-                                            || (vesa_yres && vesa_yres != sydots)))
-                         ? 1 : (double)sydots / (double)sxdots / screenaspect);
+              ftemp = finalaspectratio
+                      * ((double)sydots / (double)sxdots / screenaspect);
               if ((xdots = viewxdots) != 0)   /* xdots specified */
                 {
                   if ((ydots = viewydots) == 0) /* calc ydots? */
@@ -205,8 +194,6 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
           outln_cleanup = NULL;          /* outln routine can set this */
           if (display3d)                 /* set up 3D decoding */
             outln = call_line3d;
-          else if (filetype >= 1)        /* old .tga format input file */
-            outln = outlin16;
           else if (comparegif)           /* debug 50 */
             outln = cmp_line;
           else if (pot16bit)             /* .pot format input file */
@@ -242,7 +229,9 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
               i = funny_glasses_call(gifview);
             }
           else
-            i = funny_glasses_call(tgaview);
+// FIXME (jonathan#1#): Need to define actions for other filetypes
+;
+//            i = funny_glasses_call(tgaview);
           if (outln_cleanup)             /* cleanup routine defined? */
             (*outln_cleanup)();
           if (i == 0)

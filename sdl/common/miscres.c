@@ -802,7 +802,6 @@ int tab_display_2(char *msg)
    s_row++;
    show_str_var(s_tempdir,    tempdir,      &s_row, msg);
    show_str_var(s_workdir,    workdir,      &s_row, msg);
-   show_str_var(s_printfile,  PrintName,    &s_row, msg);
    show_str_var(s_filename,   readname,     &s_row, msg);
    show_str_var(s_formulafile,FormFileName, &s_row, msg);
    show_str_var(s_savename,   savename,     &s_row, msg);
@@ -1119,10 +1118,9 @@ top:
    ++s_row;
    if(bf_math == 0)
      ++s_row;
-   if (videoentry.xdots && bf_math==0) {
-      sprintf(msg,"Video: %dx%dx%d %s %s",
-              videoentry.xdots, videoentry.ydots, videoentry.colors,
-              videoentry.name, videoentry.comment);
+   if (bf_math==0) {
+      sprintf(msg,"Video: %dx%dx%d",
+              xdots, ydots, colors);
       putstring(s_row++,2,C_GENERAL_MED,msg);
       }
    if(!(curfractalspecific->flags&NOZOOM))
