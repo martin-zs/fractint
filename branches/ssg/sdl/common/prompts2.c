@@ -9,17 +9,7 @@
 #elif !defined(__386BSD__)
 #include <sys/types.h>
 #include <sys/stat.h>
-
-#ifdef DIRENT
 #include <dirent.h>
-#elif !defined(__SVR4)
-#include <sys/dir.h>
-#else
-#include <dirent.h>
-#ifndef DIRENT
-#define DIRENT
-#endif
-#endif
 
 #endif
 #ifdef __TURBOC__
@@ -757,24 +747,6 @@ get_view_restart:
   LOADCHOICES("");
   uvalues[k].type = '*';
 
-  if (dotmode == 11 || (virtual && dotmode == 28))
-    {
-      LOADCHOICES("Virtual screen total x pixels");
-      uvalues[k].type = 'i';
-      uvalues[k].uval.ival = sxdots;
-
-      if (dotmode == 11)
-        {
-          LOADCHOICES("                     y pixels");
-        }
-      else
-        {
-          LOADCHOICES("                     y pixels (0: by aspect ratio)");
-        }
-      uvalues[k].type = 'i';
-      uvalues[k].uval.ival = sydots;
-    }
-
   if (dotmode != 11)
     {
       LOADCHOICES("Press "FK_F4" to reset view parameters to defaults.");
@@ -796,13 +768,8 @@ get_view_restart:
       viewreduction = (float)4.2;
       viewcrop = 1;
       finalaspectratio = screenaspect;
-      if (dotmode == 28)
-        {
-          sxdots = vesa_xres ? vesa_xres : old_sxdots;
-          sydots = vesa_yres ? vesa_yres : old_sydots;
-          video_cutboth = 1;
-          zscroll = 1;
-        }
+      sxdots =  old_sxdots;
+      sydots =  old_sydots;
       goto get_view_restart;
     }
 
@@ -821,43 +788,6 @@ get_view_restart:
 
       viewxdots = uvalues[++k].uval.ival;
       viewydots = uvalues[++k].uval.ival;
-    }
-
-  ++k;
-
-  if (virtual && dotmode == 28 && chkd_vvs && !video_scroll)
-    ++k;  /* add 1 if not supported line is inserted */
-
-  if (dotmode == 11 || (virtual && dotmode == 28))
-    {
-      sxdots = uvalues[++k].uval.ival;
-      sydots = uvalues[++k].uval.ival;
-
-      if ((unsigned long)sxdots > estm_xmax)
-        sxdots = (int)estm_xmax;
-      if (sxdots < 2)
-        sxdots = 2;
-      if (sydots == 0 && dotmode == 28)   /* auto by aspect ratio request */
-        {
-          if (finalaspectratio == 0.0)
-            {
-              if (viewwindow && viewxdots != 0 && viewydots != 0)
-                finalaspectratio = (float)viewydots/viewxdots;
-              else
-                finalaspectratio = old_aspectratio;
-            }
-          sydots = (int)(finalaspectratio * sxdots + 0.5);
-        }
-      if ((unsigned long)sydots > estm_ymax)
-        sydots = (int)estm_ymax;
-      if (sydots < 2)
-        sydots = 2;
-    }
-
-  if (dotmode == 11 || (virtual && dotmode == 28))
-    {
-      if (finalaspectratio == 0.0)
-        finalaspectratio = (float)sydots/sxdots;
     }
 
   if (viewxdots != 0 && viewydots != 0 && viewwindow && finalaspectratio == 0.0)
@@ -1320,18 +1250,7 @@ int  fr_findfirst(char *path)       /* Find 1st file (or subdir) meeting path/fi
 
 int  fr_findnext()              /* Find next file (or subdir) meeting above path/filespec */
 {
-#ifndef XFRACT
-  union REGS regs;
-  regs.h.ah = 0x4F;             /* Find next file meeting path */
-  regs.x.dx = (unsigned)&DTA;
-  intdos(&regs, &regs);
-  return(regs.x.ax);
-#else
-#ifdef DIRENT
   struct dirent *dirEntry;
-#else
-  struct direct *dirEntry;
-#endif
   struct stat sbuf;
   char thisname[FILE_MAX_PATH];
   char tmpname[FILE_MAX_PATH];
@@ -1370,7 +1289,6 @@ int  fr_findnext()              /* Find next file (or subdir) meeting above path
             }
         }
     }
-#endif
 }
 
 
@@ -2836,56 +2754,20 @@ char *has_ext(char *source)
 
 
 /* I tried heap sort also - this is faster! */
-void shell_sort(void far *v1, int n, unsigned sz, int (__cdecl *fct)(VOIDFARPTR arg1,VOIDFARPTR arg2))
+void shell_sort(void *v1, int n, unsigned sz, int (__cdecl *fct)(VOIDFARPTR arg1,VOIDFARPTR arg2))
 {
   int gap,i,j;
-  void far *temp;
-  char far *v;
-  v = (char far *)v1;
+  void *temp;
+  char *v;
+  v = (char *)v1;
   for (gap = n/2; gap > 0; gap /= 2)
     for (i = gap; i<n; i++)
       for (j=i-gap;j>=0; j -= gap)
         {
-          if (fct((char far *far*)(v+j*sz),(char far *far*)(v+(j+gap)*sz)) <= 0)
+          if (fct((char **)(v+j*sz),(char **)(v+(j+gap)*sz)) <= 0)
             break;
-          temp = *(char far *far*)(v+j*sz);
-          *(char far *far*)(v+j*sz) = *(char far *far*)(v+(j+gap)*sz);
-          *(char far *far*)(v+(j+gap)*sz) = temp;
+          temp = *(char **)(v+j*sz);
+          *(char **)(v+j*sz) = *(char **)(v+(j+gap)*sz);
+          *(char **)(v+(j+gap)*sz) = temp;
         }
 }
-
-#if (_MSC_VER >= 700)
-#pragma code_seg ("prompts3_text")     /* place following in an overlay */
-#endif
-
-void far_strncpy(char far *t, char far *s, int len)
-{
-  while ((len-- && (*t++ = *s++) != 0));
-}
-
-char far *far_strchr(char far *str, char c)
-{
-  int len,i;
-  len = far_strlen(str);
-  i= -1;
-  while (++i < len && c != str[i]);
-  if (i == len)
-    return(NULL);
-  else
-    return(&str[i]);
-}
-
-char far *far_strrchr(char far *str, char c)
-{
-  int len;
-  len = far_strlen(str);
-  while (--len > -1 && c != str[len]);
-  if (len == -1)
-    return(NULL);
-  else
-    return(&str[len]);
-}
-
-#if (_MSC_VER >= 700)
-#pragma code_seg ("")
-#endif

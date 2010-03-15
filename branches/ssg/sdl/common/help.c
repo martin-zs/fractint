@@ -934,8 +934,9 @@ static int exe_path(char *filename, char *path)
 
    return (0);
 #else
-   strcpy(path,SRCDIR);
-   strcat(path,"/");
+/*   strcpy(path,SRCDIR); for now use dot */
+   strcpy(path,".");
+   strcat(path,"/"); // FIXME (jonathan#1#): Need to fix slash for different environments
    strcat(path,filename);
    return 1;
 #endif

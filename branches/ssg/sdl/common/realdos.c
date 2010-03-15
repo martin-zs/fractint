@@ -225,13 +225,7 @@ int showtempmsg(char far *msgparm)
   size = (long)textxdots * (long)textydots;
   save_sxoffs = sxoffs;
   save_syoffs = syoffs;
-  if (video_scroll)
-    {
-      sxoffs = video_startx;
-      syoffs = video_starty;
-    }
-  else
-    sxoffs = syoffs = 0;
+  sxoffs = syoffs = 0;
   if (temptextsave == 0) /* only save screen first time called */
     {
       if ((temptextsave = MemoryAlloc((U16)textxdots,(long)textydots,FARMEM)) == 0)
@@ -289,13 +283,7 @@ void cleartempmsg()
     {
       save_sxoffs = sxoffs;
       save_syoffs = syoffs;
-      if (video_scroll)
-        {
-          sxoffs = video_startx;
-          syoffs = video_starty;
-        }
-      else
-        sxoffs = syoffs = 0;
+      sxoffs = syoffs = 0;
       for (i = 0; i < textydots; ++i)
         {
           MoveFromMemory(buffer,(U16)textxdots,1L,(long)i,temptextsave);

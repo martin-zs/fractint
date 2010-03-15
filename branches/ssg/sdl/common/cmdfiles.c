@@ -376,7 +376,6 @@ char s_vesadetect[] =       "vesadetect";
 char s_vga[] =              "vga";
 char s_video[] =            "video";
 char s_viewwindows[] =      "viewwindows";
-char s_virtual[] =          "virtual";
 char s_volume[] =           "volume";
 char s_warn[] =             "warn";
 char s_waterline[] =        "waterline";
@@ -605,7 +604,6 @@ static void initvars_restart()          /* <ins> key init */
    int i;
    recordcolors = 'a';                  /* don't use mapfiles in PARs */
    save_release = release;              /* this release number */
-   gif87a_flag = INIT_GIF87;            /* turn on GIF89a processing */
    dither_flag = 0;                     /* no dithering */
    askvideo = 1;                        /* turn on video-prompt flag */
    overwrite = 0;                       /* don't overwrite           */
@@ -617,12 +615,9 @@ static void initvars_restart()          /* <ins> key init */
    viewwindow = 0;                      /* no view window            */
    viewreduction = (float)4.2;
    viewcrop = 1;
-   virtual = 1;                         /* virtual screen modes on   */
    ai_8514 = 0;                         /* no need for the 8514 API  */
    finalaspectratio = screenaspect;
    viewxdots = viewydots = 0;
-   video_cutboth = 1;                   /* keep virtual aspect */
-   zscroll = 1;                         /* relaxed screen scrolling */
    orbit_delay = 0;                     /* full speed orbits */
    orbit_interval = 1;                  /* plot all orbits */
    debugflag = 0;                       /* debugging flag(s) are off */
@@ -732,11 +727,10 @@ static void initvars_fractal()          /* init vars affecting calculation */
 
    old_demm_colors = 0;
    bailoutest    = Mod;
-   floatbailout  = (int *)(void)fpMODbailout;
-// FIXME (jonathan#1#): Need to code long bailout routines.
-   longbailout   = (int *)(void)asmlMODbailout;
-   bignumbailout = (int *)(void)bnMODbailout;
-   bigfltbailout = (int *)(void)bfMODbailout;
+   floatbailout  = fpMODbailout;
+   longbailout   = lMODbailout;
+   bignumbailout = bnMODbailout;
+   bigfltbailout = bfMODbailout;
 
    functionpreloaded = 0; /* for old bifs  JCO 7/5/92 */
    mxminfp = -.83;
@@ -1216,12 +1210,6 @@ int cmdarg(char *curarg,int mode) /* process a single argument */
    if (strcmp(variable,s_overwrite) == 0 ) {    /* overwrite=? */
       if (yesnoval[0] < 0) goto badarg;
       overwrite = (char)yesnoval[0];
-      return 0;
-      }
-
-   if (strcmp(variable,s_gif87a) == 0 ) {       /* gif87a=? */
-      if (yesnoval[0] < 0) goto badarg;
-      gif87a_flag = yesnoval[0];
       return 0;
       }
 
@@ -2531,12 +2519,6 @@ int cmdarg(char *curarg,int mode) /* process a single argument */
       if (yesnoval[0] < 0) goto badarg;
       checkcurdir = yesnoval[0];
       return 0;
-      }
-
-   if (strcmp(variable,s_virtual) == 0) {         /* virtual= */
-      if (yesnoval[0] < 0) goto badarg;
-      virtual = yesnoval[0];
-      return 1;
       }
 
 badarg:

@@ -100,8 +100,8 @@
 #define FPLORENZ                63
 #define LLORENZ                 64
 #define LLORENZ3D               65
-#define MPNEWTON                66
-#define MPNEWTBASIN             67
+#define MPNEWTON                66 /* obsolete */
+#define MPNEWTBASIN             67 /* obsolete */
 #define COMPLEXNEWTON           68
 #define COMPLEXBASIN            69
 #define COMPLEXMARKSMAND        70
@@ -171,7 +171,7 @@
 #define FPMANFNFN              134
 #define LBIFMAY                135
 #define BIFMAY                 136
-#define MPHALLEY               137
+#define MPHALLEY               137 /* obsolete */
 #define HALLEY                 138
 #define DYNAMICFP              139
 #define QUATFP                 140

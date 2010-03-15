@@ -332,6 +332,13 @@ extern int (*floatbailout)(void);
 extern int (*longbailout)(void);
 extern int (*bignumbailout)(void);
 extern int (*bigfltbailout)(void);
+extern int lMODbailout(void);
+extern int lREALbailout(void);
+extern int lIMAGbailout(void);
+extern int lORbailout(void);
+extern int lANDbailout(void);
+extern int lMANHbailout(void);
+extern int lMANRbailout(void);
 extern int fpMODbailout(void);
 extern int fpREALbailout(void);
 extern int fpIMAGbailout(void);
@@ -378,6 +385,7 @@ extern int DivideBrot5fpFractal(void);
 extern int DivideBrot5Setup(void);
 extern int ComplexNewton(void );
 extern int ComplexBasin(void );
+extern int NewtonFractal2(void );
 
 /*  fractint -- C file prototypes */
 
@@ -582,7 +590,7 @@ extern int LLoad(void);
 
 /*  math_c -- C file prototypes */
 
-extern void FPUcplxexp(_CMPLX *, _CMPLX *)
+extern void FPUcplxexp(_CMPLX *, _CMPLX *);
 extern _CMPLX ComplexPower(_CMPLX, _CMPLX);
 extern void cpower(_CMPLX *, int , _CMPLX *);
 extern int  lcpower(_LCMPLX *, int , _LCMPLX *, int);
@@ -625,7 +633,6 @@ extern void expand_comments(char *, char *);
 /*  miscres -- C file prototypes */
 
 extern void restore_active_ovly(void);
-extern void findpath(char *,char *);
 extern void notdiskmsg(void);
 extern void cvtcentermag(double *,double *,LDBL *, double *,double *,double *);
 extern void cvtcorners(double,double,LDBL,double,double,double);
@@ -966,5 +973,20 @@ typedef unsigned long uclock_t;
 extern uclock_t usec_clock(void);
 extern void restart_uclock(void);
 extern void wait_until(int index, uclock_t wait_time);
+
+/*  general -- C file prototypes */
+
+extern void findpath(char *,char *);
+
+/*  sdl_src -- C file prototypes */
+
+extern int getcolor (int, int);
+extern void putcolor_a (int, int, int);
+extern void get_line (int, int, int, BYTE *);
+extern void put_line (int, int, int, BYTE *);
+extern int out_line (BYTE *, int);
+extern void find_special_colors (void);
+
+extern BYTE *findfont(int);
 
 #endif

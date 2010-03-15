@@ -761,10 +761,6 @@ struct trig_funct_lst
 } ;
 extern struct trig_funct_lst trigfn[];
 
-/* function prototypes */
-
-extern  void   (_fastcall *plot)(int, int, int);
-
 /* for overlay return stack */
 
 #define BIG 100000.0

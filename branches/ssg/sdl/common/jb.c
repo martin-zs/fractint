@@ -58,9 +58,7 @@ int neworbittype = JULIA;
 int
 JulibrotSetup(void)
 {
-#ifndef XFRACT
    long origin;
-#endif
    int r = 0;
    char *mapname;
 

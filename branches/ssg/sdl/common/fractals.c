@@ -60,11 +60,9 @@ _CMPLX tmp2;
 _CMPLX coefficient;
 _CMPLX  staticroots[16]; /* roots array for degree 16 or less */
 _CMPLX  *roots = staticroots;
-struct MPC      *MPCroots;
 long FgHalf;
 _CMPLX pwr;
 int     bitshiftless1;                  /* bit shift less 1 */
-double TwoPi;
 _CMPLX temp, BaseLog;
 _CMPLX cdegree = { 3.0, 0.0 }, croot   = { 1.0, 0.0 };
 
@@ -79,10 +77,8 @@ _CMPLX cdegree = { 3.0, 0.0 }, croot   = { 1.0, 0.0 };
 #define modulus(z)       (sqr((z).x)+sqr((z).y))
 #define conjugate(pz)   ((pz)->y = 0.0 - (pz)->y)
 #define distance(z1,z2)  (sqr((z1).x-(z2).x)+sqr((z1).y-(z2).y))
-#define pMPsqr(z) (*pMPmul((z),(z)))
-#define MPdistance(z1,z2)  (*pMPadd(pMPsqr(*pMPsub((z1).x,(z2).x)),pMPsqr(*pMPsub((z1).y,(z2).y))))
 
-double twopi = PI*2.0;
+double TWOPI = PI*2.0;
 int c_exp;
 
 
@@ -155,6 +151,19 @@ int fpMODbailout(void)
   return(0);
 }
 #endif
+
+int lMODbailout(void)
+{
+  ltempsqrx = lsqr(lnew.x);
+  ltempsqry = lsqr(lnew.y);
+  lmagnitud = ltempsqrx + ltempsqry;
+  if (lmagnitud >= llimit || lmagnitud < 0 || labs(lnew.x) > llimit2
+      || labs(lnew.y) > llimit2 || overflow)
+    return(1);
+  lold = lnew;
+  return(0);
+}
+
 int fpMODbailout(void)
 {
   tempsqrx=sqr(new.x);
@@ -162,6 +171,18 @@ int fpMODbailout(void)
   magnitude = tempsqrx + tempsqry;
   if (magnitude >= rqlim) return(1);
   old = new;
+  return(0);
+}
+
+int lREALbailout(void)
+{
+  ltempsqrx = lsqr(lnew.x);
+  ltempsqry = lsqr(lnew.y);
+  lmagnitud = ltempsqrx + ltempsqry;
+// NOTE (jonathan#1#): Do we need similar checks as with lMODbailout???
+  if (ltempsqrx >= llimit || overflow)
+    return(1);
+  lold = lnew;
   return(0);
 }
 
@@ -175,6 +196,18 @@ int fpREALbailout(void)
   return(0);
 }
 
+int lIMAGbailout(void)
+{
+  ltempsqrx = lsqr(lnew.x);
+  ltempsqry = lsqr(lnew.y);
+  lmagnitud = ltempsqrx + ltempsqry;
+// NOTE (jonathan#1#): Do we need similar checks as with lMODbailout???
+  if (ltempsqry >= llimit || overflow)
+    return(1);
+  lold = lnew;
+  return(0);
+}
+
 int fpIMAGbailout(void)
 {
   tempsqrx=sqr(new.x);
@@ -182,6 +215,18 @@ int fpIMAGbailout(void)
   magnitude = tempsqrx + tempsqry;
   if (tempsqry >= rqlim) return(1);
   old = new;
+  return(0);
+}
+
+int lORbailout(void)
+{
+  ltempsqrx = lsqr(lnew.x);
+  ltempsqry = lsqr(lnew.y);
+  lmagnitud = ltempsqrx + ltempsqry;
+// NOTE (jonathan#1#): Do we need similar checks as with lMODbailout???
+  if (ltempsqrx >= llimit || ltempsqry >= llimit || overflow)
+    return(1);
+  lold = lnew;
   return(0);
 }
 
@@ -195,6 +240,18 @@ int fpORbailout(void)
   return(0);
 }
 
+int lANDbailout(void)
+{
+  ltempsqrx = lsqr(lnew.x);
+  ltempsqry = lsqr(lnew.y);
+  lmagnitud = ltempsqrx + ltempsqry;
+// NOTE (jonathan#1#): Do we need similar checks as with lMODbailout???
+  if ((ltempsqrx >= llimit && ltempsqry >= llimit) || overflow)
+    return(1);
+  lold = lnew;
+  return(0);
+}
+
 int fpANDbailout(void)
 {
   tempsqrx=sqr(new.x);
@@ -202,6 +259,21 @@ int fpANDbailout(void)
   magnitude = tempsqrx + tempsqry;
   if (tempsqrx >= rqlim && tempsqry >= rqlim) return(1);
   old = new;
+  return(0);
+}
+
+int lMANHbailout(void)
+{
+  long lmanhmag, ltemp1;
+  ltempsqrx = lsqr(lnew.x);
+  ltempsqry = lsqr(lnew.y);
+  lmagnitud = ltempsqrx + ltempsqry;
+  ltemp1 = fabs(lnew.x) + fabs(lnew.y);
+  lmanhmag = multiply(ltemp1, ltemp1, bitshift);
+// NOTE (jonathan#1#): Do we need similar checks as with lMODbailout???
+  if ((lmanhmag >= llimit) || overflow)
+    return(1);
+  lold = lnew;
   return(0);
 }
 
@@ -214,6 +286,21 @@ int fpMANHbailout(void)
   manhmag = fabs(new.x) + fabs(new.y);
   if ((manhmag * manhmag) >= rqlim) return(1);
   old = new;
+  return(0);
+}
+
+int lMANRbailout(void)
+{
+  long lmanrmag, ltemp1;
+  ltempsqrx = lsqr(lnew.x);
+  ltempsqry = lsqr(lnew.y);
+  lmagnitud = ltempsqrx + ltempsqry;
+  ltemp1 = lnew.x + lnew.y; /* don't need abs() since we square it next */
+  lmanrmag = multiply(ltemp1, ltemp1, bitshift);
+// NOTE (jonathan#1#): Do we need similar checks as with lMODbailout???
+  if ((lmanrmag >= llimit) || overflow)
+    return(1);
+  lold = lnew;
   return(0);
 }
 
@@ -280,7 +367,7 @@ int fpMANRbailout(void)
       double tmp;\
       tmp = (X);\
       tmp /= fudge;\
-      tmp = fmod(tmp,twopi);\
+      tmp = fmod(tmp,TWOPI);\
       tmp *= fudge;\
       (X) = (long)tmp;\
    }\
@@ -297,6 +384,7 @@ static int Halleybailout(void)
 /* -------------------------------------------------------------------- */
 /*              Fractal (once per iteration) routines                   */
 /* -------------------------------------------------------------------- */
+static double t2;
 
 /* Distance of complex z from unit circle */
 #define DIST1(z) (((z).x-1.0)*((z).x-1.0)+((z).y)*((z).y))
@@ -1367,8 +1455,6 @@ JuliaTrigOrTrigfpFractal(void)
 }
 
 int AplusOne, Ap1deg;
-struct MP mpAplusOne, mpAp1deg;
-struct MPC mpctmpparm;
 
 int
 HalleyFractal(void)
@@ -2999,7 +3085,7 @@ int ComplexBasin(void)
         old.y = 0.0;
       FPUcplxlog(&old, &temp);
       FPUcplxmul(&temp, &cdegree, &tmp);
-      mod = tmp.y/TwoPi;
+      mod = tmp.y/TWOPI;
       coloriter = (long)mod;
       if (fabs(mod - coloriter) > 0.5)
         {

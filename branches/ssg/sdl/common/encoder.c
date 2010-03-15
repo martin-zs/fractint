@@ -80,8 +80,6 @@ int savetodisk(char *filename)      /* save-to-disk routine */
 restart:
 
   save16bit = disk16bit;
-  if (gif87a_flag)             /* not storing non-standard fractal info */
-    save16bit = 0;
 
   strcpy(openfile, filename);  /* decode and open the filename */
   strcpy(openfiletype, DEFAULTFRACTALTYPE);    /* determine the file
@@ -150,23 +148,6 @@ restart:
       sprintf(buf, "Saving %s", tmpmsg);
       dvid_status(1, buf);
     }
-#ifdef XFRACT
-  else
-#ifdef NCURSES
-    {
-      putstring(3, 0, 0, "Saving to:");
-      putstring(4, 0, 0, openfile);
-      putstring(5, 0, 0, "               ");
-    }
-#else
-    {
-      char cmd[256];
-      sprintf(cmd, "Saving to: %s", openfile);
-      xpopup(cmd);
-      usleep(300000);
-    }
-#endif
-#endif
 
   busy = 1;
 
@@ -296,16 +277,8 @@ int encoder()
     }
 #endif
 
-  if (gif87a_flag == 1)
-    {
-      if (fwrite("GIF87a", 6, 1, g_outfile) != 1)
-        goto oops;             /* old GIF Signature */
-    }
-  else
-    {
-      if (fwrite("GIF89a", 6, 1, g_outfile) != 1)
-        goto oops;             /* new GIF Signature */
-    }
+  if (fwrite("GIF89a", 6, 1, g_outfile) != 1)
+    goto oops;             /* new GIF Signature */
 
   width = xdots;
   rowlimit = ydots;
@@ -339,9 +312,6 @@ int encoder()
     i = 1;
   if (i > 255)
     i = 255;
-  if (gif87a_flag)
-    i = 0;                    /* for some decoders which can't handle
-                                 * aspect */
   if (fputc(i, g_outfile) != i)
     goto oops;                /* pixel aspect ratio */
 
@@ -429,7 +399,7 @@ int encoder()
   if (fputc(0, g_outfile) != 0)
     goto oops;
 
-  if (gif87a_flag == 0)
+  if (1) /* gif87a_flag == 0 */
     {
       /* store non-standard fractal info */
       /* loadfile.c has notes about extension block structure */
@@ -692,14 +662,10 @@ static void setup_save_info(struct fractal_info * save_info)
   save_info->ymax = yymax;
   save_info->creal = param[0];
   save_info->cimag = param[1];
-  save_info->videomodeax = (short) videoentry.videomodeax;
-  save_info->videomodebx = (short) videoentry.videomodebx;
-  save_info->videomodecx = (short) videoentry.videomodecx;
-  save_info->videomodedx = (short) videoentry.videomodedx;
-  save_info->dotmode = (short) (videoentry.dotmode % 100);
-  save_info->xdots = (short) videoentry.xdots;
-  save_info->ydots = (short) videoentry.ydots;
-  save_info->colors = (short) videoentry.colors;
+  save_info->dotmode = dotmode;
+  save_info->xdots = xdots;
+  save_info->ydots = ydots;
+  save_info->colors = colors;
   save_info->parm3 = 0;        /* pre version==7 fields */
   save_info->parm4 = 0;
   save_info->dparm3 = param[2];

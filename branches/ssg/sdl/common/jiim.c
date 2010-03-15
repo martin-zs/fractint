@@ -46,7 +46,7 @@
 #include <varargs.h>
 #endif
 
-  /* see Fractint.c for a description of the "include"  hierarchy */
+/* see Fractint.c for a description of the "include"  hierarchy */
 #include "port.h"
 #include "prototyp.h"
 #include "helpdefs.h"
@@ -70,9 +70,9 @@ double ycjul = BIG;
 
 void displays(int x, int y, int fg, int bg, char *str, int len)
 {
-   int i;
-   for(i=0;i<len; i++)
-      displayc(x+i*8, y, fg, bg, str[i]);
+  int i;
+  for (i=0;i<len; i++)
+    displayc(x+i*8, y, fg, bg, str[i]);
 }
 
 /* circle routines from Dr. Dobbs June 1990 */
@@ -81,87 +81,88 @@ unsigned int xAspect, yAspect;
 
 void SetAspect(double aspect)
 {
-   xAspect = 0;
-   yAspect = 0;
-   aspect = fabs(aspect);
-   if (aspect != 1.0) {
+  xAspect = 0;
+  yAspect = 0;
+  aspect = fabs(aspect);
+  if (aspect != 1.0)
+    {
       if (aspect > 1.0)
-         yAspect = (unsigned int)(65536.0 / aspect);
+        yAspect = (unsigned int)(65536.0 / aspect);
       else
-         xAspect = (unsigned int)(65536.0 * aspect);
-   }
+        xAspect = (unsigned int)(65536.0 * aspect);
+    }
 }
 
 void c_putcolor(int x, int y, int color)
-   {
-   /* avoid writing outside window */
-   if ( x < xc || y < yc || x >= xc + xd || y >= yc + yd )
-      return ;
-   if(y >= sydots - show_numbers) /* avoid overwriting coords */
+{
+  /* avoid writing outside window */
+  if ( x < xc || y < yc || x >= xc + xd || y >= yc + yd )
+    return ;
+  if (y >= sydots - show_numbers) /* avoid overwriting coords */
+    return;
+  if (windows == 2) /* avoid overwriting fractal */
+    if (0 <= x && x < xdots && 0 <= y && y < ydots)
       return;
-   if(windows == 2) /* avoid overwriting fractal */
-      if (0 <= x && x < xdots && 0 <= y && y < ydots)
-         return;
-   putcolor(x, y, color);
-   }
+  putcolor(x, y, color);
+}
 
 
 int  c_getcolor(int x, int y)
-   {
-   /* avoid reading outside window */
-   if ( x < xc || y < yc || x >= xc + xd || y >= yc + yd )
+{
+  /* avoid reading outside window */
+  if ( x < xc || y < yc || x >= xc + xd || y >= yc + yd )
+    return 1000;
+  if (y >= sydots - show_numbers) /* avoid overreading coords */
+    return 1000;
+  if (windows == 2) /* avoid overreading fractal */
+    if (0 <= x && x < xdots && 0 <= y && y < ydots)
       return 1000;
-   if(y >= sydots - show_numbers) /* avoid overreading coords */
-      return 1000;
-   if(windows == 2) /* avoid overreading fractal */
-      if (0 <= x && x < xdots && 0 <= y && y < ydots)
-         return 1000;
-   return getcolor(x, y);
-   }
+  return getcolor(x, y);
+}
 
 void circleplot(int x, int y, int color)
 {
-   if (xAspect == 0)
-      if (yAspect == 0)
-         c_putcolor(x+xbase, y+ybase,color);
-      else
-         c_putcolor(x+xbase, (short)(ybase + (((long) y * (long) yAspect) >> 16)),color);
-   else
-      c_putcolor((int)(xbase + (((long) x * (long) xAspect) >> 16)), y+ybase, color);
+  if (xAspect == 0)
+    if (yAspect == 0)
+      c_putcolor(x+xbase, y+ybase,color);
+    else
+      c_putcolor(x+xbase, (short)(ybase + (((long) y * (long) yAspect) >> 16)),color);
+  else
+    c_putcolor((int)(xbase + (((long) x * (long) xAspect) >> 16)), y+ybase, color);
 }
 
 void plot8(int x, int y, int color)
 {
-   circleplot(x,y,color);
-   circleplot(-x,y,color);
-   circleplot(x,-y,color);
-   circleplot(-x,-y,color);
-   circleplot(y,x,color);
-   circleplot(-y,x,color);
-   circleplot(y,-x,color);
-   circleplot(-y,-x,color);
+  circleplot(x,y,color);
+  circleplot(-x,y,color);
+  circleplot(x,-y,color);
+  circleplot(-x,-y,color);
+  circleplot(y,x,color);
+  circleplot(-y,x,color);
+  circleplot(y,-x,color);
+  circleplot(-y,-x,color);
 }
 
 void circle(int radius, int color)
 {
-   int x,y,sum;
+  int x,y,sum;
 
-   x = 0;
-   y = radius << 1;
-   sum = 0;
+  x = 0;
+  y = radius << 1;
+  sum = 0;
 
-   while (x <= y)
-   {
+  while (x <= y)
+    {
       if ( !(x & 1) )   /* plot if x is even */
-         plot8( x >> 1, (y+1) >> 1, color);
+        plot8( x >> 1, (y+1) >> 1, color);
       sum += (x << 1) + 1;
       x++;
       if (sum > 0)
-      {
-         sum -= (y << 1) - 1;
-         y--;
-      }
-   }
+        {
+          sum -= (y << 1) - 1;
+          y--;
+        }
+    }
 }
 
 
@@ -174,25 +175,25 @@ void circle(int radius, int color)
  */
 
 
- long   ListFront, ListBack, ListSize;  /* head, tail, size of MIIM Queue */
- long   lsize, lmax;                    /* how many in queue (now, ever) */
- int    maxhits = 1;
- int    OKtoMIIM;
- int    SecretExperimentalMode;
- float  luckyx = 0, luckyy = 0;
+long   ListFront, ListBack, ListSize;  /* head, tail, size of MIIM Queue */
+long   lsize, lmax;                    /* how many in queue (now, ever) */
+int    maxhits = 1;
+int    OKtoMIIM;
+int    SecretExperimentalMode;
+float  luckyx = 0, luckyy = 0;
 
 static void fillrect(int x, int y, int width, int depth, int color)
 {
-   /* fast version of fillrect */
-   if(hasinverse == 0)
-      return;
-   memset(dstack, color % colors, width);
-   while (depth-- > 0)
-   {
-      if(keypressed()) /* we could do this less often when in fast modes */
-         return;
+  /* fast version of fillrect */
+  if (hasinverse == 0)
+    return;
+  memset(dstack, color % colors, width);
+  while (depth-- > 0)
+    {
+      if (keypressed()) /* we could do this less often when in fast modes */
+        return;
       putrow(x, y++, width, (char *)dstack);
-   }
+    }
 }
 
 /*
@@ -204,27 +205,27 @@ static void fillrect(int x, int y, int width, int depth, int color)
 int
 QueueEmpty()            /* True if NO points remain in queue */
 {
-   return (ListFront == ListBack);
+  return (ListFront == ListBack);
 }
 
 #if 0 /* not used */
 int
 QueueFull()             /* True if room for NO more points in queue */
 {
-   return (((ListFront + 1) % ListSize) == ListBack);
+  return (((ListFront + 1) % ListSize) == ListBack);
 }
 #endif
 
 int
 QueueFullAlmost()       /* True if room for ONE more point in queue */
 {
-   return (((ListFront + 2) % ListSize) == ListBack);
+  return (((ListFront + 2) % ListSize) == ListBack);
 }
 
 void
 ClearQueue()
 {
-   ListFront = ListBack = lsize = lmax = 0;
+  ListFront = ListBack = lsize = lmax = 0;
 }
 
 
@@ -235,175 +236,175 @@ ClearQueue()
 
 int Init_Queue(unsigned long request)
 {
-/* following will need to be changed JCO 02/09/2010 */
-   for (ListSize = request; ListSize > 1024; ListSize /= 2)
-      switch (common_startdisk(ListSize * 8, 1, 256))
+  /* following will need to be changed JCO 02/09/2010 */
+  for (ListSize = request; ListSize > 1024; ListSize /= 2)
+    switch (common_startdisk(ListSize * 8, 1, 256))
       {
-         case 0:                        /* success */
-            ListFront = ListBack = 0;
-            lsize = lmax = 0;
-            return 1;
-         case -1:
-            continue;                   /* try smaller queue size */
-         case -2:
-            ListSize = 0;               /* cancelled by user      */
-            return 0;
+      case 0:                        /* success */
+        ListFront = ListBack = 0;
+        lsize = lmax = 0;
+        return 1;
+      case -1:
+        continue;                   /* try smaller queue size */
+      case -2:
+        ListSize = 0;               /* cancelled by user      */
+        return 0;
       }
 
-   /* failed to get memory for MIIM Queue */
-   ListSize = 0;
-   return 0;
+  /* failed to get memory for MIIM Queue */
+  ListSize = 0;
+  return 0;
 }
 
 void
 Free_Queue()
 {
-   enddisk();
-   ListFront = ListBack = ListSize = lsize = lmax = 0;
+  enddisk();
+  ListFront = ListBack = ListSize = lsize = lmax = 0;
 }
 
 int
 PushLong(long x, long y)
 {
-   if (((ListFront + 1) % ListSize) != ListBack)
-   {
+  if (((ListFront + 1) % ListSize) != ListBack)
+    {
       if (ToMemDisk(8*ListFront, sizeof(x), &x) &&
           ToMemDisk(8*ListFront +sizeof(x), sizeof(y), &y))
-      {
-         ListFront = (ListFront + 1) % ListSize;
-         if (++lsize > lmax)
-         {
-            lmax   = lsize;
-            luckyx = (float)x;
-            luckyy = (float)y;
-         }
-         return 1;
-      }
-   }
-   return 0;                    /* fail */
+        {
+          ListFront = (ListFront + 1) % ListSize;
+          if (++lsize > lmax)
+            {
+              lmax   = lsize;
+              luckyx = (float)x;
+              luckyy = (float)y;
+            }
+          return 1;
+        }
+    }
+  return 0;                    /* fail */
 }
 
 int
 PushFloat(float x, float y)
 {
-   if (((ListFront + 1) % ListSize) != ListBack)
-   {
+  if (((ListFront + 1) % ListSize) != ListBack)
+    {
       if (ToMemDisk(8*ListFront, sizeof(x), &x) &&
           ToMemDisk(8*ListFront +sizeof(x), sizeof(y), &y))
-      {
-         ListFront = (ListFront + 1) % ListSize;
-         if (++lsize > lmax)
-         {
-            lmax   = lsize;
-            luckyx = x;
-            luckyy = y;
-         }
-         return 1;
-      }
-   }
-   return 0;                    /* fail */
+        {
+          ListFront = (ListFront + 1) % ListSize;
+          if (++lsize > lmax)
+            {
+              lmax   = lsize;
+              luckyx = x;
+              luckyy = y;
+            }
+          return 1;
+        }
+    }
+  return 0;                    /* fail */
 }
 
 _CMPLX
 PopFloat()
 {
-   _CMPLX pop;
-   float  popx, popy;
+  _CMPLX pop;
+  float  popx, popy;
 
-   if (!QueueEmpty())
-   {
+  if (!QueueEmpty())
+    {
       ListFront--;
       if (ListFront < 0)
-          ListFront = ListSize - 1;
+        ListFront = ListSize - 1;
       if (FromMemDisk(8*ListFront, sizeof(popx), &popx) &&
           FromMemDisk(8*ListFront +sizeof(popx), sizeof(popy), &popy))
-      {
-         pop.x = popx;
-         pop.y = popy;
-         --lsize;
-      }
+        {
+          pop.x = popx;
+          pop.y = popy;
+          --lsize;
+        }
       return pop;
-   }
-   pop.x = 0;
-   pop.y = 0;
-   return pop;
+    }
+  pop.x = 0;
+  pop.y = 0;
+  return pop;
 }
 
 LCMPLX
 PopLong()
 {
-   LCMPLX pop;
+  LCMPLX pop;
 
-   if (!QueueEmpty())
-   {
+  if (!QueueEmpty())
+    {
       ListFront--;
       if (ListFront < 0)
-          ListFront = ListSize - 1;
+        ListFront = ListSize - 1;
       if (FromMemDisk(8*ListFront, sizeof(pop.x), &pop.x) &&
           FromMemDisk(8*ListFront +sizeof(pop.x), sizeof(pop.y), &pop.y))
-         --lsize;
+        --lsize;
       return pop;
-   }
-   pop.x = 0;
-   pop.y = 0;
-   return pop;
+    }
+  pop.x = 0;
+  pop.y = 0;
+  return pop;
 }
 
 int
 EnQueueFloat(float x, float y)
 {
-   return PushFloat(x, y);
+  return PushFloat(x, y);
 }
 
 int
 EnQueueLong(long x, long y)
 {
-   return PushLong(x, y);
+  return PushLong(x, y);
 }
 
 _CMPLX
 DeQueueFloat()
 {
-   _CMPLX out;
-   float outx, outy;
+  _CMPLX out;
+  float outx, outy;
 
-   if (ListBack != ListFront)
-   {
+  if (ListBack != ListFront)
+    {
       if (FromMemDisk(8*ListBack, sizeof(outx), &outx) &&
           FromMemDisk(8*ListBack +sizeof(outx), sizeof(outy), &outy))
-      {
-         ListBack = (ListBack + 1) % ListSize;
-         out.x = outx;
-         out.y = outy;
-         lsize--;
-      }
+        {
+          ListBack = (ListBack + 1) % ListSize;
+          out.x = outx;
+          out.y = outy;
+          lsize--;
+        }
       return out;
-   }
-   out.x = 0;
-   out.y = 0;
-   return out;
+    }
+  out.x = 0;
+  out.y = 0;
+  return out;
 }
 
 LCMPLX
 DeQueueLong()
 {
-   LCMPLX out;
-   out.x = 0;
-   out.y = 0;
+  LCMPLX out;
+  out.x = 0;
+  out.y = 0;
 
-   if (ListBack != ListFront)
-   {
+  if (ListBack != ListFront)
+    {
       if (FromMemDisk(8*ListBack, sizeof(out.x), &out.x) &&
           FromMemDisk(8*ListBack +sizeof(out.x), sizeof(out.y), &out.y))
-      {
-         ListBack = (ListBack + 1) % ListSize;
-         lsize--;
-      }
+        {
+          ListBack = (ListBack + 1) % ListSize;
+          lsize--;
+        }
       return out;
-   }
-   out.x = 0;
-   out.y = 0;
-   return out;
+    }
+  out.x = 0;
+  out.y = 0;
+  return out;
 }
 
 
@@ -414,46 +415,46 @@ DeQueueLong()
 
 static void SaveRect(int x, int y, int width, int depth)
 {
-   char buff[MAXRECT];
-   int  yoff;
-   if(hasinverse == 0)
-      return;
-   /* first, do any de-allocationg */
+  char buff[MAXRECT];
+  int  yoff;
+  if (hasinverse == 0)
+    return;
+  /* first, do any de-allocationg */
 
-   if (memory_handle != 0)
-      MemoryRelease(memory_handle);
+  if (memory_handle != 0)
+    MemoryRelease(memory_handle);
 
-   /* allocate space and store the rect */
+  /* allocate space and store the rect */
 
-   memset(dstack, color_dark, width);
-   if ((memory_handle = MemoryAlloc( (U16)width, (long)depth, FARMEM)) != 0)
-   {
+  memset(dstack, color_dark, width);
+  if ((memory_handle = MemoryAlloc( (U16)width, (long)depth, FARMEM)) != 0)
+    {
       Cursor_Hide();
       for (yoff=0; yoff<depth; yoff++)
-      {
-         getrow(x, y+yoff, width, buff);
-         putrow(x, y+yoff, width, (char *)dstack);
-         MoveToMemory((BYTE *)buff, (U16)width, 1L, (long)(yoff), memory_handle);
-      }
+        {
+          getrow(x, y+yoff, width, buff);
+          putrow(x, y+yoff, width, (char *)dstack);
+          MoveToMemory((BYTE *)buff, (U16)width, 1L, (long)(yoff), memory_handle);
+        }
       Cursor_Show();
-   }
+    }
 }
 
 
 static void RestoreRect(int x, int y, int width, int depth)
 {
-   char buff[MAXRECT];
-   int  yoff;
-   if(hasinverse == 0)
-      return;
+  char buff[MAXRECT];
+  int  yoff;
+  if (hasinverse == 0)
+    return;
 
-    Cursor_Hide();
-    for (yoff=0; yoff<depth; yoff++)
-       {
-          MoveFromMemory((BYTE *)buff, (U16)width, 1L, (long)(yoff), memory_handle);
-          putrow(x, y+yoff, width, buff);
-       }
-    Cursor_Show();
+  Cursor_Hide();
+  for (yoff=0; yoff<depth; yoff++)
+    {
+      MoveFromMemory((BYTE *)buff, (U16)width, 1L, (long)(yoff), memory_handle);
+      putrow(x, y+yoff, width, buff);
+    }
+  Cursor_Show();
 }
 
 /*
@@ -464,791 +465,802 @@ _CMPLX SaveC = {-3000.0, -3000.0};
 
 void Jiim(int which)         /* called by fractint */
 {
-   struct affine cvt;
-   int exact = 0;
-   int oldhelpmode;
-   int count = 0;            /* coloring julia */
-   static int mode = 0;      /* point, circle, ... */
-   int       oldlookatmouse = lookatmouse;
-   double cr, ci, r;
-   int xfactor, yfactor;             /* aspect ratio          */
+  struct affine cvt;
+  int exact = 0;
+  int oldhelpmode;
+  int count = 0;            /* coloring julia */
+  static int mode = 0;      /* point, circle, ... */
+  int       oldlookatmouse = lookatmouse;
+  double cr, ci, r;
+  int xfactor, yfactor;             /* aspect ratio          */
 
-   int xoff, yoff;                   /* center of the window  */
-   int x, y;
-   int still, kbdchar= -1;
+  int xoff, yoff;                   /* center of the window  */
+  int x, y;
+  int still, kbdchar= -1;
 
-   long iter;
-   int color;
-   float zoom;
-   int oldsxoffs, oldsyoffs;
-   int savehasinverse;
-   int (*oldcalctype)(void);
-   int old_x, old_y;
-   double aspect;
-   static int randir = 0;
-   static int rancnt = 0;
-   int actively_computing = 1;
-   int first_time = 1;
-   int old_debugflag;
+  long iter;
+  int color;
+  float zoom;
+  int oldsxoffs, oldsyoffs;
+  int savehasinverse;
+  int (*oldcalctype)(void);
+  int old_x, old_y;
+  double aspect;
+  static int randir = 0;
+  static int rancnt = 0;
+  int actively_computing = 1;
+  int first_time = 1;
+  int old_debugflag;
 
-   old_debugflag = debugflag;
-   /* must use standard fractal or be calcfroth */
-   if(fractalspecific[fractype].calctype != StandardFractal
-       && fractalspecific[fractype].calctype != calcfroth)
-       return;
-   oldhelpmode = helpmode;
-   if(which == JIIM)
-      helpmode = HELP_JIIM;
-   else
-   {
+  old_debugflag = debugflag;
+  /* must use standard fractal or be calcfroth */
+  if (fractalspecific[fractype].calctype != StandardFractal
+      && fractalspecific[fractype].calctype != calcfroth)
+    return;
+  oldhelpmode = helpmode;
+  if (which == JIIM)
+    helpmode = HELP_JIIM;
+  else
+    {
       helpmode = HELP_ORBITS;
       hasinverse = 1;
 
 #if 0 /* I don't think this is needed any more */
       /* Earth to Chuck Ebbert - remove this code when your code supports
          my changes to PARSER.C */
-      if(fractype == FFORMULA)
-      {
-         debugflag = 90;
-      }
+      if (fractype == FFORMULA)
+        {
+          debugflag = 90;
+        }
 #endif
-   }
-   oldsxoffs = sxoffs;
-   oldsyoffs = syoffs;
-   oldcalctype = calctype;
-   show_numbers = 0;
-   using_jiim = 1;
-   mem_init(strlocn, 10*1024);
-   line_buff = newx(max(sxdots,sydots));
-   aspect = ((double)xdots*3)/((double)ydots*4);  /* assumes 4:3 */
-         actively_computing = 1;
-   SetAspect(aspect);
-   lookatmouse = 3;
+    }
+  oldsxoffs = sxoffs;
+  oldsyoffs = syoffs;
+  oldcalctype = calctype;
+  show_numbers = 0;
+  using_jiim = 1;
+  mem_init(strlocn, 10*1024);
+  line_buff = newx(max(sxdots,sydots));
+  aspect = ((double)xdots*3)/((double)ydots*4);  /* assumes 4:3 */
+  actively_computing = 1;
+  SetAspect(aspect);
+  lookatmouse = 3;
 
-   /* this code moved from just below to avoid boxx/strlocn conflict */
-   if(which == ORBIT)
-      (*PER_IMAGE)();
-   else
-      color = color_bright;
-   /* end moved code */
+  /* this code moved from just below to avoid boxx/strlocn conflict */
+  if (which == ORBIT)
+    (*PER_IMAGE)();
+  else
+    color = color_bright;
+  /* end moved code */
 
-   Cursor_Construct();
+  Cursor_Construct();
 
-/*
- * MIIM code:
- * Grab memory for Queue/Stack before SaveRect gets it.
- */
-   OKtoMIIM  = 0;
-   if (which == JIIM && debugflag != 300)
-      OKtoMIIM = Init_Queue((long)8*1024); /* Queue Set-up Successful? */
+  /*
+   * MIIM code:
+   * Grab memory for Queue/Stack before SaveRect gets it.
+   */
+  OKtoMIIM  = 0;
+  if (which == JIIM && debugflag != 300)
+    OKtoMIIM = Init_Queue((long)8*1024); /* Queue Set-up Successful? */
 
-   maxhits = 1;
-   if (which == ORBIT)
-      plot = c_putcolor;                /* for line with clipping */
+  maxhits = 1;
+  if (which == ORBIT)
+    plot = c_putcolor;                /* for line with clipping */
 
-/*
- * end MIIM code.
- */
+  /*
+   * end MIIM code.
+   */
 
-/* need to put following back to how it was before we added video_scroll. JCO 02/09/2010 */
-   if (!video_scroll) {
-      vesa_xres = sxdots;
-      vesa_yres = sydots;
-   }
-
-   if(sxoffs != 0 || syoffs != 0) /* we're in view windows */
-   {
+  if (sxoffs != 0 || syoffs != 0) /* we're in view windows */
+    {
       savehasinverse = hasinverse;
       hasinverse = 1;
       SaveRect(0,0,xdots,ydots);
-      sxoffs = video_startx;
-      syoffs = video_starty;
+      sxoffs = 0;
+      syoffs = 0;
       RestoreRect(0,0,xdots,ydots);
       hasinverse = savehasinverse;
-   }
+    }
 
-   if(xdots == vesa_xres || ydots == vesa_yres ||
-       vesa_xres-xdots < vesa_xres/3 ||
-       vesa_yres-ydots < vesa_yres/3 ||
-       xdots >= MAXRECT )
-   {
+  if (xdots == sxdots || ydots == sydots ||
+      sxdots-xdots < sxdots/3 ||
+      sydots-ydots < sydots/3 ||
+      xdots >= MAXRECT )
+    {
       /* this mode puts orbit/julia in an overlapping window 1/3 the size of
          the physical screen */
       windows = 0; /* full screen or large view window */
-      xd = vesa_xres / 3;
-      yd = vesa_yres / 3;
-      xc = video_startx + xd * 2;
-      yc = video_starty + yd * 2;
-      xoff = video_startx + xd * 5 / 2;
-      yoff = video_starty + yd * 5 / 2;
-   }
-   else if(xdots > vesa_xres/3 && ydots > vesa_yres/3)
-   {
+      xd = sxdots / 3;
+      yd = sydots / 3;
+      xc = sxoffs + xd * 2;
+      yc = syoffs + yd * 2;
+      xoff = sxoffs + xd * 5 / 2;
+      yoff = syoffs + yd * 5 / 2;
+    }
+  else if (xdots > sxdots/3 && ydots > sydots/3)
+    {
       /* Julia/orbit and fractal don't overlap */
       windows = 1;
-      xd = vesa_xres - xdots;
-      yd = vesa_yres - ydots;
-      xc = video_startx + xdots;
-      yc = video_starty + ydots;
+      xd = sxdots - xdots;
+      yd = sydots - ydots;
+      xc = sxoffs + xdots;
+      yc = syoffs + ydots;
       xoff = xc + xd/2;
       yoff = yc + yd/2;
 
-   }
-   else
-   {
+    }
+  else
+    {
       /* Julia/orbit takes whole screen */
       windows = 2;
-      xd = vesa_xres;
-      yd = vesa_yres;
-      xc = video_startx;
-      yc = video_starty;
-      xoff = video_startx + xd/2;
-      yoff = video_starty + yd/2;
-   }
+      xd = sxdots;
+      yd = sydots;
+      xc = sxoffs;
+      yc = syoffs;
+      xoff = sxoffs + xd/2;
+      yoff = syoffs + yd/2;
+    }
 
-   xfactor = (int)(xd/5.33);
-   yfactor = (int)(-yd/4);
+  xfactor = (int)(xd/5.33);
+  yfactor = (int)(-yd/4);
 
-   if(windows == 0)
-      SaveRect(xc,yc,xd,yd);
-   else if(windows == 2)  /* leave the fractal */
-   {
+  if (windows == 0)
+    SaveRect(xc,yc,xd,yd);
+  else if (windows == 2) /* leave the fractal */
+    {
       fillrect(xdots, yc, xd-xdots, yd, color_dark);
       fillrect(xc   , ydots, xdots, yd-ydots, color_dark);
-   }
-   else  /* blank whole window */
-      fillrect(xc, yc, xd, yd, color_dark);
+    }
+  else  /* blank whole window */
+    fillrect(xc, yc, xd, yd, color_dark);
 
-   setup_convert_to_screen(&cvt);
+  setup_convert_to_screen(&cvt);
 
-   /* reuse last location if inside window */
-   col = (int)(cvt.a*SaveC.x + cvt.b*SaveC.y + cvt.e + .5);
-   row = (int)(cvt.c*SaveC.x + cvt.d*SaveC.y + cvt.f + .5);
-   if(col < 0 || col >= xdots ||
+  /* reuse last location if inside window */
+  col = (int)(cvt.a*SaveC.x + cvt.b*SaveC.y + cvt.e + .5);
+  row = (int)(cvt.c*SaveC.x + cvt.d*SaveC.y + cvt.f + .5);
+  if (col < 0 || col >= xdots ||
       row < 0 || row >= ydots)
-   {
+    {
       cr = (xxmax + xxmin) / 2.0;
       ci = (yymax + yymin) / 2.0;
-   }
-   else
-   {
+    }
+  else
+    {
       cr = SaveC.x;
       ci = SaveC.y;
-   }
+    }
 
-   old_x = old_y = -1;
+  old_x = old_y = -1;
 
-   col = (int)(cvt.a*cr + cvt.b*ci + cvt.e + .5);
-   row = (int)(cvt.c*cr + cvt.d*ci + cvt.f + .5);
+  col = (int)(cvt.a*cr + cvt.b*ci + cvt.e + .5);
+  row = (int)(cvt.c*cr + cvt.d*ci + cvt.f + .5);
 
-   /* possible extraseg arrays have been trashed, so set up again */
-/* following shouldn't be needed. JCO 02/09/2010 */
-   if(integerfractal)
-      fill_lx_array();
-   else
-      fill_dx_array();
+  /* possible extraseg arrays have been trashed, so set up again */
+  /* following shouldn't be needed. JCO 02/09/2010 */
+  if (integerfractal)
+    fill_lx_array();
+  else
+    fill_dx_array();
 
-   Cursor_SetPos(col, row);
-   Cursor_Show();
-   color = color_bright;
+  Cursor_SetPos(col, row);
+  Cursor_Show();
+  color = color_bright;
 
-   iter = 1;
-   still = 1;
-   zoom = 1;
+  iter = 1;
+  still = 1;
+  zoom = 1;
 
 #ifdef XFRACT
-   Cursor_StartMouseTracking();
+  Cursor_StartMouseTracking();
 #endif
 
-   while (still)
-   {
+  while (still)
+    {
       int dcol, drow;
-      if (actively_computing) {
+      if (actively_computing)
+        {
           Cursor_CheckBlink();
-      } else {
+        }
+      else
+        {
           Cursor_WaitKey();
-      }
-      if(keypressed() || first_time) /* prevent burning up UNIX CPU */
-      {
-         first_time = 0;
-         while(keypressed())
-         {
-            Cursor_WaitKey();
-            kbdchar = getakey();
-
-            dcol = drow = 0;
-            xcjul = BIG;
-            ycjul = BIG;
-            switch (kbdchar)
+        }
+      if (keypressed() || first_time) /* prevent burning up UNIX CPU */
+        {
+          first_time = 0;
+          while (keypressed())
             {
-            case 1143:    /* ctrl - keypad 5 */
-            case 1076:    /* keypad 5        */
-               break;     /* do nothing */
-            case CTL_PAGE_UP:
-               dcol = 4;
-               drow = -4;
-               break;
-            case CTL_PAGE_DOWN:
-               dcol = 4;
-               drow = 4;
-               break;
-            case CTL_HOME:
-               dcol = -4;
-               drow = -4;
-               break;
-            case CTL_END:
-               dcol = -4;
-               drow = 4;
-               break;
-            case PAGE_UP:
-               dcol = 1;
-               drow = -1;
-               break;
-            case PAGE_DOWN:
-               dcol = 1;
-               drow = 1;
-               break;
-            case HOME:
-               dcol = -1;
-               drow = -1;
-               break;
-            case END:
-               dcol = -1;
-               drow = 1;
-               break;
-            case UP_ARROW:
-               drow = -1;
-               break;
-            case DOWN_ARROW:
-               drow = 1;
-               break;
-            case LEFT_ARROW:
-               dcol = -1;
-               break;
-            case RIGHT_ARROW:
-               dcol = 1;
-               break;
-            case UP_ARROW_2:
-               drow = -4;
-               break;
-            case DOWN_ARROW_2:
-               drow = 4;
-               break;
-            case LEFT_ARROW_2:
-               dcol = -4;
-               break;
-            case RIGHT_ARROW_2:
-               dcol = 4;
-               break;
-            case 'z':
-            case 'Z':
-               zoom = (float)1.0;
-               break;
-            case '<':
-            case ',':
-               zoom /= (float)1.15;
-               break;
-            case '>':
-            case '.':
-               zoom *= (float)1.15;
-               break;
-            case SPACE:
-               xcjul = cr;
-               ycjul = ci;
-               goto finish;
-               /* break; */
-            case 'c':   /* circle toggle */
-            case 'C':   /* circle toggle */
-               mode = mode ^ 1;
-               break;
-            case 'l':
-            case 'L':
-               mode = mode ^ 2;
-               break;
-            case 'n':
-            case 'N':
-               show_numbers = 8 - show_numbers;
-               if(windows == 0 && show_numbers == 0)
-               {
-                  Cursor_Hide();
-                  cleartempmsg();
-                  Cursor_Show();
-               }
-               break;
-            case 'p':
-            case 'P':
-               get_a_number(&cr,&ci);
-               exact = 1;
-               col = (int)(cvt.a*cr + cvt.b*ci + cvt.e + .5);
-               row = (int)(cvt.c*cr + cvt.d*ci + cvt.f + .5);
-               dcol = drow = 0;
-               break;
-            case 'h':   /* hide fractal toggle */
-            case 'H':   /* hide fractal toggle */
-               if(windows == 2)
-                  windows = 3;
-               else if(windows == 3 && xd == vesa_xres)
-               {
-                  RestoreRect(video_startx, video_starty, xdots, ydots);
-                  windows = 2;
-               }
-               break;
-#ifdef XFRACT
-            case ENTER:
-                break;
-#endif
-            case '0':
-            case '1':
-            case '2':
-/*          case '3': */  /* don't use '3', it's already meaningful */
-            case '4':
-            case '5':
-            case '6':
-            case '7':
-            case '8':
-            case '9':
-               if (which == JIIM)
-               {
-                  SecretExperimentalMode = kbdchar - '0';
+              Cursor_WaitKey();
+              kbdchar = getakey();
+
+              dcol = drow = 0;
+              xcjul = BIG;
+              ycjul = BIG;
+              switch (kbdchar)
+                {
+                case 1143:    /* ctrl - keypad 5 */
+                case 1076:    /* keypad 5        */
+                  break;     /* do nothing */
+                case CTL_PAGE_UP:
+                  dcol = 4;
+                  drow = -4;
                   break;
-               }
-            default:
-               still = 0;
-/*             ismand = (short)(1 - ismand); */
-            }  /* switch */
-            if(kbdchar == 's' || kbdchar == 'S')
-               goto finish;
-            if(dcol > 0 || drow > 0)
-               exact = 0;
-            col += dcol;
-            row += drow;
+                case CTL_PAGE_DOWN:
+                  dcol = 4;
+                  drow = 4;
+                  break;
+                case CTL_HOME:
+                  dcol = -4;
+                  drow = -4;
+                  break;
+                case CTL_END:
+                  dcol = -4;
+                  drow = 4;
+                  break;
+                case PAGE_UP:
+                  dcol = 1;
+                  drow = -1;
+                  break;
+                case PAGE_DOWN:
+                  dcol = 1;
+                  drow = 1;
+                  break;
+                case HOME:
+                  dcol = -1;
+                  drow = -1;
+                  break;
+                case END:
+                  dcol = -1;
+                  drow = 1;
+                  break;
+                case UP_ARROW:
+                  drow = -1;
+                  break;
+                case DOWN_ARROW:
+                  drow = 1;
+                  break;
+                case LEFT_ARROW:
+                  dcol = -1;
+                  break;
+                case RIGHT_ARROW:
+                  dcol = 1;
+                  break;
+                case UP_ARROW_2:
+                  drow = -4;
+                  break;
+                case DOWN_ARROW_2:
+                  drow = 4;
+                  break;
+                case LEFT_ARROW_2:
+                  dcol = -4;
+                  break;
+                case RIGHT_ARROW_2:
+                  dcol = 4;
+                  break;
+                case 'z':
+                case 'Z':
+                  zoom = (float)1.0;
+                  break;
+                case '<':
+                case ',':
+                  zoom /= (float)1.15;
+                  break;
+                case '>':
+                case '.':
+                  zoom *= (float)1.15;
+                  break;
+                case SPACE:
+                  xcjul = cr;
+                  ycjul = ci;
+                  goto finish;
+                  /* break; */
+                case 'c':   /* circle toggle */
+                case 'C':   /* circle toggle */
+                  mode = mode ^ 1;
+                  break;
+                case 'l':
+                case 'L':
+                  mode = mode ^ 2;
+                  break;
+                case 'n':
+                case 'N':
+                  show_numbers = 8 - show_numbers;
+                  if (windows == 0 && show_numbers == 0)
+                    {
+                      Cursor_Hide();
+                      cleartempmsg();
+                      Cursor_Show();
+                    }
+                  break;
+                case 'p':
+                case 'P':
+                  get_a_number(&cr,&ci);
+                  exact = 1;
+                  col = (int)(cvt.a*cr + cvt.b*ci + cvt.e + .5);
+                  row = (int)(cvt.c*cr + cvt.d*ci + cvt.f + .5);
+                  dcol = drow = 0;
+                  break;
+                case 'h':   /* hide fractal toggle */
+                case 'H':   /* hide fractal toggle */
+                  if (windows == 2)
+                    windows = 3;
+                  else if (windows == 3 && xd == sxdots)
+                    {
+                      RestoreRect(sxoffs, syoffs, xdots, ydots);
+                      windows = 2;
+                    }
+                  break;
 #ifdef XFRACT
-            if (kbdchar == ENTER) {
-                /* We want to use the position of the cursor */
-                exact=0;
-                col = Cursor_GetX();
-                row = Cursor_GetY();
-            }
+                case ENTER:
+                  break;
+#endif
+                case '0':
+                case '1':
+                case '2':
+                  /*          case '3': */  /* don't use '3', it's already meaningful */
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
+                  if (which == JIIM)
+                    {
+                      SecretExperimentalMode = kbdchar - '0';
+                      break;
+                    }
+                default:
+                  still = 0;
+                  /*             ismand = (short)(1 - ismand); */
+                }  /* switch */
+              if (kbdchar == 's' || kbdchar == 'S')
+                goto finish;
+              if (dcol > 0 || drow > 0)
+                exact = 0;
+              col += dcol;
+              row += drow;
+#ifdef XFRACT
+              if (kbdchar == ENTER)
+                {
+                  /* We want to use the position of the cursor */
+                  exact=0;
+                  col = Cursor_GetX();
+                  row = Cursor_GetY();
+                }
 #endif
 
-            /* keep cursor in logical screen */
-           if(col >= xdots) {
-              col = xdots -1; exact = 0;
-           }
-           if(row >= ydots) {
-              row = ydots -1; exact = 0;
-           }
-           if(col < 0) {
-              col = 0; exact = 0;
-           }
-           if(row < 0) {
-              row = 0; exact = 0;
-           }
+              /* keep cursor in logical screen */
+              if (col >= xdots)
+                {
+                  col = xdots -1;
+                  exact = 0;
+                }
+              if (row >= ydots)
+                {
+                  row = ydots -1;
+                  exact = 0;
+                }
+              if (col < 0)
+                {
+                  col = 0;
+                  exact = 0;
+                }
+              if (row < 0)
+                {
+                  row = 0;
+                  exact = 0;
+                }
 
-            Cursor_SetPos(col,row);
-         }  /* end while (keypressed) */
+              Cursor_SetPos(col,row);
+            }  /* end while (keypressed) */
 
-         if(exact == 0)
-         {
-            if(integerfractal)
+          if (exact == 0)
             {
-               cr = lxpixel();
-               ci = lypixel();
-               cr /= (1L<<bitshift);
-               ci /= (1L<<bitshift);
+              if (integerfractal)
+                {
+                  cr = lxpixel();
+                  ci = lypixel();
+                  cr /= (1L<<bitshift);
+                  ci /= (1L<<bitshift);
+                }
+              else
+                {
+                  cr = dxpixel();
+                  ci = dypixel();
+                }
             }
-            else
+          actively_computing = 1;
+          if (show_numbers) /* write coordinates on screen */
             {
-               cr = dxpixel();
-               ci = dypixel();
+              char str[41];
+              sprintf(str,"%16.14f %16.14f %3d",cr,ci,getcolor(col,row));
+              if (windows == 0)
+                {
+                  /* show temp msg will clear self if new msg is a
+                     different length - pad to length 40*/
+                  while ((int)strlen(str) < 40)
+                    strcat(str," ");
+                  str[40] = 0;
+                  Cursor_Hide();
+                  actively_computing = 1;
+                  showtempmsg(str);
+                  Cursor_Show();
+                }
+              else
+                displays(5, sydots-show_numbers, WHITE, BLACK, str,strlen(str));
             }
-         }
-         actively_computing = 1;
-         if(show_numbers) /* write coordinates on screen */
-         {
-            char str[41];
-            sprintf(str,"%16.14f %16.14f %3d",cr,ci,getcolor(col,row));
-            if(windows == 0)
+          iter = 1;
+          old.x = old.y = lold.x = lold.y = 0;
+          SaveC.x = init.x =  cr;
+          SaveC.y = init.y =  ci;
+          linit.x = (long)(init.x*fudge);
+          linit.y = (long)(init.y*fudge);
+
+          old_x = old_y = -1;
+          /*
+           * MIIM code:
+           * compute fixed points and use them as starting points of JIIM
+           */
+          if (which == JIIM && OKtoMIIM)
             {
-               /* show temp msg will clear self if new msg is a
-                  different length - pad to length 40*/
-               while((int)strlen(str) < 40)
-                  strcat(str," ");
-               str[40] = 0;
-               Cursor_Hide();
-               actively_computing = 1;
-               showtempmsg(str);
-               Cursor_Show();
+              _CMPLX f1, f2, Sqrt;        /* Fixed points of Julia */
+
+              Sqrt = ComplexSqrtFloat(1 - 4 * cr, -4 * ci);
+              f1.x = (1 + Sqrt.x) / 2;
+              f2.x = (1 - Sqrt.x) / 2;
+              f1.y =  Sqrt.y / 2;
+              f2.y = -Sqrt.y / 2;
+
+              ClearQueue();
+              maxhits = 1;
+              EnQueueFloat((float)f1.x, (float)f1.y);
+              EnQueueFloat((float)f2.x, (float)f2.y);
             }
-            else
-               displays(5, vesa_yres-show_numbers, WHITE, BLACK, str,strlen(str));
-         }
-         iter = 1;
-         old.x = old.y = lold.x = lold.y = 0;
-         SaveC.x = init.x =  cr;
-         SaveC.y = init.y =  ci;
-         linit.x = (long)(init.x*fudge);
-         linit.y = (long)(init.y*fudge);
-
-         old_x = old_y = -1;
-/*
- * MIIM code:
- * compute fixed points and use them as starting points of JIIM
- */
-         if (which == JIIM && OKtoMIIM)
-         {
-            _CMPLX f1, f2, Sqrt;        /* Fixed points of Julia */
-
-            Sqrt = ComplexSqrtFloat(1 - 4 * cr, -4 * ci);
-            f1.x = (1 + Sqrt.x) / 2;
-            f2.x = (1 - Sqrt.x) / 2;
-            f1.y =  Sqrt.y / 2;
-            f2.y = -Sqrt.y / 2;
-
-            ClearQueue();
-            maxhits = 1;
-            EnQueueFloat((float)f1.x, (float)f1.y);
-            EnQueueFloat((float)f2.x, (float)f2.y);
-         }
-/*
- * End MIIM code.
- */
-         if(which == ORBIT)
-         {
-           PER_PIXEL();
-         }  
-         /* move window if bumped */
-         if(windows==0 && col>xc && col < xc+xd && row>yc && row < yc+yd)
-         {
-            RestoreRect(xc,yc,xd,yd);
-            if (xc == video_startx + xd*2)
-               xc = video_startx + 2;
-            else
-               xc = video_startx + xd*2;
-            xoff = xc + xd /  2;
-            SaveRect(xc,yc,xd,yd);
-         }
-         if(windows == 2)
-         {
-            fillrect(xdots, yc, xd-xdots, yd-show_numbers, color_dark);
-            fillrect(xc   , ydots, xdots, yd-ydots-show_numbers, color_dark);
-         }
-         else
+          /*
+           * End MIIM code.
+           */
+          if (which == ORBIT)
+            {
+              PER_PIXEL();
+            }
+          /* move window if bumped */
+          if (windows==0 && col>xc && col < xc+xd && row>yc && row < yc+yd)
+            {
+              RestoreRect(xc,yc,xd,yd);
+              if (xc == sxoffs + xd*2)
+                xc = sxoffs + 2;
+              else
+                xc = sxoffs + xd*2;
+              xoff = xc + xd /  2;
+              SaveRect(xc,yc,xd,yd);
+            }
+          if (windows == 2)
+            {
+              fillrect(xdots, yc, xd-xdots, yd-show_numbers, color_dark);
+              fillrect(xc   , ydots, xdots, yd-ydots-show_numbers, color_dark);
+            }
+          else
             fillrect(xc, yc, xd, yd, color_dark);
 
-      } /* end if (keypressed) */
+        } /* end if (keypressed) */
 
-      if(which == JIIM)
-      {
-         if(hasinverse == 0)
+      if (which == JIIM)
+        {
+          if (hasinverse == 0)
             continue;
-/*
- * MIIM code:
- * If we have MIIM queue allocated, then use MIIM method.
- */
-         if (OKtoMIIM)
-         {
-            if (QueueEmpty())
+          /*
+           * MIIM code:
+           * If we have MIIM queue allocated, then use MIIM method.
+           */
+          if (OKtoMIIM)
             {
-               if (maxhits < colors - 1 && maxhits < 5 &&
-                  (luckyx != 0.0 || luckyy != 0.0))
-               {
-                  int i;
+              if (QueueEmpty())
+                {
+                  if (maxhits < colors - 1 && maxhits < 5 &&
+                      (luckyx != 0.0 || luckyy != 0.0))
+                    {
+                      int i;
 
-                  lsize  = lmax   = 0;
-                  old.x  = new.x  = luckyx;
-                  old.y  = new.y  = luckyy;
-                  luckyx = luckyy = (float)0.0;
-                  for (i=0; i<199; i++)
-                  {
-                     old = ComplexSqrtFloat(old.x - cr, old.y - ci);
-                     new = ComplexSqrtFloat(new.x - cr, new.y - ci);
-                     EnQueueFloat( (float)new.x,  (float)new.y);
-                     EnQueueFloat((float)-old.x, (float)-old.y);
-                  }
-                  maxhits++;
-               }
-               else
-                  continue;             /* loop while (still) */
-            }
+                      lsize  = lmax   = 0;
+                      old.x  = new.x  = luckyx;
+                      old.y  = new.y  = luckyy;
+                      luckyx = luckyy = (float)0.0;
+                      for (i=0; i<199; i++)
+                        {
+                          old = ComplexSqrtFloat(old.x - cr, old.y - ci);
+                          new = ComplexSqrtFloat(new.x - cr, new.y - ci);
+                          EnQueueFloat( (float)new.x,  (float)new.y);
+                          EnQueueFloat((float)-old.x, (float)-old.y);
+                        }
+                      maxhits++;
+                    }
+                  else
+                    continue;             /* loop while (still) */
+                }
 
-            old = DeQueueFloat();
+              old = DeQueueFloat();
 
 #if 0 /* try a different new method */
-            if (lsize < (lmax / 8) && maxhits < 5)      /* NEW METHOD */
-               if (maxhits < colors - 1)
-                   maxhits++;
+              if (lsize < (lmax / 8) && maxhits < 5)      /* NEW METHOD */
+                if (maxhits < colors - 1)
+                  maxhits++;
 #endif
-            x = (int)(old.x * xfactor * zoom + xoff);
-            y = (int)(old.y * yfactor * zoom + yoff);
-            color = c_getcolor(x, y);
-            if (color < maxhits)
-            {
-               c_putcolor(x, y, color + 1);
-               new = ComplexSqrtFloat(old.x - cr, old.y - ci);
-               EnQueueFloat( (float)new.x,  (float)new.y);
-               EnQueueFloat((float)-new.x, (float)-new.y);
+              x = (int)(old.x * xfactor * zoom + xoff);
+              y = (int)(old.y * yfactor * zoom + yoff);
+              color = c_getcolor(x, y);
+              if (color < maxhits)
+                {
+                  c_putcolor(x, y, color + 1);
+                  new = ComplexSqrtFloat(old.x - cr, old.y - ci);
+                  EnQueueFloat( (float)new.x,  (float)new.y);
+                  EnQueueFloat((float)-new.x, (float)-new.y);
+                }
             }
-         }
-         else
-         {
-/*
- * end Msnyder code, commence if not MIIM code.
- */
-         old.x -= cr;
-         old.y -= ci;
-         r = old.x*old.x + old.y*old.y;
-         if(r > 10.0)
-         {
-             old.x = old.y = 0.0; /* avoids math error */
-             iter = 1;
-             r = 0;
-         }
-         iter++;
-         color = ((count++)>>5)%colors; /* chg color every 32 pts */
-         if(color==0)
-          color = 1;
-
-/*       r = sqrt(old.x*old.x + old.y*old.y); calculated above */
-         r = sqrt(r);
-         new.x = sqrt(fabs((r + old.x)/2));
-         if (old.y < 0)
-            new.x = -new.x;
-
-         new.y = sqrt(fabs((r - old.x)/2));
-
-
-         switch (SecretExperimentalMode) {
-            case 0:                     /* unmodified random walk */
-            default:
-                if (rand() % 2)
+          else
+            {
+              /*
+               * end Msnyder code, commence if not MIIM code.
+               */
+              old.x -= cr;
+              old.y -= ci;
+              r = old.x*old.x + old.y*old.y;
+              if (r > 10.0)
                 {
-                   new.x = -new.x;
-                   new.y = -new.y;
+                  old.x = old.y = 0.0; /* avoids math error */
+                  iter = 1;
+                  r = 0;
                 }
-                x = (int)(new.x * xfactor * zoom + xoff);
-                y = (int)(new.y * yfactor * zoom + yoff);
-                break;
-            case 1:                     /* always go one direction */
-                if (SaveC.y < 0)
-                {
-                   new.x = -new.x;
-                   new.y = -new.y;
-                }
-                x = (int)(new.x * xfactor * zoom + xoff);
-                y = (int)(new.y * yfactor * zoom + yoff);
-                break;
-            case 2:                     /* go one dir, draw the other */
-                if (SaveC.y < 0)
-                {
-                   new.x = -new.x;
-                   new.y = -new.y;
-                }
-                x = (int)(-new.x * xfactor * zoom + xoff);
-                y = (int)(-new.y * yfactor * zoom + yoff);
-                break;
-            case 4:                     /* go negative if max color */
-                x = (int)(new.x * xfactor * zoom + xoff);
-                y = (int)(new.y * yfactor * zoom + yoff);
-                if (c_getcolor(x, y) == colors - 1)
-                {
-                   new.x = -new.x;
-                   new.y = -new.y;
-                   x = (int)(new.x * xfactor * zoom + xoff);
-                   y = (int)(new.y * yfactor * zoom + yoff);
-                }
-                break;
-            case 5:                     /* go positive if max color */
+              iter++;
+              color = ((count++)>>5)%colors; /* chg color every 32 pts */
+              if (color==0)
+                color = 1;
+
+              /*       r = sqrt(old.x*old.x + old.y*old.y); calculated above */
+              r = sqrt(r);
+              new.x = sqrt(fabs((r + old.x)/2));
+              if (old.y < 0)
                 new.x = -new.x;
-                new.y = -new.y;
-                x = (int)(new.x * xfactor * zoom + xoff);
-                y = (int)(new.y * yfactor * zoom + yoff);
-                if (c_getcolor(x, y) == colors - 1)
+
+              new.y = sqrt(fabs((r - old.x)/2));
+
+
+              switch (SecretExperimentalMode)
                 {
-                   x = (int)(new.x * xfactor * zoom + xoff);
-                   y = (int)(new.y * yfactor * zoom + yoff);
-                }
-                break;
-            case 7:
-                if (SaveC.y < 0)
-                {
-                   new.x = -new.x;
-                   new.y = -new.y;
-                }
-                x = (int)(-new.x * xfactor * zoom + xoff);
-                y = (int)(-new.y * yfactor * zoom + yoff);
-                if(iter > 10)
-                {
-                   if(mode == 0)                        /* pixels  */
-                      c_putcolor(x, y, color);
-                   else if (mode & 1)            /* circles */
-                   {
-                      xbase = x;
-                      ybase = y;
-                      circle((int)(zoom*(xd >> 1)/iter),color);
-                   }
-                   if ((mode & 2) && x > 0 && y > 0 && old_x > 0 && old_y > 0)
-                   {
-                      draw_line(x, y, old_x, old_y, color);
-                   }
-                   old_x = x;
-                   old_y = y;
-                }
-                x = (int)(new.x * xfactor * zoom + xoff);
-                y = (int)(new.y * yfactor * zoom + yoff);
-                break;
-            case 8:                     /* go in long zig zags */
-                if (rancnt >= 300)
+                case 0:                     /* unmodified random walk */
+                default:
+                  if (rand() % 2)
+                    {
+                      new.x = -new.x;
+                      new.y = -new.y;
+                    }
+                  x = (int)(new.x * xfactor * zoom + xoff);
+                  y = (int)(new.y * yfactor * zoom + yoff);
+                  break;
+                case 1:                     /* always go one direction */
+                  if (SaveC.y < 0)
+                    {
+                      new.x = -new.x;
+                      new.y = -new.y;
+                    }
+                  x = (int)(new.x * xfactor * zoom + xoff);
+                  y = (int)(new.y * yfactor * zoom + yoff);
+                  break;
+                case 2:                     /* go one dir, draw the other */
+                  if (SaveC.y < 0)
+                    {
+                      new.x = -new.x;
+                      new.y = -new.y;
+                    }
+                  x = (int)(-new.x * xfactor * zoom + xoff);
+                  y = (int)(-new.y * yfactor * zoom + yoff);
+                  break;
+                case 4:                     /* go negative if max color */
+                  x = (int)(new.x * xfactor * zoom + xoff);
+                  y = (int)(new.y * yfactor * zoom + yoff);
+                  if (c_getcolor(x, y) == colors - 1)
+                    {
+                      new.x = -new.x;
+                      new.y = -new.y;
+                      x = (int)(new.x * xfactor * zoom + xoff);
+                      y = (int)(new.y * yfactor * zoom + yoff);
+                    }
+                  break;
+                case 5:                     /* go positive if max color */
+                  new.x = -new.x;
+                  new.y = -new.y;
+                  x = (int)(new.x * xfactor * zoom + xoff);
+                  y = (int)(new.y * yfactor * zoom + yoff);
+                  if (c_getcolor(x, y) == colors - 1)
+                    {
+                      x = (int)(new.x * xfactor * zoom + xoff);
+                      y = (int)(new.y * yfactor * zoom + yoff);
+                    }
+                  break;
+                case 7:
+                  if (SaveC.y < 0)
+                    {
+                      new.x = -new.x;
+                      new.y = -new.y;
+                    }
+                  x = (int)(-new.x * xfactor * zoom + xoff);
+                  y = (int)(-new.y * yfactor * zoom + yoff);
+                  if (iter > 10)
+                    {
+                      if (mode == 0)                       /* pixels  */
+                        c_putcolor(x, y, color);
+                      else if (mode & 1)            /* circles */
+                        {
+                          xbase = x;
+                          ybase = y;
+                          circle((int)(zoom*(xd >> 1)/iter),color);
+                        }
+                      if ((mode & 2) && x > 0 && y > 0 && old_x > 0 && old_y > 0)
+                        {
+                          draw_line(x, y, old_x, old_y, color);
+                        }
+                      old_x = x;
+                      old_y = y;
+                    }
+                  x = (int)(new.x * xfactor * zoom + xoff);
+                  y = (int)(new.y * yfactor * zoom + yoff);
+                  break;
+                case 8:                     /* go in long zig zags */
+                  if (rancnt >= 300)
                     rancnt = -300;
-                if (rancnt < 0)
-                {
-                    new.x = -new.x;
-                    new.y = -new.y;
-                }
-                x = (int)(new.x * xfactor * zoom + xoff);
-                y = (int)(new.y * yfactor * zoom + yoff);
-                break;
-            case 9:                     /* "random run" */
-                switch (randir) {
+                  if (rancnt < 0)
+                    {
+                      new.x = -new.x;
+                      new.y = -new.y;
+                    }
+                  x = (int)(new.x * xfactor * zoom + xoff);
+                  y = (int)(new.y * yfactor * zoom + yoff);
+                  break;
+                case 9:                     /* "random run" */
+                  switch (randir)
+                    {
                     case 0:             /* go random direction for a while */
-                        if (rand() % 2)
+                      if (rand() % 2)
                         {
-                            new.x = -new.x;
-                            new.y = -new.y;
+                          new.x = -new.x;
+                          new.y = -new.y;
                         }
-                        if (++rancnt > 1024)
+                      if (++rancnt > 1024)
                         {
-                            rancnt = 0;
-                            if (rand() % 2)
-                                randir =  1;
-                            else
-                                randir = -1;
+                          rancnt = 0;
+                          if (rand() % 2)
+                            randir =  1;
+                          else
+                            randir = -1;
                         }
-                        break;
+                      break;
                     case 1:             /* now go negative dir for a while */
-                        new.x = -new.x;
-                        new.y = -new.y;
-                        /* fall through */
+                      new.x = -new.x;
+                      new.y = -new.y;
+                      /* fall through */
                     case -1:            /* now go positive dir for a while */
-                        if (++rancnt > 512)
-                            randir = rancnt = 0;
-                        break;
-                }
-                x = (int)(new.x * xfactor * zoom + xoff);
-                y = (int)(new.y * yfactor * zoom + yoff);
-                break;
-         } /* end switch SecretMode (sorry about the indentation) */
-         } /* end if not MIIM */
-      }
+                      if (++rancnt > 512)
+                        randir = rancnt = 0;
+                      break;
+                    }
+                  x = (int)(new.x * xfactor * zoom + xoff);
+                  y = (int)(new.y * yfactor * zoom + yoff);
+                  break;
+                } /* end switch SecretMode (sorry about the indentation) */
+            } /* end if not MIIM */
+        }
       else /* orbits */
-      {
-         if(iter < maxit)
-         {
-            color = (int)iter%colors;
-            if(integerfractal)
+        {
+          if (iter < maxit)
             {
-               old.x = lold.x; old.x /= fudge;
-               old.y = lold.y; old.y /= fudge;
+              color = (int)iter%colors;
+              if (integerfractal)
+                {
+                  old.x = lold.x;
+                  old.x /= fudge;
+                  old.y = lold.y;
+                  old.y /= fudge;
+                }
+              x = (int)((old.x - init.x) * xfactor * 3 * zoom + xoff);
+              y = (int)((old.y - init.y) * yfactor * 3 * zoom + yoff);
+              if ((*ORBITCALC)())
+                iter = maxit;
+              else
+                iter++;
             }
-            x = (int)((old.x - init.x) * xfactor * 3 * zoom + xoff);
-            y = (int)((old.y - init.y) * yfactor * 3 * zoom + yoff);
-            if((*ORBITCALC)())
-               iter = maxit;
-            else
-               iter++;
-         }
-         else
-         {
-            x = y = -1;
-            actively_computing = 0;
-         }
-      }
-      if(which == ORBIT || iter > 10)
-      {
-         if(mode == 0)                  /* pixels  */
+          else
+            {
+              x = y = -1;
+              actively_computing = 0;
+            }
+        }
+      if (which == ORBIT || iter > 10)
+        {
+          if (mode == 0)                 /* pixels  */
             c_putcolor(x, y, color);
-         else if (mode & 1)            /* circles */
-         {
-            xbase = x;
-            ybase = y;
-            circle((int)(zoom*(xd >> 1)/iter),color);
-         }
-         if ((mode & 2) && x > 0 && y > 0 && old_x > 0 && old_y > 0)
-         {
-            draw_line(x, y, old_x, old_y, color);
-         }
-         old_x = x;
-         old_y = y;
-      }
+          else if (mode & 1)            /* circles */
+            {
+              xbase = x;
+              ybase = y;
+              circle((int)(zoom*(xd >> 1)/iter),color);
+            }
+          if ((mode & 2) && x > 0 && y > 0 && old_x > 0 && old_y > 0)
+            {
+              draw_line(x, y, old_x, old_y, color);
+            }
+          old_x = x;
+          old_y = y;
+        }
       old = new;
       lold = lnew;
-   } /* end while(still) */
+    } /* end while(still) */
 finish:
 
-/*
- * Msnyder code:
- * free MIIM queue
- */
+  /*
+   * Msnyder code:
+   * free MIIM queue
+   */
 
-   Free_Queue();
-/*
- * end Msnyder code.
- */
+  Free_Queue();
+  /*
+   * end Msnyder code.
+   */
 
-   if(kbdchar != 's'&& kbdchar != 'S')
-   {
+  if (kbdchar != 's'&& kbdchar != 'S')
+    {
       Cursor_Hide();
-      if(windows == 0)
-         RestoreRect(xc,yc,xd,yd);
-      else if(windows >= 2 )
-      {
-         if(windows == 2)
-         {
-            fillrect(xdots, yc, xd-xdots, yd, color_dark);
-            fillrect(xc   , ydots, xdots, yd-ydots, color_dark);
-         }
-         else
+      if (windows == 0)
+        RestoreRect(xc,yc,xd,yd);
+      else if (windows >= 2 )
+        {
+          if (windows == 2)
+            {
+              fillrect(xdots, yc, xd-xdots, yd, color_dark);
+              fillrect(xc   , ydots, xdots, yd-ydots, color_dark);
+            }
+          else
             fillrect(xc, yc, xd, yd, color_dark);
-         if(windows == 3 && xd == vesa_xres) /* unhide */
-         {
-            RestoreRect(0, 0, xdots, ydots);
-            windows = 2;
-         }
-         Cursor_Hide();
-         savehasinverse = hasinverse;
-         hasinverse = 1;
-         SaveRect(0,0,xdots,ydots);
-         sxoffs = oldsxoffs;
-         syoffs = oldsyoffs;
-         RestoreRect(0,0,xdots,ydots);
-         hasinverse = savehasinverse;
-      }
-   }
-   Cursor_Destroy();
+          if (windows == 3 && xd == sxdots) /* unhide */
+            {
+              RestoreRect(0, 0, xdots, ydots);
+              windows = 2;
+            }
+          Cursor_Hide();
+          savehasinverse = hasinverse;
+          hasinverse = 1;
+          SaveRect(0,0,xdots,ydots);
+          sxoffs = oldsxoffs;
+          syoffs = oldsyoffs;
+          RestoreRect(0,0,xdots,ydots);
+          hasinverse = savehasinverse;
+        }
+    }
+  Cursor_Destroy();
 #ifdef XFRACT
-   Cursor_EndMouseTracking();
+  Cursor_EndMouseTracking();
 #endif
-   delete(line_buff);
+  delete(line_buff);
 
-   if (memory_handle != 0) {
+  if (memory_handle != 0)
+    {
       MemoryRelease(memory_handle);
       memory_handle = 0;
-   }
+    }
 #if 0
-   if (memory)                  /* done with memory, free it */
-   {
+  if (memory)                  /* done with memory, free it */
+    {
       free(memory);
       memory = NULL;
-   }
+    }
 #endif
 
-   lookatmouse = oldlookatmouse;
-   using_jiim = 0;
-   calctype = oldcalctype;
-   debugflag = old_debugflag; /* yo Chuck! */
-   helpmode = oldhelpmode;
-   if(kbdchar == 's' || kbdchar == 'S')
-   {
+  lookatmouse = oldlookatmouse;
+  using_jiim = 0;
+  calctype = oldcalctype;
+  debugflag = old_debugflag; /* yo Chuck! */
+  helpmode = oldhelpmode;
+  if (kbdchar == 's' || kbdchar == 'S')
+    {
       viewwindow = viewxdots = viewydots = 0;
       viewreduction = (float)4.2;
       viewcrop = 1;
@@ -1260,18 +1272,18 @@ finish:
       sxoffs = 0;
       syoffs = 0;
       freetempmsg();
-   }
-   else
-      cleartempmsg();
-   if (file != NULL)
-      {
+    }
+  else
+    cleartempmsg();
+  if (file != NULL)
+    {
       fclose(file);
       file = NULL;
       dir_remove(tempdir,scrnfile);
-      }
-   show_numbers = 0;
-   ungetakey(kbdchar);
+    }
+  show_numbers = 0;
+  ungetakey(kbdchar);
 
-   if (curfractalspecific->calctype == calcfroth)
-      froth_cleanup();
+  if (curfractalspecific->calctype == calcfroth)
+    froth_cleanup();
 }

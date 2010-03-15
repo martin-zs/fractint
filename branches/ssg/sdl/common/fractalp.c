@@ -355,7 +355,7 @@ struct fractalspecificstuff fractalspecific[]=
       {3, 0, 0, 0},
       HT_NEWT, HF_NEWT, WINFRAC,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
-      0, NOFRACTAL, NOFRACTAL, MPNEWTON, XAXIS,
+      0, NOFRACTAL, NOFRACTAL, NOFRACTAL, XAXIS,
       NewtonFractal2, otherjuliafp_per_pixel, NewtonSetup, StandardFractal,
       NOBAILOUT
    },
@@ -1056,6 +1056,8 @@ struct fractalspecificstuff fractalspecific[]=
       NOBAILOUT
    },
 
+// FIXME (jonathan#1#): Following two are obsolete, but can't leave a hole????
+/*
    {
    t_newton+1,
       {newtdegree, ES, ES, ES},
@@ -1077,6 +1079,7 @@ struct fractalspecificstuff fractalspecific[]=
       MPCNewtonFractal, MPCjulia_per_pixel, NewtonSetup, StandardFractal,
       NOBAILOUT
    },
+*/
 
    {
    "complexnewton",
@@ -1868,6 +1871,8 @@ struct fractalspecificstuff fractalspecific[]=
       NOBAILOUT
    },
 
+// FIXME (jonathan#1#): Can't leave a hole????
+/*
    {
    t_halley+1,
       {order, real_relax, epsilon, imag_relax},
@@ -1878,6 +1883,7 @@ struct fractalspecificstuff fractalspecific[]=
       MPCHalleyFractal, MPCHalley_per_pixel, HalleySetup, StandardFractal,
       NOBAILOUT
    },
+*/
 
    {
    t_halley,
@@ -1885,7 +1891,7 @@ struct fractalspecificstuff fractalspecific[]=
       {6, 1.0, 0.0001, 0},
       HT_HALLEY, HF_HALLEY, WINFRAC,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
-      0, NOFRACTAL, NOFRACTAL, MPHALLEY, XYAXIS,
+      0, NOFRACTAL, NOFRACTAL, NOFRACTAL, XYAXIS,
       HalleyFractal, Halley_per_pixel, HalleySetup, StandardFractal,
       NOBAILOUT
    },
@@ -2269,9 +2275,9 @@ struct fractalspecificstuff fractalspecific[]=
       {H, P, ES, ES},
       {0.739, 0.739, 0, 0},
       HT_VL, HF_VL, WINFRAC,
-      (float)0.0, (float)6.0, (float)0.0, (float)4.5, 
+      (float)0.0, (float)6.0, (float)0.0, (float)4.5,
       0, NOFRACTAL, NOFRACTAL, NOFRACTAL, NOSYM,
-      VLfpFractal, otherjuliafp_per_pixel, VLSetup, StandardFractal, 
+      VLfpFractal, otherjuliafp_per_pixel, VLSetup, StandardFractal,
       256
    },
 
@@ -2282,11 +2288,11 @@ struct fractalspecificstuff fractalspecific[]=
       HT_ESCHER, HF_ESCHER, WINFRAC,
       (float)-1.6, (float)1.6, (float)-1.2, (float)1.2,
       0, NOFRACTAL, NOFRACTAL, NOFRACTAL, ORIGIN,
-      EscherfpFractal, juliafp_per_pixel, StandardSetup, 
+      EscherfpFractal, juliafp_per_pixel, StandardSetup,
           StandardFractal,
       STDBAILOUT
-   },                     
-  
+   },
+
 /* From Pickovers' "Chaos in Wonderland"      */
 /* included by Humberto R. Baptista           */
 /* code adapted from king.cpp bt James Rankin */
@@ -2381,10 +2387,10 @@ int paramnotused(int parm)
    return (ret);
 }
 
-/* 
+/*
  *  Returns 1 if parameter number parm exists for type. If the
- *  parameter exists, the parameter prompt string is copied to buf. 
- *  Pass in NULL for buf if only the existence of the parameter is 
+ *  parameter exists, the parameter prompt string is copied to buf.
+ *  Pass in NULL for buf if only the existence of the parameter is
  *  needed, and not the prompt string.
  */
 int typehasparm(int type,int parm,char *buf)

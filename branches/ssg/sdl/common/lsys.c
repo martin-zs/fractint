@@ -624,7 +624,7 @@ static void lsysi_dodrawlt(struct lsys_turtlestatei *cmd)
     cmd->curcolor = 1;
 }
 
-static struct lsys_cmd * _fastcall
+static struct lsys_cmd *
       findsize(struct lsys_cmd *command, struct lsys_turtlestatei *ts, struct lsys_cmd **rules, int depth)
   {
     struct lsys_cmd **rulind;
