@@ -350,7 +350,12 @@ int read_overlay()      /* read overlay/3D files, if reqr'd */
       oldfloatflag = floatflag;
       display3d = loaded3d;      /* for <tab> display during next */
       floatflag = usr_floatflag; /* ditto */
+// FIXME (jonathan#1#): Next is broken
+#if 1
+      i = 0;
+#else
       i = get_video_mode(&read_info,&blk_3_info);
+#endif
       display3d = olddisplay3d;
       floatflag = oldfloatflag;
       if (i) {

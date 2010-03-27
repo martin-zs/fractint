@@ -66,26 +66,9 @@ extern int iocount;
 char *strlwr(char *s);
 char *strupr(char *s);
 
-#if 0
-#ifndef LINUX
-#ifndef __SVR4
-/* bcopy is probably faster than memmove, memcpy */
-# ifdef memcpy
-#  undef memcpy
-# endif
-# ifdef memmove
-#  undef memmove
-# endif
-
-# define memcpy(dst,src,n) bcopy(src,dst,n)
-# define memmove(dst,src,n) bcopy(src,dst,n)
-#else
 # define bcopy(src,dst,n) memcpy(dst,src,n)
 # define bzero(buf,siz) memset(buf,0,siz)
 # define bcmp(buf1,buf2,len) memcmp(buf1,buf2,len)
-#endif
-#endif
-#endif
 
 /* For Unix, all memory is FARMEM */
 #define EXPANDED FARMEM

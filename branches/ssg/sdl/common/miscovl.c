@@ -132,7 +132,7 @@ void make_batch_file()
   maxcolor = colors;
   strcpy(colorspec,"y");
   /* NOTE: Look at this JCO 02/20/2010 */
-  if ((gotrealdac && !reallyega) || (istruecolor && !truemode) || fake_lut)
+  if ((gotrealdac) || (istruecolor && !truemode) || fake_lut)
     {
       --maxcolor;
       /*    if (maxit < maxcolor)  remove 2 lines */
@@ -217,7 +217,7 @@ prompt_user:
       LOADBATCHPROMPTS("Fourth comment");
       paramvalues[promptnum].type = 0x100 + MAXCMT - 1;
       paramvalues[promptnum++].uval.sbuf = inpcomment[3];
-      if ((gotrealdac && !reallyega) || (istruecolor && !truemode) || fake_lut)
+      if ((gotrealdac) || (istruecolor && !truemode) || fake_lut)
         {
           LOADBATCHPROMPTS("Record colors?");
           paramvalues[promptnum].type = 0x100 + 13;
@@ -261,7 +261,7 @@ prompt_user:
       strcpy(CommandName, inpcommandname);
       for (i=0;i<4;i++)
         strncpy(CommandComment[i], inpcomment[i], MAXCMT);
-      if ((gotrealdac && !reallyega) || (istruecolor && !truemode) || fake_lut)
+      if ((gotrealdac) || (istruecolor && !truemode) || fake_lut)
         if (paramvalues[maxcolorindex].uval.ival > 0 &&
             paramvalues[maxcolorindex].uval.ival <= 256)
           maxcolor = paramvalues[maxcolorindex].uval.ival;
@@ -1516,6 +1516,20 @@ static void put_bf(int slash,bf_t r, int prec)
   bftostr(bptr, prec, r);
   strip_zeros(bptr);
   put_parm(buf);
+}
+
+long fr_farfree(void)
+{
+   long j,j2;
+   BYTE *fartempptr;
+   j = 0;
+   j2 = 0x80000L;
+   while ((j2 >>= 1) != 0)
+      if ((fartempptr = (BYTE *)malloc(j+j2)) != NULL) {
+         free((void *)fartempptr);
+         j += j2;
+         }
+   return(j);
 }
 
 int edit_text_colors()

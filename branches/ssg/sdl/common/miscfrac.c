@@ -487,7 +487,7 @@ static void set_Plasma_palette()
       dac[i+170].blue  = (BYTE)((i*Blue.blue  + (86-i)*Red.blue)/85);
 #endif
     }
-  SetTgaColors();      /* TARGA 3 June 89  j mclain */
+
   spindac(0,1);
 }
 
@@ -1883,7 +1883,6 @@ static void set_Cellular_palette()
   dac[5].green = Brown.green;
   dac[5].blue  = Brown.blue;
 
-  SetTgaColors();
   spindac(0,1);
 }
 

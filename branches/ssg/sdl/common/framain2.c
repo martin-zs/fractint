@@ -68,7 +68,8 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
     {
       if (calc_status != 2 || showfile == 0)
         {
-#ifdef XFRACT
+// NOTE (jonathan#1#): May need something similar to next
+#if 0
           if (resizeWindow())
             {
               calc_status = -1;
@@ -254,7 +255,8 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
         zoomoff = 0;                   /* for these cases disable zooming */
       if (!evolving)
         calcfracinit();
-#ifdef XFRACT
+// NOTE (jonathan#1#): May need next
+#if 0
       schedulealarm(1);
 #endif
 
@@ -430,16 +432,8 @@ done:
             }
           diskisactive = 0;              /* flag for disk-video routines */
         }
-#ifndef XFRACT
       boxcount = 0;                     /* no zoom box yet  */
       zwidth = 0;
-#else
-      if (!XZoomWaiting)
-        {
-          boxcount = 0;                 /* no zoom box yet  */
-          zwidth = 0;
-        }
-#endif
 
       if (fractype == PLASMA)
         {
@@ -494,7 +488,7 @@ resumeloop:                             /* return here on failed overlays */
                         /* don't ask, just get out */
                         goodbye();
                       stackscreen();
-#ifndef XFRACT
+#if 1
                       kbdchar = main_menu(1);
 #else
                       if (XZoomWaiting)
@@ -511,8 +505,7 @@ resumeloop:                             /* return here on failed overlays */
                         }
 #endif
                       if (kbdchar == '\\' || kbdchar == CTL_BACKSLASH ||
-                          kbdchar == 'h' || kbdchar == 8 ||
-                          check_vidmode_key(0,kbdchar) >= 0)
+                          kbdchar == 'h' || kbdchar == 8)
                         discardscreen();
                       else if (kbdchar == 'x' || kbdchar == 'y' ||
                                kbdchar == 'z' || kbdchar == 'g' ||
@@ -592,7 +585,7 @@ resumeloop:                             /* return here on failed overlays */
             }
           if (zoomoff == 1 && *kbdmore == 1) /* draw/clear a zoom box? */
             drawbox(1);
-#ifdef XFRACT
+#if 0
           if (resizeWindow())
             {
               calc_status = -1;
@@ -666,7 +659,8 @@ int main_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stacked,
     case 'v':
     case 2:
     case 5:
-    case 6:
+// FIXME (jonathan#1#): Need next for sound parameters
+//    case 6:
       old_maxit = maxit;
       clear_zoombox();
       if (fromtext_flag == 1)
@@ -695,8 +689,11 @@ int main_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stacked,
               Log_Auto_Calc = 0; /* turn it off */
             }
         }
+// FIXME (jonathan#1#): Need next for sound parameters
+#if 0
       else if (*kbdchar == 6)
         i = get_sound_params();
+#endif
       else
         i = get_cmd_string();
       unstackscreen();
@@ -1105,7 +1102,7 @@ int main_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stacked,
             return(CONTINUE);
         }
       clear_zoombox();
-      if (dacbox[0][0] != 255 && !reallyega && colors >= 16
+      if (dacbox[0][0] != 255 && colors >= 16
           && dotmode != 11)
         {
           int oldhelpmode;
@@ -1275,6 +1272,8 @@ do_3d_transform:
       unstackscreen();
       break;
     case 16:                    /* print current image          */
+// NOTE (jonathan#1#): Next should be done by windows manager
+#if 0
       note_zoom();
       Print_Screen();
       restore_zoom();
@@ -1286,9 +1285,10 @@ do_3d_transform:
           getakey();
         }
       return(CONTINUE);
+#endif
     case ENTER:                  /* Enter                        */
     case ENTER_2:                /* Numeric-Keypad Enter         */
-#ifdef XFRACT
+#if 0
       XZoomWaiting = 0;
 #endif
       if (zwidth != 0.0)
@@ -1406,6 +1406,7 @@ do_3d_transform:
       break;
 
     case DELETE:         /* select video mode from list */
+#if 0
     {
       stackscreen();
       *kbdchar = select_video_mode(adapter);
@@ -1415,6 +1416,7 @@ do_3d_transform:
         unstackscreen();
       /* fall through */
     }
+#endif
     default:                     /* other (maybe a valid Fn key) */
       break;
     }                            /* end of the big switch */
@@ -1551,7 +1553,7 @@ int evolver_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stack
             return(CONTINUE);
         }
       clear_zoombox();
-      if (dacbox[0][0] != 255 && !reallyega && colors >= 16
+      if (dacbox[0][0] != 255 && colors >= 16
           && dotmode != 11)
         {
           int oldhelpmode;
@@ -1646,7 +1648,7 @@ int evolver_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stack
       break;
     case ENTER:                  /* Enter                        */
     case ENTER_2:                /* Numeric-Keypad Enter         */
-#ifdef XFRACT
+#if 0
       XZoomWaiting = 0;
 #endif
       if (zwidth != 0.0)
@@ -1919,12 +1921,14 @@ int evolver_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stack
       break;
 
     case DELETE:         /* select video mode from list */
+#if 0
       stackscreen();
       *kbdchar = select_video_mode(adapter);
       if (check_vidmode_key(0, *kbdchar) >= 0)  /* picked a new mode? */
         discardscreen();
       else
         unstackscreen();
+#endif
       /* fall through */
     default:             /* other (maybe valid Fn key */
       break;

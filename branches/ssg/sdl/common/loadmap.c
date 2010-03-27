@@ -11,18 +11,6 @@
 
 #define dac ((Palettetype *)dacbox)
 
-void SetTgaColors() {
-unsigned int    r, g, b, index;
-    if (tga16 != NULL)
-        for( index = 0; index < 256; index++ ) {
-                r = dac[index].red      << 2;
-                g = dac[index].green << 2;
-                b = dac[index].blue     << 2;
-                tga16[index] = ((r&248)<<7) | ((g&248)<<2) | (b>>3);
-                tga32[index] = ((long)r<<16) | (g<<8) | b;
-        }
-}
-
 void get_map_name( char * from_str, char * to_str)
 { /* called once we know from_str contains ".map" */
   /* returns xxxxxxxx.map in to_str */
@@ -89,7 +77,6 @@ char   *dummy; /* to quiet compiler */
                 dac[index].red = dac[index].blue = dac[index].green = 40;
                 ++index;
         }
-        SetTgaColors();
         colorstate = 2;
         strcpy(colorfile,fn);
         return 0;

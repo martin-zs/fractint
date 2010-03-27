@@ -36,6 +36,18 @@ typedef struct  LHyperComplex    _LHCMPLX;
 
 #endif
 
+#ifndef sqr
+#define sqr(x) ((x)*(x))
+#endif
+
+#ifndef lsqr
+#define lsqr(x) (multiply((x),(x),bitshift))
+#endif
+
+#define modulus(z)       (sqr((z).x)+sqr((z).y))
+#define conjugate(pz)   ((pz)->y = 0.0 - (pz)->y)
+#define distance(z1,z2)  (sqr((z1).x-(z2).x)+sqr((z1).y-(z2).y))
+
 /*** Formula Declarations ***/
 enum MATH_TYPE { D_MATH, L_MATH };
 extern enum MATH_TYPE MathType;

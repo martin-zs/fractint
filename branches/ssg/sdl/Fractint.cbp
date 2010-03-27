@@ -59,6 +59,9 @@ May need defines for LINUX and/or WIN32.]]>
 		<Unit filename="common\cmdfiles.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="common\decoder.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="common\editpal.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -176,6 +179,9 @@ May need defines for LINUX and/or WIN32.]]>
 		<Unit filename="common\stereo.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="common\testpt.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="common\zoom.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -240,6 +246,12 @@ May need defines for LINUX and/or WIN32.]]>
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="sdl\sdl_scr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="sdl\uclock.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="sdl\video.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="sstools.ini" />

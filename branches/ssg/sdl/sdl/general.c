@@ -80,6 +80,7 @@ void fpe_handler(int signum)
   overflow = 1;
 }
 
+// FIXME (jonathan#1#): Move next two functions to math_c.c
 /*
 ;
 ;       32-bit integer multiply routine with an 'n'-bit shift.
@@ -238,9 +239,7 @@ getkeynowait(void)
  * We also have to handle the slide file, etc.
  */
 
-int
-getkeyint(block)
-int block;
+int getkeyint(int block)
 {
   int ch;
   int curkey;
@@ -330,6 +329,29 @@ int delaytime;
 }
 
 /*
+ *----------------------------------------------------------------------
+ *
+ * clock_ticks --
+ *
+ *      Return time in CLK_TCK ticks.
+ *
+ * Results:
+ *      Time.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+long
+clock_ticks()
+{
+    struct timeval tim;
+    gettimeofday(&tim,NULL);
+    return tim.tv_sec*CLK_TCK + tim.tv_usec*CLK_TCK/1000000;
+}
+
+/*
 ; ************** Function tone(int frequency,int delaytime) **************
 ;
 ;       buzzes the speaker with this frequency for this amount of time
@@ -348,13 +370,17 @@ int frequency, delaytime;
 ; *****************************************************************
 */
 void
-snd(hertz)
+soundon(hertz)
 int hertz;
 {
 }
 
 void
-nosnd(void)
+soundoff(void)
+{}
+
+void
+mute(void)
 {}
 
 /*
@@ -364,6 +390,11 @@ long
 readticker(void)
 {
   return clock_ticks();
+}
+
+long stackavail(void)
+{
+  return 8192;
 }
 
 /*
