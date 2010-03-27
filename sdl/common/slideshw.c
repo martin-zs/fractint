@@ -6,9 +6,6 @@
 #include <ctype.h>
 #include <time.h>
 #include <string.h>
-#ifndef XFRACT
-#include <conio.h>
-#endif
 
   /* see Fractint.c for a description of the "include"  hierarchy */
 #include "port.h"
@@ -16,8 +13,8 @@
 
 static void sleep_secs(int);
 static int  showtempmsg_txt(int,int,int,int,char *);
-static void message(int secs, char far *buf);
-static void slideshowerr(char far *msg);
+static void message(int secs, char *buf);
+static void slideshowerr(char *msg);
 static int  get_scancode(char *mn);
 static void get_mnemonic(int code, char *mnemonic);
 
@@ -50,7 +47,7 @@ struct scancodes
    FCODE *mnemonic;
 };
 
-static struct scancodes far scancodes[] =
+static struct scancodes scancodes[] =
 {
    {  ENTER,         s_ENTER     },
    {  INSERT,        s_INSERT    },
@@ -81,7 +78,7 @@ static int get_scancode(char *mn)
    int i;
    i = 0;
    for(i=0;i< stop;i++)
-      if(far_strcmp((char far *)mn,scancodes[i].mnemonic)==0)
+      if(strcmp((char *)mn,scancodes[i].mnemonic)==0)
          break;
    return(scancodes[i].code);
 }
@@ -94,9 +91,9 @@ static void get_mnemonic(int code,char *mnemonic)
    for(i=0;i< stop;i++)
       if(code == scancodes[i].code)
       {
-         far_strcpy(mnemonic,scancodes[i].mnemonic);
+         strcpy(mnemonic,scancodes[i].mnemonic);
          break;
-      }   
+      }
 }
 #undef stop
 
@@ -137,7 +134,7 @@ static int showtempmsg_txt(int row, int col, int attr,int secs,char *txt)
    return(0);
 }
 
-static void message(int secs, char far *buf)
+static void message(int secs, char *buf)
 {
    int i;
    char nearbuf[41];
@@ -236,7 +233,7 @@ start:
    out = -12345;
    if(isdigit(buffer[0]))       /* an arbitrary scan code number - use it */
          out=atoi(buffer);
-   else if(far_strcmp((char far *)buffer,smsg)==0)
+   else if(strcmp((char *)buffer,smsg)==0)
       {
          int secs;
          out = 0;
@@ -254,11 +251,11 @@ start:
             dummy = fgets(buf,40,fpss);
             len = strlen(buf);
             buf[len-1]=0; /* zap newline */
-            message(secs,(char far *)buf);
+            message(secs,(char *)buf);
          }
          out = 0;
       }
-   else if(far_strcmp((char far *)buffer,sgoto)==0)
+   else if(strcmp((char *)buffer,sgoto)==0)
       {
          if (fscanf(fpss,"%s",buffer) != 1)
          {
@@ -286,7 +283,7 @@ start:
       }
    else if((i = get_scancode(buffer)) > 0)
          out = i;
-   else if(far_strcmp(swait,(char far *)buffer)==0)
+   else if(strcmp(swait,(char *)buffer)==0)
       {
          float fticks;
          err = fscanf(fpss,"%f",&fticks); /* how many ticks to wait */
@@ -303,13 +300,11 @@ start:
          }
          slowcount = out = 0;
       }
-   else if(far_strcmp(scalcwait,(char far *)buffer)==0) /* wait for calc to finish */
+   else if(strcmp(scalcwait,(char *)buffer)==0) /* wait for calc to finish */
       {
          calcwait = 1;
          slowcount = out = 0;
       }
-   else if((i=check_vidmode_keyname(buffer)) != 0)
-      out = i;
    if(out == -12345)
    {
       char msg[MSGLEN];
@@ -379,12 +374,6 @@ void recordshw(int key)
       get_mnemonic(key,mn);
       if(*mn)
           fprintf(fpss,"%s",mn);
-      else if (check_vidmode_key(0,key) >= 0)
-         {
-            char buf[10];
-            vidmode_keyname(key,buf);
-            fprintf(fpss,buf);
-         }
       else /* not ASCII and not FN key */
          fprintf(fpss,"%4d",key);
       fputc('\n',fpss);
@@ -399,12 +388,12 @@ static void sleep_secs(int secs)
    while(clock_ticks() < stop && kbhit() == 0) { } /* bailout if key hit */
 }
 
-static void slideshowerr(char far *msg)
+static void slideshowerr(char *msg)
 {
    char msgbuf[300];
    static FCODE errhdg[] = "Slideshow error:\n";
    stopslideshow();
-   far_strcpy(msgbuf,errhdg);
-   far_strcat(msgbuf,msg);
+   strcpy(msgbuf,errhdg);
+   strcat(msgbuf,msg);
    stopmsg(0,msgbuf);
 }

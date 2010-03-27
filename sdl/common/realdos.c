@@ -3,10 +3,6 @@
 */
 
 #include <string.h>
-#ifndef XFRACT
-#include <io.h>
-#include <process.h>
-#endif
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -50,16 +46,16 @@ int patchlevel=10; /* patchlevel for DOS version */
       &16 for info only message (green box instead of red in DOS vsn)
    */
 #ifdef XFRACT
-static char far s_errorstart[] = {"*** Error during startup:"};
+static char s_errorstart[] = {"*** Error during startup:"};
 extern char * Xmessage;
 #endif
-static char far s_escape_cancel[] = {"Escape to cancel, any other key to continue..."};
-static char far s_anykey[] = {"Any key to continue..."};
+static char s_escape_cancel[] = {"Escape to cancel, any other key to continue..."};
+static char s_anykey[] = {"Any key to continue..."};
 #ifndef PRODUCTION
-static char far s_custom[] = {"Customized Version"};
-static char far s_incremental[] = {"Incremental release"};
+static char s_custom[] = {"Customized Version"};
+static char s_incremental[] = {"Incremental release"};
 #endif
-int stopmsg (int flags, char far *msg)
+int stopmsg (int flags, char *msg)
 {
   int ret,toprow,color,savelookatmouse;
   static unsigned char batchmode = 0;
@@ -71,34 +67,15 @@ int stopmsg (int flags, char far *msg)
       else
         fp=dir_fopen(workdir,"stopmsg.txt","a");
       if (fp != NULL)
-#ifndef XFRACT
-        fprintf(fp,"%Fs\n",msg);
-#else
         fprintf(fp,"%s\n",msg);
-#endif
       fclose(fp);
     }
   if (active_system == 0 /* DOS */
       && first_init)       /* & cmdfiles hasn't finished 1st try */
     {
-#ifdef XFRACT
-#ifdef NCURSES
-      setvideotext();
-      buzzer(2);
-      putstring(0,0,15,s_errorstart);
-      putstring(2,0,15,msg);
-      movecursor(8,0);
-      sleep(1);
-#else
-      fprintf(stderr, "%s\n", msg);
-#endif
-      UnixDone();
-      exit(1);
-#else
       printf("%Fs\n",msg);
       dopause(1); /* pause deferred until after cmdfiles */
       return(0);
-#endif
     }
   if (initbatch >= 1 || batchmode)   /* in batch mode */
     {
@@ -151,45 +128,34 @@ static int  textxdots,textydots;
       eating the key).
       It works in almost any video mode - does nothing in some very odd cases
       (HCGA hi-res with old bios), or when there isn't 10k of temp mem free. */
-int texttempmsg(char far *msgparm)
+int texttempmsg(char *msgparm)
 {
-#if defined(XFRACT) && !defined(NCURSES)
-  xpopup(msgparm);
-  return(-1);
-#else
   if (showtempmsg(msgparm))
     return(-1);
   while (!keypressed()) ; /* wait for a keystroke but don't eat */
   cleartempmsg();
   return(0);
-#endif
 }
 
-void freetempmsg()
+void freetempmsg(void)
 {
-#if defined(XFRACT) && !defined(NCURSES)
-  if (Xmessage)
-    free(Xmessage);
-  Xmessage = NULL;
-#else
   if (temptextsave != 0)
     MemoryRelease(temptextsave);
   temptextsave = 0;
-#endif
 }
 
-int showtempmsg(char far *msgparm)
+int showtempmsg(char *msgparm)
 {
   static long size = 0;
   char msg[41];
   BYTE buffer[640];
-  BYTE far *fontptr;
+  BYTE *fontptr;
   BYTE *bufptr;
   int i,j,k,fontchar,charnum;
   int xrepeat = 0;
   int yrepeat = 0;
   int save_sxoffs,save_syoffs;
-  far_strncpy(msg,msgparm,40);
+  strncpy(msg,msgparm,40);
   msg[40] = 0; /* ensure max message len of 40 chars */
   if (dotmode == 11)   /* disk video, screen in text mode, easy */
     {
@@ -238,7 +204,8 @@ int showtempmsg(char far *msgparm)
     }
   if (fontptr == NULL)   /* bios must do it for us */
     {
-      home();
+// FIXME (jonathan#1#): What to do with next?
+//      home();
       printf(msg);
     }
   else   /* generate the characters */
@@ -309,19 +276,12 @@ void blankrows(int row,int rows,int attr)
     putstring(row++,0,attr,buf);
 }
 
-#if (_MSC_VER >= 700)
-#pragma code_seg ("realdos1_text")     /* place following in an overlay */
-#endif
-
 void helptitle()
 {
   char msg[MSGLEN],buf[MSGLEN];
-  setclear(); /* clear the screen */
-#ifdef XFRACT
-  strcpy(msg,"X");
-#else
+// FIXME (jonathan#1#): Next is broken
+//  setclear(); /* clear the screen */
   *msg=0;
-#endif
   sprintf(buf,"FRACTINT Version %d.%01d",release/100,(release%100)/10);
   strcat(msg,buf);
   if (release%10)
@@ -367,19 +327,13 @@ void footer_msg(int *i, int options, char *speedstring)
                   : ((options&CHOICEHELP) ? choiceinstr2b : choiceinstr2a));
 }
 
-#if (_MSC_VER >= 700)
-#pragma code_seg ()         /* back to normal segment */
-#endif
-
-int putstringcenter(int row, int col, int width, int attr, char far *msg)
+int putstringcenter(int row, int col, int width, int attr, char *msg)
 {
   char buf[81];
   int i,j,k;
   i = 0;
-#ifdef XFRACT
 #if 0
   if (width>=80) width=79; /* Some systems choke in column 80 */
-#endif
 #endif
   while (msg[i]) ++i; /* strlen for a far */
   if (i == 0) return(-1);
@@ -497,17 +451,13 @@ char speed_prompt[]="Speed key string";
 
 /* For file list purposes only, it's a directory name if first
    char is a dot or last char is a slash */
-static int isadirname(char far *name)
+static int isadirname(char *name)
 {
   if (*name == '.' || endswithslash(name))
     return 1;
   else
     return 0;
 }
-
-#if (_MSC_VER >= 700)
-#pragma code_seg ("realdos1_text")     /* place following in an overlay */
-#endif
 
 void show_speedstring(int speedrow,
                       char *speedstring,
@@ -543,7 +493,7 @@ void show_speedstring(int speedrow,
 }
 
 void process_speedstring(char    *speedstring,
-                         char far*far*choices,         /* array of choice strings                */
+                         char **choices,         /* array of choice strings                */
                          int       curkey,
                          int      *pcurrent,
                          int       numchoices,
@@ -596,22 +546,17 @@ void process_speedstring(char    *speedstring,
     }
 }
 
-
-#if (_MSC_VER >= 700)
-#pragma code_seg ()         /* back to normal segment */
-#endif
-
 int fullscreen_choice(
   int options,                  /* &2 use menu coloring scheme            */
   /* &4 include F1 for help in instructions */
   /* &8 add caller's instr after normal set */
   /* &16 menu items up one line             */
-  char far *hdg,                /* heading info, \n delimited             */
-  char far *hdg2,               /* column heading or NULL                 */
-  char far *instr,              /* instructions, \n delimited, or NULL    */
+  char *hdg,                /* heading info, \n delimited             */
+  char *hdg2,               /* column heading or NULL                 */
+  char *instr,              /* instructions, \n delimited, or NULL    */
   int numchoices,               /* How many choices in list               */
-  char far*far*choices,         /* array of choice strings                */
-  int far *attributes,          /* &3: 0 normal color, 1,3 highlight      */
+  char **choices,         /* array of choice strings                */
+  int  *attributes,          /* &3: 0 normal color, 1,3 highlight      */
   /* &256 marks a dummy entry               */
   int boxwidth,                 /* box width, 0 for calc (in items)       */
   int boxdepth,                 /* box depth, 0 for calc, 99 for max      */
@@ -638,10 +583,10 @@ int fullscreen_choice(
   int curkey,increment,rev_increment = 0;
   int redisplay;
   int i,j,k = 0;
-  char far *charptr;
+  char *charptr;
   char buf[81];
   char curitem[81];
-  char far *itemptr;
+  char *itemptr;
   int ret,savelookatmouse;
   int scrunch;  /* scrunch up a line */
 
@@ -707,7 +652,7 @@ int fullscreen_choice(
     for (i = 0; i < numchoices; ++i)
       {
         int len;
-        if ((len=far_strlen(choices[i])) > colwidth)
+        if ((len=strlen(choices[i])) > colwidth)
           colwidth = len;
       }
   /* title(1), blank(1), hdg(n), blank(1), body(n), blank(1), instr(?) */
@@ -748,19 +693,12 @@ int fullscreen_choice(
             }
         }
     }
-#if 0
-  if ((i = 77 / boxwidth - colwidth) > 3) /* spaces to add @ left each choice */
-    i = 3;
-  if (i == 0)
-    i = 1;
-#else
   if ((i = (80 / boxwidth - colwidth) / 2 - 1) == 0) /* to allow wider prompts */
     i = 1;
   if (i < 0)
     i = 0;
   if (i > 3)
     i = 3;
-#endif
   j = boxwidth * (colwidth += i) + i;     /* overall width of box */
   if (j < titlewidth+2)
     j = titlewidth + 2;
@@ -886,7 +824,7 @@ int fullscreen_choice(
         }
       else
         movecursor(25,80);
-
+// FIXME (jonathan#1#): Will need to fix next
 #ifndef XFRACT
       while (!keypressed()) { } /* enables help */
 #else
@@ -1115,10 +1053,6 @@ fs_choice_end:
 
 }
 
-#if (_MSC_VER >= 700)
-#pragma code_seg ("realdos1_text")     /* place following in an overlay */
-#endif
-
 /* squeeze space out of string */
 char *despace(char *str)
 {
@@ -1132,7 +1066,7 @@ char *despace(char *str)
   *nbuf = 0;
   return str;
 }
-
+// NOTE (jonathan#1#): Do we need next?
 #ifndef XFRACT
 /* case independent version of strncmp */
 int strncasecmp(char far *s,char far *t,int ct)
@@ -1146,7 +1080,7 @@ int strncasecmp(char far *s,char far *t,int ct)
 
 #define LOADPROMPTSCHOICES(X,Y)     {\
    static FCODE tmp[] = { Y };\
-   choices[X]= (char far *)tmp;\
+   choices[X]= (char *)tmp;\
    }
 
 int exitpending = 0;
@@ -1157,7 +1091,7 @@ static int menutype;
 int check_exit()
 {
   int i;
-  static char far s[] = "Exit from "Fractint" (y/n)? y";
+  static char s[] = "Exit from "Fractint" (y/n)? y";
 
   exitpending = 1;
   helptitle();
@@ -1180,13 +1114,13 @@ int check_exit()
 
 int main_menu(int fullmenu)
 {
-  char far *choices[44]; /* 2 columns * 22 rows */
+  char *choices[44]; /* 2 columns * 22 rows */
   int attributes[44];
   int choicekey[44];
   int i;
   int nextleft,nextright;
   int oldtabmode /* ,oldhelpmode */;
-  static char far MAIN_MENU[] = {"MAIN MENU"};
+  static char MAIN_MENU[] = {"MAIN MENU"};
   int showjuliatoggle;
   oldtabmode = tabmode;
   /* oldhelpmode = helpmode; */
@@ -1228,6 +1162,7 @@ top:
     }
   LOADPROMPTSCHOICES(nextleft+=2,"      NEW IMAGE             ");
   attributes[nextleft] = 256+MENU_HDG;
+#if 0
 #ifdef XFRACT
   choicekey[nextleft+=2] = DELETE;
   attributes[nextleft] = MENU_ITEM;
@@ -1236,6 +1171,7 @@ top:
   choicekey[nextleft+=2] = DELETE;
   attributes[nextleft] = MENU_ITEM;
   LOADPROMPTSCHOICES(nextleft,"select video mode...  <del> ");
+#endif
 #endif
   choicekey[nextleft+=2] = 't';
   attributes[nextleft] = MENU_ITEM;
@@ -1301,6 +1237,7 @@ top:
       attributes[nextleft] = MENU_ITEM;
       LOADPROMPTSCHOICES(nextleft,"evolver parms...     <ctl-e>");
     }
+// FIXME (jonathan#1#): Need to use next when sound is implemented
 #ifndef XFRACT
   if (fullmenu)
     {
@@ -1338,11 +1275,6 @@ top:
       attributes[nextright] = MENU_ITEM;
       LOADPROMPTSCHOICES(nextright,"print image            <ctl-p>  ");
     }
-#ifndef XFRACT
-  choicekey[nextright+=2] = 'd';
-  attributes[nextright] = MENU_ITEM;
-  LOADPROMPTSCHOICES(nextright,"shell to dos             <d>  ");
-#endif
   choicekey[nextright+=2] = 'g';
   attributes[nextright] = MENU_ITEM;
   LOADPROMPTSCHOICES(nextright,"give command string      <g>  ");
@@ -1375,12 +1307,9 @@ top:
       LOADPROMPTSCHOICES(nextright,"rotate palette         <+>,<->  ");
       if (colors > 16)
         {
-          if (!reallyega)
-            {
-              choicekey[nextright+=2] = 'e';
-              attributes[nextright] = MENU_ITEM;
-              LOADPROMPTSCHOICES(nextright,"palette editing mode     <e>  ");
-            }
+          choicekey[nextright+=2] = 'e';
+          attributes[nextright] = MENU_ITEM;
+          LOADPROMPTSCHOICES(nextright,"palette editing mode     <e>  ");
           choicekey[nextright+=2] = 'a';
           attributes[nextright] = MENU_ITEM;
           LOADPROMPTSCHOICES(nextright,"make starfield           <a>  ");
@@ -1402,7 +1331,7 @@ top:
         nextleft = nextright + 1;
       i = fullscreen_choice(CHOICEMENU+CHOICESCRUNCH,
                             MAIN_MENU,
-                            NULL,NULL,nextleft,(char far * far *)choices,attributes,
+                            NULL,NULL,nextleft,(char * *)choices,attributes,
                             2,nextleft/2,29,0,NULL,NULL,NULL,menu_checkkey);
       if (i == -1)     /* escape */
         i = ESC;
@@ -1439,10 +1368,6 @@ top:
   return(i);
 }
 
-#if (_MSC_VER >= 700)
-#pragma code_seg ()         /* back to normal segment */
-#endif
-
 int menu_checkkey(int curkey,int choice)
 {
   /* choice is dummy used by other routines called by fullscreen_choice() */
@@ -1450,6 +1375,7 @@ int menu_checkkey(int curkey,int choice)
   menutype = choice; /* for intro screen only */
   testkey = (curkey>='A' && curkey<='Z') ? curkey+('a'-'A') : curkey;
 #ifdef XFRACT
+// FIXME (jonathan#1#): We may be able to remove this
   /* We use F2 for shift-@, annoyingly enough */
   if (testkey == F2) return(0-testkey);
 #endif
@@ -1475,15 +1401,13 @@ int menu_checkkey(int curkey,int choice)
           if (strchr("c+-",testkey))
             return(0-testkey);
           if (colors > 16
-              && (testkey == 'a' || (!reallyega && testkey == 'e')))
+              && (testkey == 'a' || (testkey == 'e')))
             return(0-testkey);
         }
       /* Alt-A and Alt-S */
       if (testkey == 1030 || testkey == 1031 )
         return(0-testkey);
     }
-  if (check_vidmode_key(0,testkey) >= 0)
-    return(0-testkey);
   return(0);
 }
 
@@ -1646,14 +1570,14 @@ inpfld_end:
 
 int field_prompt(
   int options,        /* &1 numeric value, &2 integer */
-  char far *hdg,      /* heading, \n delimited lines */
-  char far *instr,    /* additional instructions or NULL */
+  char *hdg,      /* heading, \n delimited lines */
+  char *instr,    /* additional instructions or NULL */
   char *fld,          /* the field itself */
   int len,            /* field length (declare as 1 larger for \0) */
   int (*checkkey)(int)   /* routine to check non data keys, or NULL */
 )
 {
-  char far *charptr;
+  char *charptr;
   int boxwidth,titlelines,titlecol,titlerow;
   int promptcol;
   int i,j;
@@ -1721,7 +1645,7 @@ int field_prompt(
       call this when thinking phase is done
    */
 
-int thinking(int options,char far *msg)
+int thinking(int options,char *msg)
 {
   static int thinkstate = -1;
   char *wheel[] = {"-","\\","|","/"};
@@ -1743,7 +1667,7 @@ int thinking(int options,char far *msg)
       thinkstate = 0;
       helptitle();
       strcpy(buf,"  ");
-      far_strcat(buf,msg);
+      strcat(buf,msg);
       strcat(buf,"    ");
       putstring(4,10,C_GENERAL_HI,buf);
       thinkcol = textcol - 3;
@@ -1771,7 +1695,7 @@ void clear_screen(int dummy)  /* a stub for a windows only subroutine */
 
 unsigned long swaptotlen;
 unsigned long swapoffset;
-BYTE far *swapvidbuf;
+BYTE *swapvidbuf;
 int swaplength;
 
 #define SWAPBLKLEN 4096 /* must be a power of 2 */

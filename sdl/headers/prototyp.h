@@ -539,7 +539,6 @@ extern int check_back(void);
 
 /*  loadmap -- C file prototypes */
 
-extern void SetTgaColors(void);
 extern int ValidateLuts(char *);
 extern int SetColorPaletteName(char *);
 
@@ -978,7 +977,7 @@ extern void wait_until(int index, uclock_t wait_time);
 
 extern void findpath(char *,char *);
 
-/*  sdl_src -- C file prototypes */
+/*  video -- C file prototypes */
 
 extern int getcolor (int, int);
 extern void putcolor_a (int, int, int);
@@ -988,5 +987,14 @@ extern int out_line (BYTE *, int);
 extern void find_special_colors (void);
 
 extern BYTE *findfont(int);
+
+/*  sdl_src -- C file prototypes */
+
+extern U32 readvideo(int x, int y);
+extern void writevideo(int x, int y, U32 pixel);
+extern void readvideoline(int y, int x, int lastx, BYTE *pixels);
+extern void writevideoline(int y, int x, int lastx, BYTE *pixels);
+
+extern void ftimex(struct timebx *);
 
 #endif

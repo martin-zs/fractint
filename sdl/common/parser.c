@@ -219,7 +219,6 @@ short uses_p1, uses_p2, uses_p3, uses_p4, uses_p5, uses_jump;
 short uses_ismand;
 unsigned int chars_in_formula;
 
-#ifndef XFRACT
 #define ChkLongDenom(denom)\
     if ((denom == 0 || overflow) && save_release > 1920) {\
         overflow = 1;\
@@ -227,7 +226,6 @@ unsigned int chars_in_formula;
     }\
     else if (denom == 0)\
         return
-#endif
 
 #define ChkFloatDenom(denom)\
     if (fabs(denom) <= DBL_MIN) {\
@@ -451,14 +449,12 @@ void RandomSeed(void)
   Randomized = 1;
 }
 
-#ifndef XFRACT
 void lStkSRand(void)
 {
   SetRandFnct();
   lRandom();
   Arg1->l = v[7].a.l;
 }
-#endif
 
 void dStkSRand(void)
 {

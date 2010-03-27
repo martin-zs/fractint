@@ -55,7 +55,7 @@ char *fract_dir1="", *fract_dir2="";
    that the calcfract() and assembler routines can get at them easily
 */
 int     active_system = 0;      /* 0 for DOS, WINFRAC for Windows */
-int     dotmode;                /* video access method      */
+int     dotmode = 0;            /* video access method      */
 int     oktoprint;              /* 0 if printf() won't work */
 int     sxdots,sydots;          /* # of dots on the physical screen    */
 int     sxoffs,syoffs;          /* physical top left of logical screen */
