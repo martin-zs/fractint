@@ -1,15 +1,22 @@
+/* Put all of the routines that call SDL functions in this module */
 
-#include <sys/time.h>
 #include <stdlib.h>
 #include <SDL.h>
 #include <SDL_image.h>
+#include <SDL_ttf.h>
 
 #include "port.h"
 #include "prototyp.h"
 
-
 /* SDL global variables */
-extern SDL_Surface *screen;
+SDL_Surface *screen = NULL;
+SDL_Surface *backscrn = NULL;
+SDL_Surface *textbkgd = NULL;
+SDL_Surface *textmsg = NULL;
+TTF_Font *font = NULL;
+// NOTE (jonathan#1#): Does next need to be global to catch events????
+//SDL_Event event;
+
 
 // examples (bad) for locking the screen surface
 void Slock(SDL_Surface *screen)
@@ -31,16 +38,103 @@ void Sulock(SDL_Surface *screen)
     }
 }
 
+void quit_fractint( int code )
+{
+  /*
+   * Quit SDL so we can release the fullscreen
+   * mode and restore the previous video settings,
+   * etc.
+   */
+  SDL_FreeSurface(backscrn);
+  SDL_FreeSurface(textbkgd);
+  SDL_FreeSurface(textmsg);
+// NOTE (jonathan#1#): May not need this once png support is added.
+  IMG_Quit();
+
+  TTF_CloseFont(font);
+  font = NULL;
+  TTF_Quit();
+
+  SDL_Quit( );
+
+  /* Exit program. */
+  exit( code );
+}
+
+void SetupSDL(void)
+{
+
+  if ( SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_TIMER) < 0 )
+    {
+      fprintf(stderr, "Unable to init SDL: %s\n", SDL_GetError());
+      exit(1);
+    }
+
+// NOTE (jonathan#1#): May not need this once png support is added.
+  if ( IMG_Init(IMG_INIT_PNG) < 0 )
+    {
+      fprintf(stderr, "Unable to init IMG: %s\n", SDL_GetError());
+      exit(1);
+    }
+
+  if (TTF_Init() < 0)
+    {
+      fprintf(stderr, "Unable to init TTF: %s\n", SDL_GetError());
+      exit(1);
+    }
+
+  /*
+   * Initialize the display in a 800x600 best available bit mode,
+   * requesting a hardware surface and double buffering.
+   * Failing to initialize that then falls back to
+   * Initialize the display in a 800x600 16-bit mode,
+   * requesting a software surface
+   */
+  xdots = 800;
+  ydots = 600;
+// FIXME (jonathan#1#): Need to work out changing window size.
+  screen = SDL_SetVideoMode(xdots, ydots, 0, SDL_HWSURFACE|SDL_DOUBLEBUF);
+  if (screen == NULL )
+    {
+      screen = SDL_SetVideoMode(xdots, ydots, 16, SDL_SWSURFACE|SDL_ANYFORMAT);
+      /* need flags for no double buffering */
+    }
+  if ( screen == NULL )
+    {
+      fprintf(stderr, "Couldn't set %dx%dx16 video mode: %s\n", xdots, ydots,
+              SDL_GetError());
+      exit(1);
+    }
+#if DEBUG
+  printf("Set %dx%d at %d bits-per-pixel mode\n", xdots, ydots,
+         screen->format->BitsPerPixel);
+#endif
+
+  font = TTF_OpenFont("xxxx.ttf", 20);
+  if ( font == NULL )
+    {
+      fprintf(stderr, "Couldn't set font: %s\n", SDL_GetError());
+      exit(1);
+    }
+
+  atexit(SDL_Quit);
+
+  SDL_WM_SetCaption( "Fractint", NULL );
+  SDL_WM_SetIcon(SDL_LoadBMP("fractint.ico"), NULL);
+  SDL_EnableKeyRepeat(250,30);
+
+}
 
 /*
  * Return the pixel value at (x, y)
  * NOTE: The surface must be locked before calling this!
+ * Try reading from backscrn, which should match screen
  */
 U32 readvideo(int x, int y)
 {
-  int bpp = screen->format->BytesPerPixel;
+  int bpp = backscrn->format->BytesPerPixel;
   /* Here p is the address to the pixel we want to retrieve */
-  Uint8 *p = (Uint8 *)screen->pixels + y * screen->pitch + x * bpp;
+  Uint8 *p = (Uint8 *)backscrn->pixels + y * backscrn->pitch + x * bpp;
 
   switch (bpp)
     {
@@ -67,12 +161,13 @@ U32 readvideo(int x, int y)
 /*
  * Set the pixel at (x, y) to the given value
  * NOTE: The surface must be locked before calling this!
+ * Try writing to backscrn first, then blit to screen
  */
 void writevideo(int x, int y, U32 pixel)
 {
-  int bpp = screen->format->BytesPerPixel;
+  int bpp = backscrn->format->BytesPerPixel;
   /* Here p is the address to the pixel we want to set */
-  Uint8 *p = (Uint8 *)screen->pixels + y * screen->pitch + x * bpp;
+  Uint8 *p = (Uint8 *)backscrn->pixels + y * backscrn->pitch + x * bpp;
 
   switch (bpp)
     {
@@ -166,6 +261,68 @@ void readvideoline(int y, int x, int lastx, BYTE *pixels)
     }
 }
 
+SDL_Color cols[256];
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * readvideopalette --
+ *  Reads the current video palette into dacbox.
+ *
+ *
+ * Results:
+ *  None.
+ *
+ * Side effects:
+ *  Fills in dacbox.
+ *
+ *----------------------------------------------------------------------
+ */
+void readvideopalette(void)
+{
+  int i;
+  for (i=0;i<colors;i++)
+    {
+// NOTE (jonathan#1#): We may not need to divide by 1024
+      dacbox[i][0] = cols[i].r/1024;
+      dacbox[i][1] = cols[i].g/1024;
+      dacbox[i][2] = cols[i].b/1024;
+    }
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * writevideopalette --
+ *  Writes dacbox into the video palette.
+ *
+ *
+ * Results:
+ *  None.
+ *
+ * Side effects:
+ *  Changes the displayed colors.
+ *
+ *----------------------------------------------------------------------
+ */
+int writevideopalette(void)
+{
+  int i;
+
+  for (i = 0; i < colors; i++)
+    {
+// NOTE (jonathan#1#): We may not need to multiply by 1024
+      cols[i].r = dacbox[i][0]*1024;
+      cols[i].g = dacbox[i][1]*1024;
+      cols[i].b = dacbox[i][2]*1024;
+    }
+  /* Set palette */
+  return (SDL_SetColors(screen, cols, 0, 256));
+}
+
+
+
+
 
 /* the following should return a value for success or failure */
 void ShowBMP(char *filename)
@@ -186,7 +343,6 @@ void ShowBMP(char *filename)
       SDL_FreeSurface( optimizedImage );
     }
 }
-
 
 void ShowGIF(char *filename)
 {
@@ -210,22 +366,57 @@ void ShowGIF(char *filename)
     }
 }
 
-
-/* This ftime simulation routine is from Frank Chen */
-void ftimex(tp)
-struct timebx *tp;
+int get_key_event(int block)
 {
-  struct timeval  timep;
-  struct timezone timezp;
+  SDL_Event event;
+  int keypressed = 0;
 
-  if ( gettimeofday(&timep,&timezp) != 0)
+  do
     {
-      perror("error in gettimeofday");
-      exit(0);
+      /* look for an event */
+      if ( SDL_PollEvent ( &event ) )
+        {
+          /* an event was found */
+          switch (event.type)
+            {
+            case SDL_KEYDOWN:
+              keypressed = event.key.keysym.sym;
+              break;
+            default:
+              break;
+            }
+        }
     }
-  tp->time = timep.tv_sec;
-  tp->millitm = timep.tv_usec/1000;
-  tp->timezone = timezp.tz_minuteswest;
-  tp->dstflag = timezp.tz_dsttime;
+  while (block && !keypressed);
+  return (keypressed);
 }
 
+/*
+; ***************** Function delay(int delaytime) ************************
+;
+;       performs a delay of 'delaytime' milliseconds
+*/
+void delay(int delaytime)
+{
+  SDL_Delay(delaytime);
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * clock_ticks --
+ *
+ *      Return time in CLK_TCK ticks.
+ *
+ * Results:
+ *      Time.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+long clock_ticks(void)
+{
+  return(SDL_GetTicks());
+}

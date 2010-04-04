@@ -3,5 +3,6 @@
 	<Workspace title="Workspace">
 		<Project filename="Fractint.cbp" active="1" />
 		<Project filename="sdl\HC\HC.cbp" />
+		<Project filename="sdl\old_source\old_source.cbp" />
 	</Workspace>
 </CodeBlocks_workspace_file>
