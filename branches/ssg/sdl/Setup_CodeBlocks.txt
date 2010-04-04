@@ -8,7 +8,7 @@ For Windows 2000 / XP / Vista:
 
 Run this file to install.  I picked the default installation.
 
-
+For SDL:
 Download from:
  http://www.libsdl.org/download-1.2.php
 
@@ -19,24 +19,30 @@ Download from:
   Contains SDL.dll, which must be in your working directory
    (Will be included in fractint svn checkout)
 
-
+For SDL_image:
 Download from:
  http://www.libsdl.org/projects/SDL_image/
 
  SDL_image-1.2.10.zip
-  Unpack and copy SDL-image.h to:
+  Unpack and copy SDL_image.h to:
    C:\SDL-1.2.14\include\SDL
 
  SDL_image-1.2.10-win32.zip
   Unpack and copy SDL_image.dll and libpng12-0.dll to your working directory
    (Will be included in fractint svn checkout)
 
-
+For SDL_ttf:
 Download from:
  http://www.libsdl.org/projects/SDL_ttf/
 
  SDL_ttf-2.0.9-win32.zip
-Not using this yet.
+  Unpack and copy SDL_ttf.dll to your working directory
+   (Will be included in fractint svn checkout)
+
+ SDL_ttf-2.0.9.zip
+  Unpack and copy SDL_ttf.h to:
+   C:\SDL-1.2.14\include\SDL
+
 
 
 Project options:
@@ -53,6 +59,7 @@ C:\SDL-1.2.14\lib
 linker options
 -lmingw32 -lSDLmain -lSDL
 -lSDL_image.dll
+-lSDL_ttf.dll
 
 
 Linux:

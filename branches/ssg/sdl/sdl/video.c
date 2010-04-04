@@ -5,7 +5,7 @@
  * This file contains Unix versions of the routines in video.asm
  * Copyright 1992 Ken Shirriff
  */
-/* The intent is to have nonspecific video routines here */
+/* The intent is to have non-system specific video routines here */
 
 
 struct _win_st
@@ -85,14 +85,6 @@ void setnullvideo (void)
   dotread = nullread;
 }
 
-void
-putprompt (void)
-{
-  wclear (curwin);  /* ???? */
-  putstring (0, 0, 15, "Press operation key ('d' = redraw), or <Esc> to return to Main Menu");
-  return;
-}
-
 /*
 ; ********************** Function setvideotext() ************************
 
@@ -126,24 +118,22 @@ void setvideomode (int dotmode)
     }
   if (videoflag)
     {
-      endvideo ();
       videoflag = 0;
     }
   goodmode = 1;
   switch (dotmode)
     {
     case 1:   /* text */
-      clear ();
 // FIXME (jonathan#1#): Add code to setup text screen.
       break;
     case 2:   /* video window */
-      putprompt ();
       dotwrite = writevideo;
       dotread = readvideo;
       lineread = readvideoline;
       linewrite = writevideoline;
       videoflag = 1;
-      startvideo ();
+// NOTE (jonathan#1#): May want to implement next to clear the screen
+//      startvideo ();
       setforgraphics ();
       break;
     default:

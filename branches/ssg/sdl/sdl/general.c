@@ -68,8 +68,7 @@ int cmpcount;
 /*
 ; ****************** Function initasmvars() *****************************
 */
-void
-initasmvars(void)
+void initasmvars(void)
 {
   overflow = 0;
   extraseg = malloc(0x18000);
@@ -78,53 +77,6 @@ initasmvars(void)
 void fpe_handler(int signum)
 {
   overflow = 1;
-}
-
-// FIXME (jonathan#1#): Move next two functions to math_c.c
-/*
-;
-;       32-bit integer multiply routine with an 'n'-bit shift.
-;       Overflow condition returns 0x7fffh with overflow = 1;
-;
-;       long x, y, z, multiply();
-;       int n;
-;
-;       z = multiply(x,y,n)
-;
-*/
-
-/*
- * 32 bit integer multiply with n bit shift.
- * Note that we fake integer multiplication with floating point
- * multiplication.
- */
-long
-multiply(x, y, n)
-long x,y;
-int n;
-{
-  register long l;
-  l = ((float)x)* ((float)y)/(float)(1<<n);
-  if (l==0x7fffffff)
-    {
-      overflow = 1;
-    }
-  return l;
-}
-
-/*
-;
-;       32-bit integer divide routine with an 'n'-bit shift.
-;       Overflow condition returns 0x7fffh with overflow = 1;
-;
-;       z = divide(x,y,n);       z = x / y;
-*/
-long
-divide(x,y,n)
-long x,y;
-int n;
-{
-  return (long) ( ((float)x)/ ((float)y)*(float)(1<<n));
 }
 
 /*
@@ -152,8 +104,7 @@ int keybuffer = 0;
 int getkeynowait(void);
 int getkeyint(int);
 
-int
-keypressed(void)
+int keypressed(void)
 {
   int ch;
   ch = getkeynowait();
@@ -181,9 +132,7 @@ keypressed(void)
  * while (!keypressed()) {}
  * If timeout=1, waitkeypressed will time out after .5 sec.
  */
-int
-waitkeypressed(timeout)
-int timeout;
+int waitkeypressed(int timeout)
 {
   while (!keybuffer)
     {
@@ -196,8 +145,7 @@ int timeout;
 /*
  * This routine returns a key, ignoring F1
  */
-int
-getakeynohelp(void)
+int getakeynohelp(void)
 {
   int ch;
   while (1)
@@ -210,8 +158,7 @@ getakeynohelp(void)
 /*
  * This routine returns a keypress
  */
-int
-getakey(void)
+int getakey(void)
 {
   int ch;
 
@@ -226,8 +173,7 @@ getakey(void)
 /*
  * This routine returns the current key, or 0.
  */
-int
-getkeynowait(void)
+int getkeynowait(void)
 {
   return getkeyint(0);
 }
@@ -250,7 +196,7 @@ int getkeyint(int block)
       keybuffer = 0;
       return ch;
     }
-  curkey = xgetkey(0);
+  curkey = get_key_event(0);
   if (slides==1 && curkey == ESC)
     {
       stopslideshow();
@@ -264,7 +210,7 @@ int getkeyint(int block)
 
   if (curkey==0 && block)
     {
-      curkey = xgetkey(1);
+      curkey = get_key_event(1);
       if (slides==1 && curkey == ESC)
         {
           stopslideshow();
@@ -294,9 +240,7 @@ int getkeyint(int block)
 ;               frequency == 0 means no sound
 ;               delay     == 0 means end-of-tune
 */
-void
-buzzer(buzzertype)
-int buzzertype;
+void buzzer(int buzzertype)
 {
   if ((soundflag & 7) != 0)
     {
@@ -305,50 +249,9 @@ int buzzertype;
     }
   if (buzzertype==0)
     {
-      redrawscreen();
+// FIXME (jonathan#1#): Need to determine what next should do.
+//      redrawscreen();
     }
-}
-
-/*
-; ***************** Function delay(int delaytime) ************************
-;
-;       performs a delay loop for 'delaytime' milliseconds
-*/
-void
-delay(delaytime)
-int delaytime;
-{
-  static struct timeval delay;
-  delay.tv_sec = delaytime/1000;
-  delay.tv_usec = (delaytime%1000)*1000;
-#if defined( __SVR4) || defined(LINUX)
-  (void) select(0, (fd_set *) 0, (fd_set *) 0, (fd_set *) 0, &delay);
-#else
-  (void) select(0, (int *) 0, (int *) 0, (int *) 0, &delay);
-#endif
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * clock_ticks --
- *
- *      Return time in CLK_TCK ticks.
- *
- * Results:
- *      Time.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
-long
-clock_ticks()
-{
-    struct timeval tim;
-    gettimeofday(&tim,NULL);
-    return tim.tv_sec*CLK_TCK + tim.tv_usec*CLK_TCK/1000000;
 }
 
 /*
@@ -356,9 +259,7 @@ clock_ticks()
 ;
 ;       buzzes the speaker with this frequency for this amount of time
 */
-void
-tone(frequency, delaytime)
-int frequency, delaytime;
+void tone(int frequency, int delaytime)
 {
 }
 
@@ -369,25 +270,49 @@ int frequency, delaytime;
 ;
 ; *****************************************************************
 */
-void
-soundon(hertz)
-int hertz;
+void soundon(int hertz)
 {
 }
 
-void
-soundoff(void)
+void soundoff(void)
 {}
 
-void
-mute(void)
+void mute(void)
 {}
+
+/* tenths of millisecond timewr routine */
+static struct timeval tv_start;
+
+void restart_uclock(void)
+{
+  gettimeofday(&tv_start, NULL);
+}
+
+uclock_t usec_clock(void)
+{
+  uclock_t result;
+
+  struct timeval tv, elapsed;
+  gettimeofday(&tv, NULL);
+
+  elapsed.tv_usec  = tv.tv_usec -  tv_start.tv_sec;
+  elapsed.tv_sec   = tv.tv_sec -   tv_start.tv_sec;
+
+  if (elapsed.tv_usec < 0)
+    {
+      /* "borrow */
+      elapsed.tv_usec += 1000000;
+      elapsed.tv_sec--;
+    }
+  result  = (unsigned long)(elapsed.tv_sec*10000 +  elapsed.tv_usec/100);
+  return(result);
+}
+
 
 /*
 ; long readticker() returns current bios ticker value
 */
-long
-readticker(void)
+long readticker(void)
 {
   return clock_ticks();
 }
@@ -405,9 +330,8 @@ long stackavail(void)
 ;       (void)farmemfree(farptr);
 */
 
-VOIDPTR
-farmemalloc(len)
-long len;
+VOIDPTR farmemalloc(long len)
+
 {
   return (VOIDPTR )malloc((unsigned)len);
 }
@@ -1287,5 +1211,22 @@ splitpath(char *template,char *drive,char *dir,char *fname,char *ext)
         }
     }
   return(0);
+}
+
+/* This ftime simulation routine is from Frank Chen */
+void ftimex(struct timebx *tp)
+{
+  struct timeval  timep;
+  struct timezone timezp;
+
+  if ( gettimeofday(&timep,&timezp) != 0)
+    {
+      perror("error in gettimeofday");
+      exit(0);
+    }
+  tp->time = timep.tv_sec;
+  tp->millitm = timep.tv_usec/1000;
+  tp->timezone = timezp.tz_minuteswest;
+  tp->dstflag = timezp.tz_dsttime;
 }
 

@@ -976,6 +976,7 @@ extern void wait_until(int index, uclock_t wait_time);
 /*  general -- C file prototypes */
 
 extern void findpath(char *,char *);
+extern void ftimex(struct timebx *);
 
 /*  video -- C file prototypes */
 
@@ -990,11 +991,17 @@ extern BYTE *findfont(int);
 
 /*  sdl_src -- C file prototypes */
 
-extern U32 readvideo(int x, int y);
-extern void writevideo(int x, int y, U32 pixel);
-extern void readvideoline(int y, int x, int lastx, BYTE *pixels);
-extern void writevideoline(int y, int x, int lastx, BYTE *pixels);
+extern void quit_fractint(int);
+extern void SetupSDL(void);
+extern U32 readvideo(int, int);
+extern void writevideo(int, int, U32);
+extern void readvideoline(int, int, int, BYTE *);
+extern void writevideoline(int, int, int, BYTE *);
+extern void readvideopalette(void);
+extern int writevideopalette(void);
+extern int get_key_event(int);
+extern void delay(int);
+extern long clock_ticks(void);
 
-extern void ftimex(struct timebx *);
 
 #endif

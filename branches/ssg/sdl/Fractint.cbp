@@ -30,6 +30,7 @@ May need defines for LINUX and/or WIN32.]]>
 		</Compiler>
 		<Linker>
 			<Add option="SDL_image.dll" />
+			<Add option="SDL_ttf.dll" />
 			<Add library="mingw32" />
 			<Add library="SDLmain" />
 			<Add library="SDL" />
@@ -221,13 +222,7 @@ May need defines for LINUX and/or WIN32.]]>
 		<Unit filename="headers\prototyp.h">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="headers\uclock.h">
-			<Option compilerVar="CC" />
-		</Unit>
 		<Unit filename="headers\unix.h">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="headers\xfcurses.h">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="sdl\calcmand.c">
@@ -246,9 +241,6 @@ May need defines for LINUX and/or WIN32.]]>
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="sdl\sdl_scr.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="sdl\uclock.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="sdl\video.c">

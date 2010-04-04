@@ -7,6 +7,10 @@
 #define sqr(x) ((x)*(x))
 #endif
 
+/* Routines in this module */
+long multiply(long, long, int);
+long divide(long, long, int);
+
 void FPUcplxexp(_CMPLX *x, _CMPLX *z)
 {
   double e2x, y;
@@ -675,6 +679,46 @@ void set_pixel_calc_functions(void)
       lxpixel = lxpixel_calc;
       lypixel = lypixel_calc;
     }
+}
+
+/*
+;
+;       32-bit integer multiply routine with an 'n'-bit shift.
+;       Overflow condition returns 0x7fffh with overflow = 1;
+;
+;       long x, y, z, multiply();
+;       int n;
+;
+;       z = multiply(x,y,n)
+;
+*/
+
+/*
+ * 32 bit integer multiply with n bit shift.
+ * Note that we fake integer multiplication with floating point
+ * multiplication.
+ */
+long multiply(long x, long y, int n)
+{
+  register long l;
+  l = ((float)x)* ((float)y)/(float)(1<<n);
+  if (l==0x7fffffff)
+    {
+      overflow = 1;
+    }
+  return l;
+}
+
+/*
+;
+;       32-bit integer divide routine with an 'n'-bit shift.
+;       Overflow condition returns 0x7fffh with overflow = 1;
+;
+;       z = divide(x,y,n);       z = x / y;
+*/
+long divide(long x, long y, int n)
+{
+  return (long) ( ((float)x)/ ((float)y)*(float)(1<<n));
 }
 
 /*

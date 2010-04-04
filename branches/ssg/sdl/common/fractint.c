@@ -157,9 +157,6 @@ int     scale_map[12] = {1,2,3,4,5,6,7,8,9,10,11,12}; /*RB, array for mapping no
 
 int     adapter = 0; // TODO (jonathan#1#): Set to zero for now. Delete later. JCO 02/20/2010
 
-/* SDL global variables */
-SDL_Surface *screen;
-
 #define RESTART           1
 #define IMAGESTART        2
 #define RESTORESTART      3
@@ -188,24 +185,9 @@ static void my_floating_point_err(int sig)
     overflow = 1;
 }
 
-static void quit_fractint( int code )
-{
-  /*
-   * Quit SDL so we can release the fullscreen
-   * mode and restore the previous video settings,
-   * etc.
-   */
-  SDL_Quit( );
-
-  /* Exit program. */
-  exit( code );
-}
-
-
 int
 main(int argc, char **argv)
 {
-  SDL_Event event;
 
   int     resumeflag;
   int     kbdchar;                     /* keyboard key-hit value       */
@@ -215,9 +197,13 @@ main(int argc, char **argv)
   /* this traps non-math library floating point errors */
   signal( SIGFPE, my_floating_point_err );
 
+// FIXME (jonathan#1#): Is next needed????
 //  initasmvars();                       /* initialize ASM stuff */
   InitMemory();
   init_help();
+
+  /* Initialize the SDL library */
+  SetupSDL();
 
 restart:   /* insert key re-starts here */
   autobrowse     = FALSE;
@@ -255,44 +241,6 @@ restart:   /* insert key re-starts here */
   fract_dir2 = ".";
 
   cmdfiles(argc,argv);         /* process the command-line */
-
-  /* Initialize the SDL library */
-  if ( SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_TIMER) < 0 )
-    {
-      fprintf(stderr, "Unable to init SDL: %s\n", SDL_GetError());
-      exit(1);
-    }
-
-  /*
-   * Initialize the display in a 800x600 best available bit mode,
-   * requesting a hardware surface and double buffering.
-   * Failing to initialize that then falls back to
-   * Initialize the display in a 800x600 16-bit mode,
-   * requesting a software surface
-   */
-  xdots = 800;
-  ydots = 600;
-// FIXME (jonathan#1#): Need to work out changing window size.
-  screen = SDL_SetVideoMode(xdots, ydots, 0, SDL_HWSURFACE|SDL_DOUBLEBUF);
-  if (screen == NULL )
-    {
-      screen = SDL_SetVideoMode(xdots, ydots, 16, SDL_SWSURFACE|SDL_ANYFORMAT);
-      /* need flags for no double buffering */
-    }
-  if ( screen == NULL )
-    {
-      fprintf(stderr, "Couldn't set %dx%dx16 video mode: %s\n", xdots, ydots,
-              SDL_GetError());
-      exit(1);
-    }
-  printf("Set %dx%d at %d bits-per-pixel mode\n", xdots, ydots,
-         screen->format->BitsPerPixel);
-
-  atexit(SDL_Quit);
-
-  SDL_WM_SetCaption( "Fractint", NULL );
-  SDL_WM_SetIcon(SDL_LoadBMP("fractint.ico"), NULL);
-
 
   dopause(0);                  /* pause for error msg if not batch */
   init_msg(0,"",NULL,0);  /* this causes getakey if init_msg called on runup */
