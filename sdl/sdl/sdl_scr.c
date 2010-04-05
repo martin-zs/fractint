@@ -38,12 +38,12 @@ void Sulock(SDL_Surface *screen)
     }
 }
 
-void quit_fractint( int code )
+void CleanupSDL(void)
 {
   /*
    * Quit SDL so we can release the fullscreen
    * mode and restore the previous video settings,
-   * etc.
+   * etc.  Called by goodbye() routine.
    */
   SDL_FreeSurface(backscrn);
   SDL_FreeSurface(textbkgd);
@@ -57,13 +57,11 @@ void quit_fractint( int code )
 
   SDL_Quit( );
 
-  /* Exit program. */
-  exit( code );
 }
 
 void SetupSDL(void)
 {
-
+/* called by main() routine */
   if ( SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_TIMER) < 0 )
     {
       fprintf(stderr, "Unable to init SDL: %s\n", SDL_GetError());
@@ -116,8 +114,6 @@ void SetupSDL(void)
       fprintf(stderr, "Couldn't set font: %s\n", SDL_GetError());
       exit(1);
     }
-
-  atexit(SDL_Quit);
 
   SDL_WM_SetCaption( "Fractint", NULL );
   SDL_WM_SetIcon(SDL_LoadBMP("fractint.ico"), NULL);

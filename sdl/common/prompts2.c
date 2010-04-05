@@ -1145,7 +1145,7 @@ int get_commands()              /* execute commands from file */
 
 /* --------------------------------------------------------------------- */
 
-void goodbye()                  /* we done.  Bail out */
+void goodbye(void)                  /* we done.  Bail out */
 {
   char goodbyemessage[40];
   int ret;
@@ -1179,12 +1179,15 @@ void goodbye()                  /* we done.  Bail out */
     }
   stopslideshow();
   end_help();
+  CleanupSDL();
   ret = 0;
   if (initbatch == 3) /* exit with error code for batch file */
     ret = 2;
   else if (initbatch == 4)
     ret = 1;
-  exit(ret);
+  /* Use _exit() to avoid loop since goodbye() is registered with atexit()
+   * and would be called again if exit() were used. */
+  _exit(ret);
 }
 
 
