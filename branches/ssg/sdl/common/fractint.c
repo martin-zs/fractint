@@ -185,8 +185,7 @@ static void my_floating_point_err(int sig)
     overflow = 1;
 }
 
-int
-main(int argc, char **argv)
+int main(int argc, char **argv)
 {
 
   int     resumeflag;
@@ -196,6 +195,8 @@ main(int argc, char **argv)
 
   /* this traps non-math library floating point errors */
   signal( SIGFPE, my_floating_point_err );
+
+  atexit(goodbye); /* Cleanup all the memory allocations */
 
 // FIXME (jonathan#1#): Is next needed????
 //  initasmvars();                       /* initialize ASM stuff */

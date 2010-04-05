@@ -197,7 +197,6 @@ void movecursor (int row, int col)
     {
       textcol = col;
     }
-  wmove (curwin, row, col);
 }
 
 /*
@@ -208,7 +207,6 @@ void movecursor (int row, int col)
 int keycursor (int row, int col)
 {
   movecursor (row, col);
-  wrefresh (curwin);
   waitkeypressed (0);
   return getakey ();
 }
@@ -231,19 +229,37 @@ int keycursor (int row, int col)
 */
 void putstring (int row, int col, int attr, CHAR *msg)
 {
+  int r, c, i, k, s_r, s_c;
+  int foregnd = attr & 15;
+  int backgnd = (attr >> 4) & 15;
+  int tmp_attr;
+  int max_c = 0;
+// don't need next, delete when done
   int so = 0;
+
   if (row != -1)
     textrow = row;
   if (col != -1)
     textcol = col;
 
-  curwin->_cur_attr = attr;
+  if (attr & BRIGHT && !(attr & INVERSE)) { /* bright */
+    foregnd += 8;
+  }
+  if (attr & INVERSE) { /* inverse video */
+// FIXME (jonathan#1#): How do we implement next????
+//    text_mode(palette_color[foregnd]);
+    tmp_attr = backgnd;
+  }
+  else {
+//    text_mode(palette_color[backgnd]);
+    tmp_attr = foregnd;
+  }
 
-  if (attr & INVERSE || attr & BRIGHT)
-    {
-      wstandout (curwin);
-      so = 1;
-    }
+  s_r = r = textrow + textrbase;
+  s_c = c = textcol + textcbase;
+
+// at line 1971 in d_allegro.c
+
 
   wmove (curwin, textrow + textrbase, textcol + textcbase);
   while (1)

@@ -991,7 +991,7 @@ extern BYTE *findfont(int);
 
 /*  sdl_src -- C file prototypes */
 
-extern void quit_fractint(int);
+extern void CleanupSDL(void);
 extern void SetupSDL(void);
 extern U32 readvideo(int, int);
 extern void writevideo(int, int, U32);
