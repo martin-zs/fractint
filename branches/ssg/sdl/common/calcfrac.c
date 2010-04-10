@@ -171,7 +171,7 @@ typedef int (*TPREFIX)[2][maxyblk][maxxblk];
 #define tprefix   (*((TPREFIX)prefix))
 
 /* size of next puts a limit of MAXPIXELS pixels across on solid guessing logic */
-BYTE dstack[4096];              /* common temp, two put_line calls */
+U32 dstack[4096];              /* common temp, two put_line calls */
 unsigned int prefix[2][maxyblk][maxxblk]; /* common temp */
 
 int nxtscreenflag; /* for cellular next screen generation */
@@ -203,8 +203,8 @@ int periodicitycheck;
 int nextsavedincr;
 long firstsavedand;
 
-static BYTE *savedots = NULL;
-static BYTE *fillbuff;
+static U32 *savedots = NULL;
+static U32 *fillbuff;
 static int savedotslen;
 static int showdotcolor;
 int atan_colors = 180;
@@ -294,7 +294,7 @@ double fmodtest(void)
    is one color; it is not general enough to handle a row of
    pixels of different colors.
 */
-static void sym_fill_line(int row, int left, int right, BYTE *str)
+static void sym_fill_line(int row, int left, int right, U32 *str)
 {
   int i,j,k, length;
   length = right-left+1;
@@ -353,7 +353,7 @@ static void sym_fill_line(int row, int left, int right, BYTE *str)
   It only works efficiently in the no symmetry or XAXIS symmetry case,
   otherwise it just writes the pixels one-by-one.
 */
-static void sym_put_line(int row, int left, int right, BYTE *str)
+static void sym_put_line(int row, int left, int right, U32 *str)
 {
   int length,i;
   length = right-left+1;
@@ -1051,7 +1051,7 @@ static void perform_worklist()
 #else
           while ((savedotslen=sqr(showdot_width)+5*showdot_width+4) > 2048)
             showdot_width--;
-          savedots = (BYTE *)decoderline;
+          savedots = (U32 *)decoderline;
           savedotslen /= 2;
           fillbuff = savedots + savedotslen;
           memset(fillbuff,showdotcolor,savedotslen);
