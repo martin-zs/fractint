@@ -982,21 +982,27 @@ extern void ftimex(struct timebx *);
 
 extern int getcolor (int, int);
 extern void putcolor_a (int, int, int);
-extern void get_line (int, int, int, BYTE *);
-extern void put_line (int, int, int, BYTE *);
-extern int out_line (BYTE *, int);
+extern void get_line (int, int, int, U32 *);
+extern void put_line (int, int, int, U32 *);
+extern int out_line (U32 *, int);
 extern void find_special_colors (void);
+extern void setclear (void);
 
 extern BYTE *findfont(int);
 
 /*  sdl_src -- C file prototypes */
 
+extern void Slock(void);
+extern void Sulock(void);
 extern void CleanupSDL(void);
 extern void SetupSDL(void);
+extern void startvideo(void);
+extern void starttext(void);
+extern void setclear(void);
 extern U32 readvideo(int, int);
 extern void writevideo(int, int, U32);
-extern void readvideoline(int, int, int, BYTE *);
-extern void writevideoline(int, int, int, BYTE *);
+extern void readvideoline(int, int, int, U32 *);
+extern void writevideoline(int, int, int, U32 *);
 extern void readvideopalette(void);
 extern int writevideopalette(void);
 extern int get_key_event(int);

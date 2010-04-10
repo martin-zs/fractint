@@ -279,8 +279,7 @@ void blankrows(int row,int rows,int attr)
 void helptitle()
 {
   char msg[MSGLEN],buf[MSGLEN];
-// FIXME (jonathan#1#): Next is broken
-//  setclear(); /* clear the screen */
+  setclear(); /* clear the screen */
   *msg=0;
   sprintf(buf,"FRACTINT Version %d.%01d",release/100,(release%100)/10);
   strcat(msg,buf);
@@ -348,102 +347,6 @@ int putstringcenter(int row, int col, int width, int attr, char *msg)
   putstring(row,col,attr,buf);
   return j;
 }
-
-/*
- * The stackscreen()/unstackscreen() functions for XFRACT have been
- * moved to unix/video.c to more cleanly separate the XFRACT code.
- */
-
-#ifndef XFRACT
-static int screenctr = -1;
-
-#define MAXSCREENS 3
-
-static U16 savescreen[MAXSCREENS];
-static int saverc[MAXSCREENS+1];
-
-void stackscreen()
-{
-  BYTE far *vidmem;
-  int savebytes;
-  int i;
-  if (video_scroll)
-    {
-      scroll_state(0); /* save position */
-      scroll_center(0,0);
-    }
-  if (*s_makepar == 0)
-    return;
-  saverc[screenctr+1] = textrow*80 + textcol;
-  if (++screenctr)   /* already have some stacked */
-    {
-      static char far msg[]={"stackscreen overflow"};
-      if ((i = screenctr - 1) >= MAXSCREENS)   /* bug, missing unstack? */
-        {
-          stopmsg(1,msg);
-          exit(1);
-        }
-      vidmem = MK_FP(textaddr,0);
-      savebytes = (text_type == 0) ? 4000 : 16384;
-      savescreen[i] = MemoryAlloc((U16)savebytes,1L,FARMEM);
-      if (savescreen[i] != 0)
-        MoveToMemory(vidmem,(U16)savebytes,1L,0L,savescreen[i]);
-      else
-        {
-          static char far msg[]={"insufficient memory, aborting"};
-          stopmsg(1,msg);
-          exit(1);
-        }
-      setclear();
-    }
-  else
-    setfortext();
-}
-
-void unstackscreen()
-{
-  BYTE far *vidmem;
-  int savebytes;
-  if (*s_makepar == 0)
-    return;
-  textrow = saverc[screenctr] / 80;
-  textcol = saverc[screenctr] % 80;
-  if (--screenctr >= 0)   /* unstack */
-    {
-      vidmem = MK_FP(textaddr,0);
-      savebytes = (text_type == 0) ? 4000 : 16384;
-      if (savescreen[screenctr] != 0)
-        {
-          MoveFromMemory(vidmem,(U16)savebytes,1L,0L,savescreen[screenctr]);
-          MemoryRelease(savescreen[screenctr]);
-          savescreen[screenctr] = 0;
-        }
-    }
-  else
-    setforgraphics();
-  movecursor(-1,-1);
-  if (video_scroll)
-    {
-      if (boxcount)
-        moveboxf(0.0,0.0);
-      scroll_state(1); /* restore position */
-    }
-}
-
-void discardscreen()
-{
-  if (--screenctr >= 0)   /* unstack */
-    {
-      if (savescreen[screenctr])
-        {
-          MemoryRelease(savescreen[screenctr]);
-          savescreen[screenctr] = 0;
-        }
-    }
-  else
-    discardgraphics();
-}
-#endif
 
 /* ------------------------------------------------------------------------ */
 

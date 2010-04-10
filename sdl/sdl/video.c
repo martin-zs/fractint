@@ -1,4 +1,6 @@
 #include <string.h>
+#include <assert.h>
+#include <stdio.h>
 #include "port.h"
 #include "prototyp.h"
 /*
@@ -7,25 +9,8 @@
  */
 /* The intent is to have non-system specific video routines here */
 
-
-struct _win_st
-  {
-    int   _cur_y, _cur_x;
-    int   _car_y, _car_x;
-    int   _num_y, _num_x;
-    int   _cur_attr;
-    char  *_text;
-    short *_attr;
-  };
-
-#define WINDOW struct _win_st
-
-WINDOW *curwin;
-
-extern unsigned char *xgetfont (void);
 extern int startdisk (void);
 extern int waitkeypressed (int);
-extern int ctrl_window;
 
 extern int COLS;
 extern int LINES;
@@ -41,8 +26,8 @@ int ShadowColors;
 int goodmode = 0;   /* if non-zero, OK to read/write pixels */
 void (*dotwrite) (int, int, U32);  /* write-a-dot routine */
 U32 (*dotread) (int, int);         /* read-a-dot routine */
-void (*linewrite) (int, int, int, BYTE *); /* write-a-line routine */
-void (*lineread) (int, int, int, BYTE *);  /* read-a-line routine */
+void (*linewrite) (int, int, int, U32 *); /* write-a-line routine */
+void (*lineread) (int, int, int, U32 *);  /* read-a-line routine */
 int andcolor = 0;          /* "and" value used for color selection */
 int diskflag = 0;          /* disk video active flag */
 
@@ -57,17 +42,33 @@ int boxcolor = 0;          /* Zoom-Box color */
 int gotrealdac = 0;        /* 1 if loaddac has a dacbox */
 int rowcount = 0;          /* row-counter for decoder and out_line */
 // int textaddr = 0xb800;  /* b800 for mode 3, b000 for mode 7 */
+// NOTE (jonathan#1#): Next can be removed eventually since only one type is recognized.
 int text_type = 0; /* always 0 */
 int textrow = 0;   /* for putstring(-1,...) */
 int textcol = 0;   /* for putstring(..,-1,...) */
 int textrbase = 0; /* textrow is relative to this */
 int textcbase = 0; /* textcol is relative to this */
 
+enum {
+  TEXT_WIDTH = 80,
+  TEXT_HEIGHT = 25,
+  MOUSE_SCALE = 1
+};
+
+int txt_ht;  /* text letter height = 2^txt_ht pixels */
+int txt_wt;  /* text letter width = 2^txt_wt pixels */
+
+char text_screen[TEXT_HEIGHT][TEXT_WIDTH];
+int  text_attr[TEXT_HEIGHT][TEXT_WIDTH];
+char stack_text_screen[TEXT_HEIGHT][TEXT_WIDTH];
+int  stack_text_attr[TEXT_HEIGHT][TEXT_WIDTH];
+
+
 void setforgraphics (void);
 void setvideomode (int);
 void putstring (int, int, int, CHAR *);
-void normaline (int, int, int, BYTE *);
-void normalineread (int, int, int, BYTE *);
+void normaline (int, int, int, U32 *);
+void normalineread (int, int, int, U32 *);
 
 
 void nullwrite (int a, int b, U32 c)
@@ -125,6 +126,7 @@ void setvideomode (int dotmode)
     {
     case 1:   /* text */
 // FIXME (jonathan#1#): Add code to setup text screen.
+      starttext();
       break;
     case 2:   /* video window */
       dotwrite = writevideo;
@@ -132,20 +134,18 @@ void setvideomode (int dotmode)
       lineread = readvideoline;
       linewrite = writevideoline;
       videoflag = 1;
-// NOTE (jonathan#1#): May want to implement next to clear the screen
-//      startvideo ();
+      startvideo ();
       setforgraphics ();
       break;
     default:
-      printf ("Bad mode %d\n", dotmode);
+      printf ("Bad video mode %d\n", dotmode);
       exit (-1);
     }
-  if (dotmode == 2)
-    {
-      loaddac ();
-      andcolor = colors - 1;
-      boxcount = 0;
-    }
+// need to set istruecolor, colors, ... based on properties of screen
+
+    loaddac ();
+    andcolor = colors - 1;
+    boxcount = 0;
 }
 
 
@@ -171,7 +171,8 @@ int getcolor (int xdot, int ydot)
 */
 void putcolor_a (int xdot, int ydot, int color)
 {
-  dotwrite (xdot + sxoffs, ydot + syoffs, color & andcolor);
+  dotwrite (xdot + sxoffs, ydot + syoffs, color /* & andcolor */);
+  /* assume andcolor is taken care of prior to this point */
 }
 
 /*
@@ -234,68 +235,73 @@ void putstring (int row, int col, int attr, CHAR *msg)
   int backgnd = (attr >> 4) & 15;
   int tmp_attr;
   int max_c = 0;
-// don't need next, delete when done
-  int so = 0;
 
   if (row != -1)
     textrow = row;
   if (col != -1)
     textcol = col;
 
-  if (attr & BRIGHT && !(attr & INVERSE)) { /* bright */
-    foregnd += 8;
-  }
-  if (attr & INVERSE) { /* inverse video */
+  if (attr & BRIGHT && !(attr & INVERSE))   /* bright */
+    {
+      foregnd += 8;
+    }
+  if (attr & INVERSE)   /* inverse video */
+{
 // FIXME (jonathan#1#): How do we implement next????
 //    text_mode(palette_color[foregnd]);
-    tmp_attr = backgnd;
-  }
-  else {
+      tmp_attr = backgnd;
+    }
+  else
+    {
 //    text_mode(palette_color[backgnd]);
-    tmp_attr = foregnd;
-  }
+      tmp_attr = foregnd;
+    }
 
   s_r = r = textrow + textrbase;
   s_c = c = textcol + textcbase;
 
-// at line 1971 in d_allegro.c
-
-
-  wmove (curwin, textrow + textrbase, textcol + textcbase);
-  while (1)
+  while (*msg)
     {
-      if (*msg == '\0')
-        break;
       if (*msg == '\n')
         {
-          textcol = 0;
           textrow++;
-          wmove (curwin, textrow + textrbase, textcol + textcbase);
+          r++;
+          if (c > max_c)
+            max_c = c;
+          textcol = 0;
+          c = textcbase;
         }
       else
         {
-          char *ptr;
-          ptr = strchr (msg, '\n');
-          if (ptr == NULL)
-            {
-              waddstr (curwin, msg);
-              break;
-            }
-          else
-            {
-              waddch (curwin, *msg);
-            }
+#if DEBUG
+          if (c >= TEXT_WIDTH) c = TEXT_WIDTH - 1; /* keep going, but truncate */
+          if (r >= TEXT_HEIGHT) r = TEXT_HEIGHT - 1;
+#endif
+          assert(r < TEXT_HEIGHT);
+          assert(c < TEXT_WIDTH);
+          text_screen[r][c] = *msg;
+          text_attr[r][c] = attr;
+          textcol++;
+          c++;
         }
       msg++;
     }
-  if (so)
-    {
-      wstandend (curwin);
-    }
 
-  getyx (curwin, textrow, textcol);
-  textrow -= textrbase;
-  textcol -= textcbase;
+  if (c > max_c)
+    max_c = c;
+
+  i = s_r<<txt_ht; /* reuse i for blit */
+  k = s_c<<txt_wt;
+  if (r == 0)
+     r = 1;
+  if (max_c > TEXT_WIDTH)
+    max_c = TEXT_WIDTH;
+  c = max_c - s_c;     /* reuse c for blit, now it's max width of msg */
+  if (r > TEXT_HEIGHT - s_r)
+    r = TEXT_HEIGHT - s_r;
+
+// FIXME (jonathan#1#): blit to screen here
+// blit(txt,screen,k,i,k,i,c<<txt_wt,r<<txt_ht);
 }
 
 /*
@@ -307,29 +313,58 @@ void putstring (int row, int col, int attr, CHAR *msg)
 */
 void setattr (int row, int col, int attr, int count)
 {
-  int i,j;
-  int so = 0;
+  int i = col;
+  int k;
+  int r, c, s_r, s_c;
+  int s_count = count;
+  int foregnd = attr & 15;
+  int backgnd = (attr >> 4) & 15;
+  int tmp_attr;
+
+  if (attr & BRIGHT && !(attr & INVERSE)) { /* bright */
+    foregnd += 8;
+  }
+  if (attr & INVERSE) { /* inverse video */
+// FIXME (jonathan#1#): How do we implement next????
+//    text_mode(palette_color[foregnd]);
+    tmp_attr = backgnd;
+  }
+  else {
+// FIXME (jonathan#1#): How do we implement next????
+//    text_mode(palette_color[backgnd]);
+    tmp_attr = foregnd;
+  }
+
   if (row != -1)
     textrow = row;
   if (col != -1)
     textcol = col;
+  s_r = r = textrow + textrbase;
+  s_c = c = textcol + textcbase;
 
-  if (attr & INVERSE || attr & BRIGHT)
-    {
-      wstandout (curwin);
-      so = 1;
+  assert(count <= TEXT_WIDTH * TEXT_HEIGHT);
+  while (count) {
+    assert(r < TEXT_HEIGHT);
+    assert(i < TEXT_WIDTH);
+    text_attr[r][i] = attr;
+    if (++i == TEXT_WIDTH) {
+      i = 0;
+      r++;
     }
+    count--;
+  }
+  /* refresh text */
+  if (r == 0)
+    r = 1;
+  if (r > TEXT_HEIGHT - s_r)
+    r = TEXT_HEIGHT - s_r;
+  if (s_count > TEXT_WIDTH - s_c)
+    s_count = TEXT_WIDTH - s_c;
+  i = s_r<<txt_ht; /* reuse i for blit, above i is col, now it's row */
+  k = s_c<<txt_wt;
 
-  wmove (curwin, textrow + textrbase, textcol + textcbase);
-
-  curwin->_cur_attr = attr;
-  for (i=0; i<count; i++)
-    waddch (curwin, '\0');
-  if (so)
-    {
-      wstandend (curwin);
-    }
-
+// FIXME (jonathan#1#): blit to screen here
+// blit(txt,screen,k,i,k,i,s_count<<txt_wt,r<<txt_ht);
 }
 
 /*
@@ -339,7 +374,6 @@ void setattr (int row, int col, int attr, int count)
 */
 void home (void)
 {
-  wmove (curwin, 0, 0);
   textrow = 0;
   textcol = 0;
 }
@@ -351,11 +385,9 @@ void home (void)
 */
 void scrollup (int top, int bot)
 {
-  wmove (curwin, top, 0);
-  wdeleteln (curwin);
-  wmove (curwin, bot, 0);
-  winsertln (curwin);
-  refresh(top, bot+1);
+// FIXME (jonathan#1#): Move the contents of text_screen and text_attr up 1 line, then blit all to screen.
+
+
 }
 
 /*
@@ -416,12 +448,6 @@ void setfortext (void)
 {
 }
 
-void setclear (void)
-{
-  wclear (curwin);
-  wrefresh (curwin);
-}
-
 void setforgraphics (void)
 {
   startvideo ();
@@ -454,13 +480,10 @@ void dispbox (void)
 {
   if (boxcount)
     {
-      setlinemode (1);
       drawline (boxx[0], boxy[0], boxx[1], boxy[1]);
       drawline (boxx[1], boxy[1], boxx[2], boxy[2]);
       drawline (boxx[2], boxy[2], boxx[3], boxy[3]);
       drawline (boxx[3], boxy[3], boxx[0], boxy[0]);
-      setlinemode (0);
-      xsync ();
     }
 }
 
@@ -494,7 +517,7 @@ int SetupShadowVideo (void)
 ;       These routines are called by out_line(), put_line() and get_line().
 */
 
-void normaline (int y, int x, int lastx, BYTE *pixels)
+void normaline (int y, int x, int lastx, U32 *pixels)
 {
   int i, width;
   width = lastx - x + 1;
@@ -504,7 +527,7 @@ void normaline (int y, int x, int lastx, BYTE *pixels)
     }
 }
 
-void normalineread (int y, int x, int lastx, BYTE *pixels)
+void normalineread (int y, int x, int lastx, U32 *pixels)
 {
   int i, width;
   width = lastx - x + 1;
@@ -609,7 +632,7 @@ void put_a_char (int ch)
 ;       Called by the GIF decoder
 */
 
-void get_line (int row, int startcol, int stopcol, BYTE *pixels)
+void get_line (int row, int startcol, int stopcol, U32 *pixels)
 {
   if (startcol + sxoffs >= sxdots || row + syoffs >= sydots)
     return;
@@ -625,7 +648,7 @@ void get_line (int row, int startcol, int stopcol, BYTE *pixels)
 ;       Called by the GIF decoder
 */
 
-void put_line (int row, int startcol, int stopcol, BYTE *pixels)
+void put_line (int row, int startcol, int stopcol, U32 *pixels)
 {
   if (startcol + sxoffs >= sxdots || row + syoffs > sydots)
     return;
@@ -639,7 +662,7 @@ void put_line (int row, int startcol, int stopcol, BYTE *pixels)
 ;       entire line of pixels to the screen (0 <= xdot < xdots) at a clip
 ;       Called by the GIF decoder
 */
-int out_line (BYTE *pixels, int linelen)
+int out_line (U32 *pixels, int linelen)
 {
   if (rowcount + syoffs >= sydots)
     return 0;
@@ -671,64 +694,56 @@ void swapnormwrite (void)
  */
 
 int screenctr = 0;
-
+// NOTE (jonathan#1#): Don't need next.  Never checked.
 #define MAXSCREENS 3
-
-static BYTE *savescreen[MAXSCREENS];
-static int saverc[MAXSCREENS+1];
+// May need something if two text screens isn't enough
+//static BYTE *savescreen[MAXSCREENS];
+//static int saverc[MAXSCREENS+1];
 
 void stackscreen(void)
 {
-  int i;
-  BYTE *ptr;
-  saverc[screenctr+1] = textrow*80 + textcol;
-  if (++screenctr)   /* already have some stacked */
-    {
-      static char msg[]={"stackscreen overflow"};
-      if ((i = screenctr - 1) >= MAXSCREENS)   /* bug, missing unstack? */
-        {
-          stopmsg(1,msg);
-          exit(1);
-        }
-      if ((ptr = (savescreen[i] = (BYTE *)malloc(sizeof(int *)))))
-        savecurses((WINDOW **)ptr);
-      else
-        {
-          stopmsg(1,msg);
-          exit(1);
-        }
-      setclear();
-    }
-  else
-    setfortext();
+  int r, c;
+#if DEBUG
+  fprintf(stderr, "stack_screen, %i screens stacked\n", screenctr+1);
+#endif
+/* since we double buffer,  */
+/* no need to clear the screen, the text routines do it */
+  if (screenctr > 0) {
+    for (r = 0; r < TEXT_HEIGHT; r++)
+      for (c = 0; c < TEXT_WIDTH; c++) {
+        stack_text_screen[r][c] = text_screen[r][c];
+        stack_text_attr[r][c] = text_attr[r][c];
+      }
+// FIXME (jonathan#1#): Put text in textmsg then blit to screen
+//    blit(txt,stack_txt,0,0,0,0,TEXT_WIDTH<<txt_wt,TEXT_HEIGHT<<txt_ht);
+  }
+  screenctr++;
 }
 
 void unstackscreen(void)
 {
-  BYTE *ptr;
-  textrow = saverc[screenctr] / 80;
-  textcol = saverc[screenctr] % 80;
-  if (--screenctr >= 0)   /* unstack */
-    {
-      ptr = savescreen[screenctr];
-      restorecurses((WINDOW **)ptr);
-      free(ptr);
-    }
-  else
-    setforgraphics();
-  movecursor(-1,-1);
+  int r, c;
+#if DEBUG
+  fprintf(stderr, "unstack_screen, %i screens stacked\n", screenctr);
+#endif
+  if (screenctr > 1) {
+// FIXME (jonathan#1#): blit textbkgd to screen
+//    set_palette(default_palette);
+    for (r = 0; r < TEXT_HEIGHT; r++)
+      for (c = 0; c < TEXT_WIDTH; c++) {
+        text_screen[r][c] = stack_text_screen[r][c];
+        text_attr[r][c] = stack_text_attr[r][c];
+      }
+// FIXME (jonathan#1#): Put text in textmsg then blit to screen
+//    blit(txt,screen,0,0,0,0,TEXT_WIDTH<<txt_wt,TEXT_HEIGHT<<txt_ht);
+  }
+  else {
+// FIXME (jonathan#1#): blit backscrn to screen  }
+  }
+  screenctr--;
 }
 
 void discardscreen(void)
 {
-  if (--screenctr >= 0)   /* unstack */
-    {
-      if (savescreen[screenctr])
-        {
-          free(savescreen[screenctr]);
-        }
-    }
-  else
-    discardgraphics();
+  screenctr = 0;   /* unstack all */
 }
-

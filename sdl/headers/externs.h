@@ -132,7 +132,7 @@ extern int                   doublecaution;
 extern double                dpx;
 extern double                dpy;
 extern char                  drawmode;
-extern BYTE                  dstack[];
+extern U32                   dstack[];
 extern U16                   dv_handle;
 extern double     *          dx0;
 extern double     *          dx1;

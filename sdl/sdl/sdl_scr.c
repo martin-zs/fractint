@@ -17,9 +17,10 @@ TTF_Font *font = NULL;
 // NOTE (jonathan#1#): Does next need to be global to catch events????
 //SDL_Event event;
 
+void apply_surface( int, int, SDL_Surface*);
 
-// examples (bad) for locking the screen surface
-void Slock(SDL_Surface *screen)
+
+void Slock(void)
 {
   if ( SDL_MUSTLOCK(screen) )
     {
@@ -30,7 +31,7 @@ void Slock(SDL_Surface *screen)
     }
 }
 
-void Sulock(SDL_Surface *screen)
+void Sulock(void)
 {
   if ( SDL_MUSTLOCK(screen) )
     {
@@ -61,7 +62,7 @@ void CleanupSDL(void)
 
 void SetupSDL(void)
 {
-/* called by main() routine */
+  /* called by main() routine */
   if ( SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_TIMER) < 0 )
     {
       fprintf(stderr, "Unable to init SDL: %s\n", SDL_GetError());
@@ -121,6 +122,25 @@ void SetupSDL(void)
 
 }
 
+void startvideo(void)
+{
+/* initialize screen and backscrn surfaces to black */
+  SDL_FillRect(screen, NULL, 0);
+  SDL_FillRect(backscrn, NULL, 0);
+}
+
+void setclear (void)
+{
+  apply_surface(xdots, ydots, textbkgd);
+}
+
+void starttext(void)
+{
+/* initialize textbkgd and textmsg surfaces to black */
+  SDL_FillRect(textbkgd, NULL, 0);
+  SDL_FillRect(textmsg, NULL, 0);
+}
+
 /*
  * Return the pixel value at (x, y)
  * NOTE: The surface must be locked before calling this!
@@ -152,6 +172,45 @@ U32 readvideo(int x, int y)
     default:
       return 0;       /* shouldn't happen, but avoids warnings */
     }
+}
+
+void gettruecolor(SDL_Surface *screen, int x, int y, Uint8 red, Uint8 green, Uint8 blue)
+{
+  /* Extracting color components from a 32-bit color value */
+  SDL_PixelFormat *fmt;
+  Uint32 temp, pixel;
+/* Uint8 alpha; if needed later */
+
+  fmt = screen->format;
+  SDL_LockSurface(screen);
+  pixel = *((Uint32*)screen->pixels);
+  SDL_UnlockSurface(screen);
+
+  /* Get Red component */
+  temp = pixel&fmt->Rmask; /* Isolate red component */
+  temp = temp>>fmt->Rshift;/* Shift it down to 8-bit */
+  temp = temp<<fmt->Rloss; /* Expand to a full 8-bit number */
+  red = (Uint8)temp;
+
+  /* Get Green component */
+  temp = pixel&fmt->Gmask; /* Isolate green component */
+  temp = temp>>fmt->Gshift;/* Shift it down to 8-bit */
+  temp = temp<<fmt->Gloss; /* Expand to a full 8-bit number */
+  green = (Uint8)temp;
+
+  /* Get Blue component */
+  temp = pixel&fmt->Bmask; /* Isolate blue component */
+  temp = temp>>fmt->Bshift;/* Shift it down to 8-bit */
+  temp = temp<<fmt->Bloss; /* Expand to a full 8-bit number */
+  blue = (Uint8)temp;
+
+#if 0
+  /* Get Alpha component */
+  temp = pixel&fmt->Amask; /* Isolate alpha component */
+  temp = temp>>fmt->Ashift;/* Shift it down to 8-bit */
+  temp = temp<<fmt->Aloss; /* Expand to a full 8-bit number */
+  alpha = (Uint8)temp;
+#endif
 }
 
 /*
@@ -196,6 +255,53 @@ void writevideo(int x, int y, U32 pixel)
     }
 }
 
+void puttruecolor(SDL_Surface *screen, int x, int y, Uint8 R, Uint8 G, Uint8 B)
+{
+  Uint32 color = SDL_MapRGB(screen->format, R, G, B);
+  switch (screen->format->BytesPerPixel)
+    {
+    case 1: // Assuming 8-bpp
+    {
+      Uint8 *bufp;
+      bufp = (Uint8 *)screen->pixels + y*screen->pitch + x;
+      *bufp = color;
+    }
+    break;
+    case 2: // Probably 15-bpp or 16-bpp
+    {
+      Uint16 *bufp;
+      bufp = (Uint16 *)screen->pixels + y*screen->pitch/2 + x;
+      *bufp = color;
+    }
+    break;
+    case 3: // Slow 24-bpp mode, usually not used
+    {
+      Uint8 *bufp;
+      bufp = (Uint8 *)screen->pixels + y*screen->pitch + x * 3;
+      if (SDL_BYTEORDER == SDL_LIL_ENDIAN)
+        {
+          bufp[0] = color;
+          bufp[1] = color >> 8;
+          bufp[2] = color >> 16;
+        }
+      else
+        {
+          bufp[2] = color;
+          bufp[1] = color >> 8;
+          bufp[0] = color >> 16;
+        }
+    }
+    break;
+    case 4: // Probably 32-bpp
+    {
+      Uint32 *bufp;
+      bufp = (Uint32 *)screen->pixels + y*screen->pitch/4 + x;
+      *bufp = color;
+    }
+    break;
+    }
+}
+
 void apply_surface( int x, int y, SDL_Surface* source)
 {
   SDL_Rect offset;
@@ -204,7 +310,6 @@ void apply_surface( int x, int y, SDL_Surface* source)
   offset.y = y;
   SDL_BlitSurface( source, NULL, screen, &offset );
 }
-
 
 /*
  *----------------------------------------------------------------------
@@ -221,7 +326,7 @@ void apply_surface( int x, int y, SDL_Surface* source)
  *
  *----------------------------------------------------------------------
  */
-void writevideoline(int y, int x, int lastx, BYTE *pixels)
+void writevideoline(int y, int x, int lastx, U32 *pixels)
 {
   int width;
   int i;
@@ -229,7 +334,7 @@ void writevideoline(int y, int x, int lastx, BYTE *pixels)
   width = lastx-x+1;
   for (i=0;i<width;i++)
     {
-      writevideo(x+i,y,(U32)pixels[i]);
+      writevideo(x+i, y, pixels[i]);
     }
 }
 /*
@@ -247,13 +352,13 @@ void writevideoline(int y, int x, int lastx, BYTE *pixels)
  *
  *----------------------------------------------------------------------
  */
-void readvideoline(int y, int x, int lastx, BYTE *pixels)
+void readvideoline(int y, int x, int lastx, U32 *pixels)
 {
   int i,width;
   width = lastx-x+1;
   for (i=0;i<width;i++)
     {
-      pixels[i] = (BYTE)readvideo(x+i,y);
+      pixels[i] = readvideo(x+i,y);
     }
 }
 
