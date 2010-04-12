@@ -101,13 +101,12 @@ void fpe_handler(int signum)
 */
 int keybuffer = 0;
 
-int getkeynowait(void);
 int getkeyint(int);
 
 int keypressed(void)
 {
   int ch;
-  ch = getkeynowait();
+  ch = getkeyint(0);
   if (!ch) return 0;
   keybuffer = ch;
   if (ch==F1 && helpmode)
@@ -168,14 +167,6 @@ int getakey(void)
     }
   while (ch==0);
   return ch;
-}
-
-/*
- * This routine returns the current key, or 0.
- */
-int getkeynowait(void)
-{
-  return getkeyint(0);
 }
 
 /*

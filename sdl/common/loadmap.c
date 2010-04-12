@@ -40,7 +40,7 @@ char   *dummy; /* to quiet compiler */
 
         strcpy(temp,MAP_name);
         strcpy(temp_fn,fn);
-#ifdef XFRACT
+#if 0
         merge_pathnames(temp,temp_fn,3);
 #else
         merge_pathnames(temp,temp_fn,0);

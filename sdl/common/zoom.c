@@ -11,11 +11,11 @@
 
 #define PIXELROUND 0.00001
 
-static void _fastcall zmo_calc(double, double, double *, double *, double);
-static void _fastcall zmo_calcbf(bf_t,bf_t,bf_t,bf_t,bf_t,bf_t,bf_t,bf_t,bf_t);
+static void zmo_calc(double, double, double *, double *, double);
+static void zmo_calcbf(bf_t,bf_t,bf_t,bf_t,bf_t,bf_t,bf_t,bf_t,bf_t);
 static int  check_pan(void);
 static void fix_worklist(void);
-static void _fastcall move_row(int fromrow,int torow,int col);
+static void move_row(int, int, int);
 
 /* big number declarations */
 void calc_corner(bf_t target,bf_t p1,double p2,bf_t p3,double p4,bf_t p5)
@@ -38,14 +38,12 @@ void calc_corner(bf_t target,bf_t p1,double p2,bf_t p3,double p4,bf_t p5)
 
 int boxcolor;
 
-#ifndef XFRACT
 void dispbox(void)
 {
   int i;
   int boxc = (colors-1)&boxcolor;
   unsigned char *values = (unsigned char *)boxvalues;
   int rgb[3];
-  xorTARGA = 1;
   Slock();
   for (i=0;i<boxcount;i++)
     {
@@ -68,13 +66,11 @@ void dispbox(void)
           putcolor(boxx[i]-sxoffs,boxy[i]-syoffs,boxc);
       }
   Sulock();
-  xorTARGA = 0;
 }
 
 void clearbox(void)
 {
   int i;
-  xorTARGA = 1;
   if (istruecolor && truemode)
     {
       dispbox();
@@ -87,9 +83,7 @@ void clearbox(void)
           putcolor(boxx[i]-sxoffs,boxy[i]-syoffs,values[i]);
         }
     }
-  xorTARGA = 0;
 }
-#endif
 
 void drawbox(int drawit)
 {
@@ -200,7 +194,6 @@ void drawbox(int drawit)
 
   if (drawit)   /* caller wants box drawn as well as co-ords calc'd */
     {
-#ifndef XFRACT
       /* build the list of zoom box pixels */
       addbox(tl);
       addbox(tr);               /* corner pixels */
@@ -208,22 +201,11 @@ void drawbox(int drawit)
       addbox(br);
       drawlines(tl,tr,bl.x-tl.x,bl.y-tl.y); /* top & bottom lines */
       drawlines(tl,bl,tr.x-tl.x,tr.y-tl.y); /* left & right lines */
-#else
-      boxx[0] = tl.x + sxoffs;
-      boxy[0] = tl.y + syoffs;
-      boxx[1] = tr.x + sxoffs;
-      boxy[1] = tr.y + syoffs;
-      boxx[2] = br.x + sxoffs;
-      boxy[2] = br.y + syoffs;
-      boxx[3] = bl.x + sxoffs;
-      boxy[3] = bl.y + syoffs;
-      boxcount = 1;
-#endif
       dispbox();
     }
 }
 
-void _fastcall drawlines(struct coords fr, struct coords to,
+void drawlines(struct coords fr, struct coords to,
                          int dx, int dy)
 {
   int xincr,yincr,ctr;
@@ -295,7 +277,7 @@ void _fastcall drawlines(struct coords fr, struct coords to,
     }
 }
 
-void _fastcall addbox(struct coords point)
+void addbox(struct coords point)
 {
   point.x += sxoffs;
   point.y += syoffs;
@@ -342,7 +324,7 @@ void moveboxf(double dx, double dy)
     }
 }
 
-static void _fastcall chgboxf(double dwidth, double ddepth)
+static void chgboxf(double dwidth, double ddepth)
 {
   if (zwidth+dwidth > 1)
     dwidth = 1.0-zwidth;
@@ -384,7 +366,7 @@ void chgboxi(int dw, int dd)
 
 extern void show_three_bf();
 
-static void _fastcall zmo_calcbf(bf_t bfdx, bf_t bfdy,
+static void zmo_calcbf(bf_t bfdx, bf_t bfdy,
                                  bf_t bfnewx, bf_t bfnewy,bf_t bfplotmx1, bf_t bfplotmx2, bf_t bfplotmy1,
                                  bf_t bfplotmy2, bf_t bfftemp)
 {
@@ -440,7 +422,7 @@ static void _fastcall zmo_calcbf(bf_t bfdx, bf_t bfdy,
   restore_stack(saved);
 }
 
-static void _fastcall zmo_calc(double dx, double dy, double *newx, double *newy, double ftemp)
+static void zmo_calc(double dx, double dy, double *newx, double *newy, double ftemp)
 {
   double tempx,tempy;
   /* calc cur screen corner relative to zoombox, when zoombox co-ords
@@ -628,7 +610,7 @@ static int check_pan(void) /* return 0 if can't, alignment requirement if can */
   return(j);
 }
 
-static void _fastcall move_row(int fromrow,int torow,int col)
+static void move_row(int fromrow,int torow,int col)
 /* move a row on the screen */
 {
   int startcol,endcol,tocol;
@@ -739,7 +721,7 @@ int init_pan_or_recalc(int do_zoomout) /* decide to recalc, or to chg worklist &
   return(0);
 }
 
-static void _fastcall restart_window(int wknum)
+static void restart_window(int wknum)
 /* force a worklist entry to restart */
 {
   int yfrom,yto,xfrom,xto;

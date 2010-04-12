@@ -38,10 +38,14 @@ static int    resume_offset;            /* offset in resume info gets */
 
 void set_grid_pointers()
 {
+// FIXME (jonathan#1#): Need to make next work
+#if 0
    dx0 = MK_FP(extraseg,0);
    dy1 = (dx1 = (dy0 = dx0 + xdots) + ydots) + ydots;
    lx0 = (long far *) dx0;
    ly1 = (lx1 = (ly0 = lx0 + xdots) + ydots) + ydots;
+#endif
+   use_grid = 0;
    set_pixel_calc_functions();
 }
 

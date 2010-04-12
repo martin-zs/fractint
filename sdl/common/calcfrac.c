@@ -171,7 +171,7 @@ typedef int (*TPREFIX)[2][maxyblk][maxxblk];
 #define tprefix   (*((TPREFIX)prefix))
 
 /* size of next puts a limit of MAXPIXELS pixels across on solid guessing logic */
-U32 dstack[4096];              /* common temp, two put_line calls */
+BYTE dstack[4096];              /* common temp, two put_line calls */
 unsigned int prefix[2][maxyblk][maxxblk]; /* common temp */
 
 int nxtscreenflag; /* for cellular next screen generation */
@@ -203,8 +203,8 @@ int periodicitycheck;
 int nextsavedincr;
 long firstsavedand;
 
-static U32 *savedots = NULL;
-static U32 *fillbuff;
+static BYTE *savedots = NULL;
+static BYTE *fillbuff;
 static int savedotslen;
 static int showdotcolor;
 int atan_colors = 180;
@@ -294,7 +294,7 @@ double fmodtest(void)
    is one color; it is not general enough to handle a row of
    pixels of different colors.
 */
-static void sym_fill_line(int row, int left, int right, U32 *str)
+static void sym_fill_line(int row, int left, int right, BYTE *str)
 {
   int i,j,k, length;
   length = right-left+1;
@@ -353,7 +353,7 @@ static void sym_fill_line(int row, int left, int right, U32 *str)
   It only works efficiently in the no symmetry or XAXIS symmetry case,
   otherwise it just writes the pixels one-by-one.
 */
-static void sym_put_line(int row, int left, int right, U32 *str)
+static void sym_put_line(int row, int left, int right, BYTE *str)
 {
   int length,i;
   length = right-left+1;
@@ -1051,7 +1051,7 @@ static void perform_worklist()
 #else
           while ((savedotslen=sqr(showdot_width)+5*showdot_width+4) > 2048)
             showdot_width--;
-          savedots = (U32 *)decoderline;
+          savedots = (BYTE *)decoderline;
           savedotslen /= 2;
           fillbuff = savedots + savedotslen;
           memset(fillbuff,showdotcolor,savedotslen);
@@ -1745,7 +1745,7 @@ int calcmand(void)              /* fast per pixel 1/2/b/g, called with row & col
   return (color);
 }
 
-long (*calcmandfpasm)(void);
+extern long (*calcmandfp_c)(void);
 
 /************************************************************************/
 /* added by Wes Loewer - sort of a floating point version of calcmand() */
@@ -1761,7 +1761,7 @@ int calcmandfp(void)
       init.x = dxpixel();
       init.y = dypixel();
     }
-  if (calcmandfpasm() >= 0)
+  if (calcmandfp_c() >= 0)
     {
       if (potflag)
         coloriter = potential(magnitude, realcoloriter);

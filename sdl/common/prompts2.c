@@ -2623,7 +2623,7 @@ int merge_pathnames(char *oldfullpath, char *newfilename, int mode)
   if (strcmp(newfilename,SLASH)==0)
     isadir = 1;
 #endif
-#ifndef XFRACT
+#if 1
   /* if drive, colon, slash, is a directory */
   if (strlen(newfilename) == 3 &&
       newfilename[1] == ':' &&

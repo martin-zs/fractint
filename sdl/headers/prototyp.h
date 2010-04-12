@@ -906,8 +906,8 @@ extern void chgboxi(int ,int );
 extern void zoomout(void);
 extern void aspectratio_crop(float ,float );
 extern int init_pan_or_recalc(int );
-extern void _fastcall drawlines(struct coords, struct coords, int, int);
-extern void _fastcall addbox(struct coords);
+extern void drawlines(struct coords, struct coords, int, int);
+extern void addbox(struct coords);
 extern void clearbox(void);
 extern void dispbox(void);
 
@@ -982,9 +982,9 @@ extern void ftimex(struct timebx *);
 
 extern int getcolor (int, int);
 extern void putcolor_a (int, int, int);
-extern void get_line (int, int, int, U32 *);
-extern void put_line (int, int, int, U32 *);
-extern int out_line (U32 *, int);
+extern void get_line (int, int, int, BYTE *);
+extern void put_line (int, int, int, BYTE *);
+extern int out_line (BYTE *, int);
 extern void find_special_colors (void);
 extern void setclear (void);
 
@@ -999,10 +999,10 @@ extern void SetupSDL(void);
 extern void startvideo(void);
 extern void starttext(void);
 extern void setclear(void);
-extern U32 readvideo(int, int);
-extern void writevideo(int, int, U32);
-extern void readvideoline(int, int, int, U32 *);
-extern void writevideoline(int, int, int, U32 *);
+extern BYTE readvideo(int, int);
+extern void writevideo(int, int, BYTE);
+extern void readvideoline(int, int, int, BYTE *);
+extern void writevideoline(int, int, int, BYTE *);
 extern void readvideopalette(void);
 extern int writevideopalette(void);
 extern int get_key_event(int);
