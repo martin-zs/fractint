@@ -19,6 +19,7 @@ May need defines for LINUX and/or WIN32.]]>
 				<Option output="Fractint" prefix_auto="1" extension_auto="1" />
 				<Option type="0" />
 				<Option compiler="gcc" />
+				<Option parameters="debug=90" />
 				<Compiler>
 					<Add option="-fno-builtin" />
 				</Compiler>

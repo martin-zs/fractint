@@ -15,7 +15,7 @@ extern int waitkeypressed (int);
 extern int COLS;
 extern int LINES;
 
-extern U32 pixel[48];
+extern BYTE pixel[48];
 
 int fake_lut = 0;
 int istruecolor = 0;
@@ -23,11 +23,10 @@ int daclearn = 0;
 int dacnorm = 0;
 int daccount = 0;
 int ShadowColors;
-int goodmode = 0;   /* if non-zero, OK to read/write pixels */
-void (*dotwrite) (int, int, U32);  /* write-a-dot routine */
-U32 (*dotread) (int, int);         /* read-a-dot routine */
-void (*linewrite) (int, int, int, U32 *); /* write-a-line routine */
-void (*lineread) (int, int, int, U32 *);  /* read-a-line routine */
+void (*dotwrite) (int, int, BYTE);  /* write-a-dot routine */
+BYTE (*dotread) (int, int);         /* read-a-dot routine */
+void (*linewrite) (int, int, int, BYTE *); /* write-a-line routine */
+void (*lineread) (int, int, int, BYTE *);  /* read-a-line routine */
 int andcolor = 0;          /* "and" value used for color selection */
 int diskflag = 0;          /* disk video active flag */
 
@@ -67,15 +66,15 @@ int  stack_text_attr[TEXT_HEIGHT][TEXT_WIDTH];
 void setforgraphics (void);
 void setvideomode (int);
 void putstring (int, int, int, CHAR *);
-void normaline (int, int, int, U32 *);
-void normalineread (int, int, int, U32 *);
+void normaline (int, int, int, BYTE *);
+void normalineread (int, int, int, BYTE *);
 
 
-void nullwrite (int a, int b, U32 c)
+void nullwrite (int a, int b, BYTE c)
 {
 }
 
-U32 nullread (int a, int b)
+BYTE nullread (int a, int b)
 {
   return 0;
 }
@@ -121,7 +120,6 @@ void setvideomode (int dotmode)
     {
       videoflag = 0;
     }
-  goodmode = 1;
   switch (dotmode)
     {
     case 1:   /* text */
@@ -171,8 +169,11 @@ int getcolor (int xdot, int ydot)
 */
 void putcolor_a (int xdot, int ydot, int color)
 {
+// FIXME (jonathan#1#): put timer here, write to backscrn until timed out, then blit to screen.
+  Slock();
   dotwrite (xdot + sxoffs, ydot + syoffs, color /* & andcolor */);
   /* assume andcolor is taken care of prior to this point */
+  Sulock();
 }
 
 /*
@@ -475,7 +476,7 @@ BYTE *findfont(int fontparm)
  * Instead of using this box save/restore technique, we'll put the corners
  * in boxx[0],boxy[0],1,2,3 and then use xor.
  */
-
+#if 0
 void dispbox (void)
 {
   if (boxcount)
@@ -510,14 +511,14 @@ int SetupShadowVideo (void)
 {
   return 0;
 }
-
+#endif
 /*
 ; **************** internal Read/Write-a-line routines *********************
 ;
 ;       These routines are called by out_line(), put_line() and get_line().
 */
 
-void normaline (int y, int x, int lastx, U32 *pixels)
+void normaline (int y, int x, int lastx, BYTE *pixels)
 {
   int i, width;
   width = lastx - x + 1;
@@ -527,7 +528,7 @@ void normaline (int y, int x, int lastx, U32 *pixels)
     }
 }
 
-void normalineread (int y, int x, int lastx, U32 *pixels)
+void normalineread (int y, int x, int lastx, BYTE *pixels)
 {
   int i, width;
   width = lastx - x + 1;
@@ -632,7 +633,7 @@ void put_a_char (int ch)
 ;       Called by the GIF decoder
 */
 
-void get_line (int row, int startcol, int stopcol, U32 *pixels)
+void get_line (int row, int startcol, int stopcol, BYTE *pixels)
 {
   if (startcol + sxoffs >= sxdots || row + syoffs >= sydots)
     return;
@@ -648,7 +649,7 @@ void get_line (int row, int startcol, int stopcol, U32 *pixels)
 ;       Called by the GIF decoder
 */
 
-void put_line (int row, int startcol, int stopcol, U32 *pixels)
+void put_line (int row, int startcol, int stopcol, BYTE *pixels)
 {
   if (startcol + sxoffs >= sxdots || row + syoffs > sydots)
     return;
@@ -662,7 +663,7 @@ void put_line (int row, int startcol, int stopcol, U32 *pixels)
 ;       entire line of pixels to the screen (0 <= xdot < xdots) at a clip
 ;       Called by the GIF decoder
 */
-int out_line (U32 *pixels, int linelen)
+int out_line (BYTE *pixels, int linelen)
 {
   if (rowcount + syoffs >= sydots)
     return 0;

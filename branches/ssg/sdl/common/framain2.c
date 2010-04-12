@@ -97,7 +97,7 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
 
           else
             {
-
+              setvideomode(2); /* switch video modes */
               xdots = sxdots;
               ydots = sydots;
             }

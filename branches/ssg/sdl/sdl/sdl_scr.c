@@ -92,7 +92,8 @@ void SetupSDL(void)
   xdots = 800;
   ydots = 600;
 // FIXME (jonathan#1#): Need to work out changing window size.
-  screen = SDL_SetVideoMode(xdots, ydots, 0, SDL_HWSURFACE|SDL_DOUBLEBUF);
+//  screen = SDL_SetVideoMode(xdots, ydots, 0, SDL_HWSURFACE|SDL_DOUBLEBUF);
+  screen = SDL_SetVideoMode(xdots, ydots, 8, SDL_HWSURFACE|SDL_DOUBLEBUF);
   if (screen == NULL )
     {
       screen = SDL_SetVideoMode(xdots, ydots, 16, SDL_SWSURFACE|SDL_ANYFORMAT);
@@ -108,8 +109,11 @@ void SetupSDL(void)
   printf("Set %dx%d at %d bits-per-pixel mode\n", xdots, ydots,
          screen->format->BitsPerPixel);
 #endif
+  backscrn = SDL_SetVideoMode(xdots, ydots, 8, SDL_SWSURFACE);
+  textmsg = SDL_SetVideoMode(xdots, ydots, 8, SDL_SWSURFACE);
+  textbkgd = SDL_SetVideoMode(xdots, ydots, 8, SDL_SWSURFACE);
 
-  font = TTF_OpenFont("xxxx.ttf", 20);
+  font = TTF_OpenFont("crystal.ttf", 20);
   if ( font == NULL )
     {
       fprintf(stderr, "Couldn't set font: %s\n", SDL_GetError());
@@ -146,7 +150,7 @@ void starttext(void)
  * NOTE: The surface must be locked before calling this!
  * Try reading from backscrn, which should match screen
  */
-U32 readvideo(int x, int y)
+BYTE readvideo(int x, int y)
 {
   int bpp = backscrn->format->BytesPerPixel;
   /* Here p is the address to the pixel we want to retrieve */
@@ -218,11 +222,11 @@ void gettruecolor(SDL_Surface *screen, int x, int y, Uint8 red, Uint8 green, Uin
  * NOTE: The surface must be locked before calling this!
  * Try writing to backscrn first, then blit to screen
  */
-void writevideo(int x, int y, U32 pixel)
+void writevideo(int x, int y, BYTE pixel)
 {
-  int bpp = backscrn->format->BytesPerPixel;
+  int bpp = screen->format->BytesPerPixel;
   /* Here p is the address to the pixel we want to set */
-  Uint8 *p = (Uint8 *)backscrn->pixels + y * backscrn->pitch + x * bpp;
+  Uint8 *p = (Uint8 *)screen->pixels + y * screen->pitch + x * bpp;
 
   switch (bpp)
     {
@@ -326,7 +330,7 @@ void apply_surface( int x, int y, SDL_Surface* source)
  *
  *----------------------------------------------------------------------
  */
-void writevideoline(int y, int x, int lastx, U32 *pixels)
+void writevideoline(int y, int x, int lastx, BYTE *pixels)
 {
   int width;
   int i;
@@ -352,13 +356,13 @@ void writevideoline(int y, int x, int lastx, U32 *pixels)
  *
  *----------------------------------------------------------------------
  */
-void readvideoline(int y, int x, int lastx, U32 *pixels)
+void readvideoline(int y, int x, int lastx, BYTE *pixels)
 {
   int i,width;
   width = lastx-x+1;
   for (i=0;i<width;i++)
     {
-      pixels[i] = readvideo(x+i,y);
+      pixels[i] = (BYTE)readvideo(x+i,y);
     }
 }
 
