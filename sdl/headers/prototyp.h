@@ -1000,7 +1000,7 @@ extern void startvideo(void);
 extern void starttext(void);
 extern void setclear(void);
 extern BYTE readvideo(int, int);
-extern void writevideo(int, int, BYTE);
+extern void writevideo(int, int, U32);
 extern void readvideoline(int, int, int, BYTE *);
 extern void writevideoline(int, int, int, BYTE *);
 extern void readvideopalette(void);
@@ -1008,6 +1008,7 @@ extern int writevideopalette(void);
 extern int get_key_event(int);
 extern void delay(int);
 extern long clock_ticks(void);
+extern U32 time_left(void);
 
 
 #endif
