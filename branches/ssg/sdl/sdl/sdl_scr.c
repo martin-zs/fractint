@@ -63,6 +63,8 @@ void CleanupSDL(void)
 void SetupSDL(void)
 {
   /* called by main() routine */
+  Uint32 rmask, gmask, bmask, amask;
+
   if ( SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_TIMER) < 0 )
     {
       fprintf(stderr, "Unable to init SDL: %s\n", SDL_GetError());
@@ -93,7 +95,7 @@ void SetupSDL(void)
   ydots = 600;
 // FIXME (jonathan#1#): Need to work out changing window size.
 //  screen = SDL_SetVideoMode(xdots, ydots, 0, SDL_HWSURFACE|SDL_DOUBLEBUF);
-  screen = SDL_SetVideoMode(xdots, ydots, 8, SDL_HWSURFACE|SDL_DOUBLEBUF);
+  screen = SDL_SetVideoMode(xdots, ydots, 32, SDL_SWSURFACE|SDL_DOUBLEBUF);
   if (screen == NULL )
     {
       screen = SDL_SetVideoMode(xdots, ydots, 16, SDL_SWSURFACE|SDL_ANYFORMAT);
@@ -109,9 +111,25 @@ void SetupSDL(void)
   printf("Set %dx%d at %d bits-per-pixel mode\n", xdots, ydots,
          screen->format->BitsPerPixel);
 #endif
-  backscrn = SDL_SetVideoMode(xdots, ydots, 8, SDL_SWSURFACE);
-  textmsg = SDL_SetVideoMode(xdots, ydots, 8, SDL_SWSURFACE);
-  textbkgd = SDL_SetVideoMode(xdots, ydots, 8, SDL_SWSURFACE);
+
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+  rmask = 0xff000000;
+  gmask = 0x00ff0000;
+  bmask = 0x0000ff00;
+  amask = 0x000000ff;
+#else
+  rmask = 0x000000ff;
+  gmask = 0x0000ff00;
+  bmask = 0x00ff0000;
+  amask = 0xff000000;
+#endif
+
+  backscrn = SDL_CreateRGBSurface(SDL_SWSURFACE, xdots, ydots, 32,
+                                  rmask, gmask, bmask, amask);
+  textmsg = SDL_CreateRGBSurface(SDL_SWSURFACE, xdots, ydots, 32,
+                                 rmask, gmask, bmask, amask);
+  textbkgd = SDL_CreateRGBSurface(SDL_SWSURFACE, xdots, ydots, 32,
+                                  rmask, gmask, bmask, amask);
 
   font = TTF_OpenFont("crystal.ttf", 20);
   if ( font == NULL )
@@ -128,19 +146,19 @@ void SetupSDL(void)
 
 void startvideo(void)
 {
-/* initialize screen and backscrn surfaces to black */
-  SDL_FillRect(screen, NULL, 0);
-  SDL_FillRect(backscrn, NULL, 0);
+  /* initialize screen and backscrn surfaces to black */
+  SDL_FillRect(screen, NULL, 4);
+  SDL_FillRect(backscrn, NULL, 42);
 }
 
 void setclear (void)
 {
-  apply_surface(xdots, ydots, textbkgd);
+  apply_surface(0, 0, textbkgd);
 }
 
 void starttext(void)
 {
-/* initialize textbkgd and textmsg surfaces to black */
+  /* initialize textbkgd and textmsg surfaces to black */
   SDL_FillRect(textbkgd, NULL, 0);
   SDL_FillRect(textmsg, NULL, 0);
 }
@@ -183,7 +201,7 @@ void gettruecolor(SDL_Surface *screen, int x, int y, Uint8 red, Uint8 green, Uin
   /* Extracting color components from a 32-bit color value */
   SDL_PixelFormat *fmt;
   Uint32 temp, pixel;
-/* Uint8 alpha; if needed later */
+  /* Uint8 alpha; if needed later */
 
   fmt = screen->format;
   SDL_LockSurface(screen);
@@ -222,12 +240,13 @@ void gettruecolor(SDL_Surface *screen, int x, int y, Uint8 red, Uint8 green, Uin
  * NOTE: The surface must be locked before calling this!
  * Try writing to backscrn first, then blit to screen
  */
-void writevideo(int x, int y, BYTE pixel)
+void writevideo(int x, int y, U32 pixel)
 {
   int bpp = screen->format->BytesPerPixel;
   /* Here p is the address to the pixel we want to set */
   Uint8 *p = (Uint8 *)screen->pixels + y * screen->pitch + x * bpp;
-
+// FIXME (jonathan#1#): write to backscrn until timed out, then blit to screen.
+  Slock();
   switch (bpp)
     {
     case 1:
@@ -257,6 +276,7 @@ void writevideo(int x, int y, BYTE pixel)
       *(U32 *)p = pixel;
       break;
     }
+  Sulock();
 }
 
 void puttruecolor(SDL_Surface *screen, int x, int y, Uint8 R, Uint8 G, Uint8 B)
@@ -338,7 +358,7 @@ void writevideoline(int y, int x, int lastx, BYTE *pixels)
   width = lastx-x+1;
   for (i=0;i<width;i++)
     {
-      writevideo(x+i, y, pixels[i]);
+      writevideo(x+i, y, (U32)pixels[i]);
     }
 }
 /*
@@ -487,10 +507,16 @@ int get_key_event(int block)
             case SDL_KEYDOWN:
               keypressed = event.key.keysym.sym;
               break;
+            case SDL_QUIT:
+              exit(0);
+              break;
             default:
               break;
             }
         }
+// FIXME (jonathan#1#): Need to adjust this for bf math.
+      if (time_left() > 500)
+        SDL_Flip(screen);
     }
   while (block && !keypressed);
   return (keypressed);
@@ -524,4 +550,18 @@ void delay(int delaytime)
 long clock_ticks(void)
 {
   return(SDL_GetTicks());
+}
+
+#define TICK_INTERVAL    1000
+
+static U32 next_time = 0;
+
+U32 time_left(void)
+{
+  U32 now;
+
+  now = SDL_GetTicks();
+  if (next_time <= now)
+     next_time = SDL_GetTicks() + TICK_INTERVAL;
+  return (next_time - now);
 }

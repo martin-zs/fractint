@@ -23,7 +23,7 @@ int daclearn = 0;
 int dacnorm = 0;
 int daccount = 0;
 int ShadowColors;
-void (*dotwrite) (int, int, BYTE);  /* write-a-dot routine */
+void (*dotwrite) (int, int, U32);  /* write-a-dot routine */
 BYTE (*dotread) (int, int);         /* read-a-dot routine */
 void (*linewrite) (int, int, int, BYTE *); /* write-a-line routine */
 void (*lineread) (int, int, int, BYTE *);  /* read-a-line routine */
@@ -70,7 +70,7 @@ void normaline (int, int, int, BYTE *);
 void normalineread (int, int, int, BYTE *);
 
 
-void nullwrite (int a, int b, BYTE c)
+void nullwrite (int a, int b, U32 c)
 {
 }
 
@@ -169,11 +169,8 @@ int getcolor (int xdot, int ydot)
 */
 void putcolor_a (int xdot, int ydot, int color)
 {
-// FIXME (jonathan#1#): put timer here, write to backscrn until timed out, then blit to screen.
-  Slock();
-  dotwrite (xdot + sxoffs, ydot + syoffs, color /* & andcolor */);
+  dotwrite (xdot + sxoffs, ydot + syoffs, (U32)color /* & andcolor */);
   /* assume andcolor is taken care of prior to this point */
-  Sulock();
 }
 
 /*
@@ -524,7 +521,7 @@ void normaline (int y, int x, int lastx, BYTE *pixels)
   width = lastx - x + 1;
   for (i = 0; i < width; i++)
     {
-      dotwrite (x + i, y, pixels[i]);
+      dotwrite (x + i, y, (U32)pixels[i]);
     }
 }
 
