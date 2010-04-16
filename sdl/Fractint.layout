@@ -5,7 +5,7 @@
 		<Cursor position="7023" topLine="247" />
 	</File>
 	<File name="common\ant.c" open="0" top="0" tabpos="0">
-		<Cursor position="11662" topLine="367" />
+		<Cursor position="3053" topLine="92" />
 	</File>
 	<File name="common\bigflt.c" open="0" top="0" tabpos="0">
 		<Cursor position="25653" topLine="796" />
@@ -17,10 +17,10 @@
 		<Cursor position="27152" topLine="693" />
 	</File>
 	<File name="common\calcfrac.c" open="1" top="0" tabpos="8">
-		<Cursor position="3978" topLine="91" />
+		<Cursor position="55778" topLine="1735" />
 	</File>
-	<File name="common\cmdfiles.c" open="0" top="0" tabpos="4">
-		<Cursor position="23433" topLine="505" />
+	<File name="common\cmdfiles.c" open="1" top="0" tabpos="12">
+		<Cursor position="4696" topLine="84" />
 	</File>
 	<File name="common\decoder.c" open="0" top="0" tabpos="7">
 		<Cursor position="2804" topLine="55" />
@@ -41,7 +41,7 @@
 		<Cursor position="37260" topLine="1319" />
 	</File>
 	<File name="common\fractint.c" open="1" top="0" tabpos="2">
-		<Cursor position="15665" topLine="425" />
+		<Cursor position="10645" topLine="278" />
 	</File>
 	<File name="common\framain2.c" open="0" top="0" tabpos="3">
 		<Cursor position="3506" topLine="105" />
@@ -167,7 +167,7 @@
 		<Cursor position="227" topLine="2" />
 	</File>
 	<File name="sdl\calmanfp.c" open="1" top="0" tabpos="7">
-		<Cursor position="914" topLine="6" />
+		<Cursor position="914" topLine="24" />
 	</File>
 	<File name="sdl\diskvidu.c" open="0" top="0" tabpos="4">
 		<Cursor position="1812" topLine="60" />
@@ -176,15 +176,15 @@
 		<Cursor position="1712" topLine="32" />
 	</File>
 	<File name="sdl\general.c" open="1" top="0" tabpos="1">
-		<Cursor position="3805" topLine="175" />
+		<Cursor position="473" topLine="8" />
 	</File>
 	<File name="sdl\sdl_scr.c" open="1" top="1" tabpos="4">
-		<Cursor position="12369" topLine="508" />
+		<Cursor position="10850" topLine="436" />
 	</File>
 	<File name="sdl\video.c" open="1" top="0" tabpos="3">
-		<Cursor position="529" topLine="16" />
+		<Cursor position="10341" topLine="390" />
 	</File>
-	<File name="sstools.ini" open="0" top="0" tabpos="0">
-		<Cursor position="29" topLine="0" />
+	<File name="sstools.ini" open="1" top="0" tabpos="11">
+		<Cursor position="32" topLine="0" />
 	</File>
 </CodeBlocks_layout_file>

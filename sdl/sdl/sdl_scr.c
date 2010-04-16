@@ -64,6 +64,7 @@ void SetupSDL(void)
 {
   /* called by main() routine */
   Uint32 rmask, gmask, bmask, amask;
+  int bpp; /* bits per pixel for graphics mode */
 
   if ( SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_TIMER) < 0 )
     {
@@ -94,8 +95,7 @@ void SetupSDL(void)
   xdots = 800;
   ydots = 600;
 // FIXME (jonathan#1#): Need to work out changing window size.
-//  screen = SDL_SetVideoMode(xdots, ydots, 0, SDL_HWSURFACE|SDL_DOUBLEBUF);
-  screen = SDL_SetVideoMode(xdots, ydots, 32, SDL_SWSURFACE|SDL_DOUBLEBUF);
+  screen = SDL_SetVideoMode(xdots, ydots, 0, SDL_HWSURFACE|SDL_DOUBLEBUF);
   if (screen == NULL )
     {
       screen = SDL_SetVideoMode(xdots, ydots, 16, SDL_SWSURFACE|SDL_ANYFORMAT);
@@ -107,9 +107,10 @@ void SetupSDL(void)
               SDL_GetError());
       exit(1);
     }
+  bpp=screen->format->BitsPerPixel;
+
 #if DEBUG
-  printf("Set %dx%d at %d bits-per-pixel mode\n", xdots, ydots,
-         screen->format->BitsPerPixel);
+  printf("Set %dx%d at %d bits-per-pixel mode\n", xdots, ydots, bpp);
 #endif
 
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
@@ -124,11 +125,11 @@ void SetupSDL(void)
   amask = 0xff000000;
 #endif
 
-  backscrn = SDL_CreateRGBSurface(SDL_SWSURFACE, xdots, ydots, 32,
+  backscrn = SDL_CreateRGBSurface(SDL_SWSURFACE, xdots, ydots, bpp,
                                   rmask, gmask, bmask, amask);
-  textmsg = SDL_CreateRGBSurface(SDL_SWSURFACE, xdots, ydots, 32,
+  textmsg = SDL_CreateRGBSurface(SDL_SWSURFACE, xdots, ydots, bpp,
                                  rmask, gmask, bmask, amask);
-  textbkgd = SDL_CreateRGBSurface(SDL_SWSURFACE, xdots, ydots, 32,
+  textbkgd = SDL_CreateRGBSurface(SDL_SWSURFACE, xdots, ydots, bpp,
                                   rmask, gmask, bmask, amask);
 
   font = TTF_OpenFont("crystal.ttf", 20);
@@ -147,8 +148,8 @@ void SetupSDL(void)
 void startvideo(void)
 {
   /* initialize screen and backscrn surfaces to black */
-  SDL_FillRect(screen, NULL, 4);
-  SDL_FillRect(backscrn, NULL, 42);
+  SDL_FillRect(screen, NULL, 0);
+  SDL_FillRect(backscrn, NULL, 0);
 }
 
 void setclear (void)
@@ -170,10 +171,11 @@ void starttext(void)
  */
 BYTE readvideo(int x, int y)
 {
-  int bpp = backscrn->format->BytesPerPixel;
+  int bpp = screen->format->BytesPerPixel;
   /* Here p is the address to the pixel we want to retrieve */
-  Uint8 *p = (Uint8 *)backscrn->pixels + y * backscrn->pitch + x * bpp;
-
+  Uint8 *p = (Uint8 *)screen->pixels + y * screen->pitch + x * bpp;
+// FIXME (jonathan#1#): Read data from buffer?
+  Slock();
   switch (bpp)
     {
     case 1:
@@ -194,6 +196,7 @@ BYTE readvideo(int x, int y)
     default:
       return 0;       /* shouldn't happen, but avoids warnings */
     }
+  Sulock();
 }
 
 void gettruecolor(SDL_Surface *screen, int x, int y, Uint8 red, Uint8 green, Uint8 blue)
@@ -238,14 +241,13 @@ void gettruecolor(SDL_Surface *screen, int x, int y, Uint8 red, Uint8 green, Uin
 /*
  * Set the pixel at (x, y) to the given value
  * NOTE: The surface must be locked before calling this!
- * Try writing to backscrn first, then blit to screen
  */
 void writevideo(int x, int y, U32 pixel)
 {
   int bpp = screen->format->BytesPerPixel;
   /* Here p is the address to the pixel we want to set */
   Uint8 *p = (Uint8 *)screen->pixels + y * screen->pitch + x * bpp;
-// FIXME (jonathan#1#): write to backscrn until timed out, then blit to screen.
+// FIXME (jonathan#1#): write data to buffer also?
   Slock();
   switch (bpp)
     {
@@ -282,6 +284,8 @@ void writevideo(int x, int y, U32 pixel)
 void puttruecolor(SDL_Surface *screen, int x, int y, Uint8 R, Uint8 G, Uint8 B)
 {
   Uint32 color = SDL_MapRGB(screen->format, R, G, B);
+
+  Slock();
   switch (screen->format->BytesPerPixel)
     {
     case 1: // Assuming 8-bpp
@@ -324,6 +328,7 @@ void puttruecolor(SDL_Surface *screen, int x, int y, Uint8 R, Uint8 G, Uint8 B)
     }
     break;
     }
+  Sulock();
 }
 
 void apply_surface( int x, int y, SDL_Surface* source)
@@ -442,7 +447,10 @@ int writevideopalette(void)
       cols[i].b = dacbox[i][2]*1024;
     }
   /* Set palette */
-  return (SDL_SetColors(screen, cols, 0, 256));
+  if (screen->format->BitsPerPixel == 8)
+    return (SDL_SetColors(screen, cols, 0, 256));
+  else
+    return (0);
 }
 
 
@@ -516,7 +524,10 @@ int get_key_event(int block)
         }
 // FIXME (jonathan#1#): Need to adjust this for bf math.
       if (time_left() > 500)
-        SDL_Flip(screen);
+        {
+            apply_surface(0, 0, backscrn);
+            SDL_Flip(screen);
+        }
     }
   while (block && !keypressed);
   return (keypressed);

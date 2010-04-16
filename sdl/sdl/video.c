@@ -400,6 +400,7 @@ void spindac (int dir, int inc)
   unsigned char tmp[3];
   unsigned char *dacbot;
   int len;
+
   if (colors < 16)
     return;
   if (!(gotrealdac || fake_lut))
