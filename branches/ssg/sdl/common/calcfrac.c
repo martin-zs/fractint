@@ -1745,7 +1745,7 @@ int calcmand(void)              /* fast per pixel 1/2/b/g, called with row & col
   return (color);
 }
 
-extern long (*calcmandfp_c)(void);
+extern long calcmandfp_c(void);
 
 /************************************************************************/
 /* added by Wes Loewer - sort of a floating point version of calcmand() */
