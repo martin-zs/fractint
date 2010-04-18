@@ -357,6 +357,7 @@ void writevideo(int x, int y, U32 pixel)
   Sulock();
 }
 
+// FIXME (jonathan#1#): replace the truecolor routine calls in zoom.c, then delete these.
 void puttruecolor(int x, int y, BYTE R, BYTE G, BYTE B)
 {
   puttruecolor_SDL(screen, x, y, (Uint8)R, (Uint8)G, (Uint8)B);
@@ -494,9 +495,9 @@ void readvideopalette(void)
   int i;
   for (i=0;i<colors;i++)
     {
-      dacbox[i][0] = cols[i].r / 4;
-      dacbox[i][1] = cols[i].g / 4;
-      dacbox[i][2] = cols[i].b / 4;
+      dacbox[i][0] = cols[i].r >> 2;
+      dacbox[i][1] = cols[i].g >> 2;
+      dacbox[i][2] = cols[i].b >> 2;
     }
 }
 
@@ -521,12 +522,13 @@ int writevideopalette(void)
 
   for (i = 0; i < colors; i++)
     {
-      cols[i].r = dacbox[i][0] * 4;
-      cols[i].g = dacbox[i][1] * 4;
-      cols[i].b = dacbox[i][2] * 4;
+      cols[i].r = dacbox[i][0] << 2;
+      cols[i].g = dacbox[i][1] << 2;
+      cols[i].b = dacbox[i][2] << 2;
     }
   /* Set palette */
   SDL_SetPalette(screen, SDL_LOGPAL|SDL_PHYSPAL, cols, 0, 256);
+  SDL_Flip(screen);
 }
 
 /*
@@ -645,9 +647,12 @@ void ShowGIF(char *filename)
     }
 }
 
+#if 0
 int get_mouse_event(void)
 {
   SDL_Event event;
+  static int lastx,lasty;
+  static int dx,dy;
 
   /* look for an event */
   if ( SDL_PollEvent ( &event ) )
@@ -656,21 +661,31 @@ int get_mouse_event(void)
       switch (event.type)
         {
         case SDL_MOUSEBUTTONDOWN:
-          if ( event.button.button == SDL_BUTTON_LEFT )
+          if (event.button.button == SDL_BUTTON_LEFT)
             {
-              //Get the mouse offsets
-              x = event.button.x;
-              y = event.button.y;
+              /* Get the mouse offsets */
+              dx += (event.button.x - lastx) / MOUSE_SCALE;
+              dy += (event.button.y - lasty) / MOUSE_SCALE;
+              lastx = event.button.x;
+              lasty = event.button.y;
               break;
+            }
+          if (event.button.button == SDL_BUTTON_RIGHT)
+            {
+
             }
           break;
         case SDL_MOUSEBUTTONUP:
 // same as above???
 
+
+
+
         }
     }
 
 }
+#endif
 
 int get_key_event(int block)
 {
@@ -696,9 +711,9 @@ int get_key_event(int block)
             }
         }
 // FIXME (jonathan#1#): Need to adjust this for bf math.
-      if (time_to_update())
+      /* time_to_update() should work outside of while loop, but doesn't */
+      if (time_to_update()) /* set to 200 milli seconds, below */
         {
-//          apply_surface(0, 0, backscrn);
           SDL_Flip(screen);
         }
     }
