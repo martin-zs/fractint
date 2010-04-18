@@ -111,8 +111,8 @@ void SetupSDL(void)
   xdots = 800;
   ydots = 600;
 // FIXME (jonathan#1#): Need to work out changing window size.
-  screen = SDL_SetVideoMode(xdots, ydots, 0, SDL_HWSURFACE|SDL_DOUBLEBUF);
-//  screen = SDL_SetVideoMode(xdots, ydots, 8, SDL_HWSURFACE|SDL_DOUBLEBUF);
+//  screen = SDL_SetVideoMode(xdots, ydots, 0, SDL_HWSURFACE|SDL_DOUBLEBUF);
+  screen = SDL_SetVideoMode(xdots, ydots, 8, SDL_HWSURFACE|SDL_DOUBLEBUF);
   if (screen == NULL )
     {
       screen = SDL_SetVideoMode(xdots, ydots, 16, SDL_SWSURFACE|SDL_ANYFORMAT);
@@ -549,22 +549,24 @@ void stackscreen(void)
 #if DEBUG
   fprintf(stderr, "stack_screen, %i screens stacked\n", screenctr+1);
 #endif
-/* since we double buffer,  */
-/* no need to clear the screen, the text routines do it */
+  /* since we double buffer,  */
+  /* no need to clear the screen, the text routines do it */
   if (screenctr == 0)
     SDL_BlitSurface( screen, NULL, backscrn, NULL ); /* save screen */
-  if (screenctr > 0) {
-    for (r = 0; r < TEXT_HEIGHT; r++)
-      for (c = 0; c < TEXT_WIDTH; c++) {
-        stack_text_screen[r][c] = text_screen[r][c];
-        stack_text_attr[r][c] = text_attr[r][c];
-      }
+  if (screenctr > 0)
+    {
+      for (r = 0; r < TEXT_HEIGHT; r++)
+        for (c = 0; c < TEXT_WIDTH; c++)
+          {
+            stack_text_screen[r][c] = text_screen[r][c];
+            stack_text_attr[r][c] = text_attr[r][c];
+          }
 // FIXME (jonathan#1#): Put text in textmsg then blit to screen
 //    blit(txt,stack_txt,0,0,0,0,TEXT_WIDTH<<txt_wt,TEXT_HEIGHT<<txt_ht);
 // but only the first time???
-  SDL_BlitSurface( textmsg, NULL, screen, NULL );
+      SDL_BlitSurface( textmsg, NULL, screen, NULL );
 
-  }
+    }
   screenctr++;
 }
 
@@ -574,17 +576,19 @@ void unstackscreen(void)
 #if DEBUG
   fprintf(stderr, "unstack_screen, %i screens stacked\n", screenctr);
 #endif
-  if (screenctr > 1) {
+  if (screenctr > 1)
+    {
 // FIXME (jonathan#1#): blit textbkgd to screen
 //    set_palette(default_palette);
-    for (r = 0; r < TEXT_HEIGHT; r++)
-      for (c = 0; c < TEXT_WIDTH; c++) {
-        text_screen[r][c] = stack_text_screen[r][c];
-        text_attr[r][c] = stack_text_attr[r][c];
-      }
+      for (r = 0; r < TEXT_HEIGHT; r++)
+        for (c = 0; c < TEXT_WIDTH; c++)
+          {
+            text_screen[r][c] = stack_text_screen[r][c];
+            text_attr[r][c] = stack_text_attr[r][c];
+          }
 // FIXME (jonathan#1#): Put text in textmsg then blit to screen
 //    blit(txt,screen,0,0,0,0,TEXT_WIDTH<<txt_wt,TEXT_HEIGHT<<txt_ht);
-  }
+    }
   screenctr--;
   if (screenctr == 0)
     SDL_BlitSurface( backscrn, NULL, screen, NULL ); /* restore screen */
@@ -641,6 +645,33 @@ void ShowGIF(char *filename)
     }
 }
 
+int get_mouse_event(void)
+{
+  SDL_Event event;
+
+  /* look for an event */
+  if ( SDL_PollEvent ( &event ) )
+    {
+      /* an event was found */
+      switch (event.type)
+        {
+        case SDL_MOUSEBUTTONDOWN:
+          if ( event.button.button == SDL_BUTTON_LEFT )
+            {
+              //Get the mouse offsets
+              x = event.button.x;
+              y = event.button.y;
+              break;
+            }
+          break;
+        case SDL_MOUSEBUTTONUP:
+// same as above???
+
+        }
+    }
+
+}
+
 int get_key_event(int block)
 {
   SDL_Event event;
@@ -665,7 +696,7 @@ int get_key_event(int block)
             }
         }
 // FIXME (jonathan#1#): Need to adjust this for bf math.
-      if (time_left() > 500)
+      if (time_to_update())
         {
 //          apply_surface(0, 0, backscrn);
           SDL_Flip(screen);
@@ -705,16 +736,22 @@ long clock_ticks(void)
   return(SDL_GetTicks());
 }
 
-#define TICK_INTERVAL    1000
+
+#define TICK_INTERVAL    200
 
 static U32 next_time = 0;
 
-U32 time_left(void)
+int time_to_update(void)
 {
+  /* return a 1 every 200 milliseconds */
   U32 now;
 
   now = SDL_GetTicks();
   if (next_time <= now)
-    next_time = SDL_GetTicks() + TICK_INTERVAL;
-  return (next_time - now);
+    {
+      next_time = SDL_GetTicks() + TICK_INTERVAL;
+      return (1);
+    }
+  else
+    return (0);
 }

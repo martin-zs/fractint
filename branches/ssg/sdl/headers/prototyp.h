@@ -1010,7 +1010,7 @@ extern void discardscreen(void);
 extern int get_key_event(int);
 extern void delay(int);
 extern long clock_ticks(void);
-extern U32 time_left(void);
+extern int time_to_update(void);
 
 
 #endif
