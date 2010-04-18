@@ -40,12 +40,7 @@ void rotate(int direction)      /* rotate-the-palette routine */
 
   static int fsteps[] = {2,4,8,12,16,24,32,40,54,100}; /* (for Fkeys) */
 
-#ifndef XFRACT
-  if (gotrealdac == 0                  /* ??? no DAC to rotate! */
-#else
-  /*   if (!(gotrealdac || fake_lut)  */      /* ??? no DAC to rotate! */
   if (!(gotrealdac) || (fake_lut)        /* ??? no DAC to rotate! */
-#endif
       || colors < 16)                    /* strange things happen in 2x modes */
     {
       buzzer(2);
@@ -295,9 +290,7 @@ void rotate(int direction)      /* rotate-the-palette routine */
           pauserotate();              /* update palette and pause */
           break;
         case 'l':                      /* load colors from a specified map */
-#ifndef XFRACT /* L is used for RIGHT_ARROW in Unix keyboard mapping */
         case 'L':
-#endif
           load_palette();
           fkey = 0;                   /* disable random generation */
           pauserotate();              /* update palette and pause */
@@ -382,11 +375,7 @@ static void pauserotate()               /* pause-the-rotate routine */
           far_strcpy(msg,o_msg);
           dvid_status(100,msg);
         }
-#ifndef XFRACT
-      while (!keypressed());          /* wait for any key */
-#else
       waitkeypressed(0);                /* wait for any key */
-#endif
       if (dotmode == 11)
         dvid_status(0,"");
       dacbox[0][0] = olddac0;
@@ -404,11 +393,7 @@ static void set_palette(BYTE start[3], BYTE finish[3])
   dacbox[0][0] = dacbox[0][1] = dacbox[0][2] = 0;
   for (i=1;i<=255;i++)                 /* fill the palette     */
     for (j = 0; j < 3; j++)
-#ifdef __SVR4
-      dacbox[i][j] = (BYTE)((int)(i*start[j] + (256-i)*finish[j])/255);
-#else
       dacbox[i][j] = (BYTE)((i*start[j] + (256-i)*finish[j])/255);
-#endif
 }
 
 static void set_palette2(BYTE start[3], BYTE finish[3])
@@ -418,13 +403,8 @@ static void set_palette2(BYTE start[3], BYTE finish[3])
   for (i=1;i<=128;i++)
     for (j = 0; j < 3; j++)
       {
-#ifdef __SVR4
-        dacbox[i][j]     = (BYTE)((int)(i*finish[j] + (128-i)*start[j] )/128);
-        dacbox[i+127][j] = (BYTE)((int)(i*start[j]  + (128-i)*finish[j])/128);
-#else
         dacbox[i][j]     = (BYTE)((i*finish[j] + (128-i)*start[j] )/128);
         dacbox[i+127][j] = (BYTE)((i*start[j]  + (128-i)*finish[j])/128);
-#endif
       }
 }
 
@@ -435,15 +415,9 @@ static void set_palette3(BYTE start[3], BYTE middle[3], BYTE finish[3])
   for (i=1;i<=85;i++)
     for (j = 0; j < 3; j++)
       {
-#ifdef __SVR4
-        dacbox[i][j]     = (BYTE)((int)(i*middle[j] + (86-i)*start[j] )/85);
-        dacbox[i+85][j]  = (BYTE)((int)(i*finish[j] + (86-i)*middle[j])/85);
-        dacbox[i+170][j] = (BYTE)((int)(i*start[j]  + (86-i)*finish[j])/85);
-#else
         dacbox[i][j]     = (BYTE)((i*middle[j] + (86-i)*start[j] )/85);
         dacbox[i+85][j]  = (BYTE)((i*finish[j] + (86-i)*middle[j])/85);
         dacbox[i+170][j] = (BYTE)((i*start[j]  + (86-i)*finish[j])/85);
-#endif
       }
 }
 
@@ -485,11 +459,8 @@ void save_palette()
                       tmpfilename);
               start++;
             }
-#ifndef XFRACT
+// NOTE (jonathan#1#): When colors > 256, this breaks.
           for (i = start; i < colors; i++)
-#else
-          for (i = start; i < 256; i++)
-#endif
             fprintf(dacfile, "%3d %3d %3d\n",
                     dacbox[i][0] << 2,
                     dacbox[i][1] << 2,

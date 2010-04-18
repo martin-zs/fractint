@@ -17,7 +17,23 @@ TTF_Font *font = NULL;
 // NOTE (jonathan#1#): Does next need to be global to catch events????
 //SDL_Event event;
 
+enum
+{
+  TEXT_WIDTH = 80,
+  TEXT_HEIGHT = 25,
+  MOUSE_SCALE = 1
+};
+
+int txt_ht;  /* text letter height = 2^txt_ht pixels */
+int txt_wt;  /* text letter width = 2^txt_wt pixels */
+
+char text_screen[TEXT_HEIGHT][TEXT_WIDTH];
+int  text_attr[TEXT_HEIGHT][TEXT_WIDTH];
+char stack_text_screen[TEXT_HEIGHT][TEXT_WIDTH];
+int  stack_text_attr[TEXT_HEIGHT][TEXT_WIDTH];
+
 void apply_surface( int, int, SDL_Surface*);
+void puttruecolor_SDL(SDL_Surface*, int, int, Uint8, Uint8, Uint8);
 
 
 void Slock(void)
@@ -96,6 +112,7 @@ void SetupSDL(void)
   ydots = 600;
 // FIXME (jonathan#1#): Need to work out changing window size.
   screen = SDL_SetVideoMode(xdots, ydots, 0, SDL_HWSURFACE|SDL_DOUBLEBUF);
+//  screen = SDL_SetVideoMode(xdots, ydots, 8, SDL_HWSURFACE|SDL_DOUBLEBUF);
   if (screen == NULL )
     {
       screen = SDL_SetVideoMode(xdots, ydots, 16, SDL_SWSURFACE|SDL_ANYFORMAT);
@@ -147,6 +164,22 @@ void SetupSDL(void)
 
 void startvideo(void)
 {
+  int Bpp = screen->format->BytesPerPixel;
+
+  if (Bpp == 1) /* 8-bits per pixel => uses a palette */
+    {
+      gotrealdac = 1;
+      istruecolor = 0;
+      colors = 256;
+    }
+  else /* truecolor modes */
+    {
+      gotrealdac = 0;
+      istruecolor = 1;
+// FIXME (jonathan#1#): Need to have more colors for truecolor modes
+      colors = 256;
+    }
+
   /* initialize screen and backscrn surfaces to black */
   SDL_FillRect(screen, NULL, 0);
   SDL_FillRect(backscrn, NULL, 0);
@@ -164,6 +197,49 @@ void starttext(void)
   SDL_FillRect(textmsg, NULL, 0);
 }
 
+U32 map_to_pixel(BYTE color)
+{
+  /* returns the pixel value corresponding to the truemode selection */
+
+  BYTE red, green, blue;
+
+  switch (truemode)
+    {
+    default:
+    case 0:
+    {
+      red   = dacbox[color][0] << 2; /* red */
+      green = dacbox[color][1] << 2; /* green */
+      blue  = dacbox[color][2] << 2; /* blue */
+      break;
+    }
+    case 1:
+    {
+      red   = (realcoloriter >> 16)& 0xff; /* red */
+      green = (realcoloriter >> 8) & 0xff; /* green */
+      blue  = realcoloriter & 0xff; /* blue */
+      break;
+    }
+    case 2:
+    {
+      red   = (coloriter >> 16)& 0xff; /* red */
+      green = (coloriter >> 8) & 0xff; /* green */
+      blue  = coloriter & 0xff; /* blue */
+      break;
+    }
+    case 3:
+    {
+      BYTE temp = 0 - coloriter;
+      red   = temp & 0xff; /* red */
+      green = coloriter & 0xff; /* green */
+      blue  = coloriter & 0xff; /* blue */
+      break;
+    }
+    }
+
+  return(SDL_MapRGB(screen->format, red, green, blue));
+}
+
 /*
  * Return the pixel value at (x, y)
  * NOTE: The surface must be locked before calling this!
@@ -171,12 +247,12 @@ void starttext(void)
  */
 BYTE readvideo(int x, int y)
 {
-  int bpp = screen->format->BytesPerPixel;
+  int Bpp = screen->format->BytesPerPixel;
   /* Here p is the address to the pixel we want to retrieve */
-  Uint8 *p = (Uint8 *)screen->pixels + y * screen->pitch + x * bpp;
+  Uint8 *p = (Uint8 *)screen->pixels + y * screen->pitch + x * Bpp;
 // FIXME (jonathan#1#): Read data from buffer?
   Slock();
-  switch (bpp)
+  switch (Bpp)
     {
     case 1:
       return *p;
@@ -244,12 +320,12 @@ void gettruecolor(SDL_Surface *screen, int x, int y, Uint8 red, Uint8 green, Uin
  */
 void writevideo(int x, int y, U32 pixel)
 {
-  int bpp = screen->format->BytesPerPixel;
+  int Bpp = screen->format->BytesPerPixel;
   /* Here p is the address to the pixel we want to set */
-  Uint8 *p = (Uint8 *)screen->pixels + y * screen->pitch + x * bpp;
+  Uint8 *p = (Uint8 *)screen->pixels + y * screen->pitch + x * Bpp;
 // FIXME (jonathan#1#): write data to buffer also?
   Slock();
-  switch (bpp)
+  switch (Bpp)
     {
     case 1:
       *p = pixel;
@@ -281,7 +357,12 @@ void writevideo(int x, int y, U32 pixel)
   Sulock();
 }
 
-void puttruecolor(SDL_Surface *screen, int x, int y, Uint8 R, Uint8 G, Uint8 B)
+void puttruecolor(int x, int y, BYTE R, BYTE G, BYTE B)
+{
+  puttruecolor_SDL(screen, x, y, (Uint8)R, (Uint8)G, (Uint8)B);
+}
+
+void puttruecolor_SDL(SDL_Surface *screen, int x, int y, Uint8 R, Uint8 G, Uint8 B)
 {
   Uint32 color = SDL_MapRGB(screen->format, R, G, B);
 
@@ -413,10 +494,9 @@ void readvideopalette(void)
   int i;
   for (i=0;i<colors;i++)
     {
-// NOTE (jonathan#1#): We may not need to divide by 1024
-      dacbox[i][0] = cols[i].r/1024;
-      dacbox[i][1] = cols[i].g/1024;
-      dacbox[i][2] = cols[i].b/1024;
+      dacbox[i][0] = cols[i].r / 4;
+      dacbox[i][1] = cols[i].g / 4;
+      dacbox[i][2] = cols[i].b / 4;
     }
 }
 
@@ -441,18 +521,80 @@ int writevideopalette(void)
 
   for (i = 0; i < colors; i++)
     {
-// NOTE (jonathan#1#): We may not need to multiply by 1024
-      cols[i].r = dacbox[i][0]*1024;
-      cols[i].g = dacbox[i][1]*1024;
-      cols[i].b = dacbox[i][2]*1024;
+      cols[i].r = dacbox[i][0] * 4;
+      cols[i].g = dacbox[i][1] * 4;
+      cols[i].b = dacbox[i][2] * 4;
     }
   /* Set palette */
-  if (screen->format->BitsPerPixel == 8)
-    return (SDL_SetColors(screen, cols, 0, 256));
-  else
-    return (0);
+  SDL_SetPalette(screen, SDL_LOGPAL|SDL_PHYSPAL, cols, 0, 256);
 }
 
+/*
+ * The stackscreen()/unstackscreen() functions were originally
+ * ported to Xfractint.
+ * These functions are useful for switching between different text screens.
+ * For example, looking at a parameter entry using F2.
+ */
+
+int screenctr = 0;
+// NOTE (jonathan#1#): Don't need next.  Never checked.
+#define MAXSCREENS 3
+// May need something if two text screens isn't enough
+//static BYTE *savescreen[MAXSCREENS];
+//static int saverc[MAXSCREENS+1];
+
+void stackscreen(void)
+{
+  int r, c;
+#if DEBUG
+  fprintf(stderr, "stack_screen, %i screens stacked\n", screenctr+1);
+#endif
+/* since we double buffer,  */
+/* no need to clear the screen, the text routines do it */
+  if (screenctr == 0)
+    SDL_BlitSurface( screen, NULL, backscrn, NULL ); /* save screen */
+  if (screenctr > 0) {
+    for (r = 0; r < TEXT_HEIGHT; r++)
+      for (c = 0; c < TEXT_WIDTH; c++) {
+        stack_text_screen[r][c] = text_screen[r][c];
+        stack_text_attr[r][c] = text_attr[r][c];
+      }
+// FIXME (jonathan#1#): Put text in textmsg then blit to screen
+//    blit(txt,stack_txt,0,0,0,0,TEXT_WIDTH<<txt_wt,TEXT_HEIGHT<<txt_ht);
+// but only the first time???
+  SDL_BlitSurface( textmsg, NULL, screen, NULL );
+
+  }
+  screenctr++;
+}
+
+void unstackscreen(void)
+{
+  int r, c;
+#if DEBUG
+  fprintf(stderr, "unstack_screen, %i screens stacked\n", screenctr);
+#endif
+  if (screenctr > 1) {
+// FIXME (jonathan#1#): blit textbkgd to screen
+//    set_palette(default_palette);
+    for (r = 0; r < TEXT_HEIGHT; r++)
+      for (c = 0; c < TEXT_WIDTH; c++) {
+        text_screen[r][c] = stack_text_screen[r][c];
+        text_attr[r][c] = stack_text_attr[r][c];
+      }
+// FIXME (jonathan#1#): Put text in textmsg then blit to screen
+//    blit(txt,screen,0,0,0,0,TEXT_WIDTH<<txt_wt,TEXT_HEIGHT<<txt_ht);
+  }
+  screenctr--;
+  if (screenctr == 0)
+    SDL_BlitSurface( backscrn, NULL, screen, NULL ); /* restore screen */
+}
+
+void discardscreen(void)
+{
+  screenctr = 0;   /* unstack all */
+  SDL_BlitSurface( backscrn, NULL, screen, NULL ); /* restore screen */
+}
 
 
 
@@ -525,8 +667,8 @@ int get_key_event(int block)
 // FIXME (jonathan#1#): Need to adjust this for bf math.
       if (time_left() > 500)
         {
-            apply_surface(0, 0, backscrn);
-            SDL_Flip(screen);
+//          apply_surface(0, 0, backscrn);
+          SDL_Flip(screen);
         }
     }
   while (block && !keypressed);
@@ -573,6 +715,6 @@ U32 time_left(void)
 
   now = SDL_GetTicks();
   if (next_time <= now)
-     next_time = SDL_GetTicks() + TICK_INTERVAL;
+    next_time = SDL_GetTicks() + TICK_INTERVAL;
   return (next_time - now);
 }
