@@ -79,12 +79,7 @@ void rotate(int direction)      /* rotate-the-palette routine */
   more = 1;
   while (more)
     {
-      if (dotmode == 11)
-        {
-          if (!paused)
-            pauserotate();
-        }
-      else while (!keypressed())  /* rotate until key hit, at least once so step=oldstep ok */
+      while (!keypressed())  /* rotate until key hit, at least once so step=oldstep ok */
           {
             if (fkey > 0)                  /* randomizing is on */
               {
@@ -368,13 +363,6 @@ static void pauserotate()               /* pause-the-rotate routine */
       dacbox[0][1] = 48;
       dacbox[0][2] = 48;
       spindac(0,1);                     /* show white border */
-      if (dotmode == 11)
-        {
-          static FCODE o_msg[] = {" Paused in \"color cycling\" mode "};
-          char msg[sizeof(o_msg)];
-          far_strcpy(msg,o_msg);
-          dvid_status(100,msg);
-        }
       waitkeypressed(0);                /* wait for any key */
       if (dotmode == 11)
         dvid_status(0,"");
