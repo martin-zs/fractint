@@ -177,6 +177,7 @@ MandelfpSetup(void)
           && using_jiim == 0 && bailoutest == Mod
           && (orbitsave&2) == 0)
         {
+          calcmandfpasmstart();
           calctype = calcmandfp; /* the normal case - use calcmandfp */
         }
       else
@@ -283,6 +284,7 @@ JuliafpSetup(void)
           && using_jiim == 0 && bailoutest == Mod
           && (orbitsave&2) == 0)
         {
+          calcmandfpasmstart();
           calctype = calcmandfp; /* the normal case - use calcmandfp */
         }
       else

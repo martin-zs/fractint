@@ -9,10 +9,6 @@
 #include "prototyp.h"
 #include "fractype.h"
 
-extern int atan_colors;
-extern long firstsavedand;
-extern int nextsavedincr;
-
 static int inside_color, periodicity_color;
 
 void calcmandfpasmstart(void)
