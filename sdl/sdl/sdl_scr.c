@@ -23,6 +23,14 @@ enum
   TEXT_HEIGHT = 25,
   MOUSE_SCALE = 1
 };
+// FIXME (jonathan#1#): This will need to change since SDL uses a separate variable for the modifier keys.
+static int mousefkey[4][4] /* [button][dir] */ =
+{
+  {SDLK_RIGHT,SDLK_LEFT,SDLK_DOWN,SDLK_UP},
+  {0,0,SDLK_PAGEDOWN,SDLK_PAGEUP},
+  {CTL_PLUS,CTL_MINUS,CTL_DEL,CTL_INSERT},
+  {CTL_END,CTL_HOME,CTL_PAGE_DOWN,CTL_PAGE_UP}
+};
 
 int txt_ht;  /* text letter height = 2^txt_ht pixels */
 int txt_wt;  /* text letter width = 2^txt_wt pixels */
@@ -180,13 +188,14 @@ void startvideo(void)
       colors = 256;
     }
 
-  /* initialize screen and backscrn surfaces to black */
-  SDL_FillRect(screen, NULL, 0);
-  SDL_FillRect(backscrn, NULL, 0);
+  /* initialize screen and backscrn surfaces to inside color */
+  SDL_FillRect(screen, NULL, map_to_pixel(inside));
+  SDL_FillRect(backscrn, NULL, map_to_pixel(inside));
 }
 
 void setclear (void)
 {
+  /* clears the screen to the text background */
   apply_surface(0, 0, textbkgd);
 }
 
@@ -213,7 +222,7 @@ U32 map_to_pixel(BYTE color)
       blue  = dacbox[color][2] << 2; /* blue */
       break;
     }
-    case 1:
+    case 1: /* this and next are standard truecolor schemes */
     {
       red   = (realcoloriter >> 16)& 0xff; /* red */
       green = (realcoloriter >> 8) & 0xff; /* green */
@@ -227,7 +236,7 @@ U32 map_to_pixel(BYTE color)
       blue  = coloriter & 0xff; /* blue */
       break;
     }
-    case 3:
+    case 3: /* mostly red, experimental (or broken) */
     {
       BYTE temp = 0 - coloriter;
       red   = temp & 0xff; /* red */
@@ -648,11 +657,12 @@ void ShowGIF(char *filename)
 }
 
 #if 0
-int get_mouse_event(void)
+int get_event(void)
 {
   SDL_Event event;
   static int lastx,lasty;
   static int dx,dy;
+  int keypressed = 0;
 
   /* look for an event */
   if ( SDL_PollEvent ( &event ) )
@@ -677,7 +687,16 @@ int get_mouse_event(void)
           break;
         case SDL_MOUSEBUTTONUP:
 // same as above???
+          break;
 
+        case SDL_KEYDOWN:
+          keypressed = event.key.keysym.sym;
+          break;
+        case SDL_QUIT:
+          exit(0);
+          break;
+        default:
+          break;
 
 
 
@@ -685,6 +704,10 @@ int get_mouse_event(void)
     }
 
 }
+
+
+
+
 #endif
 
 int get_key_event(int block)

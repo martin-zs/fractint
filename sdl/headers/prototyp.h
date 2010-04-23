@@ -970,6 +970,11 @@ extern uclock_t usec_clock(void);
 extern void restart_uclock(void);
 extern void wait_until(int index, uclock_t wait_time);
 
+/*  calmanfp -- C file prototypes */
+
+extern void calcmandfpasmstart(void);
+extern long calcmandfp_c(void);
+
 /*  general -- C file prototypes */
 
 extern void findpath(char *,char *);
