@@ -1057,7 +1057,6 @@ struct fractalspecificstuff fractalspecific[]=
    },
 
 // FIXME (jonathan#1#): Following two are obsolete, but can't leave a hole????
-/*
    {
    t_newton+1,
       {newtdegree, ES, ES, ES},
@@ -1065,7 +1064,7 @@ struct fractalspecificstuff fractalspecific[]=
       HT_NEWT, HF_NEWT, WINFRAC,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
       0, NOFRACTAL, NOFRACTAL, NEWTON, XAXIS,
-      MPCNewtonFractal, MPCjulia_per_pixel, NewtonSetup, StandardFractal,
+      NewtonFractal2, otherjuliafp_per_pixel, NewtonSetup, StandardFractal,
       NOBAILOUT
    },
 
@@ -1076,10 +1075,9 @@ struct fractalspecificstuff fractalspecific[]=
       HT_NEWTBAS, HF_NEWTBAS, WINFRAC,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
       0, NOFRACTAL, NOFRACTAL, NEWTBASIN, NOSYM,
-      MPCNewtonFractal, MPCjulia_per_pixel, NewtonSetup, StandardFractal,
+      NewtonFractal2, otherjuliafp_per_pixel, NewtonSetup, StandardFractal,
       NOBAILOUT
    },
-*/
 
    {
    "complexnewton",

@@ -656,6 +656,139 @@ void ShowGIF(char *filename)
     }
 }
 
+static int translate_key(SDL_KeyboardEvent *key)
+{
+  int tmp = key->keysym.sym & 0xff;
+#if DEBUG
+  fprintf(stderr, "translate_key(%i): ``%c''\n", key->keysym.sym, key->keysym.sym);
+#endif
+
+  if (tmp >= 'a' && tmp <= 'z')
+    return tmp;
+  /* This is the SDL key mapping */
+  else if (key->keysym.mod & KMOD_CTRL) /* Control key down */
+    {
+      switch (key->keysym.sym)
+        {
+        case SDLK_MINUS:
+          return CTL_MINUS;
+        case SDLK_PLUS:
+          return CTL_PLUS;
+        case SDLK_RETURN:
+          return CTL_ENTER;
+        case SDLK_INSERT:
+          return CTL_INSERT;
+        case SDLK_DELETE:
+          return CTL_DEL;
+        case SDLK_HOME:
+          return CTL_HOME;
+        case SDLK_END:
+          return CTL_END;
+        case SDLK_PAGEUP:
+          return CTL_PAGE_UP;
+        case SDLK_PAGEDOWN:
+          return CTL_PAGE_DOWN;
+        case SDLK_LEFT:
+          return LEFT_ARROW_2;
+        case SDLK_RIGHT:
+          return RIGHT_ARROW_2;
+        case SDLK_UP:
+          return UP_ARROW_2;
+        case SDLK_DOWN:
+          return DOWN_ARROW_2;
+        default:
+          return tmp;
+        }
+    }
+  else if (key->keysym.mod & KMOD_SHIFT) /* Shift key down */
+    {
+      switch (key->keysym.sym)
+        {
+        case SDLK_F1:
+          return SF1;
+        case SDLK_F2:
+          return SF2;
+        case SDLK_F3:
+          return SF3;
+        case SDLK_F4:
+          return SF4;
+        case SDLK_F5:
+          return SF5;
+        case SDLK_F6:
+          return SF6;
+        case SDLK_F7:
+          return SF7;
+        case SDLK_F8:
+          return SF8;
+        case SDLK_F9:
+          return SF9;
+        case SDLK_F10:
+          return SF10;
+        case SDLK_TAB:
+          return BACK_TAB;
+        default:
+          return tmp;
+        }
+    }
+  else  /* No modifier key down */
+    {
+      switch (key->keysym.sym)
+        {
+        case SDLK_F1:
+          return F1;
+        case SDLK_F2:
+          return F2;
+        case SDLK_F3:
+          return F3;
+        case SDLK_F4:
+          return F4;
+        case SDLK_F5:
+          return F5;
+        case SDLK_F6:
+          return F6;
+        case SDLK_F7:
+          return F7;
+        case SDLK_F8:
+          return F8;
+        case SDLK_F9:
+          return F9;
+        case SDLK_F10:
+          return F10;
+        case SDLK_INSERT:
+          return INSERT;
+        case SDLK_DELETE:
+          return DELETE;
+        case SDLK_HOME:
+          return HOME;
+        case SDLK_END:
+          return END;
+        case SDLK_PAGEUP:
+          return PAGE_UP;
+        case SDLK_PAGEDOWN:
+          return PAGE_DOWN;
+        case SDLK_LEFT:
+          return LEFT_ARROW;
+        case SDLK_RIGHT:
+          return RIGHT_ARROW;
+        case SDLK_UP:
+          return UP_ARROW;
+        case SDLK_DOWN:
+          return DOWN_ARROW;
+        case SDLK_ESCAPE:
+          return ESC;
+        case SDLK_KP_ENTER:
+          return ENTER_2;
+        case SDLK_RETURN:
+          return ENTER;
+        case -2:
+          return CTL_ENTER_2;
+        default:
+          return tmp;
+        }
+    }
+  return tmp;
+}
+
 #if 0
 int get_event(void)
 {
@@ -724,7 +857,7 @@ int get_key_event(int block)
           switch (event.type)
             {
             case SDL_KEYDOWN:
-              keypressed = event.key.keysym.sym;
+              keypressed = translate_key(&event.key);
               break;
             case SDL_QUIT:
               exit(0);
