@@ -284,7 +284,7 @@ BYTE readvideo(int x, int y)
   Sulock();
 }
 
-void gettruecolor(SDL_Surface *screen, int x, int y, Uint8 red, Uint8 green, Uint8 blue)
+void gettruecolor_SDL(SDL_Surface *screen, int x, int y, Uint8 red, Uint8 green, Uint8 blue)
 {
   /* Extracting color components from a 32-bit color value */
   SDL_PixelFormat *fmt;
@@ -296,32 +296,14 @@ void gettruecolor(SDL_Surface *screen, int x, int y, Uint8 red, Uint8 green, Uin
   pixel = *((Uint32*)screen->pixels);
   SDL_UnlockSurface(screen);
 
-  /* Get Red component */
-  temp = pixel&fmt->Rmask; /* Isolate red component */
-  temp = temp>>fmt->Rshift;/* Shift it down to 8-bit */
-  temp = temp<<fmt->Rloss; /* Expand to a full 8-bit number */
-  red = (Uint8)temp;
-
-  /* Get Green component */
-  temp = pixel&fmt->Gmask; /* Isolate green component */
-  temp = temp>>fmt->Gshift;/* Shift it down to 8-bit */
-  temp = temp<<fmt->Gloss; /* Expand to a full 8-bit number */
-  green = (Uint8)temp;
-
-  /* Get Blue component */
-  temp = pixel&fmt->Bmask; /* Isolate blue component */
-  temp = temp>>fmt->Bshift;/* Shift it down to 8-bit */
-  temp = temp<<fmt->Bloss; /* Expand to a full 8-bit number */
-  blue = (Uint8)temp;
-
-#if 0
-  /* Get Alpha component */
-  temp = pixel&fmt->Amask; /* Isolate alpha component */
-  temp = temp>>fmt->Ashift;/* Shift it down to 8-bit */
-  temp = temp<<fmt->Aloss; /* Expand to a full 8-bit number */
-  alpha = (Uint8)temp;
-#endif
+  SDL_GetRGB(pixel, fmt, &red, &green, &blue);
 }
+
+void gettruecolor(int x, int y, BYTE R, BYTE G, BYTE B)
+{
+gettruecolor_SDL(screen, x, y, (Uint8)R, (Uint8)G, (Uint8)B);
+}
+
 
 /*
  * Set the pixel at (x, y) to the given value
@@ -364,12 +346,6 @@ void writevideo(int x, int y, U32 pixel)
       break;
     }
   Sulock();
-}
-
-// FIXME (jonathan#1#): replace the truecolor routine calls in zoom.c, then delete these.
-void puttruecolor(int x, int y, BYTE R, BYTE G, BYTE B)
-{
-  puttruecolor_SDL(screen, x, y, (Uint8)R, (Uint8)G, (Uint8)B);
 }
 
 void puttruecolor_SDL(SDL_Surface *screen, int x, int y, Uint8 R, Uint8 G, Uint8 B)
@@ -420,6 +396,11 @@ void puttruecolor_SDL(SDL_Surface *screen, int x, int y, Uint8 R, Uint8 G, Uint8
     break;
     }
   Sulock();
+}
+
+void puttruecolor(int x, int y, BYTE R, BYTE G, BYTE B)
+{
+  puttruecolor_SDL(screen, x, y, (Uint8)R, (Uint8)G, (Uint8)B);
 }
 
 void apply_surface( int x, int y, SDL_Surface* source)

@@ -43,13 +43,13 @@ void dispbox(void)
   int i;
   int boxc = (colors-1)&boxcolor;
   unsigned char *values = (unsigned char *)boxvalues;
-  int rgb[3];
-  Slock();
+  BYTE rgb[3];
+
   for (i=0;i<boxcount;i++)
     {
-      if (istruecolor && truemode)
+      if (istruecolor)
         {
-          gettruecolor(boxx[i]-sxoffs,boxy[i]-syoffs,&rgb[0],&rgb[1],&rgb[2]);
+          gettruecolor(boxx[i]-sxoffs,boxy[i]-syoffs,rgb[0],rgb[1],rgb[2]);
           puttruecolor(boxx[i]-sxoffs,boxy[i]-syoffs,
                        rgb[0]^255,rgb[1]^255,rgb[2]^255);
         }
@@ -57,21 +57,17 @@ void dispbox(void)
         values[i] = (unsigned char)getcolor(boxx[i]-sxoffs,boxy[i]-syoffs);
     }
   /* There is an interaction between getcolor and putcolor, so separate them */
-  if (!(istruecolor && truemode)) /* don't need this for truecolor with truemode set */
+  if (!istruecolor) /* don't need this for truecolor */
     for (i=0;i<boxcount;i++)
       {
-        if (colors == 2)
-          putcolor(boxx[i]-sxoffs,boxy[i]-syoffs,(1 - values[i]));
-        else
           putcolor(boxx[i]-sxoffs,boxy[i]-syoffs,boxc);
       }
-  Sulock();
 }
 
 void clearbox(void)
 {
   int i;
-  if (istruecolor && truemode)
+  if (istruecolor)
     {
       dispbox();
     }
