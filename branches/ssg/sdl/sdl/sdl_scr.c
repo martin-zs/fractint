@@ -1,6 +1,7 @@
 /* Put all of the routines that call SDL functions in this module */
 
 #include <stdlib.h>
+#include <assert.h>
 #include <SDL.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
@@ -157,12 +158,15 @@ void SetupSDL(void)
   textbkgd = SDL_CreateRGBSurface(SDL_SWSURFACE, xdots, ydots, bpp,
                                   rmask, gmask, bmask, amask);
 
-  font = TTF_OpenFont("crystal.ttf", 20);
+  font = TTF_OpenFont("crystal.ttf", 12);
   if ( font == NULL )
     {
       fprintf(stderr, "Couldn't set font: %s\n", SDL_GetError());
       exit(1);
     }
+
+  /* get text height and width in pixels */
+  TTF_SizeUTF8(font,"H",&txt_wt,&txt_ht);
 
   SDL_WM_SetCaption( "Fractint", NULL );
   SDL_WM_SetIcon(SDL_LoadBMP("fractint.ico"), NULL);
@@ -202,50 +206,16 @@ void setclear (void)
 void starttext(void)
 {
   /* initialize textbkgd and textmsg surfaces to black */
-  SDL_FillRect(textbkgd, NULL, 0);
-  SDL_FillRect(textmsg, NULL, 0);
+  SDL_FillRect(textbkgd, NULL, map_to_pixel(WHITE));
+  SDL_FillRect(textmsg, NULL, map_to_pixel(WHITE));
 }
 
 U32 map_to_pixel(BYTE color)
 {
   /* returns the pixel value corresponding to the truemode selection */
-
   BYTE red, green, blue;
 
-  switch (truemode)
-    {
-    default:
-    case 0:
-    {
-      red   = dacbox[color][0] << 2; /* red */
-      green = dacbox[color][1] << 2; /* green */
-      blue  = dacbox[color][2] << 2; /* blue */
-      break;
-    }
-    case 1: /* this and next are standard truecolor schemes */
-    {
-      red   = (realcoloriter >> 16)& 0xff; /* red */
-      green = (realcoloriter >> 8) & 0xff; /* green */
-      blue  = realcoloriter & 0xff; /* blue */
-      break;
-    }
-    case 2:
-    {
-      red   = (coloriter >> 16)& 0xff; /* red */
-      green = (coloriter >> 8) & 0xff; /* green */
-      blue  = coloriter & 0xff; /* blue */
-      break;
-    }
-    case 3: /* mostly red, experimental (or broken) */
-    {
-      BYTE temp = 0 - coloriter;
-      red   = temp & 0xff; /* red */
-      green = coloriter & 0xff; /* green */
-      blue  = coloriter & 0xff; /* blue */
-      break;
-    }
-    }
-
+  dac_to_rgb(color, &red, &green, &blue);
   return(SDL_MapRGB(screen->format, red, green, blue));
 }
 
@@ -284,24 +254,23 @@ BYTE readvideo(int x, int y)
   Sulock();
 }
 
-void gettruecolor_SDL(SDL_Surface *screen, int x, int y, Uint8 red, Uint8 green, Uint8 blue)
+void gettruecolor_SDL(SDL_Surface *screen, int x, int y, BYTE *red, BYTE *green, BYTE *blue)
 {
   /* Extracting color components from a 32-bit color value */
   SDL_PixelFormat *fmt;
-  Uint32 temp, pixel;
-  /* Uint8 alpha; if needed later */
+  Uint32 pixel;
 
   fmt = screen->format;
   SDL_LockSurface(screen);
   pixel = *((Uint32*)screen->pixels);
   SDL_UnlockSurface(screen);
 
-  SDL_GetRGB(pixel, fmt, &red, &green, &blue);
+  SDL_GetRGB(pixel, fmt, (Uint8 *)red, (Uint8 *)green, (Uint8 *)blue);
 }
 
 void gettruecolor(int x, int y, BYTE R, BYTE G, BYTE B)
 {
-gettruecolor_SDL(screen, x, y, (Uint8)R, (Uint8)G, (Uint8)B);
+  gettruecolor_SDL(screen, x, y, &R, &G, &B);
 }
 
 
@@ -518,7 +487,7 @@ int writevideopalette(void)
     }
   /* Set palette */
   SDL_SetPalette(screen, SDL_LOGPAL|SDL_PHYSPAL, cols, 0, 256);
-  SDL_Flip(screen);
+  SDL_Flip(screen); /* not needed? */
 }
 
 /*
@@ -539,12 +508,15 @@ void stackscreen(void)
 {
   int r, c;
 #if DEBUG
-  fprintf(stderr, "stack_screen, %i screens stacked\n", screenctr+1);
+  fprintf(stderr, "stackscreen, %i screens stacked\n", screenctr+1);
 #endif
   /* since we double buffer,  */
   /* no need to clear the screen, the text routines do it */
   if (screenctr == 0)
+    {
     SDL_BlitSurface( screen, NULL, backscrn, NULL ); /* save screen */
+    SDL_BlitSurface( textbkgd, NULL, screen, NULL );
+    }
   if (screenctr > 0)
     {
       for (r = 0; r < TEXT_HEIGHT; r++)
@@ -556,7 +528,7 @@ void stackscreen(void)
 // FIXME (jonathan#1#): Put text in textmsg then blit to screen
 //    blit(txt,stack_txt,0,0,0,0,TEXT_WIDTH<<txt_wt,TEXT_HEIGHT<<txt_ht);
 // but only the first time???
-      SDL_BlitSurface( textmsg, NULL, screen, NULL );
+      SDL_BlitSurface( screen, NULL, textmsg, NULL ); /* save text */
 
     }
   screenctr++;
@@ -566,7 +538,7 @@ void unstackscreen(void)
 {
   int r, c;
 #if DEBUG
-  fprintf(stderr, "unstack_screen, %i screens stacked\n", screenctr);
+  fprintf(stderr, "unstackscreen, %i screens stacked\n", screenctr);
 #endif
   if (screenctr > 1)
     {
@@ -583,13 +555,186 @@ void unstackscreen(void)
     }
   screenctr--;
   if (screenctr == 0)
+    {
     SDL_BlitSurface( backscrn, NULL, screen, NULL ); /* restore screen */
+    SDL_Flip(screen); // doesn't appear to be needed
+    }
 }
 
 void discardscreen(void)
 {
+#if DEBUG
+  fprintf(stderr, "discardscreen, %i screens stacked\n", screenctr);
+#endif
   screenctr = 0;   /* unstack all */
   SDL_BlitSurface( backscrn, NULL, screen, NULL ); /* restore screen */
+  SDL_Flip(screen); // doesn't appear to be needed
+}
+
+void putstring (int row, int col, int attr, CHAR *msg)
+{
+#if DEBUG
+  fprintf(stderr, "printstring, %s\n", msg);
+#endif
+  SDL_Color color = {0,0,0}, bgcolor = {0xff,0xff,0xff};
+  SDL_Surface *text_surface;
+  SDL_Rect text_rect;
+
+  int r, c, i, k, s_r, s_c;
+  int foregnd = attr & 15;
+  int backgnd = (attr >> 4) & 15;
+  int tmp_attr;
+  int max_c = 0;
+
+  if (row != -1)
+    textrow = row;
+  if (col != -1)
+    textcol = col;
+
+  if (attr & BRIGHT && !(attr & INVERSE))   /* bright */
+    {
+      foregnd += 8;
+    }
+  if (attr & INVERSE)   /* inverse video */
+    {
+// FIXME (jonathan#1#): How do we implement next????
+//    text_mode(palette_color[foregnd]);
+      tmp_attr = backgnd;
+    }
+  else
+    {
+//    text_mode(palette_color[backgnd]);
+      tmp_attr = foregnd;
+    }
+
+  s_r = r = textrow + textrbase;
+  s_c = c = textcol + textcbase;
+
+text_rect.x = (textcol + textcbase) * txt_wt;
+text_rect.y = (textrow + textrbase) * txt_ht;
+
+if(!(text_surface=TTF_RenderText_Shaded(font,msg,color,bgcolor))) {
+//handle error here, perhaps print TTF_GetError at least
+} else {
+SDL_BlitSurface(text_surface,NULL,screen,&text_rect);
+//perhaps we can reuse it, but I assume not for simplicity.
+SDL_FreeSurface(text_surface);
+}
+
+
+  while (*msg)
+    {
+      if (*msg == '\n')
+        {
+          textrow++;
+          r++;
+          if (c > max_c)
+            max_c = c;
+          textcol = 0;
+          c = textcbase;
+        }
+      else
+        {
+#if DEBUG
+          if (c >= TEXT_WIDTH) c = TEXT_WIDTH - 1; /* keep going, but truncate */
+          if (r >= TEXT_HEIGHT) r = TEXT_HEIGHT - 1;
+#endif
+          assert(r < TEXT_HEIGHT);
+          assert(c < TEXT_WIDTH);
+          text_screen[r][c] = *msg;
+          text_attr[r][c] = attr;
+          textcol++;
+          c++;
+        }
+      msg++;
+    }
+
+
+  if (c > max_c)
+    max_c = c;
+
+  i = s_r*txt_ht; /* reuse i for blit */
+  k = s_c*txt_wt;
+  if (r == 0)
+    r = 1;
+  if (max_c > TEXT_WIDTH)
+    max_c = TEXT_WIDTH;
+  c = max_c - s_c;     /* reuse c for blit, now it's max width of msg */
+  if (r > TEXT_HEIGHT - s_r)
+    r = TEXT_HEIGHT - s_r;
+
+//SDL_BlitSurface(textmsg,NULL,screen,&text_rect);
+
+// FIXME (jonathan#1#): blit to screen here
+// blit(txt,screen,k,i,k,i,c<<txt_wt,r<<txt_ht);
+}
+
+/*
+; setattr(row, col, attr, count) where
+;         row, col = row and column to start printing.
+;         attr = color attribute.
+;         count = number of characters to set
+;         This routine works only in real color text mode.
+*/
+void setattr (int row, int col, int attr, int count)
+{
+  int i = col;
+  int k;
+  int r, c, s_r, s_c;
+  int s_count = count;
+  int foregnd = attr & 15;
+  int backgnd = (attr >> 4) & 15;
+  int tmp_attr;
+
+  if (attr & BRIGHT && !(attr & INVERSE))   /* bright */
+    {
+      foregnd += 8;
+    }
+  if (attr & INVERSE)   /* inverse video */
+    {
+      // FIXME (jonathan#1#): How do we implement next????
+//    text_mode(palette_color[foregnd]);
+      tmp_attr = backgnd;
+    }
+  else
+    {
+// FIXME (jonathan#1#): How do we implement next????
+//    text_mode(palette_color[backgnd]);
+      tmp_attr = foregnd;
+    }
+
+  if (row != -1)
+    textrow = row;
+  if (col != -1)
+    textcol = col;
+  s_r = r = textrow + textrbase;
+  s_c = c = textcol + textcbase;
+
+  assert(count <= TEXT_WIDTH * TEXT_HEIGHT);
+  while (count)
+    {
+      assert(r < TEXT_HEIGHT);
+      assert(i < TEXT_WIDTH);
+      text_attr[r][i] = attr;
+      if (++i == TEXT_WIDTH)
+        {
+          i = 0;
+          r++;
+        }
+      count--;
+    }
+  /* refresh text */
+  if (r == 0)
+    r = 1;
+  if (r > TEXT_HEIGHT - s_r)
+    r = TEXT_HEIGHT - s_r;
+  if (s_count > TEXT_WIDTH - s_c)
+    s_count = TEXT_WIDTH - s_c;
+  i = s_r<<txt_ht; /* reuse i for blit, above i is col, now it's row */
+  k = s_c<<txt_wt;
+
+// FIXME (jonathan#1#): blit to screen here
+// blit(txt,screen,k,i,k,i,s_count<<txt_wt,r<<txt_ht);
 }
 
 

@@ -48,22 +48,6 @@ int textcol = 0;   /* for putstring(..,-1,...) */
 int textrbase = 0; /* textrow is relative to this */
 int textcbase = 0; /* textcol is relative to this */
 
-enum
-{
-  TEXT_WIDTH = 80,
-  TEXT_HEIGHT = 25,
-  MOUSE_SCALE = 1
-};
-
-extern int txt_ht;  /* text letter height = 2^txt_ht pixels */
-extern int txt_wt;  /* text letter width = 2^txt_wt pixels */
-
-extern char text_screen[TEXT_HEIGHT][TEXT_WIDTH];
-extern int  text_attr[TEXT_HEIGHT][TEXT_WIDTH];
-extern char stack_text_screen[TEXT_HEIGHT][TEXT_WIDTH];
-extern int  stack_text_attr[TEXT_HEIGHT][TEXT_WIDTH];
-
-
 void setforgraphics (void);
 void setvideomode (int);
 void putstring (int, int, int, CHAR *);
@@ -169,7 +153,7 @@ int getcolor (int xdot, int ydot)
 void putcolor_a (int xdot, int ydot, int color)
 {
   if (istruecolor)
-    dotwrite (xdot + sxoffs, ydot + syoffs, (U32)map_to_pixel((BYTE) color));
+    dotwrite (xdot + sxoffs, ydot + syoffs, map_to_pixel((BYTE) color));
   else
     dotwrite (xdot + sxoffs, ydot + syoffs, (U32)color /* & andcolor */);
   /* assume andcolor is taken care of prior to this point */
@@ -210,166 +194,6 @@ int keycursor (int row, int col)
   movecursor (row, col);
   waitkeypressed (0);
   return getakey ();
-}
-
-/*
-; PUTSTR.asm puts a string directly to video display memory. Called from C by:
-;    putstring(row, col, attr, string) where
-;         row, col = row and column to start printing.
-;         attr = color attribute.
-;         string = far pointer to the null terminated string to print.
-;    Written for the A86 assembler (which has much less 'red tape' than MASM)
-;    by Bob Montgomery, Orlando, Fla.             7-11-88
-;    Adapted for MASM 5.1 by Tim Wegner          12-11-89
-;    Furthur mucked up to handle graphics
-;       video modes by Bert Tyler                 1-07-90
-;    Reworked for:  row,col update/inherit;
-;       620x200x2 inverse video;  far ptr to string;
-;       fix to avoid scrolling when last posn chgd;
-;       divider removed;  newline ctl chars;  PB  9-25-90
-*/
-void putstring (int row, int col, int attr, CHAR *msg)
-{
-  int r, c, i, k, s_r, s_c;
-  int foregnd = attr & 15;
-  int backgnd = (attr >> 4) & 15;
-  int tmp_attr;
-  int max_c = 0;
-
-  if (row != -1)
-    textrow = row;
-  if (col != -1)
-    textcol = col;
-
-  if (attr & BRIGHT && !(attr & INVERSE))   /* bright */
-    {
-      foregnd += 8;
-    }
-  if (attr & INVERSE)   /* inverse video */
-    {
-// FIXME (jonathan#1#): How do we implement next????
-//    text_mode(palette_color[foregnd]);
-      tmp_attr = backgnd;
-    }
-  else
-    {
-//    text_mode(palette_color[backgnd]);
-      tmp_attr = foregnd;
-    }
-
-  s_r = r = textrow + textrbase;
-  s_c = c = textcol + textcbase;
-
-  while (*msg)
-    {
-      if (*msg == '\n')
-        {
-          textrow++;
-          r++;
-          if (c > max_c)
-            max_c = c;
-          textcol = 0;
-          c = textcbase;
-        }
-      else
-        {
-#if DEBUG
-          if (c >= TEXT_WIDTH) c = TEXT_WIDTH - 1; /* keep going, but truncate */
-          if (r >= TEXT_HEIGHT) r = TEXT_HEIGHT - 1;
-#endif
-          assert(r < TEXT_HEIGHT);
-          assert(c < TEXT_WIDTH);
-          text_screen[r][c] = *msg;
-          text_attr[r][c] = attr;
-          textcol++;
-          c++;
-        }
-      msg++;
-    }
-
-  if (c > max_c)
-    max_c = c;
-
-  i = s_r<<txt_ht; /* reuse i for blit */
-  k = s_c<<txt_wt;
-  if (r == 0)
-    r = 1;
-  if (max_c > TEXT_WIDTH)
-    max_c = TEXT_WIDTH;
-  c = max_c - s_c;     /* reuse c for blit, now it's max width of msg */
-  if (r > TEXT_HEIGHT - s_r)
-    r = TEXT_HEIGHT - s_r;
-
-// FIXME (jonathan#1#): blit to screen here
-// blit(txt,screen,k,i,k,i,c<<txt_wt,r<<txt_ht);
-}
-
-/*
-; setattr(row, col, attr, count) where
-;         row, col = row and column to start printing.
-;         attr = color attribute.
-;         count = number of characters to set
-;         This routine works only in real color text mode.
-*/
-void setattr (int row, int col, int attr, int count)
-{
-  int i = col;
-  int k;
-  int r, c, s_r, s_c;
-  int s_count = count;
-  int foregnd = attr & 15;
-  int backgnd = (attr >> 4) & 15;
-  int tmp_attr;
-
-  if (attr & BRIGHT && !(attr & INVERSE))   /* bright */
-    {
-      foregnd += 8;
-    }
-  if (attr & INVERSE)   /* inverse video */
-    {
-      // FIXME (jonathan#1#): How do we implement next????
-//    text_mode(palette_color[foregnd]);
-      tmp_attr = backgnd;
-    }
-  else
-    {
-// FIXME (jonathan#1#): How do we implement next????
-//    text_mode(palette_color[backgnd]);
-      tmp_attr = foregnd;
-    }
-
-  if (row != -1)
-    textrow = row;
-  if (col != -1)
-    textcol = col;
-  s_r = r = textrow + textrbase;
-  s_c = c = textcol + textcbase;
-
-  assert(count <= TEXT_WIDTH * TEXT_HEIGHT);
-  while (count)
-    {
-      assert(r < TEXT_HEIGHT);
-      assert(i < TEXT_WIDTH);
-      text_attr[r][i] = attr;
-      if (++i == TEXT_WIDTH)
-        {
-          i = 0;
-          r++;
-        }
-      count--;
-    }
-  /* refresh text */
-  if (r == 0)
-    r = 1;
-  if (r > TEXT_HEIGHT - s_r)
-    r = TEXT_HEIGHT - s_r;
-  if (s_count > TEXT_WIDTH - s_c)
-    s_count = TEXT_WIDTH - s_c;
-  i = s_r<<txt_ht; /* reuse i for blit, above i is col, now it's row */
-  k = s_c<<txt_wt;
-
-// FIXME (jonathan#1#): blit to screen here
-// blit(txt,screen,k,i,k,i,s_count<<txt_wt,r<<txt_ht);
 }
 
 /*
@@ -452,6 +276,7 @@ void spindac (int dir, int inc)
 */
 void setfortext (void)
 {
+  setclear();
 }
 
 void setforgraphics (void)
@@ -460,8 +285,7 @@ void setforgraphics (void)
   spindac (0, 1);
 }
 
-#if 0
-void dac_to_rgb(BYTE color, BYTE red, BYTE green, BYTE blue)
+void dac_to_rgb(BYTE color, BYTE *red, BYTE *green, BYTE *blue)
 {
   /* returns the rgb values corresponding to the color entry in dacbox */
 
@@ -469,38 +293,30 @@ void dac_to_rgb(BYTE color, BYTE red, BYTE green, BYTE blue)
     {
     default:
     case 0:
-    {
-      red   = dacbox[color][0] << 2; /* red */
-      green = dacbox[color][1] << 2; /* green */
-      blue  = dacbox[color][2] << 2; /* blue */
+      *red   = dacbox[color][0] << 2; /* red */
+      *green = dacbox[color][1] << 2; /* green */
+      *blue  = dacbox[color][2] << 2; /* blue */
       break;
-    }
     case 1:
-    {
-      red   = (realcoloriter >> 16)& 0xff; /* red */
-      green = (realcoloriter >> 8) & 0xff; /* green */
-      blue  = realcoloriter & 0xff; /* blue */
+      *red   = (realcoloriter >> 16) & 0xff; /* red */
+      *green = (realcoloriter >> 8) & 0xff; /* green */
+      *blue  = realcoloriter & 0xff; /* blue */
       break;
-    }
     case 2:
-    {
-      red   = (coloriter >> 16)& 0xff; /* red */
-      green = (coloriter >> 8) & 0xff; /* green */
-      blue  = coloriter & 0xff; /* blue */
+      *red   = (coloriter >> 16) & 0xff; /* red */
+      *green = (coloriter >> 8) & 0xff; /* green */
+      *blue  = coloriter & 0xff; /* blue */
       break;
-    }
     case 3:
-    {
-      BYTE temp = 0 - coloriter;
-      red   = temp & 0xff; /* red */
-      green = coloriter & 0xff; /* green */
-      blue  = coloriter & 0xff; /* blue */
+      { /* experimental */
+      U32 temp = (U32)((realcoloriter << 16) / maxit);
+      *red   = (temp >> 16) & 0xff; /* red */
+      *green = (temp >> 8) & 0xff; /* green */
+      *blue  = temp & 0xff; /* blue */
       break;
-    }
-
+      }
     }
 }
-#endif
 
 /************** Function findfont(n) **************************/
 /*    findfont(0) returns pointer to 8x8 font table if it can */

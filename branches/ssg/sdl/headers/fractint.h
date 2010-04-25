@@ -342,26 +342,12 @@ struct formula_info         /*  for saving formula data in GIF file     */
     short future[6];       /* for stuff we haven't thought of, yet */
 };
 
-#ifndef XFRACT
-enum stored_at_values
-   {
-   NOWHERE,
-   EXTRA,
-   FARMEM,
-   EXPANDED,
-   EXTENDED,
-   DISK
-   };
-#endif
-
-#ifdef XFRACT
 enum stored_at_values
    {
    NOWHERE,
    FARMEM,
    DISK
    };
-#endif
 
 #define NUMGENES 21
 
@@ -445,17 +431,17 @@ extern  double   f_at_rad;      /* finite attractor radius  */
 struct moreparams
 {
    int      type;                       /* index in fractalname of the fractal */
-   char     far *param[MAXPARAMS-4];    /* name of the parameters */
+   char         *param[MAXPARAMS-4];    /* name of the parameters */
    double   paramvalue[MAXPARAMS-4];    /* default parameter values */
 };
 
-typedef struct moreparams far       MOREPARAMS;
+typedef struct moreparams   MOREPARAMS;
 
 struct fractalspecificstuff
 {
    char  *name;                         /* name of the fractal */
                                         /* (leading "*" supresses name display) */
-   char  far *param[4];                 /* name of the parameters */
+   char      *param[4];                 /* name of the parameters */
    double paramvalue[4];                /* default parameter values */
    int   helptext;                      /* helpdefs.h HT_xxxx, -1 for none */
    int   helpformula;                   /* helpdefs.h HF_xxxx, -1 for none */
@@ -481,11 +467,7 @@ struct fractalspecificstuff
                                            5 = PI (sin/cos) symmetry
                                            6 = NEWTON (power) symmetry
                                                                 */
-#ifdef XFRACT
-   int (*orbitcalc)();  /* function that calculates one orbit */
-#else
    int (*orbitcalc)(void);      /* function that calculates one orbit */
-#endif
    int (*per_pixel)(void);      /* once-per-pixel init */
    int (*per_image)(void);      /* once-per-image setup */
    int (*calctype)(void);       /* name of main fractal function */
@@ -496,11 +478,7 @@ struct alternatemathstuff
 {
    int type;                    /* index in fractalname of the fractal */
    int math;                    /* kind of math used */
-#ifdef XFRACT
-   int (*orbitcalc)();  /* function that calculates one orbit */
-#else
    int (*orbitcalc)(void);      /* function that calculates one orbit */
-#endif
    int (*per_pixel)(void);      /* once-per-pixel init */
    int (*per_image)(void);      /* once-per-image setup */
 };
@@ -674,7 +652,7 @@ is not in the data structure */
 #define DBL_EPSILON 2.2204460492503131e-16
 #endif
 
-#ifndef XFRACT
+#if 1
 #define UPARR "\x18"
 #define DNARR "\x19"
 #define RTARR "\x1A"
@@ -712,7 +690,7 @@ is not in the data structure */
 #define FK_F9  "F9"
 #endif
 
-#ifndef XFRACT
+#if 1
 #define Fractint  "Fractint"
 #define FRACTINT  "FRACTINT"
 #else
@@ -858,7 +836,7 @@ extern BYTE txtcolor[];
 #define C_PROMPT_TEXT     txtcolor[8]
 #define C_PROMPT_LO       txtcolor[9]
 #define C_PROMPT_MED      txtcolor[10]
-#ifndef XFRACT
+#if 1
 #define C_PROMPT_HI       txtcolor[11]+BRIGHT
 #else
 #define C_PROMPT_HI       txtcolor[11]
@@ -898,7 +876,7 @@ struct fullscreenvalues
       int    ival;      /* when type is 'i'      */
       long   Lval;      /* when type is 'L'      */
       char   sval[16];  /* when type is 's'      */
-      char  far *sbuf;  /* when type is 0x100+n  */
+      char      *sbuf;  /* when type is 0x100+n  */
       struct {          /* when type is 'l'      */
          int  val;      /*   selected choice     */
          int  vlen;     /*   char len per choice */
@@ -962,13 +940,13 @@ struct ext_blk_3 {
 struct ext_blk_4 {
    char got_data;
    int length;
-   int far *range_data;
+   int *range_data;
    };
 
 struct ext_blk_5 {
    char got_data;
    int length;
-   char far *apm_data;
+   char *apm_data;
    };
 
 /* parameter evolution stuff */
@@ -1050,76 +1028,24 @@ typedef struct baseunit    GENEBASE;
  * is swapped out.
  */
 
-#if (_MSC_VER >= 700 && !defined(WINFRACT))
-typedef char __based(__segname("_CODE")) FCODE;
-#else
-typedef char far FCODE;
-#endif
-
 /* pointer to FCODE */
-#if (_MSC_VER >= 700 && !defined(WINFRACT))
-typedef FCODE * __based(__segname("_CODE")) PFCODE;
-#else
+typedef char far FCODE;
+
 typedef FCODE * PFCODE;
-#endif
 
-#if (_MSC_VER >= 700 && !defined(WINFRACT))
-typedef BYTE __based(__segname("_CODE")) BFCODE;
-#else
 typedef BYTE far BFCODE;
-#endif
 
-#if (_MSC_VER >= 700 && !defined(WINFRACT))
-typedef short __based(__segname("_CODE")) SIFCODE;
-#else
 typedef short far SIFCODE;
-#endif
 
-#if (_MSC_VER >= 700 && !defined(WINFRACT))
-typedef short __based(__segname("_CODE")) USFCODE;
-#else
 typedef short far USFCODE;
-#endif
 
-#if (_MSC_VER >= 700 && !defined(WINFRACT))
-typedef int __based(__segname("_CODE")) IFCODE;
-#else
 typedef int far IFCODE;
-#endif
 
-#if (_MSC_VER >= 700 && !defined(WINFRACT))
-typedef unsigned int __based(__segname("_CODE")) UIFCODE;
-#else
 typedef unsigned int far UIFCODE;
-#endif
 
-#if (_MSC_VER >= 700 && !defined(WINFRACT))
-typedef long __based(__segname("_CODE")) LFCODE;
-#else
 typedef long far LFCODE;
-#endif
 
-#if (_MSC_VER >= 700 && !defined(WINFRACT))
-typedef unsigned long __based(__segname("_CODE")) ULFCODE;
-#else
 typedef unsigned long far ULFCODE;
-#endif
 
-#if (_MSC_VER >= 700 && !defined(WINFRACT))
-typedef double __based(__segname("_CODE")) DFCODE;
-#else
 typedef double far DFCODE;
-#endif
-#endif
-
-
-#if _MSC_VER == 800
-#ifndef FIXTAN_DEFINED
-/* !!!!! stupid MSVC tan(x) bug fix !!!!!!!!            */
-/* tan(x) can return -tan(x) if -pi/2 < x < pi/2       */
-/* if tan(x) has been called before outside this range. */
-double fixtan( double x );
-#define tan fixtan
-#define FIXTAN_DEFINED
-#endif
 #endif

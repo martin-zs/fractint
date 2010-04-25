@@ -840,7 +840,7 @@ int main_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stacked,
           (fractalspecific[fractype].isinteger == 0 ||
            fractalspecific[fractype].tofloat != NOFRACTAL) &&
           !bf_math && /* for now no arbitrary precision support */
-          !(istruecolor && truemode) )
+          !(istruecolor) )
         {
           clear_zoombox();
           Jiim(ORBIT);
