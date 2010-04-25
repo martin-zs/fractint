@@ -988,8 +988,7 @@ extern void get_line (int, int, int, BYTE *);
 extern void put_line (int, int, int, BYTE *);
 extern int out_line (BYTE *, int);
 extern void find_special_colors (void);
-extern void setclear (void);
-
+extern void dac_to_rgb(BYTE, BYTE *, BYTE *, BYTE *);
 extern BYTE *findfont(int);
 
 /*  sdl_src -- C file prototypes */

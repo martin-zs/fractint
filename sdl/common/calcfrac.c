@@ -524,9 +524,12 @@ int calcfract(void)
   basin = 0;
   /* added yet another level of indirection to putcolor!!! TW */
   putcolor = putcolor_a;
-  if (istruecolor && truemode)
+#if 0
+// NOTE (jonathan#1#): May need next if getcolor routines don't work correctly with truecolor
+  if (istruecolor)
     /* Have to force passes=1 */
     usr_stdcalcmode = stdcalcmode = '1';
+#endif
   if (truecolor)
     {
       check_writefile(light_name, ".tga");
