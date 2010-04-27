@@ -64,17 +64,11 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
   frommandel = 0;
   if (resumeflag)
     goto resumeloop;
+
   for (;;)                    /* eternal loop */
     {
       if (calc_status != 2 || showfile == 0)
         {
-// NOTE (jonathan#1#): May need something similar to next
-#if 0
-          if (resizeWindow())
-            {
-              calc_status = -1;
-            }
-#endif
 // FIXME (jonathan#1#): Don't need next.  JCO 02/20/2010
 //          dotmode = videoentry.dotmode;     /* assembler dot read/write */
 // FIXME (jonathan#1#): Next should come from sstools.ini or command line. JCO 02/20/2010
@@ -231,7 +225,7 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
             }
           else
 // FIXME (jonathan#1#): Need to define actions for other filetypes
-;
+            ;
 //            i = funny_glasses_call(tgaview);
           if (outln_cleanup)             /* cleanup routine defined? */
             (*outln_cleanup)();
@@ -585,12 +579,6 @@ resumeloop:                             /* return here on failed overlays */
             }
           if (zoomoff == 1 && *kbdmore == 1) /* draw/clear a zoom box? */
             drawbox(1);
-#if 0
-          if (resizeWindow())
-            {
-              calc_status = -1;
-            }
-#endif
         }
     }
   /*  return(0); */
@@ -615,6 +603,13 @@ int main_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stacked,
     }
   if (quick_calc && calc_status != 4)
     usr_stdcalcmode = old_stdcalcmode;
+
+  if (resize_flag)
+    {
+      resize_flag = 0; /* reset the flag */
+      return(IMAGESTART);
+    }
+
   switch (*kbdchar)
     {
     case 't':                    /* new fractal type             */
@@ -1407,15 +1402,15 @@ do_3d_transform:
 
     case DELETE:         /* select video mode from list */
 #if 0
-    {
-      stackscreen();
-      *kbdchar = select_video_mode(adapter);
-      if (check_vidmode_key(0, *kbdchar) >= 0)  /* picked a new mode? */
-        discardscreen();
-      else
-        unstackscreen();
-      /* fall through */
-    }
+      {
+        stackscreen();
+        *kbdchar = select_video_mode(adapter);
+        if (check_vidmode_key(0, *kbdchar) >= 0)  /* picked a new mode? */
+          discardscreen();
+        else
+          unstackscreen();
+        /* fall through */
+      }
 #endif
     default:                     /* other (maybe a valid Fn key) */
       break;
