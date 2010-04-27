@@ -33,6 +33,8 @@ static int mousefkey[4][4] /* [button][dir] */ =
   {CTL_END,CTL_HOME,CTL_PAGE_DOWN,CTL_PAGE_UP}
 };
 
+int resize_flag = 0;
+int screenctr = 0;
 int txt_ht;  /* text letter height = 2^txt_ht pixels */
 int txt_wt;  /* text letter width = 2^txt_wt pixels */
 
@@ -85,30 +87,14 @@ void CleanupSDL(void)
 
 }
 
-void SetupSDL(void)
+int ResizeScreen(int mode)
 {
-  /* called by main() routine */
+  /* mode = 0 for initial startup */
+  /* mode = 1 to resize the window */
+
   Uint32 rmask, gmask, bmask, amask;
   int bpp; /* bits per pixel for graphics mode */
-
-  if ( SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_TIMER) < 0 )
-    {
-      fprintf(stderr, "Unable to init SDL: %s\n", SDL_GetError());
-      exit(1);
-    }
-
-// NOTE (jonathan#1#): May not need this once png support is added.
-  if ( IMG_Init(IMG_INIT_PNG) < 0 )
-    {
-      fprintf(stderr, "Unable to init IMG: %s\n", SDL_GetError());
-      exit(1);
-    }
-
-  if (TTF_Init() < 0)
-    {
-      fprintf(stderr, "Unable to init TTF: %s\n", SDL_GetError());
-      exit(1);
-    }
+  int result = 0;
 
   /*
    * Initialize the display in a 800x600 best available bit mode,
@@ -117,15 +103,19 @@ void SetupSDL(void)
    * Initialize the display in a 800x600 16-bit mode,
    * requesting a software surface
    */
-  xdots = 800;
-  ydots = 600;
-// FIXME (jonathan#1#): Need to work out changing window size.
+  if (mode == 0)
+    {
+// FIXME (jonathan#1#): Allow this to be set in sstools.ini
+      xdots = 800;
+      ydots = 600;
+    }
 //  screen = SDL_SetVideoMode(xdots, ydots, 0, SDL_HWSURFACE|SDL_DOUBLEBUF);
-  screen = SDL_SetVideoMode(xdots, ydots, 8, SDL_HWSURFACE|SDL_DOUBLEBUF);
+  screen = SDL_SetVideoMode(xdots, ydots, 8,
+                            SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_RESIZABLE);
   if (screen == NULL )
     {
-      screen = SDL_SetVideoMode(xdots, ydots, 16, SDL_SWSURFACE|SDL_ANYFORMAT);
-      /* need flags for no double buffering */
+      screen = SDL_SetVideoMode(xdots, ydots, 16,
+                                SDL_SWSURFACE|SDL_ANYFORMAT|SDL_RESIZABLE);
     }
   if ( screen == NULL )
     {
@@ -136,7 +126,7 @@ void SetupSDL(void)
   bpp=screen->format->BitsPerPixel;
 
 #if DEBUG
-  printf("Set %dx%d at %d bits-per-pixel mode\n", xdots, ydots, bpp);
+  fprintf(stderr, "Set %dx%d at %d bits-per-pixel mode\n", xdots, ydots, bpp);
 #endif
 
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
@@ -151,12 +141,49 @@ void SetupSDL(void)
   amask = 0xff000000;
 #endif
 
+  if (mode == 1)
+    {
+      resize_flag = 1;
+      SDL_FreeSurface(backscrn);
+      SDL_FreeSurface(textbkgd);
+      SDL_FreeSurface(textmsg);
+    }
+
   backscrn = SDL_CreateRGBSurface(SDL_SWSURFACE, xdots, ydots, bpp,
                                   rmask, gmask, bmask, amask);
   textmsg = SDL_CreateRGBSurface(SDL_SWSURFACE, xdots, ydots, bpp,
                                  rmask, gmask, bmask, amask);
   textbkgd = SDL_CreateRGBSurface(SDL_SWSURFACE, xdots, ydots, bpp,
                                   rmask, gmask, bmask, amask);
+
+  return(result);
+}
+
+void SetupSDL(void)
+{
+  /* called by main() routine */
+
+  if ( SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_TIMER) < 0 )
+    {
+      fprintf(stderr, "Unable to init SDL: %s\n", SDL_GetError());
+      exit(1);
+    }
+
+  ResizeScreen(0);
+
+// NOTE (jonathan#1#): May not need this once png support is added.
+  if ( IMG_Init(IMG_INIT_PNG) < 0 )
+    {
+      fprintf(stderr, "Unable to init IMG: %s\n", SDL_GetError());
+      exit(1);
+    }
+
+  if (TTF_Init() < 0)
+    {
+      fprintf(stderr, "Unable to init TTF: %s\n", SDL_GetError());
+      exit(1);
+    }
+
 
   font = TTF_OpenFont("crystal.ttf", 12);
   if ( font == NULL )
@@ -379,6 +406,7 @@ void apply_surface( int x, int y, SDL_Surface* source)
   offset.x = x;
   offset.y = y;
   SDL_BlitSurface( source, NULL, screen, &offset );
+  SDL_Flip(screen);
 }
 
 /*
@@ -486,8 +514,12 @@ int writevideopalette(void)
       cols[i].b = dacbox[i][2] << 2;
     }
   /* Set palette */
-  SDL_SetPalette(screen, SDL_LOGPAL|SDL_PHYSPAL, cols, 0, 256);
-  SDL_Flip(screen); /* not needed? */
+  SDL_SetColors(screen, cols, 0, 256);
+//  SDL_SetColors(backscrn, cols, 0, 256);
+//  SDL_SetColors(textmsg, cols, 0, 256);
+//  SDL_SetColors(textbkgd, cols, 0, 256);
+//  SDL_SetPalette(screen, SDL_LOGPAL|SDL_PHYSPAL, cols, 0, 256);
+//  SDL_Flip(screen); /* not needed? */
 }
 
 /*
@@ -497,7 +529,6 @@ int writevideopalette(void)
  * For example, looking at a parameter entry using F2.
  */
 
-int screenctr = 0;
 // NOTE (jonathan#1#): Don't need next.  Never checked.
 #define MAXSCREENS 3
 // May need something if two text screens isn't enough
@@ -514,8 +545,9 @@ void stackscreen(void)
   /* no need to clear the screen, the text routines do it */
   if (screenctr == 0)
     {
-    SDL_BlitSurface( screen, NULL, backscrn, NULL ); /* save screen */
-    SDL_BlitSurface( textbkgd, NULL, screen, NULL );
+      SDL_BlitSurface( screen, NULL, backscrn, NULL ); /* save screen */
+      SDL_Flip(backscrn); /* not needed? */
+      apply_surface(0, 0, textbkgd);
     }
   if (screenctr > 0)
     {
@@ -529,7 +561,7 @@ void stackscreen(void)
 //    blit(txt,stack_txt,0,0,0,0,TEXT_WIDTH<<txt_wt,TEXT_HEIGHT<<txt_ht);
 // but only the first time???
       SDL_BlitSurface( screen, NULL, textmsg, NULL ); /* save text */
-
+      SDL_Flip(textmsg); /* not needed? */
     }
   screenctr++;
 }
@@ -556,8 +588,7 @@ void unstackscreen(void)
   screenctr--;
   if (screenctr == 0)
     {
-    SDL_BlitSurface( backscrn, NULL, screen, NULL ); /* restore screen */
-    SDL_Flip(screen); // doesn't appear to be needed
+      apply_surface(0, 0, backscrn); /* restore screen */
     }
 }
 
@@ -567,8 +598,7 @@ void discardscreen(void)
   fprintf(stderr, "discardscreen, %i screens stacked\n", screenctr);
 #endif
   screenctr = 0;   /* unstack all */
-  SDL_BlitSurface( backscrn, NULL, screen, NULL ); /* restore screen */
-  SDL_Flip(screen); // doesn't appear to be needed
+  apply_surface(0, 0, backscrn); /* restore screen */
 }
 
 void putstring (int row, int col, int attr, CHAR *msg)
@@ -610,16 +640,19 @@ void putstring (int row, int col, int attr, CHAR *msg)
   s_r = r = textrow + textrbase;
   s_c = c = textcol + textcbase;
 
-text_rect.x = (textcol + textcbase) * txt_wt;
-text_rect.y = (textrow + textrbase) * txt_ht;
+  text_rect.x = (textcol + textcbase) * txt_wt;
+  text_rect.y = (textrow + textrbase) * txt_ht;
 
-if(!(text_surface=TTF_RenderText_Shaded(font,msg,color,bgcolor))) {
+  if (!(text_surface=TTF_RenderText_Shaded(font,msg,color,bgcolor)))
+    {
 //handle error here, perhaps print TTF_GetError at least
-} else {
-SDL_BlitSurface(text_surface,NULL,screen,&text_rect);
+    }
+  else
+    {
+      SDL_BlitSurface(text_surface,NULL,screen,&text_rect);
 //perhaps we can reuse it, but I assume not for simplicity.
-SDL_FreeSurface(text_surface);
-}
+      SDL_FreeSurface(text_surface);
+    }
 
 
   while (*msg)
@@ -739,7 +772,7 @@ void setattr (int row, int col, int attr, int count)
 
 
 
-
+#if 0
 /* the following should return a value for success or failure */
 void ShowBMP(char *filename)
 {
@@ -781,6 +814,7 @@ void ShowGIF(char *filename)
       SDL_FreeSurface( optimizedImage );
     }
 }
+#endif
 
 static int translate_key(SDL_KeyboardEvent *key)
 {
@@ -982,6 +1016,12 @@ int get_key_event(int block)
           /* an event was found */
           switch (event.type)
             {
+            case SDL_VIDEORESIZE:
+              xdots = sxdots = event.resize.w;
+              ydots = sydots = event.resize.h;
+              ResizeScreen(1);
+              keypressed = ENTER;
+              break;
             case SDL_KEYDOWN:
               keypressed = translate_key(&event.key);
               break;
@@ -1000,6 +1040,10 @@ int get_key_event(int block)
         }
     }
   while (block && !keypressed);
+      if (time_to_update()) /* set to 200 milli seconds, below */
+        {
+          SDL_Flip(screen);
+        }
   return (keypressed);
 }
 

@@ -30,8 +30,6 @@ void (*lineread) (int, int, int, BYTE *);  /* read-a-line routine */
 int andcolor = 0;          /* "and" value used for color selection */
 int diskflag = 0;          /* disk video active flag */
 
-int videoflag = 0;         /* special "your-own-video" flag */
-
 void (*swapsetup) (void) = NULL; /* setfortext/graphics setup routine */
 int color_dark = 0;        /* darkest color in palette */
 int color_bright = 0;      /* brightest color in palette */
@@ -48,6 +46,7 @@ int textcol = 0;   /* for putstring(..,-1,...) */
 int textrbase = 0; /* textrow is relative to this */
 int textcbase = 0; /* textcol is relative to this */
 
+void setfortext (void);
 void setforgraphics (void);
 void setvideomode (int);
 void putstring (int, int, int, CHAR *);
@@ -100,22 +99,18 @@ void setvideomode (int dotmode)
     {
       enddisk ();
     }
-  if (videoflag)
-    {
-      videoflag = 0;
-    }
   switch (dotmode)
     {
     case 1:   /* text */
 // FIXME (jonathan#1#): Add code to setup text screen.
       starttext();
+      setfortext();
       break;
     case 2:   /* video window */
       dotwrite = writevideo;
       dotread = readvideo;
       lineread = readvideoline;
       linewrite = writevideoline;
-      videoflag = 1;
       startvideo ();
       setforgraphics ();
       break;
