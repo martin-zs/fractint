@@ -44,8 +44,6 @@
 
 #define overwrite   fract_overwrite      /* avoid name conflict with curses */
 
-#ifdef XFRACT           /* XFRACT forces unix configuration! --CWM-- */
-
 /* remove far's */
 #ifdef far
 #undef far
@@ -62,11 +60,6 @@
 #define _fmemcpy  memcpy
 #define _fmemset  memset
 #define _fmemmove memmove
-#ifndef USE_BIGNUM_C_CODE
-#define USE_BIGNUM_C_CODE
-#endif
-
-#endif  /* XFRACT  */
 
         typedef unsigned char  U8;
         typedef signed char    S8;

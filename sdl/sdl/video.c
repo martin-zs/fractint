@@ -303,13 +303,14 @@ void dac_to_rgb(BYTE color, BYTE *red, BYTE *green, BYTE *blue)
       *blue  = coloriter & 0xff; /* blue */
       break;
     case 3:
-      { /* experimental */
+    {
+      /* experimental */
       U32 temp = (U32)((realcoloriter << 16) / maxit);
       *red   = (temp >> 16) & 0xff; /* red */
       *green = (temp >> 8) & 0xff; /* green */
       *blue  = temp & 0xff; /* blue */
       break;
-      }
+    }
     }
 }
 

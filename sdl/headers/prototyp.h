@@ -1004,7 +1004,7 @@ extern U32 map_to_pixel(BYTE);
 extern BYTE readvideo(int, int);
 extern void writevideo(int, int, U32);
 extern void puttruecolor(int, int, BYTE, BYTE, BYTE);
-extern void gettruecolor(int, int, BYTE, BYTE, BYTE);
+extern void gettruecolor(int, int, BYTE *, BYTE *, BYTE *);
 extern void readvideoline(int, int, int, BYTE *);
 extern void writevideoline(int, int, int, BYTE *);
 extern void readvideopalette(void);

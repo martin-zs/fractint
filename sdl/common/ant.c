@@ -37,8 +37,7 @@
 static int *incx[DIRS];         /* tab for 4 directions */
 static int *incy[DIRS];
 
-void
-setwait(long *wait)
+void setwait(long *wait)
 {
   char msg[30];
   int kbdchar;
@@ -81,8 +80,7 @@ setwait(long *wait)
 /* turkmite from scientific american july 1994 pag 91
  * Tweaked by Luciano Genero & Fulvio Cappelli
  */
-void
-TurkMite1(int maxtur, int rule_len, char *ru, long maxpts, long wait)
+void TurkMite1(int maxtur, int rule_len, char *ru, long maxpts, long wait)
 {
   int color, ix, iy, idir, pixel, i;
   int kbdchar, step, antwrap;
@@ -237,8 +235,7 @@ exit_ant:
 }
 
 /* this one ignore the color of the current cell is more like a white ant */
-void
-TurkMite2(int maxtur, int rule_len, char *ru, long maxpts, long wait)
+void TurkMite2(int maxtur, int rule_len, char *ru, long maxpts, long wait)
 {
   int color, ix, iy, idir, pixel, dir[MAX_ANTS + 1], i;
   int kbdchar, step, antwrap;
@@ -365,8 +362,7 @@ exit_ant:
 }
 
 /* N.B. use the common memory in extraseg - suffix not large enough*/
-int
-ant(void)
+int ant(void)
 {
   int maxants, type, i;
   int oldhelpmode, rule_len;
