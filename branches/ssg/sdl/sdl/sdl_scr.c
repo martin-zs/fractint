@@ -281,7 +281,38 @@ BYTE readvideo(int x, int y)
   Sulock();
 }
 
-void gettruecolor_SDL(SDL_Surface *screen, int x, int y, BYTE *red, BYTE *green, BYTE *blue)
+/*
+ * Return the pixel value at (x, y)
+ * NOTE: The surface must be locked before calling this!
+ */
+Uint32 getpixel(SDL_Surface *surface, int x, int y)
+{
+    int bpp = surface->format->BytesPerPixel;
+    /* Here p is the address to the pixel we want to retrieve */
+    Uint8 *p = (Uint8 *)surface->pixels + y * surface->pitch + x * bpp;
+
+    switch(bpp) {
+    case 1:
+        return *p;
+
+    case 2:
+        return *(Uint16 *)p;
+
+    case 3:
+        if(SDL_BYTEORDER == SDL_BIG_ENDIAN)
+            return p[0] << 16 | p[1] << 8 | p[2];
+        else
+            return p[0] | p[1] << 8 | p[2] << 16;
+
+    case 4:
+        return *(Uint32 *)p;
+
+    default:
+        return 0;       /* shouldn't happen, but avoids warnings */
+    }
+}
+
+void gettruecolor_SDL(SDL_Surface *screen, int x, int y, Uint8 *red, Uint8 *green, Uint8 *blue)
 {
   /* Extracting color components from a 32-bit color value */
   SDL_PixelFormat *fmt;
@@ -289,15 +320,15 @@ void gettruecolor_SDL(SDL_Surface *screen, int x, int y, BYTE *red, BYTE *green,
 
   fmt = screen->format;
   SDL_LockSurface(screen);
-  pixel = *((Uint32*)screen->pixels);
+  pixel = getpixel(screen, x, y);
   SDL_UnlockSurface(screen);
 
   SDL_GetRGB(pixel, fmt, (Uint8 *)red, (Uint8 *)green, (Uint8 *)blue);
 }
 
-void gettruecolor(int x, int y, BYTE R, BYTE G, BYTE B)
+void gettruecolor(int x, int y, BYTE *R, BYTE *G, BYTE *B)
 {
-  gettruecolor_SDL(screen, x, y, &R, &G, &B);
+  gettruecolor_SDL(screen, x, y, (Uint8 *)R, (Uint8 *)G, (Uint8 *)B);
 }
 
 
