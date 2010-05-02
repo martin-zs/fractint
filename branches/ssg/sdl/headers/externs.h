@@ -146,7 +146,6 @@ extern double                dysize;
 extern int                   EPSFileType;
 extern int                   escape_exit;
 extern BYTE                  exitmode;
-extern SEGTYPE               extraseg;
 extern int                   evolving;
 extern U16                   evolve_handle;
 extern int                   eyeseparation;

@@ -108,6 +108,7 @@ int ResizeScreen(int mode)
   Uint32 rmask, gmask, bmask, amask;
   int bpp; /* bits per pixel for graphics mode */
   int result = 0;
+  int fontsize;
 
   /*
    * Initialize the display in a 800x600 best available bit mode,
@@ -124,7 +125,7 @@ int ResizeScreen(int mode)
       ydots = 600;
     }
 //  screen = SDL_SetVideoMode(xdots, ydots, 0, SDL_HWSURFACE|SDL_DOUBLEBUF);
-  screen = SDL_SetVideoMode(xdots, ydots, 8,
+  screen = SDL_SetVideoMode(xdots, ydots, 32,
                             SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_RESIZABLE);
   if (screen == NULL )
     {
@@ -170,6 +171,7 @@ int ResizeScreen(int mode)
     {
       resize_flag = 1;
       SDL_FreeSurface(backscrn);
+      TTF_CloseFont(font);
     }
 
   backscrn = SDL_CreateRGBSurface(SDL_SWSURFACE, xdots, ydots, bpp,
@@ -178,6 +180,18 @@ int ResizeScreen(int mode)
   if (backscrn == NULL )
     fprintf(stderr, "No backscrn\n");
 #endif
+
+  fontsize = (int)(ydots / 34) + 1;
+  font = TTF_OpenFont("crystal.ttf", fontsize);
+  if ( font == NULL )
+    {
+      fprintf(stderr, "Couldn't set font: %s\n", SDL_GetError());
+      exit(1);
+    }
+
+  /* get text height and width in pixels */
+  TTF_SizeUTF8(font,"H",&txt_wt,&txt_ht);
+
   return(result);
 }
 
@@ -194,6 +208,12 @@ void SetupSDL(void)
 // NOTE (jonathan#1#): Next does not work.  Don't know why.
   SDL_WM_SetIcon(SDL_LoadBMP("Fractint.ico"), NULL);
 
+  if (TTF_Init() < 0)
+    {
+      fprintf(stderr, "Unable to init TTF: %s\n", SDL_GetError());
+      exit(1);
+    }
+
   ResizeScreen(0);
 
 // NOTE (jonathan#1#): May not need this once png support is added.
@@ -202,23 +222,6 @@ void SetupSDL(void)
       fprintf(stderr, "Unable to init IMG: %s\n", SDL_GetError());
       exit(1);
     }
-
-  if (TTF_Init() < 0)
-    {
-      fprintf(stderr, "Unable to init TTF: %s\n", SDL_GetError());
-      exit(1);
-    }
-
-
-  font = TTF_OpenFont("crystal.ttf", 12);
-  if ( font == NULL )
-    {
-      fprintf(stderr, "Couldn't set font: %s\n", SDL_GetError());
-      exit(1);
-    }
-
-  /* get text height and width in pixels */
-  TTF_SizeUTF8(font,"H",&txt_wt,&txt_ht);
 
   SDL_EnableKeyRepeat(250,30);
 

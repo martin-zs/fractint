@@ -33,7 +33,7 @@ void intro(void)
   oldhelpmode = helpmode;
   lookatmouse = 0;                     /* de-activate full mouse checking */
 
-  screen_text = MK_FP(extraseg, 0);
+  screen_text = malloc(16000);
 
   i = 32767 + read_help_topic(INTRO_AUTHORS, 0, 32767, screen_text);
   screen_text[i++] = '\0';
@@ -85,7 +85,7 @@ loop_intro:
   if (j == 32)   /* spacebar pauses */
     {
 wait_again:
-#ifndef XFRACT
+#if 0
       while (!keypressed()) ;
 #else
       waitkeypressed(0);
@@ -113,5 +113,6 @@ intro_end:
   ungetakey(j);
   lookatmouse = oldlookatmouse;                /* restore the mouse-checking */
   helpmode = oldhelpmode;
+  free(screen_text);
   return ;
 }

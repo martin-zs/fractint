@@ -115,8 +115,8 @@ void make_batch_file()
   if (s_makepar[1] == 0) /* makepar map case */
     colorsonly = 1;
 
-  /* put comment storage in extraseg */
-  inpcommandfile = MK_FP(extraseg,0);
+  /* put comment storage in memory */
+  inpcommandfile = malloc(16000);
   inpcommandname = inpcommandfile+80;
   inpcomment[0]    = inpcommandname+(ITEMNAMELEN + 1);
   inpcomment[1]    = inpcomment[0] + MAXCMT;
@@ -508,6 +508,7 @@ skip_UI:
     }
   helpmode = oldhelpmode;
   unstackscreen();
+  free(inpcommandfile);
 }
 
 static struct write_batch_data   /* buffer for parms to break lines nicely */
@@ -537,9 +538,9 @@ void write_batch_parms(char *colorinf, int colorsonly, int maxcolor, int ii, int
   wbdata = &wb_data;
   wb_data.len = 0; /* force first parm to start on new line */
 
-  /* Using near string boxx for buffer after saving to extraseg */
+  /* Using near string boxx for buffer after saving */
 
-  saveshared = MK_FP(extraseg,0);
+  saveshared = malloc(10000);
   memcpy(saveshared,boxx,10000);
   memset(boxx,0,10000);
   wb_data.buf = (char *)boxx;
@@ -1234,6 +1235,7 @@ docolors:
     put_parm_line();
   /* restore previous boxx data from extraseg */
   memcpy(boxx, saveshared, 10000);
+  free(saveshared);
   restore_stack(saved);
 }
 
@@ -1530,109 +1532,6 @@ long fr_farfree(void)
          j += j2;
          }
    return(j);
-}
-
-int edit_text_colors()
-{
-  int save_debugflag,save_lookatmouse;
-  int row,col,bkgrd;
-  int rowf,colf,rowt,colt;
-  char *vidmem;
-  char *savescreen;
-  char *farp1;
-  char *farp2;
-  int i,j,k;
-  save_debugflag = debugflag;
-  save_lookatmouse = lookatmouse;
-  debugflag = 0;   /* don't get called recursively */
-  lookatmouse = 2; /* text mouse sensitivity */
-  row = col = bkgrd = rowt = rowf = colt = colf = 0;
-  vidmem = MK_FP(0xB800,0);
-  for (;;)
-    {
-      if (row < 0)  row = 0;
-      if (row > 24) row = 24;
-      if (col < 0)  col = 0;
-      if (col > 79) col = 79;
-      movecursor(row,col);
-      i = getakey();
-      if (i >= 'a' && i <= 'z') i -= 32; /* uppercase */
-      switch (i)
-        {
-        case 27: /* esc */
-          debugflag = save_debugflag;
-          lookatmouse = save_lookatmouse;
-          movecursor(25,80);
-          return 0;
-        case '/':
-          farp1 = savescreen = (char *)farmemalloc(4000L);
-          farp2 = vidmem;
-          for (i = 0; i < 4000; ++i)   /* save and blank */
-            {
-              *(farp1++) = *farp2;
-              *(farp2++) = 0;
-            }
-          for (i = 0; i < 8; ++i)       /* 8 bkgrd attrs */
-            for (j = 0; j < 16; ++j)   /* 16 fgrd attrs */
-              {
-                k = i*16 + j;
-                farp1 = vidmem + i*320 + j*10;
-                *(farp1++) = ' ';
-                *(farp1++) = (char)k;
-                *(farp1++) = (char)(i+'0');
-                *(farp1++) = (char)k;
-                *(farp1++) = (char)((j < 10) ? j+'0' : j+'A'-10);
-                *(farp1++) = (char)k;
-                *(farp1++) = ' ';
-                *(farp1++) = (char)k;
-              }
-          getakey();
-          farp1 = vidmem;
-          farp2 = savescreen;
-          for (i = 0; i < 4000; ++i) /* restore */
-            *(farp1++) = *(farp2++);
-          farmemfree(savescreen);
-          break;
-        case ',':
-          rowf = row;
-          colf = col;
-          break;
-        case '.':
-          rowt = row;
-          colt = col;
-          break;
-        case ' ': /* next color is background */
-          bkgrd = 1;
-          break;
-        case 1075: /* cursor left  */
-          --col;
-          break;
-        case 1077: /* cursor right */
-          ++col;
-          break;
-        case 1072: /* cursor up    */
-          --row;
-          break;
-        case 1080: /* cursor down  */
-          ++row;
-          break;
-        case 13:   /* enter */
-          *(vidmem + row*160 + col*2) = (char)getakey();
-          break;
-        default:
-          if (i >= '0' && i <= '9')      i -= '0';
-          else if (i >= 'A' && i <= 'F') i -= 'A'-10;
-          else break;
-          for (j = rowf; j <= rowt; ++j)
-            for (k = colf; k <= colt; ++k)
-              {
-                farp1 = vidmem + j*160 + k*2 + 1;
-                if (bkgrd) *farp1 = (char)((*farp1 & 15) + i * 16);
-                else       *farp1 = (char)((*farp1 & 0xf0) + i);
-              }
-          bkgrd = 0;
-        }
-    }
 }
 
 /* make_mig() takes a collection of individual GIF images (all

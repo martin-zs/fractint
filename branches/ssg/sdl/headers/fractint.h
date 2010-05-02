@@ -12,18 +12,9 @@ typedef BYTE BOOLEAN;
 #endif
 #endif
 
-typedef char * SEGTYPE;
-typedef char * USEGTYPE;
-#define MK_FP(seg,off) (VOIDFARPTR )((long)seg + (long)off)
 #include <sys/types.h> /* need size_t */
 
-#ifndef XFRACT
-#define clock_ticks() clock()
-#endif
-
-#ifdef XFRACT
 #define difftime(now,then) ((now)-(then))
-#endif
 
 /* for gotos in former FRACTINT.C pieces */
 #define RESTART           1
@@ -1029,7 +1020,7 @@ typedef struct baseunit    GENEBASE;
  */
 
 /* pointer to FCODE */
-typedef char far FCODE;
+typedef char FCODE;
 
 typedef FCODE * PFCODE;
 

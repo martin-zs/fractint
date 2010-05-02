@@ -352,7 +352,7 @@ int fullscreen_prompt(  /* full-screen prompting routine */
   /* display extra info */
   if (extrainfo)
     {
-#ifndef XFRACT
+#if 0
 #define S1 '\xC4'
 #define S2 "\xC0"
 #define S3 "\xD9"
@@ -1204,7 +1204,7 @@ struct trig_funct_lst trigfn[] =
         /* changing the order of these alters meaning of *.fra file */
         /* maximum 6 characters in function names or recheck all related code */
   {
-#ifndef XFRACT
+#if 0
     {s_sin,   lStkSin,   dStkSin,   mStkSin   },
     {s_cosxx, lStkCosXX, dStkCosXX, mStkCosXX },
     {s_sinh,  lStkSinh,  dStkSinh,  mStkSinh  },
@@ -1303,10 +1303,9 @@ int get_fract_params(int caller)        /* prompt for type-specific parms */
   char *filename,*entryname;
   FILE *entryfile;
   char *trignameptr[NUMTRIGFN];
-#ifdef XFRACT
-  static /* Can't initialize aggregates on the stack */
-#endif
-  char *bailnameptr[] = {s_mod,s_real,s_imag,s_or,s_and,s_manh,s_manr};
+
+/* Can't initialize aggregates on the stack */
+  static  char *bailnameptr[] = {s_mod,s_real,s_imag,s_or,s_and,s_manh,s_manr};
   struct fractalspecificstuff *jborbit = NULL;
   struct fractalspecificstuff *savespecific;
   int firstparm = 0;
@@ -1926,6 +1925,7 @@ int skip_comment(FILE *infile, long *file_offset)
 }
 
 #define MAXENTRIES 2000L
+BYTE storage[10000];
 
 int scan_entries(FILE * infile, void * ch, char *itemname)
 {
@@ -2058,7 +2058,7 @@ top:
 static long gfe_choose_entry(int type,char *title,char *filename,char *entryname)
 /* subrtn of get_file_entry, separated so that storage gets freed up */
 {
-#ifdef XFRACT
+#if 1
   static FCODE o_instr[]={"Press "FK_F6" to select file, "FK_F2" for details, "FK_F4" to toggle sort "};
   /* keep the above line length < 80 characters */
 #else
@@ -2074,7 +2074,7 @@ static long gfe_choose_entry(int type,char *title,char *filename,char *entryname
   int options = 8;
   char *instr;
   /* steal existing array for "choices" */
-  choices = (struct entryinfo **)MK_FP(extraseg,0);
+  choices = (struct entryinfo **)&storage;
   /* leave room for details F2 */
   choices = choices + (2048/sizeof(struct entryinfo **));
   choices[0] = (struct entryinfo *)(choices + MAXENTRIES+1);
@@ -2099,6 +2099,7 @@ retry:
       static FCODE msg[]={"File doesn't contain any valid entries"};
       stopmsg(0,msg);
       fclose(gfe_file);
+      free(choices);
       return -2; /* back to file list */
     }
   strcpy(instr,o_instr);
@@ -2138,10 +2139,15 @@ retry:
   if (i < 0)
     {
       if (i == 0-F6)
+      {
+        free(choices);
         return -2; /* go back to file list */
+      }
+      free(choices);
       return -1;    /* cancel */
     }
   strcpy(entryname, choices[i]->name);
+  free(choices);
   return(choices[i]->point);
 }
 
@@ -2171,7 +2177,7 @@ static int check_gfe_key(int curkey,int choice)
       int comment = 0;
       int c = 0;
       int widthct = 0;
-      infbuf = MK_FP(extraseg,0);
+      infbuf = (char *)malloc(16000);
       fseek(gfe_file,gfe_choices[choice]->point,SEEK_SET);
       while ((c = fgetc(gfe_file)) != EOF && c != '\032')
         {
@@ -2323,6 +2329,7 @@ static int check_gfe_key(int curkey,int choice)
       movecursor(25,80);
       unstackscreen();
     }
+  free(infbuf);
   return 0;
 }
 
@@ -2476,7 +2483,7 @@ static void format_parmfile_line(int choice,char *buf)
       c = getc(gfe_file);
     }
   line[i] = 0;
-#ifndef XFRACT
+#if 0
   sprintf(buf,"%-20Fs%-56s",gfe_choices[choice]->name,line);
 #else
   sprintf(buf,"%-20s%-56s",gfe_choices[choice]->name,line);
@@ -2648,7 +2655,7 @@ restart_1:
   helpmode = oldhelpmode;
   if (k < 0)
     {
-#ifdef XFRACT
+#if 1
       unstackscreen();
 #endif
       return(-1);
@@ -2871,7 +2878,7 @@ restart_3:
   if ((Targa_Out || ILLUMINE || RAY))
     if (get_light_params())
       goto restart_3;
-#ifdef XFRACT
+#if 1
   unstackscreen();
 #endif
   return(0);

@@ -617,7 +617,6 @@ extern void make_batch_file(void);
 extern void shell_to_dos(void);
 extern long fr_farfree(void);
 extern void showfreemem(void);
-extern int edit_text_colors(void);
 extern int select_video_mode(int );
 extern void format_vid_table(int choice,char *buf);
 extern void make_mig(unsigned int, unsigned int);
