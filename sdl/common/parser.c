@@ -3627,7 +3627,7 @@ static void parser_allocate(void)
 
   long f_size,Store_size,Load_size,v_size, p_size;
   int pass, is_bad_form=0;
-  long end_dx_array;
+//  long end_dx_array;
   /* TW Jan 1 1996 Made two passes to determine actual values of
      Max_Ops and Max_Args. Now use the end of extraseg if possible, so
      if less than 2048x2048 resolution is used, usually no farmemalloc
@@ -3641,33 +3641,28 @@ static void parser_allocate(void)
           Max_Args = (unsigned)(Max_Ops/2.5);
         }
       f_size = sizeof(void(far * far *)(void)) * Max_Ops;
-      Store_size = sizeof(union Arg far *) * MAX_STORES;
-      Load_size = sizeof(union Arg far *) * MAX_LOADS;
+      Store_size = sizeof(union Arg *) * MAX_STORES;
+      Load_size = sizeof(union Arg *) * MAX_LOADS;
       v_size = sizeof(struct ConstArg) * Max_Args;
-      p_size = sizeof(struct fls far *) * Max_Ops;
+      p_size = sizeof(struct fls *) * Max_Ops;
       total_formula_mem = f_size+Load_size+Store_size+v_size+p_size /*+ jump_size*/
                           + sizeof(struct PEND_OP) * Max_Ops;
       used_extra = 0;
 
-      if (use_grid)
-        end_dx_array = 2L*(long)(xdots+ydots)*sizeof(double);
-      else
-        end_dx_array = 0;
+//      if (use_grid)
+//        end_dx_array = 2L*(long)(xdots+ydots)*sizeof(double);
+//      else
+//        end_dx_array = 0;
 
       if (pass == 0 || is_bad_form)
         {
-          typespecific_workarea = (char far *)MK_FP(extraseg,0);
-          used_extra = 1;
-        }
-      else if (1L<<16 > end_dx_array + total_formula_mem)
-        {
-          typespecific_workarea = (char far *)MK_FP(extraseg,0) + end_dx_array;
+          typespecific_workarea = (char *)malloc(16000);
           used_extra = 1;
         }
       else if (is_bad_form == 0)
         {
           typespecific_workarea =
-            (char far *)farmemalloc((long)(f_size+Load_size+Store_size+v_size+p_size));
+            (char *)malloc((long)(f_size+Load_size+Store_size+v_size+p_size));
           used_extra = 0;
         }
       f = (void(far * far *)(void))typespecific_workarea;
@@ -3692,16 +3687,16 @@ static void parser_allocate(void)
 
 void free_workarea()
 {
-  if (typespecific_workarea && used_extra == 0)
+  if (typespecific_workarea)
     {
-      farmemfree(typespecific_workarea);
+      free(typespecific_workarea);
     }
   typespecific_workarea = NULL;
-  Store = (union Arg far * far *)0;
-  Load = (union Arg far * far *)0;
-  v = (struct ConstArg far *)0;
-  f = (void(far * far *)(void))0;      /* CAE fp */
-  pfls = (struct fls far * )0;   /* CAE fp */
+  Store = (union Arg far * *)0;
+  Load = (union Arg far * *)0;
+  v = (struct ConstArg *)0;
+  f = (void( * *)(void))0;      /* CAE fp */
+  pfls = (struct fls * )0;   /* CAE fp */
   total_formula_mem = 0;
 
   /* restore extraseg */

@@ -1602,86 +1602,9 @@ BYTE *swapvidbuf;
 int swaplength;
 
 #define SWAPBLKLEN 4096 /* must be a power of 2 */
-U16 memhandle = 0;
 
-#ifdef XFRACT
 BYTE suffix[10000];
-#endif
 
-#ifndef XFRACT
-
-int savegraphics()
-{
-  int i;
-  long count;
-  unsigned long swaptmpoff;
-
-  swaptotlen = (long)(vxdots > sxdots ? vxdots : sxdots) * (long)sydots;
-  i = colors;
-  while (i <= 16)
-    {
-      swaptotlen >>= 1;
-      i = i * i;
-    }
-  count = (long)((swaptotlen / SWAPBLKLEN) + 1);
-  swapoffset = 0;
-  if (memhandle != 0)
-    discardgraphics(); /* if any emm/xmm in use from prior call, release it */
-  memhandle = MemoryAlloc((U16)SWAPBLKLEN, count, EXPANDED);
-
-  while (swapoffset < swaptotlen)
-    {
-      swaplength = SWAPBLKLEN;
-      if ((swapoffset & (SWAPBLKLEN-1)) != 0)
-        swaplength = (int)(SWAPBLKLEN - (swapoffset & (SWAPBLKLEN-1)));
-      if ((unsigned long)swaplength > (swaptotlen - swapoffset))
-        swaplength = (int)(swaptotlen - swapoffset);
-      if (swapoffset == 0)
-        swaptmpoff = 0;
-      else
-        swaptmpoff = swapoffset/swaplength;
-      (*swapsetup)(); /* swapoffset,swaplength -> sets swapvidbuf,swaplength */
-
-      MoveToMemory(swapvidbuf,(U16)swaplength,1L,swaptmpoff,memhandle);
-
-      swapoffset += swaplength;
-    }
-  return 0;
-}
-
-int restoregraphics()
-{
-  unsigned long swaptmpoff;
-
-  swapoffset = 0;
-  swapvidbuf = MK_FP(extraseg+0x1000,0); /* for swapnormwrite case */
-
-  while (swapoffset < swaptotlen)
-    {
-      swaplength = SWAPBLKLEN;
-      if ((swapoffset & (SWAPBLKLEN-1)) != 0)
-        swaplength = (int)(SWAPBLKLEN - (swapoffset & (SWAPBLKLEN-1)));
-      if ((unsigned long)swaplength > (swaptotlen - swapoffset))
-        swaplength = (int)(swaptotlen - swapoffset);
-      if (swapoffset == 0)
-        swaptmpoff = 0;
-      else
-        swaptmpoff = swapoffset/swaplength;
-      if (swapsetup != swapnormread)
-        (*swapsetup)(); /* swapoffset,swaplength -> sets swapvidbuf,swaplength */
-
-      MoveFromMemory(swapvidbuf,(U16)swaplength,1L,swaptmpoff,memhandle);
-
-      if (swapsetup == swapnormread)
-        swapnormwrite();
-      swapoffset += swaplength;
-    }
-
-  discardgraphics();
-  return(0);
-}
-
-#else
 int savegraphics()
 {
   return 0;
@@ -1690,12 +1613,7 @@ int restoregraphics()
 {
   return 0;
 }
-#endif
 
 void discardgraphics() /* release expanded/extended memory if any in use */
 {
-#ifndef XFRACT
-  MemoryRelease(memhandle);
-  memhandle = 0;
-#endif
 }

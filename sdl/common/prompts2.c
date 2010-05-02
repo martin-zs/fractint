@@ -4,31 +4,11 @@
 
 #include <string.h>
 #include <ctype.h>
-#ifndef XFRACT
-#include <io.h>
-#elif !defined(__386BSD__)
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
-
-#endif
-#ifdef __TURBOC__
-#include <alloc.h>
-#elif !defined(__386BSD__)
 #include <malloc.h>
-#endif
-
-#ifdef XFRACT
 #include <fcntl.h>
-#endif
-
-#ifdef __hpux
-#include <sys/param.h>
-#endif
-
-#ifdef __SVR4
-#include <sys/param.h>
-#endif
 
 /* see Fractint.c for a description of the "include"  hierarchy */
 #include "port.h"
@@ -80,7 +60,7 @@ char commandmask[MAX_NAME] = {"*.par"};
         for them in the same order!!!
 */
 #define LOADCHOICES(X)     {\
-   static FCODE tmp[] = { X };\
+   static char tmp[] = { X };\
    strcpy(ptr,(char *)tmp);\
    choices[++k]= ptr;\
    ptr += sizeof(tmp);\
@@ -113,7 +93,7 @@ int get_toggles()
                        };
 
   strcpy(hdg,o_hdg);
-  ptr = (char *)MK_FP(extraseg,0);
+  ptr = (char *)malloc(16000);
 
   k = -1;
 
@@ -139,11 +119,11 @@ int get_toggles()
                            :        /* "o"rbits */      14;
   old_usr_stdcalcmode = usr_stdcalcmode;
   old_stoppass = stoppass;
-#ifndef XFRACT
+
   LOADCHOICES("Floating Point Algorithm");
   uvalues[k].type = 'y';
   uvalues[k].uval.ch.val = usr_floatflag;
-#endif
+
   LOADCHOICES("Maximum Iterations (2 to 2,147,483,647)");
   uvalues[k].type = 'L';
   uvalues[k].uval.Lval = old_maxit = maxit;
@@ -259,6 +239,7 @@ int get_toggles()
   helpmode = oldhelpmode;
   if (i < 0)
     {
+      free(ptr);
       return(-1);
     }
 
@@ -278,13 +259,13 @@ int get_toggles()
 
   if (old_usr_stdcalcmode != usr_stdcalcmode) j++;
   if (old_stoppass != stoppass) j++;
-#ifndef XFRACT
+
   if (uvalues[++k].uval.ch.val != usr_floatflag)
     {
       usr_floatflag = (char)uvalues[k].uval.ch.val;
       j++;
     }
-#endif
+
   ++k;
   maxit = uvalues[k].uval.Lval;
   if (maxit < 0) maxit = old_maxit;
@@ -380,6 +361,7 @@ int get_toggles()
   closeprox = uvalues[k].uval.dval;
   if (closeprox != old_closeprox) j++;
 
+  free(ptr);
   /* if (j >= 1) j = 1; need to know how many prompts changed for quick_calc JCO 6/23/2001 */
 
   return(j);
@@ -408,7 +390,7 @@ int get_toggles2()
   long old_usr_distest;
 
   strcpy(hdg,o_hdg);
-  ptr = (char *)MK_FP(extraseg,0);
+  ptr = (char *)malloc(16000);
 
   /* fill up the choices (and previous values) arrays */
   k = -1;
@@ -470,6 +452,7 @@ int get_toggles2()
   helpmode = oldhelpmode;
   if (i < 0)
     {
+      free(ptr);
       return(-1);
     }
 
@@ -534,6 +517,7 @@ int get_toggles2()
       rotate_lo = old_rotate_lo;
       rotate_hi = old_rotate_hi;
     }
+  free(ptr);
 
   return(j);
 }
@@ -568,7 +552,7 @@ int passes_options(void)
   strcpy(hdg,o_hdg);
   strcat(hdg,pressf2);
   strcat(hdg,pressf6);
-  ptr = (char *)MK_FP(extraseg,0);
+  ptr = (char *)malloc(16000);
   ret = 0;
 
 pass_option_restart:
@@ -608,6 +592,7 @@ pass_option_restart:
   helpmode = oldhelpmode;
   if (i < 0)
     {
+      free(ptr);
       return(-1);
     }
 
@@ -672,6 +657,7 @@ pass_option_restart:
       if (j) ret = 1;
       goto pass_option_restart;
     }
+  free(ptr);
 
   return(j + ret);
 }
@@ -703,7 +689,7 @@ int get_view_params()
   unsigned long estm_xmax=32767,estm_ymax=32767;
 
   strcpy(hdg,o_hdg);
-  ptr = (char *)MK_FP(extraseg,0);
+  ptr = (char *)malloc(16000);
 
   old_viewwindow    = viewwindow;
   old_viewreduction = viewreduction;
@@ -759,6 +745,7 @@ get_view_restart:
   helpmode = oldhelpmode;     /* re-enable HELP */
   if (i < 0)
     {
+      free(ptr);
       return(-1);
     }
 
@@ -807,6 +794,8 @@ get_view_restart:
                 || viewxdots != old_viewxdots
                 || (viewydots != old_viewydots && viewxdots) ) ) )
     i = 1;
+
+  free(ptr);
 
   return(i);
 }
@@ -1091,7 +1080,7 @@ int get_a_number(double *x, double *y)
 
   stackscreen();
   strcpy(hdg,o_hdg);
-  ptr = (char *)MK_FP(extraseg,0);
+  ptr = (char *)malloc(16000);
 
   /* fill up the previous values arrays */
   k = -1;
@@ -1108,6 +1097,7 @@ int get_a_number(double *x, double *y)
   if (i < 0)
     {
       unstackscreen();
+      free(ptr);
       return(-1);
     }
 
@@ -1118,6 +1108,7 @@ int get_a_number(double *x, double *y)
   *y = uvalues[++k].uval.dval;
 
   unstackscreen();
+  free(ptr);
   return(i);
 }
 
@@ -1144,6 +1135,7 @@ int get_commands()              /* execute commands from file */
 }
 
 /* --------------------------------------------------------------------- */
+extern bn_t bnroot;
 
 void goodbye(void)                  /* we done.  Bail out */
 {
@@ -1164,6 +1156,7 @@ void goodbye(void)                  /* we done.  Bail out */
     MemoryRelease(oldhistory_handle);
   enddisk();
   discardgraphics();
+  free_bf_vars();
   ExitCheck();
   strcpy(goodbyemessage, gbm);
   if (*s_makepar != 0)
@@ -1365,8 +1358,8 @@ int getafilename(char *hdg,char *template,char *flname)
 
   rds = (stereomapname == flname)?1:0;
 
-  /* steal existing array for "choices" */
-  choices = (struct CHOICE **)MK_FP(extraseg,0);
+  /* create array for "choices" */
+  choices = (struct CHOICE **)malloc(16000);
   choices[0] = (struct CHOICE *)(choices + MAXNUMFILES+1);
   attributes = (int *)(choices[0] + MAXNUMFILES+1);
   instr = (char *)(attributes + MAXNUMFILES +1);
@@ -1423,9 +1416,6 @@ retry_dir:
     {
       if ((DTA.attribute & SUBDIR) && strcmp(DTA.filename,"."))
         {
-#ifndef XFRACT
-          strlwr(DTA.filename);
-#endif
           if (strcmp(DTA.filename,".."))
             strcat(DTA.filename,SLASH);
           strncpy(choices[++filecount]->name,DTA.filename,MAX_NAME);
@@ -1457,17 +1447,11 @@ retry_dir:
                   splitpath(DTA.filename,NULL,NULL,fname,ext);
                   /* just using speedstr as a handy buffer */
                   makepath(speedstr,drive,dir,fname,ext);
-#ifndef XFRACT
-                  strlwr(DTA.filename);
-#endif
                   strncpy(choices[++filecount]->name,DTA.filename,MAX_NAME);
                   choices[filecount]->type = 0;
                 }
               else
                 {
-#ifndef XFRACT
-                  strlwr(DTA.filename);
-#endif
                   strncpy(choices[++filecount]->name,DTA.filename,MAX_NAME);
                   choices[filecount]->type = 0;
                 }
@@ -1545,6 +1529,7 @@ retry_dir:
     {
       /* restore filename */
       strcpy(flname,old_flname);
+      free(choices);
       return(-1);
     }
   if (speedstr[0] == 0 || speedstate == MATCHING)
@@ -1624,12 +1609,9 @@ retry_dir:
         }
     }
   makepath(browsename,"","",fname,ext);
+  free(choices);
   return(0);
 }
-
-#ifdef __CLINT__
-#pragma argsused
-#endif
 
 static int check_f6_key(int curkey,int choice)
 {
@@ -1671,9 +1653,7 @@ int isadirectory(char *s)
 {
   int len;
   char sv;
-#ifdef _MSC_VER
-  unsigned attrib = 0;
-#endif
+
   despace(s);  /* scrunch out white space */
   if (strchr(s,'*') || strchr(s,'?'))
     return(0); /* for my purposes, not a directory */
@@ -1684,7 +1664,7 @@ int isadirectory(char *s)
   else
     sv = 0;
 
-#ifdef _MSC_VER
+#if 0
   if (_dos_getfileattr(s, &attrib) == 0 && ((attrib&_A_SUBDIR) != 0))
     {
       return(1);  /* not a directory or doesn't exist */
@@ -1731,7 +1711,7 @@ int isadirectory(char *s)
 }
 
 
-#ifndef XFRACT  /* This routine moved to unix.c so we can use it in hc.c */
+#if 0  /* This routine moved to unix.c so we can use it in hc.c */
 
 int splitpath(char *template,char *drive,char *dir,char *fname,char *ext)
 {
@@ -1829,7 +1809,7 @@ int makepath(char *template,char *drive,char *dir,char *fname,char *ext)
     *template = 0;
   else
     return(-1);
-#ifndef XFRACT
+#if 0
   if (drive)
     strcpy(template,drive);
 #endif
@@ -1999,7 +1979,7 @@ int get_corners()
   strcpy(xprompt,o_xprompt);
   strcpy(yprompt,o_yprompt);
   strcpy(zprompt,o_zprompt);
-  ptr = (char *)MK_FP(extraseg,0);
+  ptr = (char *)malloc(16000);
   oldhelpmode = helpmode;
   ousemag = usemag;
   oxxmin = xxmin;
@@ -2099,6 +2079,7 @@ gc_loop:
       yymax = oyymax;
       xx3rd = oxx3rd;
       yy3rd = oyy3rd;
+      free(ptr);
       return(-1);
     }
 
@@ -2188,10 +2169,14 @@ gc_loop:
       yymax = oyymax;
       xx3rd = oxx3rd;
       yy3rd = oyy3rd;
+      free(ptr);
       return 0;
     }
   else
+    {
+    free(ptr);
     return(1);
+    }
 }
 
 static int get_screen_corners(void)
@@ -2219,7 +2204,7 @@ static int get_screen_corners(void)
   strcpy(xprompt,o_xprompt);
   strcpy(yprompt,o_yprompt);
   strcpy(zprompt,o_zprompt);
-  ptr = (char *)MK_FP(extraseg,0);
+  ptr = (char *)malloc(16000);
   oldhelpmode = helpmode;
   ousemag = usemag;
 
@@ -2330,6 +2315,7 @@ gsc_loop:
       yymax = svyymax;
       xx3rd = svxx3rd;
       yy3rd = svyy3rd;
+      free(ptr);
       return(-1);
     }
 
@@ -2431,6 +2417,7 @@ gsc_loop:
       yymax = svyymax;
       xx3rd = svxx3rd;
       yy3rd = svyy3rd;
+      free(ptr);
       return 0;
     }
   else
@@ -2444,6 +2431,7 @@ gsc_loop:
       yymax = svyymax;
       xx3rd = svxx3rd;
       yy3rd = svyy3rd;
+      free(ptr);
       return(1);
     }
 }
@@ -2467,7 +2455,7 @@ int get_browse_params()
   char old_browsemask[MAX_NAME];
 
   strcpy(hdg,o_hdg);
-  ptr = (char *)MK_FP(extraseg,0);
+  ptr = (char *)malloc(16000);
   old_autobrowse     = autobrowse;
   old_brwschecktype  = brwschecktype;
   old_brwscheckparms = brwscheckparms;
@@ -2523,6 +2511,7 @@ get_brws_restart:
   helpmode = oldhelpmode;     /* re-enable HELP */
   if (i < 0)
     {
+      free(ptr);
       return(0);
     }
 
@@ -2577,6 +2566,7 @@ get_brws_restart:
       i = 0;
     }
 
+  free(ptr);
   return(i);
 }
 
@@ -2589,10 +2579,6 @@ get_brws_restart:
 #define ATFILENAMESETNAME  3
 
 #define GETPATH (mode < 2)
-
-#ifndef XFRACT
-#include <direct.h>
-#endif
 
 /* copies the proposed new filename to the fullpath variable */
 /* does not copy directories for PAR files (modes 2 and 3)   */

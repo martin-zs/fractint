@@ -198,8 +198,6 @@ int main(int argc, char **argv)
 
   atexit(goodbye); /* Cleanup all the memory allocations */
 
-// FIXME (jonathan#1#): Is next needed????
-//  initasmvars();                       /* initialize ASM stuff */
   InitMemory();
   init_help();
 

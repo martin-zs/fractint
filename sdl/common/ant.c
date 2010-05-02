@@ -361,7 +361,6 @@ exit_ant:
   return;
 }
 
-/* N.B. use the common memory in extraseg - suffix not large enough*/
 int ant(void)
 {
   int maxants, type, i;
@@ -370,7 +369,7 @@ int ant(void)
   char rule[MAX_ANTS];
   char *extra;
 
-  extra = MK_FP(extraseg,0);
+  extra = (char *)malloc(20000);
 
   for (i = 0; i < DIRS; i++)
     {
@@ -456,5 +455,6 @@ int ant(void)
       break;
     }
   helpmode = oldhelpmode;
+  free(extra);
   return 0;
 }

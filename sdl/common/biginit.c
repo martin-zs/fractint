@@ -13,13 +13,6 @@ is in the allocations of memory for the big numbers.
 #include "prototyp.h"
 #include "fractype.h"
 
-/* appears to me that avoiding the start of extraseg is unnecessary. If
-   correct, later we can eliminate ENDVID here. */
-#ifdef ENDVID
-#undef ENDVID
-#endif
-#define ENDVID 0
-
 /* globals */
 #ifdef BIG_BASED
 _segment bignum_seg;
@@ -28,7 +21,7 @@ int bnstep, bnlength, intlength, rlength, padding, shiftfactor, decimals;
 int bflength, rbflength, bfdecimals;
 
 /* used internally by bignum.c routines */
-static bn_t bnroot=BIG_NULL;
+bn_t bnroot=BIG_NULL;
 static bn_t stack_ptr; /* memory allocator base after global variables */
 bn_t bntmp1, bntmp2, bntmp3, bntmp4, bntmp5, bntmp6; /* rlength  */
 bn_t bntmpcpy1, bntmpcpy2;                           /* bnlength */
@@ -106,15 +99,8 @@ static void init_bf_2(void)
 
   calc_lengths();
 
-  /* allocate all the memory at once within the same segment (DOS) */
-#if defined(BIG_FAR) || defined(BIG_ANSI_C)
-  bnroot = (bf_t)MK_FP(extraseg,ENDVID); /* ENDVID is to avoid videotable */
-#else /* BASED or NEAR  */
-  bnroot = (bf_t)ENDVID;  /* ENDVID is to avoid videotable */
-#endif
-#ifdef BIG_BASED
-  bignum_seg = (_segment)extraseg;
-#endif
+  /* allocate all the memory at once */
+  bnroot = (bf_t)malloc(64000); /* arbitrarily a big number */
   /* at present time one call would suffice, but this logic allows
      multiple kinds of alternate math eg long double */
   if ((i = find_alternate_math(fractype, BIGNUM)) > -1)
@@ -259,7 +245,7 @@ static void init_bf_2(void)
   startstack = ptr;
 
   /* max stack offset from bnroot */
-  maxstack = (long)0x10000l-(bflength+2)*22-ENDVID;
+  maxstack = (long)0x10000l-(bflength+2)*22;
 
   /* sanity check */
   /* leave room for NUMVARS variables allocated from stack */
@@ -406,6 +392,7 @@ void free_bf_vars()
   bf_save_len = bf_math = 0;
   bnstep=bnlength=intlength=rlength=padding=shiftfactor=decimals=0;
   bflength=rbflength=bfdecimals=0;
+  free(bnroot);
 }
 
 /************************************************************************/
@@ -421,7 +408,7 @@ bn_t alloc_stack(size_t size)
       stopmsg(0,msg);
       return(0);
     }
-  stack_addr = (long)(stack_ptr-bnroot)+size; /* +ENDVID, part of bnroot */
+  stack_addr = (long)(stack_ptr-bnroot)+size;
 
   if (stack_addr > maxstack)
     {

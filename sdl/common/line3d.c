@@ -2537,7 +2537,7 @@ static int line3dmem(void)
   /* lastrow stores the previous row of the original GIF image for
      the purpose of filling in gaps with triangle procedure */
   /* first 8k of extraseg now used in decoder TW 3/95 */
-  lastrow = MK_FP(extraseg, 0);
+  lastrow = malloc(1L << 16);
 
   check_extra = sizeof(*lastrow) * xdots;
   if (SPHERE)
@@ -2577,7 +2577,10 @@ static int line3dmem(void)
           if (got_mem)
             minmax_x = got_mem;
           else
-            return (-1);
+            {
+              free(lastrow);
+              return (-1);
+            }
         }
       else /* ok to use extra segment */
         {
@@ -2594,6 +2597,7 @@ static int line3dmem(void)
       sprintf(tmpmsg, "used %ld%s", check_extra, extramsg);
       stopmsg(4, tmpmsg);
     }
+  free(lastrow);
   return(0);
 }
 

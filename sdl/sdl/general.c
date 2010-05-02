@@ -26,7 +26,6 @@ extern int tabmode;
 
 int DivideOverflow = 0;
 
-SEGTYPE extraseg=0; /* extra 64K segment (allocated by init) */
 /* ********************** Mouse Support Variables ************************** */
 
 int lookatmouse=0;  /* see notes at mouseread routine */
@@ -37,42 +36,6 @@ int finishrow=0;    /* save when this row is finished */
 int inside_help = 0;
 
 extern int slides;  /* 1 for playback */
-
-unsigned int toextra(tooffset, fromaddr, fromcount)
-unsigned int tooffset;
-char *fromaddr;
-int fromcount;
-{
-  bcopy(fromaddr,(char *)(extraseg+tooffset),fromcount);
-  return tooffset;
-}
-
-unsigned int fromextra(fromoffset, toaddr, tocount)
-unsigned int fromoffset;
-char *toaddr;
-int tocount;
-{
-  bcopy((char *)(extraseg+fromoffset),toaddr,tocount);
-  return fromoffset;
-}
-
-unsigned int
-cmpextra(cmpoffset,cmpaddr,cmpcount)
-unsigned int cmpoffset;
-char *cmpaddr;
-int cmpcount;
-{
-  return bcmp((char *)(extraseg+cmpoffset),cmpaddr,cmpcount);
-}
-
-/*
-; ****************** Function initasmvars() *****************************
-*/
-void initasmvars(void)
-{
-  overflow = 0;
-  extraseg = malloc(0x18000);
-}
 
 void fpe_handler(int signum)
 {

@@ -902,12 +902,6 @@ int tab_display()       /* display the status of the current image */
   stackscreen();
   if (bf_math)
     {
-      /* Save memory from the beginning of extraseg to 22400 */
-      /* This is so the bf_math manipulations here don't corrupt */
-      /* the screen prompts. */
-      ptr_to_extraseg = MK_FP(extraseg,0);
-      save_extra_handle = MemoryAlloc((U16)22400, 1L, FARMEM);
-      MoveToMemory(ptr_to_extraseg,(U16)22400,1L,0L,save_extra_handle);
       saved = save_stack();
       bfXctr = alloc_stack(bflength+2);
       bfYctr = alloc_stack(bflength+2);
@@ -1309,9 +1303,6 @@ top:
   if (bf_math)
     {
       restore_stack(saved);
-      MoveFromMemory(ptr_to_extraseg,(U16)22400,1L,0L,save_extra_handle);
-      MemoryRelease(save_extra_handle);
-      save_extra_handle = 0;
     }
   return(0);
 }
