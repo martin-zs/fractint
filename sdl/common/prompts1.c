@@ -1925,7 +1925,7 @@ int skip_comment(FILE *infile, long *file_offset)
 }
 
 #define MAXENTRIES 2000L
-BYTE storage[10000];
+BYTE storage[32000];
 
 int scan_entries(FILE * infile, void * ch, char *itemname)
 {
@@ -2099,7 +2099,6 @@ retry:
       static FCODE msg[]={"File doesn't contain any valid entries"};
       stopmsg(0,msg);
       fclose(gfe_file);
-      free(choices);
       return -2; /* back to file list */
     }
   strcpy(instr,o_instr);
@@ -2139,15 +2138,10 @@ retry:
   if (i < 0)
     {
       if (i == 0-F6)
-      {
-        free(choices);
         return -2; /* go back to file list */
-      }
-      free(choices);
       return -1;    /* cancel */
     }
   strcpy(entryname, choices[i]->name);
-  free(choices);
   return(choices[i]->point);
 }
 

@@ -50,16 +50,11 @@ unsigned long number_of_ops, number_of_loads, number_of_stores, number_of_jumps;
 
 struct PEND_OP
   {
-    void (far *f)(void);
+    void (*f)(void);
     int p;
   };
 
-#ifndef XFRACT
-/* reuse an array in the decoder */
-JUMP_CONTROL_ST far *jump_control = (JUMP_CONTROL_ST far *) sizeofstring;
-#else
 JUMP_CONTROL_ST jump_control[MAX_JUMPS];
-#endif
 
 int jump_index, InitJumpIndex;
 
@@ -166,7 +161,7 @@ struct token_st
 #define MAX_LOADS  ((unsigned)(Max_Ops*.8))  /* and 80% can be loads */
 /* PB 901103 made some of the following static for safety */
 
-static struct PEND_OP far *o;
+static struct PEND_OP *o;
 
 #if 0
 static void ops_allocate(void);
@@ -176,14 +171,14 @@ static void vars_allocate(void);
 struct var_list_st
   {
     char name[34];
-    struct var_list_st far * next_item;
-  } far * var_list;
+    struct var_list_st * next_item;
+  } * var_list;
 
 struct const_list_st
   {
     _CMPLX complex_const;
-    struct const_list_st far * next_item;
-  } far * complx_list, far * real_list;
+    struct const_list_st * next_item;
+  } * complx_list, * real_list;
 
 static void parser_allocate(void);
 
@@ -192,21 +187,21 @@ union Arg *Arg1, *Arg2;
 
 /* CAE fp  made some of the following non-static for PARSERA.ASM */
 /* Some of these variables should be renamed for safety */
-union Arg s[20], far * far *Store, far * far *Load;     /* static CAE fp */
+union Arg s[20], * *Store, * *Load;     /* static CAE fp */
 int StoPtr, LodPtr, OpPtr;      /* static CAE fp */
 int var_count;
 int complx_count;
 int real_count;
 
 
-void (far * far *f)(void) = (void(far * far *)(void))0; /* static CAE fp */
+void (* *f)(void) = (void(* *)(void))0; /* static CAE fp */
 
 short int ismand = 1;
 
 unsigned int posp, vsp, LastOp;     /* CAE fp made non-static */
 static unsigned int n, NextOp, InitN;
 static int paren, ExpectingArg;
-struct ConstArg far *v = (struct ConstArg far *)0;      /* was static CAE fp */
+struct ConstArg *v = (struct ConstArg *)0;      /* was static CAE fp */
 int InitLodPtr, InitStoPtr, InitOpPtr, LastInitOp;      /* was static CAE fp */
 static int Delta16;
 double fgLimit;           /* TIW 05-04-91 */
@@ -282,7 +277,7 @@ unsigned int chars_in_formula;
 #define PE_SECOND_COLON                              34
 #define PE_INVALID_CALL_TO_PARSEERRS                 35
 
-static char far *ParseErrs(int which)
+static char *ParseErrs(int which)
 {
   int lasterr;
   static FCODE e0[] = {"Should be an Argument"};
@@ -332,7 +327,7 @@ static char far *ParseErrs(int which)
   lasterr = sizeof(ErrStrings)/sizeof(ErrStrings[0]) - 1;
   if (which > lasterr)
     which = lasterr;
-  return((char far *)ErrStrings[which]);
+  return((char *)ErrStrings[which]);
 }
 
 /* use the following when only float functions are implemented to
@@ -1555,7 +1550,7 @@ static int isconst_pair(char *Str)
   return(answer);
 }
 
-struct ConstArg far *isconst(char *Str, int Len)
+struct ConstArg *isconst(char *Str, int Len)
   {
     _CMPLX z;
     unsigned n, j;
@@ -1649,7 +1644,7 @@ struct ConstArg far *isconst(char *Str, int Len)
 
 struct FNCT_LIST
   {
-    char far *s;              /* TIW 03-31-91 added far */
+    char *s;              /* TIW 03-31-91 added */
     void (**ptr)(void);
   };
 
@@ -1659,7 +1654,7 @@ void (*StkTrig1)(void) = dStkSqr;
 void (*StkTrig2)(void) = dStkSinh;
 void (*StkTrig3)(void) = dStkCosh;
 
-char far * JumpList[] =
+char * JumpList[] =
 {
   "if",
   "elseif",
@@ -1683,8 +1678,8 @@ int isjump(char *Str, int Len)
   int i;
 
   for (i = 0; *JumpList[i]; i++)
-    if (far_strlen(JumpList[i]) == Len)
-      if (!far_strnicmp(JumpList[i], Str, Len))
+    if (strlen(JumpList[i]) == Len)
+      if (!strnicmp(JumpList[i], Str, Len))
         return i + 1;
   return 0;
 }
@@ -1693,7 +1688,7 @@ int isjump(char *Str, int Len)
 char maxfn = 0;
 /* TIW 03-30-91 STOP */
 
-struct FNCT_LIST far FnctList[] =     /* TIW 03-31-91 added far */
+struct FNCT_LIST FnctList[] =     /* TIW 03-31-91 added */
   {
     {s_sin,   &StkSin},
     {s_sinh,  &StkSinh},
@@ -1737,7 +1732,7 @@ struct OP_LIST
     void (**ptr)(void);
   };
 
-struct OP_LIST far OPList[] =
+struct OP_LIST OPList[] =
   {
     {","  , &PtrStkClr
     }, /*  0 */
@@ -1780,7 +1775,7 @@ int whichfn(char *s, int len)
 }
 
 #ifndef XFRACT
-void (far *isfunct(char *Str, int Len))(void)
+void (*isfunct(char *Str, int Len))(void)
 #else
 void (*isfunct(Str, Len))()
 char *Str;
@@ -1795,9 +1790,9 @@ int Len;
     {
       for (n = 0; n < sizeof(FnctList) / sizeof(struct FNCT_LIST); n++)
         {
-          if (far_strlen(FnctList[n].s) == Len)         /* TIW 03-31-91 added far */
+          if (strlen(FnctList[n].s) == Len)         /* TIW 03-31-91 added */
             {
-              if (!far_strnicmp(FnctList[n].s, Str, Len))   /* TIW 03-31-91 added far */
+              if (!strnicmp(FnctList[n].s, Str, Len))   /* TIW 03-31-91 added */
                 {
                   /* count function variables */
                   if ((functnum = whichfn(Str, Len)) != 0)   /* TIW 04-22-91 */
@@ -1868,7 +1863,7 @@ struct SYMETRY
 
 static int ParseStr(char *Str, int pass)
 {
-  struct ConstArg far *c;
+  struct ConstArg *c;
   int ModFlag = 999, Len, Equals = 0, Mod[20], mdstk = 0;
   int jumptype;
   double const_pi, const_e;
@@ -1878,13 +1873,13 @@ static int ParseStr(char *Str, int pass)
   uses_jump = 0;
   jump_index = 0;
   if (pass == 0)
-    o = (struct PEND_OP far *)
-        ((char far *)typespecific_workarea + total_formula_mem-sizeof(struct PEND_OP) * Max_Ops);
+    o = (struct PEND_OP *)
+        ((char *)typespecific_workarea + total_formula_mem-sizeof(struct PEND_OP) * Max_Ops);
   else if (used_extra == 1)
-    o = (struct PEND_OP far *)
-        ((char far *)typespecific_workarea + total_formula_mem-sizeof(struct PEND_OP) * Max_Ops);
+    o = (struct PEND_OP *)
+        ((char *)typespecific_workarea + total_formula_mem-sizeof(struct PEND_OP) * Max_Ops);
   else
-    o = (struct PEND_OP far *)farmemalloc(sizeof(struct PEND_OP) * (long)Max_Ops);
+    o = (struct PEND_OP *)malloc(sizeof(struct PEND_OP) * (long)Max_Ops);
   if ( !o || !typespecific_workarea)
     {
       stopmsg(0,ParseErrs(PE_INSUFFICIENT_MEM_FOR_TYPE_FORMULA));
@@ -2128,7 +2123,7 @@ static int ParseStr(char *Str, int pass)
           if (!ExpectingArg)
             {
               ExpectingArg = 1;
-              o[posp].f = (void(far*)(void))0;
+              o[posp].f = (void(*)(void))0;
               o[posp++].p = 15;
               o[posp].f = StkClr;
               o[posp++].p = -30000;
@@ -2137,7 +2132,7 @@ static int ParseStr(char *Str, int pass)
           break;
         case ':':
           ExpectingArg = 1;
-          o[posp].f = (void(far*)(void))0;
+          o[posp].f = (void(*)(void))0;
           o[posp++].p = 15;
           o[posp].f = EndInit;
           o[posp++].p = -30000;
@@ -2249,7 +2244,7 @@ static int ParseStr(char *Str, int pass)
                   jump_control[jump_index++].type = 2;
                   o[posp].f = StkJump;
                   o[posp++].p = 1;
-                  o[posp].f = (void(far*)(void))0;
+                  o[posp].f = (void(*)(void))0;
                   o[posp++].p = 15;
                   o[posp].f = StkClr;
                   o[posp++].p = -30000;
@@ -2290,7 +2285,7 @@ static int ParseStr(char *Str, int pass)
           break;
         }
     }
-  o[posp].f = (void(far*)(void))0;
+  o[posp].f = (void(*)(void))0;
   o[posp++].p = 16;
   NextOp = 0;
   LastOp = posp;
@@ -2305,7 +2300,7 @@ static int ParseStr(char *Str, int pass)
         }
     }
   if (pass > 0 && used_extra == 0)
-    farmemfree(o);
+    free(o);
   return(0);
 }
 
@@ -2613,7 +2608,7 @@ void getfuncinfo(struct token_st * tok)
   int i;
   for (i=0; i < sizeof(FnctList)/ sizeof(struct FNCT_LIST); i++)
     {
-      if (!far_strcmp(FnctList[i].s, tok->token_str))
+      if (!strcmp(FnctList[i].s, tok->token_str))
         {
           tok->token_id = i;
           if (i >= 11 && i <= 14)
@@ -2626,7 +2621,7 @@ void getfuncinfo(struct token_st * tok)
 
   for (i=0; i < 4; i++)   /*pick up flow control*/
     {
-      if (!far_strcmp(JumpList[i], tok->token_str))
+      if (!strcmp(JumpList[i], tok->token_str))
         {
           tok->token_type = FLOW_CONTROL;
           tok->token_id   = i + 1;
@@ -2644,7 +2639,7 @@ void getvarinfo(struct token_st * tok)
 
   for (i=0; i < sizeof(Constants) / sizeof(char*); i++)
     {
-      if (!far_strcmp(Constants[i], tok->token_str))
+      if (!strcmp(Constants[i], tok->token_str))
         {
           tok->token_id = i;
           switch (i)
@@ -3112,7 +3107,7 @@ CASE_TERMINATOR:
         {
           for (i=0; i < sizeof(OPList)/sizeof(struct OP_LIST); i++)
             {
-              if (!far_strcmp(OPList[i].s, this_token->token_str))
+              if (!strcmp(OPList[i].s, this_token->token_str))
                 {
                   this_token->token_id = i;
                 }
@@ -3258,9 +3253,9 @@ int frm_check_name_and_sym (FILE * open_file, int from_prompts1c)
   if (i > ITEMNAMELEN)
     {
       int j;
-      int k = far_strlen(ParseErrs(PE_FORMULA_NAME_TOO_LARGE));
+      int k = strlen(ParseErrs(PE_FORMULA_NAME_TOO_LARGE));
       char msgbuf[100];
-      far_strcpy(msgbuf, ParseErrs(PE_FORMULA_NAME_TOO_LARGE));
+      strcpy(msgbuf, ParseErrs(PE_FORMULA_NAME_TOO_LARGE));
       strcat(msgbuf, ":\n   ");
       fseek(open_file, filepos, SEEK_SET);
       for (j = 0; j < i && j < 25; j++)
@@ -3316,13 +3311,13 @@ int frm_check_name_and_sym (FILE * open_file, int from_prompts1c)
         }
       if (SymStr[i].s[0] == (char) 0 && from_prompts1c)
         {
-          char far * msgbuf = (char far*) farmemalloc(far_strlen(ParseErrs(PE_INVALID_SYM_USING_NOSYM))
+          char * msgbuf = (char *) malloc(strlen(ParseErrs(PE_INVALID_SYM_USING_NOSYM))
                               + strlen(sym_buf) + 6);
-          far_strcpy(msgbuf, ParseErrs(PE_INVALID_SYM_USING_NOSYM));
-          far_strcat(msgbuf, ":\n   ");
-          far_strcat(msgbuf, sym_buf);
+          strcpy(msgbuf, ParseErrs(PE_INVALID_SYM_USING_NOSYM));
+          strcat(msgbuf, ":\n   ");
+          strcat(msgbuf, sym_buf);
           stopmsg(8, msgbuf);
-          farmemfree(msgbuf);
+          free(msgbuf);
         }
     }
 
@@ -3593,7 +3588,7 @@ int intFormulaSetup(void)
 /* TIW added 06-20-90 so functions can be called from fractals.c */
 void init_misc()
 {
-  static struct ConstArg far vv[5];
+  static struct ConstArg vv[5];
   static union Arg argfirst,argsecond;
   if (!v)
     v = vv;
@@ -3610,7 +3605,7 @@ void init_misc()
 
 
 /* PB 910417 here to end changed.
-        Allocate sub-arrays from one main farmemalloc, using global variable
+        Allocate sub-arrays from one main malloc, using global variable
         typespecific_workarea; calcfrac.c releases this area when calculation
         ends or is terminated.
         Moved the "f" array to be allocated as part of this.
@@ -3630,7 +3625,7 @@ static void parser_allocate(void)
 //  long end_dx_array;
   /* TW Jan 1 1996 Made two passes to determine actual values of
      Max_Ops and Max_Args. Now use the end of extraseg if possible, so
-     if less than 2048x2048 resolution is used, usually no farmemalloc
+     if less than 2048x2048 resolution is used, usually no malloc
      calls are needed */
   for (pass = 0; pass < 2; pass++)
     {
@@ -3640,7 +3635,7 @@ static void parser_allocate(void)
           Max_Ops = 2300; /* this value uses up about 64K memory */
           Max_Args = (unsigned)(Max_Ops/2.5);
         }
-      f_size = sizeof(void(far * far *)(void)) * Max_Ops;
+      f_size = sizeof(void(* *)(void)) * Max_Ops;
       Store_size = sizeof(union Arg *) * MAX_STORES;
       Load_size = sizeof(union Arg *) * MAX_LOADS;
       v_size = sizeof(struct ConstArg) * Max_Args;
@@ -3656,7 +3651,7 @@ static void parser_allocate(void)
 
       if (pass == 0 || is_bad_form)
         {
-          typespecific_workarea = (char *)malloc(16000);
+          typespecific_workarea = (char *)malloc(65000);
           used_extra = 1;
         }
       else if (is_bad_form == 0)
@@ -3665,11 +3660,11 @@ static void parser_allocate(void)
             (char *)malloc((long)(f_size+Load_size+Store_size+v_size+p_size));
           used_extra = 0;
         }
-      f = (void(far * far *)(void))typespecific_workarea;
-      Store = (union Arg far * far *)(f + Max_Ops);
-      Load = (union Arg far * far *)(Store + MAX_STORES);
-      v = (struct ConstArg far *)(Load + MAX_LOADS);
-      pfls = (struct fls far *)(v + Max_Args);
+      f = (void(* *)(void))typespecific_workarea;
+      Store = (union Arg * *)(f + Max_Ops);
+      Load = (union Arg * *)(Store + MAX_STORES);
+      v = (struct ConstArg *)(Load + MAX_LOADS);
+      pfls = (struct fls *)(v + Max_Args);
 
       if (pass == 0)
         {
@@ -3692,8 +3687,8 @@ void free_workarea()
       free(typespecific_workarea);
     }
   typespecific_workarea = NULL;
-  Store = (union Arg far * *)0;
-  Load = (union Arg far * *)0;
+  Store = (union Arg * *)0;
+  Load = (union Arg * *)0;
   v = (struct ConstArg *)0;
   f = (void( * *)(void))0;      /* CAE fp */
   pfls = (struct fls * )0;   /* CAE fp */
@@ -3849,7 +3844,7 @@ void frm_error(FILE * open_file, long begin_frm)
 
 void display_var_list()
 {
-  struct var_list_st far * p;
+  struct var_list_st * p;
   stopmsg(0, "List of user defined variables:\n");
   for (p = var_list; p; p=p->next_item)
     {
@@ -3860,7 +3855,7 @@ void display_var_list()
 
 void display_const_lists()
 {
-  struct const_list_st far * p;
+  struct const_list_st * p;
   char msgbuf[800];
   stopmsg (0, "Complex constants are:");
   for (p = complx_list; p; p=p->next_item)
@@ -3877,24 +3872,24 @@ void display_const_lists()
 }
 
 
-struct var_list_st far *var_list_alloc()
+struct var_list_st *var_list_alloc()
   {
-    return (struct var_list_st far*) farmemalloc(sizeof(struct var_list_st));
+    return (struct var_list_st *) malloc(sizeof(struct var_list_st));
   }
 
 
-struct const_list_st  far *const_list_alloc()
+struct const_list_st  *const_list_alloc()
   {
-    return (struct const_list_st far *) farmemalloc(sizeof(struct const_list_st));
+    return (struct const_list_st *) malloc(sizeof(struct const_list_st));
   }
 
 void init_var_list()
 {
-  struct var_list_st far * temp, far * p;
+  struct var_list_st * temp, * p;
   for (p = var_list; p; p=temp)
     {
       temp = p->next_item;
-      farmemfree(p);
+      free(p);
     }
   var_list = NULL;
 }
@@ -3902,31 +3897,31 @@ void init_var_list()
 
 void init_const_lists()
 {
-  struct const_list_st far * temp, far * p;
+  struct const_list_st * temp, * p;
   for (p = complx_list; p; p=temp)
     {
       temp = p->next_item;
-      farmemfree(p);
+      free(p);
     }
   complx_list = NULL;
   for (p = real_list; p; p=temp)
     {
       temp = p->next_item;
-      farmemfree(p);
+      free(p);
     }
   real_list = NULL;
 }
 
-struct var_list_st far * add_var_to_list (struct var_list_st far * p, struct token_st tok)
+struct var_list_st * add_var_to_list (struct var_list_st * p, struct token_st tok)
   {
     if (p == NULL)
       {
         if ((p = var_list_alloc()) == NULL)
           return NULL;
-        far_strcpy(p->name, tok.token_str);
+        strcpy(p->name, tok.token_str);
         p->next_item = NULL;
       }
-    else if (far_strcmp(p->name, tok.token_str) == 0)
+    else if (strcmp(p->name, tok.token_str) == 0)
       {
       }
     else
@@ -3937,7 +3932,7 @@ struct var_list_st far * add_var_to_list (struct var_list_st far * p, struct tok
     return p;
   }
 
-struct const_list_st far *  add_const_to_list (struct const_list_st far * p, struct token_st tok)
+struct const_list_st *  add_const_to_list (struct const_list_st * p, struct token_st tok)
   {
     if (p == NULL)
       {
@@ -3960,8 +3955,8 @@ void count_lists()
 {
   /* char msgbuf[800];
   */
-  struct var_list_st far * p;
-  struct const_list_st far * q;
+  struct var_list_st * p;
+  struct const_list_st * q;
 
   var_count = 0;
   complx_count = 0;

@@ -125,7 +125,7 @@ int ResizeScreen(int mode)
       ydots = 600;
     }
 //  screen = SDL_SetVideoMode(xdots, ydots, 0, SDL_HWSURFACE|SDL_DOUBLEBUF);
-  screen = SDL_SetVideoMode(xdots, ydots, 32,
+  screen = SDL_SetVideoMode(xdots, ydots, 8,
                             SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_RESIZABLE);
   if (screen == NULL )
     {

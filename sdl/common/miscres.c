@@ -7,19 +7,11 @@
 #include <time.h>
 #include <malloc.h>
 
-#ifndef XFRACT
-#include <io.h>
-#endif
-
 #ifndef USE_VARARGS
 #include <stdarg.h>
 #else
 #include <varargs.h>
 #endif
-
-/*#ifdef __TURBOC__
-#include <dir.h>
-#endif  */
 
 /* see Fractint.c for a description of the "include"  hierarchy */
 #include "port.h"
@@ -29,7 +21,7 @@
 
 /* routines in this module      */
 
-static  void trigdetails(char *);
+static void trigdetails(char *);
 static void area(void);
 
 /* TW's static string consolidation campaign to help brain-dead compilers */
@@ -37,51 +29,6 @@ char s_cantwrite[]      = {"Can't write %s"};
 char s_cantcreate[]     = {"Can't create %s"};
 char s_cantunderstand[] = {"Can't understand %s"};
 char s_cantfind[]       = {"Can't find %s"};
-
-#ifndef XFRACT
-
-void findpath(char far *filename, char *fullpathname) /* return full pathnames */
-{
-  char fname[FILE_MAX_FNAME];
-  char ext[FILE_MAX_EXT];
-  char temp_path[FILE_MAX_PATH];
-
-  splitpath(filename ,NULL,NULL,fname,ext);
-  makepath(temp_path,""   ,"" ,fname,ext);
-
-  if (checkcurdir != 0 && access(temp_path,0)==0)    /* file exists */
-    {
-      strcpy(fullpathname,temp_path);
-      return;
-    }
-
-  far_strcpy(temp_path,filename);   /* avoid side effect changes to filename */
-
-  if (temp_path[0] == SLASHC || (temp_path[0] && temp_path[1] == ':'))
-    {
-      if (access(temp_path,0)==0)    /* file exists */
-        {
-          strcpy(fullpathname,temp_path);
-          return;
-        }
-      else
-        {
-          splitpath(temp_path ,NULL,NULL,fname,ext);
-          makepath(temp_path,""   ,"" ,fname,ext);
-        }
-    }
-  fullpathname[0] = 0;                         /* indicate none found */
-  /* #ifdef __TURBOC__ */                         /* look for the file */
-  /*   strcpy(fullpathname,searchpath(temp_path)); */
-  /* #else */
-  _searchenv(temp_path,"PATH",fullpathname);
-  /* #endif */
-  if (fullpathname[0] != 0)                    /* found it! */
-    if (strncmp(&fullpathname[2],SLASHSLASH,2) == 0) /* stupid klooge! */
-      strcpy(&fullpathname[3],temp_path);
-}
-#endif
-
 
 void notdiskmsg()
 {
@@ -159,10 +106,6 @@ convert corners to center/mag
 Rotation angles indicate how much the IMAGE has been rotated, not the
 zoom box.  Same goes for the Skew angles
 */
-
-#ifdef _MSC_VER
-#pragma optimize( "", off )
-#endif
 
 void cvtcentermag(double *Xctr, double *Yctr, LDBL *Magnification, double *Xmagfactor, double *Rotation, double *Skew)
 {
@@ -523,10 +466,6 @@ void cvtcornersbf(bf_t Xctr, bf_t Yctr, LDBL Magnification, double Xmagfactor, d
   return;
 }
 
-#ifdef _MSC_VER
-#pragma optimize( "", on )
-#endif
-
 void updatesavename(char *filename) /* go to the next file name */
 {
   char *save, *hold;
@@ -738,11 +677,7 @@ static FCODE sflag_is_activated[] = {" flag is activated"};
 static FCODE sinteger_math[]      = {"Integer math is in use"};
 static FCODE sin_use_required[] = {" in use (required)"};
 static FCODE sarbitrary_precision[] = {"Arbitrary precision "};
-#if defined(XFRACT) || defined(WINFRACT)
 static FCODE spressanykey[] = {"Press any key to continue, F6 for area, F7 for next page"};
-#else
-static FCODE spressanykey[] = {"Press any key to continue, F6 for area, CTRL-TAB for next page"};
-#endif
 static FCODE spressanykey1[] = {"Press Esc to continue, Backspace for first screen"};
 static FCODE sbatch[] = {" (Batch mode)"};
 static FCODE ssavename[] = {"Savename: "};
@@ -845,7 +780,7 @@ int tab_display_2(char *msg)
   */
   sprintf(msg,"xxstart %d xxstop %d yystart %d yystop %d %s uses_ismand %d",
           xxstart,xxstop,yystart,yystop,
-#ifndef XFRACT
+#if 0
           curfractalspecific->orbitcalc == fFormula?"fast parser":
 #endif
           curfractalspecific->orbitcalc ==  Formula?"slow parser":
@@ -1278,7 +1213,7 @@ top:
   /*waitforkey:*/
   putstringcenter(/*s_row*/24,0,80,C_GENERAL_LO,spressanykey);
   movecursor(25,80);
-#ifdef XFRACT
+#if 1
   while (keypressed())
     {
       getakey();
