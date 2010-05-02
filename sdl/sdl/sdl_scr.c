@@ -12,11 +12,26 @@
 /* SDL global variables */
 SDL_Surface *screen = NULL;
 SDL_Surface *backscrn = NULL;
-SDL_Surface *textbkgd = NULL;
-SDL_Surface *textmsg = NULL;
 TTF_Font *font = NULL;
-// NOTE (jonathan#1#): Does next need to be global to catch events????
-//SDL_Event event;
+
+SDL_Color XlateText[] = {
+{  0,  0,  0}, /* black */
+{  0,  0,192}, /* Blue */
+{  0,192,  0}, /* Green */
+{  0,192,192}, /* Cyan */
+{192,  0,  0}, /* Red */
+{192,  0,192}, /* Magenta */
+{127,127,  0}, /* Brown */
+{192,192,192}, /* White */
+{127,127,127}, /* Gray */
+{127,127,192}, /* L_Blue */
+{127,192,127}, /* L_Green */
+{127,192,192}, /* L_Cyan */
+{192,127,127}, /* L_Red */
+{192,127,255}, /* L_Magenta */
+{192,192,  0}, /* L_Magenta */
+{255,255,255}  /* L_White */
+};
 
 enum
 {
@@ -24,11 +39,11 @@ enum
   TEXT_HEIGHT = 25,
   MOUSE_SCALE = 1
 };
-// FIXME (jonathan#1#): This will need to change since SDL uses a separate variable for the modifier keys.
+
 static int mousefkey[4][4] /* [button][dir] */ =
 {
-  {SDLK_RIGHT,SDLK_LEFT,SDLK_DOWN,SDLK_UP},
-  {0,0,SDLK_PAGEDOWN,SDLK_PAGEUP},
+  {RIGHT_ARROW,LEFT_ARROW,DOWN_ARROW,UP_ARROW},
+  {0,0,PAGE_DOWN,PAGE_UP},
   {CTL_PLUS,CTL_MINUS,CTL_DEL,CTL_INSERT},
   {CTL_END,CTL_HOME,CTL_PAGE_DOWN,CTL_PAGE_UP}
 };
@@ -74,8 +89,6 @@ void CleanupSDL(void)
    * etc.  Called by goodbye() routine.
    */
   SDL_FreeSurface(backscrn);
-  SDL_FreeSurface(textbkgd);
-  SDL_FreeSurface(textmsg);
 // NOTE (jonathan#1#): May not need this once png support is added.
   IMG_Quit();
 
@@ -106,6 +119,7 @@ int ResizeScreen(int mode)
   if (mode == 0)
     {
 // FIXME (jonathan#1#): Allow this to be set in sstools.ini
+// See \win\profile.c for ideas
       xdots = 800;
       ydots = 600;
     }
@@ -124,6 +138,17 @@ int ResizeScreen(int mode)
       exit(1);
     }
   bpp=screen->format->BitsPerPixel;
+
+#if 1
+  {
+    char msg[40];
+
+    sprintf(msg, "Fractint at %dx%dx%d", xdots, ydots, bpp);
+    SDL_WM_SetCaption( msg, NULL );
+  }
+#else
+  SDL_WM_SetCaption( "Fractint", NULL );
+#endif
 
 #if DEBUG
   fprintf(stderr, "Set %dx%d at %d bits-per-pixel mode\n", xdots, ydots, bpp);
@@ -145,17 +170,14 @@ int ResizeScreen(int mode)
     {
       resize_flag = 1;
       SDL_FreeSurface(backscrn);
-      SDL_FreeSurface(textbkgd);
-      SDL_FreeSurface(textmsg);
     }
 
   backscrn = SDL_CreateRGBSurface(SDL_SWSURFACE, xdots, ydots, bpp,
                                   rmask, gmask, bmask, amask);
-  textmsg = SDL_CreateRGBSurface(SDL_SWSURFACE, xdots, ydots, bpp,
-                                 rmask, gmask, bmask, amask);
-  textbkgd = SDL_CreateRGBSurface(SDL_SWSURFACE, xdots, ydots, bpp,
-                                  rmask, gmask, bmask, amask);
-
+#if DEBUG
+  if (backscrn == NULL )
+    fprintf(stderr, "No backscrn\n");
+#endif
   return(result);
 }
 
@@ -168,6 +190,9 @@ void SetupSDL(void)
       fprintf(stderr, "Unable to init SDL: %s\n", SDL_GetError());
       exit(1);
     }
+
+// NOTE (jonathan#1#): Next does not work.  Don't know why.
+  SDL_WM_SetIcon(SDL_LoadBMP("Fractint.ico"), NULL);
 
   ResizeScreen(0);
 
@@ -195,8 +220,6 @@ void SetupSDL(void)
   /* get text height and width in pixels */
   TTF_SizeUTF8(font,"H",&txt_wt,&txt_ht);
 
-  SDL_WM_SetCaption( "Fractint", NULL );
-  SDL_WM_SetIcon(SDL_LoadBMP("fractint.ico"), NULL);
   SDL_EnableKeyRepeat(250,30);
 
 }
@@ -222,19 +245,6 @@ void startvideo(void)
   /* initialize screen and backscrn surfaces to inside color */
   SDL_FillRect(screen, NULL, map_to_pixel(inside));
   SDL_FillRect(backscrn, NULL, map_to_pixel(inside));
-}
-
-void setclear (void)
-{
-  /* clears the screen to the text background */
-  apply_surface(0, 0, textbkgd);
-}
-
-void starttext(void)
-{
-  /* initialize textbkgd and textmsg surfaces to black */
-  SDL_FillRect(textbkgd, NULL, map_to_pixel(WHITE));
-  SDL_FillRect(textmsg, NULL, map_to_pixel(WHITE));
 }
 
 U32 map_to_pixel(BYTE color)
@@ -287,28 +297,29 @@ BYTE readvideo(int x, int y)
  */
 Uint32 getpixel(SDL_Surface *surface, int x, int y)
 {
-    int bpp = surface->format->BytesPerPixel;
-    /* Here p is the address to the pixel we want to retrieve */
-    Uint8 *p = (Uint8 *)surface->pixels + y * surface->pitch + x * bpp;
+  int bpp = surface->format->BytesPerPixel;
+  /* Here p is the address to the pixel we want to retrieve */
+  Uint8 *p = (Uint8 *)surface->pixels + y * surface->pitch + x * bpp;
 
-    switch(bpp) {
+  switch (bpp)
+    {
     case 1:
-        return *p;
+      return *p;
 
     case 2:
-        return *(Uint16 *)p;
+      return *(Uint16 *)p;
 
     case 3:
-        if(SDL_BYTEORDER == SDL_BIG_ENDIAN)
-            return p[0] << 16 | p[1] << 8 | p[2];
-        else
-            return p[0] | p[1] << 8 | p[2] << 16;
+      if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
+        return p[0] << 16 | p[1] << 8 | p[2];
+      else
+        return p[0] | p[1] << 8 | p[2] << 16;
 
     case 4:
-        return *(Uint32 *)p;
+      return *(Uint32 *)p;
 
     default:
-        return 0;       /* shouldn't happen, but avoids warnings */
+      return 0;       /* shouldn't happen, but avoids warnings */
     }
 }
 
@@ -436,6 +447,8 @@ void apply_surface( int x, int y, SDL_Surface* source)
 
   offset.x = x;
   offset.y = y;
+  offset.w = xdots;
+  offset.h = ydots;
   SDL_BlitSurface( source, NULL, screen, &offset );
   SDL_Flip(screen);
 }
@@ -547,10 +560,102 @@ int writevideopalette(void)
   /* Set palette */
   SDL_SetColors(screen, cols, 0, 256);
 //  SDL_SetColors(backscrn, cols, 0, 256);
-//  SDL_SetColors(textmsg, cols, 0, 256);
-//  SDL_SetColors(textbkgd, cols, 0, 256);
-//  SDL_SetPalette(screen, SDL_LOGPAL|SDL_PHYSPAL, cols, 0, 256);
-//  SDL_Flip(screen); /* not needed? */
+}
+
+/* start of text processing routines */
+
+void setclear (void)
+{
+  /* clears the screen to the text background */
+  int r, c;
+
+  for (r = 0; r < TEXT_HEIGHT; r++)
+    for (c = 0; c < TEXT_WIDTH; c++) {
+      text_attr[r][c] = 0;
+      text_screen[r][c] = ' ';
+    }
+}
+
+void starttext(void)
+{
+  /* What needs to be done here??? */
+}
+
+void outtext(int row, int col, int max_c)
+{
+  /* Takes the text in text_screen[row][] with */
+  /*     attributes in text_attr[row][] */
+  /* and puts it on the textmsg surface */
+
+  SDL_Color color = {0,0,0}, bgcolor = {0xff,0xff,0xff};
+  SDL_Surface *text_surface;
+  SDL_Rect text_rect;
+
+  int i, j;
+  int attr = text_attr[row][col];
+  int foregnd = attr & 15;
+  int backgnd = (attr >> 4) & 15;
+  int tmp_attr;
+  char buf[TEXT_WIDTH+1]; /* room for character and null terminator */
+#if DEBUG
+  fprintf(stderr, "outtext, %d, %d, %d\n", row, col, max_c);
+#endif
+
+  if (attr & BRIGHT && !(attr & INVERSE))   /* bright */
+    {
+      foregnd += 8;
+    }
+  if (attr & INVERSE)   /* inverse video */
+    {
+      tmp_attr = backgnd;
+      backgnd = foregnd;
+    }
+  else
+    {
+      tmp_attr = foregnd;
+    }
+
+  text_rect.x = col * txt_wt;   /* starting column */
+  text_rect.y = row * txt_ht;   /* starting row */
+//  text_rect.w = 1 * txt_wt; /* output this many columns */
+  text_rect.w = max_c * txt_wt; /* output this many columns */
+  text_rect.h = 1 * txt_ht;     /* output one row at a time */
+
+  for (i = 0;i <= TEXT_WIDTH;i++) /* clear the text buffer */
+    buf[i] = 0;
+
+  /* put text into text buffer */
+  j = 0;
+  for (i = col;i < max_c;i++)
+    {
+      buf[j++] = text_screen[row][i];
+    }
+//  dac_to_rgb(txtcolor[tmp_attr], &color.r, &color.g, &color.b);
+//  dac_to_rgb(txtcolor[backgnd], &bgcolor.r, &bgcolor.g, &bgcolor.b);
+
+//  color = XlateText[txtcolor[tmp_attr]];
+//  bgcolor = XlateText[txtcolor[backgnd]];
+  color = XlateText[tmp_attr];
+  bgcolor = XlateText[backgnd];
+
+  if (!(text_surface=TTF_RenderText_Shaded(font,buf,color,bgcolor)))
+    {
+//handle error here, perhaps print TTF_GetError at least
+#if DEBUG
+      fprintf(stderr, "outtext could not render %s\n", buf);
+#endif
+    }
+  else
+    {
+      SDL_BlitSurface(text_surface,NULL,screen,&text_rect);
+//      SDL_BlitSurface(text_surface,NULL,textmsg,&text_rect);
+//      SDL_UpdateRect(textmsg, 0, 0, 0, 0);
+      SDL_FreeSurface(text_surface);
+    }
+
+//  SDL_BlitSurface(textmsg,NULL,screen,NULL);
+  SDL_Flip(screen);
+
 }
 
 /*
@@ -568,17 +673,22 @@ int writevideopalette(void)
 
 void stackscreen(void)
 {
+  SDL_Rect src, dest;
+
   int r, c;
 #if DEBUG
   fprintf(stderr, "stackscreen, %i screens stacked\n", screenctr+1);
 #endif
-  /* since we double buffer,  */
-  /* no need to clear the screen, the text routines do it */
+  src.x = 0;
+  src.y = 0;
+  src.w = xdots;
+  src.h = ydots;
+  dest = src;
+
   if (screenctr == 0)
     {
-      SDL_BlitSurface( screen, NULL, backscrn, NULL ); /* save screen */
+      SDL_BlitSurface( screen, &src, backscrn, &dest ); /* save screen */
       SDL_Flip(backscrn); /* not needed? */
-      apply_surface(0, 0, textbkgd);
     }
   if (screenctr > 0)
     {
@@ -588,11 +698,6 @@ void stackscreen(void)
             stack_text_screen[r][c] = text_screen[r][c];
             stack_text_attr[r][c] = text_attr[r][c];
           }
-// FIXME (jonathan#1#): Put text in textmsg then blit to screen
-//    blit(txt,stack_txt,0,0,0,0,TEXT_WIDTH<<txt_wt,TEXT_HEIGHT<<txt_ht);
-// but only the first time???
-      SDL_BlitSurface( screen, NULL, textmsg, NULL ); /* save text */
-      SDL_Flip(textmsg); /* not needed? */
     }
   screenctr++;
 }
@@ -605,16 +710,12 @@ void unstackscreen(void)
 #endif
   if (screenctr > 1)
     {
-// FIXME (jonathan#1#): blit textbkgd to screen
-//    set_palette(default_palette);
       for (r = 0; r < TEXT_HEIGHT; r++)
         for (c = 0; c < TEXT_WIDTH; c++)
           {
             text_screen[r][c] = stack_text_screen[r][c];
             text_attr[r][c] = stack_text_attr[r][c];
           }
-// FIXME (jonathan#1#): Put text in textmsg then blit to screen
-//    blit(txt,screen,0,0,0,0,TEXT_WIDTH<<txt_wt,TEXT_HEIGHT<<txt_ht);
     }
   screenctr--;
   if (screenctr == 0)
@@ -634,68 +735,33 @@ void discardscreen(void)
 
 void putstring (int row, int col, int attr, CHAR *msg)
 {
+  int r, c, s_r, s_c;
+  int max_c = 0;
 #if DEBUG
   fprintf(stderr, "printstring, %s\n", msg);
 #endif
-  SDL_Color color = {0,0,0}, bgcolor = {0xff,0xff,0xff};
-  SDL_Surface *text_surface;
-  SDL_Rect text_rect;
-
-  int r, c, i, k, s_r, s_c;
-  int foregnd = attr & 15;
-  int backgnd = (attr >> 4) & 15;
-  int tmp_attr;
-  int max_c = 0;
 
   if (row != -1)
     textrow = row;
   if (col != -1)
     textcol = col;
 
-  if (attr & BRIGHT && !(attr & INVERSE))   /* bright */
-    {
-      foregnd += 8;
-    }
-  if (attr & INVERSE)   /* inverse video */
-    {
-// FIXME (jonathan#1#): How do we implement next????
-//    text_mode(palette_color[foregnd]);
-      tmp_attr = backgnd;
-    }
-  else
-    {
-//    text_mode(palette_color[backgnd]);
-      tmp_attr = foregnd;
-    }
-
   s_r = r = textrow + textrbase;
   s_c = c = textcol + textcbase;
-
-  text_rect.x = (textcol + textcbase) * txt_wt;
-  text_rect.y = (textrow + textrbase) * txt_ht;
-
-  if (!(text_surface=TTF_RenderText_Shaded(font,msg,color,bgcolor)))
-    {
-//handle error here, perhaps print TTF_GetError at least
-    }
-  else
-    {
-      SDL_BlitSurface(text_surface,NULL,screen,&text_rect);
-//perhaps we can reuse it, but I assume not for simplicity.
-      SDL_FreeSurface(text_surface);
-    }
-
 
   while (*msg)
     {
       if (*msg == '\n')
         {
+          /* output line here, get ready for the next one */
+          outtext(r, s_c, c);
           textrow++;
           r++;
           if (c > max_c)
             max_c = c;
           textcol = 0;
-          c = textcbase;
+//          c = textcbase; // shoudn't this be s_c???
+          c = s_c; // shoudn't this be s_c???
         }
       else
         {
@@ -713,24 +779,9 @@ void putstring (int row, int col, int attr, CHAR *msg)
       msg++;
     }
 
+  /* output the last line here */
 
-  if (c > max_c)
-    max_c = c;
-
-  i = s_r*txt_ht; /* reuse i for blit */
-  k = s_c*txt_wt;
-  if (r == 0)
-    r = 1;
-  if (max_c > TEXT_WIDTH)
-    max_c = TEXT_WIDTH;
-  c = max_c - s_c;     /* reuse c for blit, now it's max width of msg */
-  if (r > TEXT_HEIGHT - s_r)
-    r = TEXT_HEIGHT - s_r;
-
-//SDL_BlitSurface(textmsg,NULL,screen,&text_rect);
-
-// FIXME (jonathan#1#): blit to screen here
-// blit(txt,screen,k,i,k,i,c<<txt_wt,r<<txt_ht);
+  outtext(r, s_c, c);
 }
 
 /*
@@ -743,34 +794,16 @@ void putstring (int row, int col, int attr, CHAR *msg)
 void setattr (int row, int col, int attr, int count)
 {
   int i = col;
-  int k;
   int r, c, s_r, s_c;
-  int s_count = count;
-  int foregnd = attr & 15;
-  int backgnd = (attr >> 4) & 15;
-  int tmp_attr;
-
-  if (attr & BRIGHT && !(attr & INVERSE))   /* bright */
-    {
-      foregnd += 8;
-    }
-  if (attr & INVERSE)   /* inverse video */
-    {
-      // FIXME (jonathan#1#): How do we implement next????
-//    text_mode(palette_color[foregnd]);
-      tmp_attr = backgnd;
-    }
-  else
-    {
-// FIXME (jonathan#1#): How do we implement next????
-//    text_mode(palette_color[backgnd]);
-      tmp_attr = foregnd;
-    }
+#if DEBUG
+  fprintf(stderr, "setattr, row= %d col=%d attr=%d count=%d\n", row, col, attr, count);
+#endif
 
   if (row != -1)
     textrow = row;
   if (col != -1)
     textcol = col;
+
   s_r = r = textrow + textrbase;
   s_c = c = textcol + textcbase;
 
@@ -780,25 +813,18 @@ void setattr (int row, int col, int attr, int count)
       assert(r < TEXT_HEIGHT);
       assert(i < TEXT_WIDTH);
       text_attr[r][i] = attr;
+      c++;
+      count--;
       if (++i == TEXT_WIDTH)
         {
+          outtext(r, s_c, c);
           i = 0;
           r++;
+          c = s_c;
         }
-      count--;
     }
   /* refresh text */
-  if (r == 0)
-    r = 1;
-  if (r > TEXT_HEIGHT - s_r)
-    r = TEXT_HEIGHT - s_r;
-  if (s_count > TEXT_WIDTH - s_c)
-    s_count = TEXT_WIDTH - s_c;
-  i = s_r<<txt_ht; /* reuse i for blit, above i is col, now it's row */
-  k = s_c<<txt_wt;
-
-// FIXME (jonathan#1#): blit to screen here
-// blit(txt,screen,k,i,k,i,s_count<<txt_wt,r<<txt_ht);
+  outtext(r, s_c, c);
 }
 
 
@@ -1028,10 +1054,6 @@ int get_event(void)
     }
 
 }
-
-
-
-
 #endif
 
 int get_key_event(int block)
@@ -1071,10 +1093,10 @@ int get_key_event(int block)
         }
     }
   while (block && !keypressed);
-      if (time_to_update()) /* set to 200 milli seconds, below */
-        {
-          SDL_Flip(screen);
-        }
+  if (time_to_update()) /* set to 200 milli seconds, below */
+    {
+      SDL_Flip(screen);
+    }
   return (keypressed);
 }
 

@@ -1870,7 +1870,6 @@ struct fractalspecificstuff fractalspecific[]=
    },
 
 // FIXME (jonathan#1#): Can't leave a hole????
-/*
    {
    t_halley+1,
       {order, real_relax, epsilon, imag_relax},
@@ -1878,10 +1877,9 @@ struct fractalspecificstuff fractalspecific[]=
       HT_HALLEY, HF_HALLEY, WINFRAC,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
       0, NOFRACTAL, NOFRACTAL, HALLEY, XYAXIS,
-      MPCHalleyFractal, MPCHalley_per_pixel, HalleySetup, StandardFractal,
+      HalleyFractal, Halley_per_pixel, HalleySetup, StandardFractal,
       NOBAILOUT
    },
-*/
 
    {
    t_halley,
