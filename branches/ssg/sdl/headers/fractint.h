@@ -5,13 +5,6 @@
 
 typedef BYTE BOOLEAN;
 
-// FIXME (jonathan#1#): Remove the following after cleaning up all usages 02/14/2010
-#ifndef C6
-#ifndef _fastcall
-#define _fastcall       /* _fastcall is a Microsoft C6.00 extension */
-#endif
-#endif
-
 #include <sys/types.h> /* need size_t */
 
 #define difftime(now,then) ((now)-(then))
