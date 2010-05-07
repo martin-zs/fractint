@@ -1351,19 +1351,11 @@ int CvtStk() {  /* convert the array of ptrs  */
                DBUGMSG(0, "IDENT was skipped" );
             }
             else {
-#ifndef XFRACT
-               DBUGMSG4(0, "fn=%Fs, minstk=%1i, freestk=%1i, delta=%3i",
-                     pfe->fname,
-                     (int)(pfe->min_regs),
-                     (int)(pfe->free_regs),
-                     (int)(pfe->delta) );
-#else
                DBUGMSG4(0, "fn=%s, minstk=%1i, freestk=%1i, delta=%3i",
                      pfe->fname,
                      (int)(pfe->min_regs),
                      (int)(pfe->free_regs),
                      (int)(pfe->delta) );
-#endif
                if (!CvtFptr(ntst,
                       pfe->min_regs,
                       pfe->free_regs,

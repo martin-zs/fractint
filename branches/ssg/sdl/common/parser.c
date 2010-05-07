@@ -31,11 +31,6 @@
 #include "port.h"
 #include "prototyp.h"
 
-
-#ifdef WATCH_MP
-double x1, y1, x2, y2;
-#endif
-
 enum MATH_TYPE MathType = D_MATH;
 /* moved _LCMPLX and union ARg to cmplx.h -6-20-90 TIW */
 
@@ -163,11 +158,6 @@ struct token_st
 
 static struct PEND_OP *o;
 
-#if 0
-static void ops_allocate(void);
-static void vars_allocate(void);
-#endif
-
 struct var_list_st
   {
     char name[34];
@@ -229,10 +219,6 @@ unsigned int chars_in_formula;
     }
 
 #define LastSqr v[4].a
-
-#if (_MSC_VER >= 700)
-#pragma code_seg ("parser1_text")     /* place following in an overlay */
-#endif
 
 /* ParseErrs() defines; all calls to ParseErrs(), or any variable which will
    be used as the argument in a call to ParseErrs(), should use one of these
@@ -398,20 +384,6 @@ void dRandom(void)
   v[7].a.d.y = ((double)y / (1L << bitshift));
 
 }
-
-#ifndef XFRACT
-void mRandom(void)
-{
-  long x, y;
-
-  /* Use the same algorithm as for fixed math so that they will generate
-     the same fractals when the srand() function is used. */
-  x = NewRandNum() >> (32 - bitshift);
-  y = NewRandNum() >> (32 - bitshift);
-  v[7].a.m.x = *fg2MP(x, bitshift);
-  v[7].a.m.y = *fg2MP(y, bitshift);
-}
-#endif
 
 void SetRandFnct(void)
 {
@@ -1505,11 +1477,6 @@ void StkJumpLabel (void)
   jump_index++;
 }
 
-
-#if (_MSC_VER >= 700)
-#pragma code_seg ("parser1_text")     /* place following in an overlay */
-#endif
-
 unsigned SkipWhiteSpace(char *Str)
 {
   unsigned n, Done;
@@ -1575,7 +1542,7 @@ struct ConstArg *isconst(char *Str, int Len)
                   uses_p4 = 1;
                 if (n == 18)       /* The formula uses 'p5'. */
                   uses_p5 = 1;
-#ifndef XFRACT
+#if 1
                 if (n == 10 || n == 11 || n == 12)
                   if (MathType == L_MATH)
                     keybuffer = 'f';
@@ -1690,7 +1657,9 @@ char maxfn = 0;
 
 struct FNCT_LIST FnctList[] =     /* TIW 03-31-91 added */
   {
-    {s_sin,   &StkSin},
+    {
+      s_sin,   &StkSin
+    },
     {s_sinh,  &StkSinh},
     {s_cos,   &StkCos},
     {s_cosh,  &StkCosh},
@@ -1774,13 +1743,7 @@ int whichfn(char *s, int len)
   return(out);
 }
 
-#ifndef XFRACT
 void (*isfunct(char *Str, int Len))(void)
-#else
-void (*isfunct(Str, Len))()
-char *Str;
-int Len;
-#endif
 {
   unsigned n;
   int functnum;    /* TIW 04-22-91 */
@@ -1873,9 +1836,6 @@ static int ParseStr(char *Str, int pass)
   uses_jump = 0;
   jump_index = 0;
   if (pass == 0)
-    o = (struct PEND_OP *)
-        ((char *)typespecific_workarea + total_formula_mem-sizeof(struct PEND_OP) * Max_Ops);
-  else if (used_extra == 1)
     o = (struct PEND_OP *)
         ((char *)typespecific_workarea + total_formula_mem-sizeof(struct PEND_OP) * Max_Ops);
   else
@@ -2299,15 +2259,10 @@ static int ParseStr(char *Str, int pass)
           LastOp--;
         }
     }
-  if (pass > 0 && used_extra == 0)
+  if (pass > 0)
     free(o);
   return(0);
 }
-
-
-#if (_MSC_VER >= 700)
-#pragma code_seg ()       /* back to normal segment */
-#endif
 
 int Formula(void)
 {
@@ -2337,12 +2292,6 @@ int Formula(void)
     {
       f[OpPtr]();
       OpPtr++;
-#ifdef WATCH_MP
-      x1 = *MP2d(Arg1->m.x);
-      y1 = *MP2d(Arg1->m.y);
-      x2 = *MP2d(Arg2->m.x);
-      y2 = *MP2d(Arg2->m.y);
-#endif
     }
 
   switch (MathType)
@@ -2561,10 +2510,6 @@ int fill_jump_struct(void)
 }
 
 static char *FormStr;
-
-#if (_MSC_VER >= 700)
-#pragma code_seg ("parser1_text")     /* place following in an overlay */
-#endif
 
 int frmgetchar (FILE * openfile)
 {
@@ -3312,7 +3257,7 @@ int frm_check_name_and_sym (FILE * open_file, int from_prompts1c)
       if (SymStr[i].s[0] == (char) 0 && from_prompts1c)
         {
           char * msgbuf = (char *) malloc(strlen(ParseErrs(PE_INVALID_SYM_USING_NOSYM))
-                              + strlen(sym_buf) + 6);
+                                          + strlen(sym_buf) + 6);
           strcpy(msgbuf, ParseErrs(PE_INVALID_SYM_USING_NOSYM));
           strcat(msgbuf, ":\n   ");
           strcat(msgbuf, sym_buf);
@@ -3612,7 +3557,6 @@ void init_misc()
         */
 
 long total_formula_mem;
-BYTE used_extra = 0;
 static void parser_allocate(void)
 {
   /* CAE fp changed below for v18 */
@@ -3642,7 +3586,6 @@ static void parser_allocate(void)
       p_size = sizeof(struct fls *) * Max_Ops;
       total_formula_mem = f_size+Load_size+Store_size+v_size+p_size /*+ jump_size*/
                           + sizeof(struct PEND_OP) * Max_Ops;
-      used_extra = 0;
 
 //      if (use_grid)
 //        end_dx_array = 2L*(long)(xdots+ydots)*sizeof(double);
@@ -3652,13 +3595,11 @@ static void parser_allocate(void)
       if (pass == 0 || is_bad_form)
         {
           typespecific_workarea = (char *)malloc(65000);
-          used_extra = 1;
         }
       else if (is_bad_form == 0)
         {
           typespecific_workarea =
             (char *)malloc((long)(f_size+Load_size+Store_size+v_size+p_size));
-          used_extra = 0;
         }
       f = (void(* *)(void))typespecific_workarea;
       Store = (union Arg * *)(f + Max_Ops);
@@ -3674,7 +3615,7 @@ static void parser_allocate(void)
               Max_Ops = posp+4;
               Max_Args = vsp+4;
             }
-          typespecific_workarea = NULL;
+          free(typespecific_workarea);
         }
     }
   uses_p1 = uses_p2 = uses_p3 = uses_p4 = uses_p5 = 0;
@@ -3693,12 +3634,6 @@ void free_workarea()
   f = (void( * *)(void))0;      /* CAE fp */
   pfls = (struct fls * )0;   /* CAE fp */
   total_formula_mem = 0;
-
-  /* restore extraseg */
-  if (integerfractal && !invert)
-    fill_lx_array();
-  else
-    fill_dx_array();
 }
 
 
@@ -3743,11 +3678,7 @@ void frm_error(FILE * open_file, long begin_frm)
               return;
             }
         }
-#ifndef XFRACT
-      sprintf(&msgbuf[strlen(msgbuf)], "Error(%d) at line %d:  %Fs\n  ", errors[j].error_number, line_number, ParseErrs(errors[j].error_number));
-#else
       sprintf(&msgbuf[strlen(msgbuf)], "Error(%d) at line %d:  %s\n  ", errors[j].error_number, line_number, ParseErrs(errors[j].error_number));
-#endif
       i = strlen(msgbuf);
       /*    sprintf(debugmsg, "msgbuf is: %s\n and i is %d\n", msgbuf, i);
             stopmsg (0, debugmsg);
@@ -3979,8 +3910,6 @@ void count_lists()
   */
 }
 
-
-
 /*frm_prescan() takes an open file with the file pointer positioned at
   the beginning of the relevant formula, and parses the formula, token
   by token, for syntax errors. The function also accumulates data for
@@ -3991,7 +3920,6 @@ void count_lists()
 
 int disable_fastparser;
 int must_use_float;
-
 
 int frm_prescan (FILE * open_file)
 {

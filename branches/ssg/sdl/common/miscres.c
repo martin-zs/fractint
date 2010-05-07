@@ -750,8 +750,8 @@ int tab_display_2(char *msg)
   putstring(s_row++,2,C_GENERAL_HI,msg);
   if (fractype==FORMULA || fractype==FFORMULA)
     {
-      sprintf(msg,"total_formula_mem %ld Max_Ops (posp) %u Max_Args (vsp) %u Used_extra %u",
-              total_formula_mem,posp,vsp,used_extra);
+      sprintf(msg,"total_formula_mem %ld Max_Ops (posp) %u Max_Args (vsp) %u",
+              total_formula_mem,posp,vsp);
       putstring(s_row++,2,C_GENERAL_HI,msg);
       sprintf(msg,"   Store ptr %d Loadptr %d Max_Ops var %u Max_Args var %u LastInitOp %d",
               StoPtr,LodPtr,Max_Ops,Max_Args,LastInitOp);
