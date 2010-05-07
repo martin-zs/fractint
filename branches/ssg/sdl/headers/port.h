@@ -103,7 +103,7 @@ typedef int sigfunc(int);
 #endif
 
 // FIXME (jonathan#1#): Need to differentiate between windows and linux
-#if 1
+#ifndef LINUX
  #define CONST          const
  #define SLASHC         '\\'
  #define SLASH          "\\"
