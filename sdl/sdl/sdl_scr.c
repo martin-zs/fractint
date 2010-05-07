@@ -449,7 +449,8 @@ void puttruecolor(int x, int y, BYTE R, BYTE G, BYTE B)
 
 void save_screen(void)
 {
-  if (screen->format->BytesPerPixel == 1) /* 8-bits per pixel */
+//  if (screen->format->BytesPerPixel == 1) /* 8-bits per pixel */
+  if (0)
     {
       /* move 8-bit screen to memory */
       long count = xdots * ydots;
@@ -475,7 +476,8 @@ void save_screen(void)
 
 void restore_screen(void)
 {
-  if (screen->format->BytesPerPixel == 1) /* 8-bits per pixel */
+//  if (screen->format->BytesPerPixel == 1) /* 8-bits per pixel */
+  if (0)
     {
       /* restore 8-bit data from memory to screen */
       long count = xdots * ydots;
