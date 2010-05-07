@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1266178444 source:c:\svn\sdl\dos_help\hc.c
+1266182044 source:c:\svn\sdl\dos_help\hc.c
 	<io.h>
 	<stdarg.h>
 	<varargs.h>
@@ -9,4 +9,15 @@
 	<assert.h>
 	"port.h"
 	"helpcom.h"
+
+1273260777 source:c:\svn\sdl\sdl\unix.c
+	<stdio.h>
+	<stdlib.h>
+	<sys/time.h>
+	<sys/types.h>
+	<sys/file.h>
+	<sys/stat.h>
+	<string.h>
+	<ctype.h>
+	"port.h"
 

@@ -181,6 +181,37 @@ int getkeyint(int block)
 }
 
 /*
+ *----------------------------------------------------------------------
+ *
+ * kbhit --
+ *
+ *      Get a key.
+ *
+ * Results:
+ *      1 if key, 0 otherwise.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+int
+kbhit()
+{
+  return 0;
+}
+
+// FIXME (jonathan#1#): Next is needed for Linux version.
+#if 0
+unsigned short _rotl(unsigned short num, short bits)
+{
+  unsigned long ll;
+  ll = (((unsigned long)num << 16) + num) << (bits&15);
+  return((unsigned short)(ll>>16));
+}
+#endif
+
+/*
 ; ****************** Function buzzer(int buzzertype) *******************
 ;
 ;       Sound a tone based on the value of the parameter
@@ -261,7 +292,6 @@ uclock_t usec_clock(void)
   result  = (unsigned long)(elapsed.tv_sec*10000 +  elapsed.tv_usec/100);
   return(result);
 }
-
 
 /*
 ; long readticker() returns current bios ticker value

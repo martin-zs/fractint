@@ -14,23 +14,24 @@ SDL_Surface *screen = NULL;
 SDL_Surface *backscrn = NULL;
 TTF_Font *font = NULL;
 
-SDL_Color XlateText[] = {
-{  0,  0,  0}, /* black */
-{  0,  0,192}, /* Blue */
-{  0,192,  0}, /* Green */
-{  0,192,192}, /* Cyan */
-{192,  0,  0}, /* Red */
-{192,  0,192}, /* Magenta */
-{127,127,  0}, /* Brown */
-{192,192,192}, /* White */
-{127,127,127}, /* Gray */
-{127,127,192}, /* L_Blue */
-{127,192,127}, /* L_Green */
-{127,192,192}, /* L_Cyan */
-{192,127,127}, /* L_Red */
-{192,127,255}, /* L_Magenta */
-{192,192,  0}, /* L_Magenta */
-{255,255,255}  /* L_White */
+SDL_Color XlateText[] =
+{
+  {  0,  0,  0}, /* black */
+  {  0,  0,192}, /* Blue */
+  {  0,192,  0}, /* Green */
+  {  0,192,192}, /* Cyan */
+  {192,  0,  0}, /* Red */
+  {192,  0,192}, /* Magenta */
+  {127,127,  0}, /* Brown */
+  {192,192,192}, /* White */
+  {127,127,127}, /* Gray */
+  {127,127,192}, /* L_Blue */
+  {127,192,127}, /* L_Green */
+  {127,192,192}, /* L_Cyan */
+  {192,127,127}, /* L_Red */
+  {192,127,255}, /* L_Magenta */
+  {192,192,  0}, /* L_Magenta */
+  {255,255,255}  /* L_White */
 };
 
 enum
@@ -48,6 +49,7 @@ static int mousefkey[4][4] /* [button][dir] */ =
   {CTL_END,CTL_HOME,CTL_PAGE_DOWN,CTL_PAGE_UP}
 };
 
+U16 screen_handle = 0;
 int resize_flag = 0;
 int screenctr = 0;
 int txt_ht;  /* text letter height = 2^txt_ht pixels */
@@ -58,7 +60,6 @@ int  text_attr[TEXT_HEIGHT][TEXT_WIDTH];
 char stack_text_screen[TEXT_HEIGHT][TEXT_WIDTH];
 int  stack_text_attr[TEXT_HEIGHT][TEXT_WIDTH];
 
-void apply_surface( int, int, SDL_Surface*);
 void puttruecolor_SDL(SDL_Surface*, int, int, Uint8, Uint8, Uint8);
 
 
@@ -180,6 +181,8 @@ int ResizeScreen(int mode)
   if (backscrn == NULL )
     fprintf(stderr, "No backscrn\n");
 #endif
+  if (screen_handle != 0) /* this won't work after a resize, free the memory */
+    MemoryRelease(screen_handle);
 
   fontsize = (int)(ydots / 34) + 1;
   font = TTF_OpenFont("crystal.ttf", fontsize);
@@ -444,16 +447,55 @@ void puttruecolor(int x, int y, BYTE R, BYTE G, BYTE B)
   puttruecolor_SDL(screen, x, y, (Uint8)R, (Uint8)G, (Uint8)B);
 }
 
-void apply_surface( int x, int y, SDL_Surface* source)
+void save_screen(void)
 {
-  SDL_Rect offset;
+  if (screen->format->BytesPerPixel == 1) /* 8-bits per pixel */
+    {
+      /* move 8-bit screen to memory */
+      long count = xdots * ydots;
+      if (screen_handle == 0)
+        screen_handle = MemoryAlloc(1,count,FARMEM);
+      Slock();
+      MoveToMemory((BYTE *)screen->pixels, 1, count, 0L, screen_handle);
+      Sulock();
+    }
+  else
+    {
+      SDL_Rect  src, dest;
 
-  offset.x = x;
-  offset.y = y;
-  offset.w = xdots;
-  offset.h = ydots;
-  SDL_BlitSurface( source, NULL, screen, &offset );
-  SDL_Flip(screen);
+      src.x = 0;
+      src.y = 0;
+      src.w = xdots;
+      src.h = ydots;
+      dest = src;
+      SDL_BlitSurface( screen, &src, backscrn, &dest ); /* save screen */
+//      SDL_Flip(backscrn);
+    }
+}
+
+void restore_screen(void)
+{
+  if (screen->format->BytesPerPixel == 1) /* 8-bits per pixel */
+    {
+      /* restore 8-bit data from memory to screen */
+      long count = xdots * ydots;
+      Slock();
+      MoveFromMemory((BYTE *)screen->pixels, 1, count, 0L, screen_handle);
+      Sulock();
+      SDL_UpdateRect(screen, 0, 0, xdots, ydots);
+      MemoryRelease(screen_handle);
+    }
+  else
+    {
+      SDL_Rect offset;
+
+      offset.x = 0;
+      offset.y = 0;
+      offset.w = xdots;
+      offset.h = ydots;
+      SDL_BlitSurface( backscrn, NULL, screen, &offset );
+      SDL_Flip(screen);
+    }
 }
 
 /*
@@ -573,10 +615,11 @@ void setclear (void)
   int r, c;
 
   for (r = 0; r < TEXT_HEIGHT; r++)
-    for (c = 0; c < TEXT_WIDTH; c++) {
-      text_attr[r][c] = 0;
-      text_screen[r][c] = ' ';
-    }
+    for (c = 0; c < TEXT_WIDTH; c++)
+      {
+        text_attr[r][c] = 0;
+        text_screen[r][c] = ' ';
+      }
 }
 
 void starttext(void)
@@ -599,7 +642,7 @@ void outtext(int row, int col, int max_c)
   int foregnd = attr & 15;
   int backgnd = (attr >> 4) & 15;
   int tmp_attr;
-  char buf[TEXT_WIDTH+1]; /* room for character and null terminator */
+  char buf[TEXT_WIDTH+1]; /* room for text and null terminator */
 #if DEBUG
   fprintf(stderr, "outtext, %d, %d, %d\n", row, col, max_c);
 #endif
@@ -620,7 +663,6 @@ void outtext(int row, int col, int max_c)
 
   text_rect.x = col * txt_wt;   /* starting column */
   text_rect.y = row * txt_ht;   /* starting row */
-//  text_rect.w = 1 * txt_wt; /* output this many columns */
   text_rect.w = max_c * txt_wt; /* output this many columns */
   text_rect.h = 1 * txt_ht;     /* output one row at a time */
 
@@ -633,17 +675,13 @@ void outtext(int row, int col, int max_c)
     {
       buf[j++] = text_screen[row][i];
     }
-//  dac_to_rgb(txtcolor[tmp_attr], &color.r, &color.g, &color.b);
-//  dac_to_rgb(txtcolor[backgnd], &bgcolor.r, &bgcolor.g, &bgcolor.b);
 
-//  color = XlateText[txtcolor[tmp_attr]];
-//  bgcolor = XlateText[txtcolor[backgnd]];
   color = XlateText[tmp_attr];
   bgcolor = XlateText[backgnd];
 
   if (!(text_surface=TTF_RenderText_Shaded(font,buf,color,bgcolor)))
     {
-//handle error here, perhaps print TTF_GetError at least
+      /* Handle error here */
 #if DEBUG
       fprintf(stderr, "outtext could not render %s\n", buf);
 #endif
@@ -651,13 +689,11 @@ void outtext(int row, int col, int max_c)
   else
     {
       SDL_BlitSurface(text_surface,NULL,screen,&text_rect);
-//      SDL_BlitSurface(text_surface,NULL,textmsg,&text_rect);
-//      SDL_UpdateRect(textmsg, 0, 0, 0, 0);
       SDL_FreeSurface(text_surface);
     }
 
-//  SDL_BlitSurface(textmsg,NULL,screen,NULL);
-  SDL_Flip(screen);
+  /* Update just the rectangle of text */
+  SDL_UpdateRect(screen, text_rect.x, text_rect.y, text_rect.w, text_rect.h);
 
 }
 
@@ -676,22 +712,14 @@ void outtext(int row, int col, int max_c)
 
 void stackscreen(void)
 {
-  SDL_Rect src, dest;
-
   int r, c;
 #if DEBUG
   fprintf(stderr, "stackscreen, %i screens stacked\n", screenctr+1);
 #endif
-  src.x = 0;
-  src.y = 0;
-  src.w = xdots;
-  src.h = ydots;
-  dest = src;
 
   if (screenctr == 0)
     {
-      SDL_BlitSurface( screen, &src, backscrn, &dest ); /* save screen */
-      SDL_Flip(backscrn); /* not needed? */
+      save_screen();
     }
   if (screenctr > 0)
     {
@@ -711,7 +739,7 @@ void unstackscreen(void)
 #if DEBUG
   fprintf(stderr, "unstackscreen, %i screens stacked\n", screenctr);
 #endif
-  if (screenctr > 1)
+  if (--screenctr > 1)
     {
       for (r = 0; r < TEXT_HEIGHT; r++)
         for (c = 0; c < TEXT_WIDTH; c++)
@@ -719,11 +747,12 @@ void unstackscreen(void)
             text_screen[r][c] = stack_text_screen[r][c];
             text_attr[r][c] = stack_text_attr[r][c];
           }
+// FIXME (jonathan#1#): The following won't work completely, but will get us close.
+      outtext(r, 0, c);
     }
-  screenctr--;
-  if (screenctr == 0)
+  else
     {
-      apply_surface(0, 0, backscrn); /* restore screen */
+      restore_screen(); /* restore screen */
     }
 }
 
@@ -733,7 +762,7 @@ void discardscreen(void)
   fprintf(stderr, "discardscreen, %i screens stacked\n", screenctr);
 #endif
   screenctr = 0;   /* unstack all */
-  apply_surface(0, 0, backscrn); /* restore screen */
+  restore_screen(); /* restore screen */
 }
 
 void putstring (int row, int col, int attr, CHAR *msg)
@@ -763,8 +792,7 @@ void putstring (int row, int col, int attr, CHAR *msg)
           if (c > max_c)
             max_c = c;
           textcol = 0;
-//          c = textcbase; // shoudn't this be s_c???
-          c = s_c; // shoudn't this be s_c???
+          c = s_c;
         }
       else
         {
@@ -829,52 +857,6 @@ void setattr (int row, int col, int attr, int count)
   /* refresh text */
   outtext(r, s_c, c);
 }
-
-
-
-#if 0
-/* the following should return a value for success or failure */
-void ShowBMP(char *filename)
-{
-  SDL_Surface* loadedImage = NULL;
-  SDL_Surface* optimizedImage = NULL;
-
-  loadedImage = SDL_LoadBMP( filename );
-  if ( loadedImage != NULL )
-    {
-      optimizedImage = SDL_DisplayFormat( loadedImage );
-      SDL_FreeSurface( loadedImage );
-    }
-  if ( optimizedImage != NULL )
-    {
-      apply_surface( 0, 0, optimizedImage);
-      SDL_Flip( screen );
-      SDL_FreeSurface( optimizedImage );
-    }
-}
-
-void ShowGIF(char *filename)
-{
-
-  SDL_Surface* loadedImage = NULL;
-  SDL_Surface* optimizedImage = NULL;
-  SDL_RWops *rwop;
-
-  rwop=SDL_RWFromFile(filename, "rb");
-  loadedImage=IMG_LoadGIF_RW(rwop);
-  if ( loadedImage != NULL )
-    {
-      optimizedImage = SDL_DisplayFormat( loadedImage );
-      SDL_FreeSurface( loadedImage );
-    }
-  if ( optimizedImage != NULL )
-    {
-      apply_surface( 0, 0, optimizedImage);
-      SDL_Flip( screen );
-      SDL_FreeSurface( optimizedImage );
-    }
-}
-#endif
 
 static int translate_key(SDL_KeyboardEvent *key)
 {

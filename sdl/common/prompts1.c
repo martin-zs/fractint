@@ -1925,7 +1925,7 @@ int skip_comment(FILE *infile, long *file_offset)
 }
 
 #define MAXENTRIES 2000L
-BYTE storage[32000];
+BYTE storage[65000];
 
 int scan_entries(FILE * infile, void * ch, char *itemname)
 {

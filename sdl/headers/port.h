@@ -256,6 +256,6 @@ extern struct DIR_SEARCH DTA;   /* Disk Transfer Area */
 #define fabsl           fabs
 #define sinl            sin
 #define cosl            cos
-#endif
+#endif /* #ifdef DO_NOT_USE_LONG_DOUBLE */
 
 #endif  /* PORT_H */

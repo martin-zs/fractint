@@ -16,6 +16,8 @@ FRACTALS.C, i.e. which are non-fractal-specific fractal engine subroutines.
 #include "prototyp.h"
 #include "fractype.h"
 
+int use_grid;
+BYTE *extraseg = NULL;
 
 /* routines in this module      */
 
@@ -38,14 +40,12 @@ int    taborhelp;    /* kludge for sound and tab or help key press */
 
 void set_grid_pointers()
 {
-// FIXME (jonathan#1#): Need to make next work
-#if 0
-  dx0 = MK_FP(extraseg,0);
+  extraseg = (BYTE*)malloc(65000);
+  dx0 = (double *) extraseg;
   dy1 = (dx1 = (dy0 = dx0 + xdots) + ydots) + ydots;
-  lx0 = (long far *) dx0;
+  lx0 = (long *) dx0;
   ly1 = (lx1 = (ly0 = lx0 + xdots) + ydots) + ydots;
-#endif
-  use_grid = 0;
+  use_grid = 1;
   set_pixel_calc_functions();
 }
 
@@ -108,9 +108,6 @@ void fractal_floattobf(void)
       floattobf(bfparms[i],param[i]);
   calc_status = 0;
 }
-
-
-int use_grid;
 
 void calcfracinit(void) /* initialize a *pile* of stuff for fractal calculation */
 {
