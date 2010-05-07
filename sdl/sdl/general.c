@@ -202,7 +202,7 @@ kbhit()
 }
 
 // FIXME (jonathan#1#): Next is needed for Linux version.
-#if 0
+#ifdef LINUX
 unsigned short _rotl(unsigned short num, short bits)
 {
   unsigned long ll;
