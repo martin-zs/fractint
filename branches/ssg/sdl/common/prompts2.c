@@ -2615,7 +2615,7 @@ int merge_pathnames(char *oldfullpath, char *newfilename, int mode)
   if (strcmp(newfilename,SLASH)==0)
     isadir = 1;
 #endif
-#if 1
+#ifndef LINUX
   /* if drive, colon, slash, is a directory */
   if (strlen(newfilename) == 3 &&
       newfilename[1] == ':' &&
