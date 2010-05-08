@@ -1211,9 +1211,9 @@ int fgetwindow(void)
    vidlength = 4; /* Xfractint only needs the 4 corners saved. */
 #endif
    browsehandle = MemoryAlloc((U16)sizeof(struct window),(long)MAX_WINDOWS_OPEN,FARMEM);
-   boxxhandle = MemoryAlloc((U16)(vidlength),(long)MAX_WINDOWS_OPEN,EXPANDED);
-   boxyhandle = MemoryAlloc((U16)(vidlength),(long)MAX_WINDOWS_OPEN,EXPANDED);
-   boxvalueshandle = MemoryAlloc((U16)(vidlength>>1),(long)MAX_WINDOWS_OPEN,EXPANDED);
+   boxxhandle = MemoryAlloc((U16)(vidlength),(long)MAX_WINDOWS_OPEN,FARMEM);
+   boxyhandle = MemoryAlloc((U16)(vidlength),(long)MAX_WINDOWS_OPEN,FARMEM);
+   boxvalueshandle = MemoryAlloc((U16)(vidlength>>1),(long)MAX_WINDOWS_OPEN,FARMEM);
    if(!browsehandle || !boxxhandle || !boxyhandle || !boxvalueshandle)
       no_memory = 1;
 
@@ -1263,7 +1263,7 @@ rescan:  /* entry for changed browse parms */
            is_visible_window(&winlist,&read_info,&blk_5_info)
          )
          {
-           far_strcpy(winlist.name,DTA.filename);
+           strcpy(winlist.name,DTA.filename);
            drawindow(color_of_box,&winlist);
            boxcount <<= 1; /*boxcount*2;*/ /* double for byte count */
            winlist.boxcount = boxcount;
@@ -1382,7 +1382,7 @@ rescan:  /* entry for changed browse parms */
 #endif
         case ENTER:
         case ENTER_2:   /* this file please */
-          far_strcpy(browsename,winlist.name);
+          strcpy(browsename,winlist.name);
           done = 1;
           break;
 
@@ -1401,7 +1401,7 @@ rescan:  /* entry for changed browse parms */
           cleartempmsg();
           strcpy(mesg,"");
           strcat(mesg,"Delete ");
-          far_strcat(mesg,winlist.name);
+          strcat(mesg,winlist.name);
           strcat(mesg,"? (Y/N)");
           showtempmsg(mesg);
           while (!keypressed()) ;
@@ -1419,7 +1419,7 @@ rescan:  /* entry for changed browse parms */
           if ( !unlink(tmpmask)) {
           /* do a rescan */
             done = 3;
-            far_strcpy(oldname,winlist.name);
+            strcpy(oldname,winlist.name);
             tmpmask[0] = '\0';
             check_history(oldname,tmpmask);
             break;
@@ -1464,9 +1464,9 @@ rescan:  /* entry for changed browse parms */
           else {
            splitpath(newname,NULL,NULL,fname,ext);
            makepath(tmpmask,NULL,NULL,fname,ext);
-           far_strcpy(oldname,winlist.name);
+           strcpy(oldname,winlist.name);
            check_history(oldname,tmpmask);
-           far_strcpy(winlist.name,tmpmask);
+           strcpy(winlist.name,tmpmask);
            }
           }
          MoveToMemory(winlistptr,(U16)sizeof(struct window),1L,(long)index,browsehandle);

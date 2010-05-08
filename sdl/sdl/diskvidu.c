@@ -159,9 +159,9 @@ int readdisk(int col, int row)
   return dataPtr[row*rowsize+col];
 }
 
-int FromMemDisk(long offset, int size, void far *dest)
+int FromMemDisk(long offset, int size, void *dest)
 {
-  far_memcpy(dest, (void far *) (dataPtr+offset), size);
+  memcpy(dest, (void *) (dataPtr+offset), size);
   return 1;
 }
 
@@ -194,9 +194,9 @@ void writedisk(int col, int row, int color)
   dataPtr[row*rowsize+col] = color;
 }
 
-int ToMemDisk(long offset, int size, void far *src)
+int ToMemDisk(long offset, int size, void *src)
 {
-  far_memcpy((void far *) (dataPtr+offset), src, size);
+  memcpy((void *) (dataPtr+offset), src, size);
   return 1;
 }
 

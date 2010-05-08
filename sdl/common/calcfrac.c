@@ -2961,8 +2961,7 @@ Guenther's code.  I've noted these places with the initials DG.
 #define advance_match()     coming_from = ((going_to = (going_to - 1) & 0x03) - 1) & 0x03
 #define advance_no_match()  going_to = (going_to + 1) & 0x03
 
-static
-int  bound_trace_main(void)
+static int bound_trace_main(void)
 {
   enum direction coming_from;
   unsigned int match_found, continue_loop;
@@ -2974,8 +2973,8 @@ int  bound_trace_main(void)
     {
       static FCODE inside_outside[] = {"inside=0 or outside=0"};
       char msg[MSGLEN];
-      far_strcpy(msg,btm_cantbeused);
-      far_strcat(msg,inside_outside);
+      strcpy(msg,btm_cantbeused);
+      strcat(msg,inside_outside);
       stopmsg(0,msg);
       return(-1);
     }
@@ -2983,8 +2982,8 @@ int  bound_trace_main(void)
     {
       char msg[MSGLEN];
       static FCODE lessthansixteen[] = {"< 16 colors"};
-      far_strcpy(msg,btm_cantbeused);
-      far_strcat(msg,lessthansixteen);
+      strcpy(msg,btm_cantbeused);
+      strcat(msg,lessthansixteen);
       stopmsg(0,msg);
       return(-1);
     }

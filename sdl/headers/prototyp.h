@@ -978,6 +978,7 @@ extern long calcmandfp_c(void);
 
 extern void findpath(char *,char *);
 extern void ftimex(struct timebx *);
+extern long normalize(char *);
 #ifdef LINUX
 extern unsigned short _rotl(unsigned short, short);
 extern int ltoa(long, char *, int);
