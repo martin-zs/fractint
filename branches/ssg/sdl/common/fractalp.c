@@ -2407,6 +2407,6 @@ int typehasparm(int type,int parm,char *buf)
          ret = NULL;
 
    if(ret && buf != NULL)
-      far_strcpy(buf,ret);
+      strcpy(buf,ret);
    return(ret?1:0);
 }

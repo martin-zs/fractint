@@ -91,7 +91,7 @@ void CleanupSDL(void)
    */
   SDL_FreeSurface(backscrn);
 // NOTE (jonathan#1#): May not need this once png support is added.
-  IMG_Quit();
+//  IMG_Quit();
 
   TTF_CloseFont(font);
   font = NULL;
@@ -220,11 +220,11 @@ void SetupSDL(void)
   ResizeScreen(0);
 
 // NOTE (jonathan#1#): May not need this once png support is added.
-  if ( IMG_Init(IMG_INIT_PNG) < 0 )
-    {
-      fprintf(stderr, "Unable to init IMG: %s\n", SDL_GetError());
-      exit(1);
-    }
+//  if ( IMG_Init(IMG_INIT_PNG) < 0 )
+//    {
+//      fprintf(stderr, "Unable to init IMG: %s\n", SDL_GetError());
+//      exit(1);
+//    }
 
   SDL_EnableKeyRepeat(250,30);
 

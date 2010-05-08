@@ -48,13 +48,13 @@ void notdiskmsg()
 /* color   -- attribute (same as for putstring)                           */
 /* maxrow -- max number of rows to write                                 */
 /* returns 0 if success, 1 if hit maxrow before done                      */
-int putstringwrap(int *row,int col1,int col2,int color,char far *str,int maxrow)
+int putstringwrap(int *row,int col1,int col2,int color,char *str,int maxrow)
 {
   char save1, save2;
   int length, decpt, padding, startrow, done;
   done = 0;
   startrow = *row;
-  length = far_strlen(str);
+  length = strlen(str);
   padding = 3; /* space between col1 and decimal. */
   /* find decimal point */
   for (decpt=0;decpt < length; decpt++)
@@ -819,7 +819,7 @@ int tab_display()       /* display the status of the current image */
   double Xmagfactor, Rotation, Skew;
   bf_t bfXctr=NULL, bfYctr=NULL;
   char msg[350];
-  char far *msgptr;
+  char *msgptr;
   int key;
   int saved=0;
   int dec;
@@ -1273,11 +1273,11 @@ static void area(void)
     }
   else
     {
-      msg = (char far *)"";
+      msg = (char *)"";
     }
 #ifndef XFRACT
   sprintf(buf,"%Fs%ld inside pixels of %ld%Fs%f",
-          msg,cnt,(long)xdots*(long)ydots,(char far *)total_area,
+          msg,cnt,(long)xdots*(long)ydots,(char *)total_area,
           cnt/((float)xdots*(float)ydots)*(xxmax-xxmin)*(yymax-yymin));
 #else
   sprintf(buf,"%s%ld inside pixels of %ld%s%f",
@@ -1318,7 +1318,8 @@ char *get_ifs_token(char *buf,FILE *ifsfile)
 
 FCODE insufficient_ifs_mem[]={"Insufficient memory for IFS"};
 int numaffine;
-int ifsload()                   /* read in IFS parameters */
+
+int ifsload(void)                   /* read in IFS parameters */
 {
   int i;
   FILE *ifsfile;
@@ -1328,7 +1329,7 @@ int ifsload()                   /* read in IFS parameters */
 
   if (ifs_defn)   /* release prior parms */
     {
-      farmemfree((char far *)ifs_defn);
+      free((char *)ifs_defn);
       ifs_defn = NULL;
     }
 
@@ -1399,7 +1400,7 @@ int ifsload()                   /* read in IFS parameters */
   if (ret == 0)
     {
       numaffine = i/rowsize;
-      if ((ifs_defn = (float far *)farmemalloc(
+      if ((ifs_defn = (float *)malloc(
                         (long)((NUMIFS+1)*IFS3DPARM*sizeof(float)))) == NULL)
         {
           stopmsg(0,insufficient_ifs_mem);

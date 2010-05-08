@@ -444,7 +444,7 @@ LSysFSizeTransform(char *s, struct lsys_turtlestatef *ts)
   void (*at)() =     lsysf_doat;
   void (*dogf)() =   lsysf_dosizegf;
 
-  ret = (struct lsys_cmd far *) farmemalloc((long) max * sizeof(struct lsys_cmd));
+  ret = (struct lsys_cmd *) malloc((long) max * sizeof(struct lsys_cmd));
   if (ret == NULL) {
        ts->stackoflow = 1;
        return NULL;

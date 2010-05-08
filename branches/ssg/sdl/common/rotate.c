@@ -417,7 +417,7 @@ void save_palette()
   char msg[sizeof(o_msg)];
   FILE *dacfile;
   int i,oldhelpmode;
-  far_strcpy(msg,o_msg);
+  strcpy(msg,o_msg);
   strcpy(palname,MAP_name);
   oldhelpmode = helpmode;
   stackscreen();

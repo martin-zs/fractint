@@ -1088,7 +1088,7 @@ static int ratio_bad(double actual, double desired)
          get_resume(sizeof(parmarray),parmarray,0);
       end_resume();
 
-   Engines which allocate a large far memory chunk of their own might
+   Engines which allocate a large memory chunk of their own might
    directly set resume_info, resume_len, calc_status to avoid doubling
    transient memory needs by using these routines.
 
@@ -1125,7 +1125,7 @@ va_dcl
   while (len)
     {
       source_ptr = (BYTE *)va_arg(arg_marker,char *);
-      /*      far_memcpy(resume_info+resume_len,source_ptr,len); */
+      /*      memcpy(resume_info+resume_len,source_ptr,len); */
       MoveToMemory(source_ptr,(U16)1,(long)len,resume_len,resume_info);
       resume_len += len;
       len = va_arg(arg_marker,int);
@@ -1179,7 +1179,7 @@ va_dcl
   while (len)
     {
       dest_ptr = (BYTE *)va_arg(arg_marker,char *);
-      /*      far_memcpy(dest_ptr,resume_info+resume_offset,len); */
+      /*      memcpy(dest_ptr,resume_info+resume_offset,len); */
       MoveFromMemory(dest_ptr,(U16)1,(long)len,resume_offset,resume_info);
       resume_offset += len;
       len = va_arg(arg_marker,int);
