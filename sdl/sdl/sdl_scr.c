@@ -156,17 +156,10 @@ int ResizeScreen(int mode)
   fprintf(stderr, "Set %dx%d at %d bits-per-pixel mode\n", xdots, ydots, bpp);
 #endif
 
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-  rmask = 0xff000000;
-  gmask = 0x00ff0000;
-  bmask = 0x0000ff00;
-  amask = 0x000000ff;
-#else
-  rmask = 0x000000ff;
-  gmask = 0x0000ff00;
-  bmask = 0x00ff0000;
-  amask = 0xff000000;
-#endif
+  rmask = screen->format->Rmask;
+  gmask = screen->format->Gmask;
+  bmask = screen->format->Bmask;
+  amask = screen->format->Amask;
 
   if (mode == 1)
     {
@@ -449,55 +442,28 @@ void puttruecolor(int x, int y, BYTE R, BYTE G, BYTE B)
 
 void save_screen(void)
 {
-//  if (screen->format->BytesPerPixel == 1) /* 8-bits per pixel */
-  if (0)
-    {
-      /* move 8-bit screen to memory */
-      long count = xdots * ydots;
-      if (screen_handle == 0)
-        screen_handle = MemoryAlloc(1,count,FARMEM);
-      Slock();
-      MoveToMemory((BYTE *)screen->pixels, 1, count, 0L, screen_handle);
-      Sulock();
-    }
-  else
-    {
-      SDL_Rect  src, dest;
+  SDL_Rect  src, dest;
 
-      src.x = 0;
-      src.y = 0;
-      src.w = xdots;
-      src.h = ydots;
-      dest = src;
-      SDL_BlitSurface( screen, &src, backscrn, &dest ); /* save screen */
-//      SDL_Flip(backscrn);
-    }
+  src.x = 0;
+  src.y = 0;
+  src.w = xdots;
+  src.h = ydots;
+  dest = src;
+  SDL_BlitSurface( screen, &src, backscrn, &dest ); /* save screen */
+//  SDL_Flip(backscrn);
 }
 
 void restore_screen(void)
 {
-//  if (screen->format->BytesPerPixel == 1) /* 8-bits per pixel */
-  if (0)
-    {
-      /* restore 8-bit data from memory to screen */
-      long count = xdots * ydots;
-      Slock();
-      MoveFromMemory((BYTE *)screen->pixels, 1, count, 0L, screen_handle);
-      Sulock();
-      SDL_UpdateRect(screen, 0, 0, xdots, ydots);
-      MemoryRelease(screen_handle);
-    }
-  else
-    {
-      SDL_Rect offset;
+  SDL_Rect  src, dest;
 
-      offset.x = 0;
-      offset.y = 0;
-      offset.w = xdots;
-      offset.h = ydots;
-      SDL_BlitSurface( backscrn, NULL, screen, &offset );
-      SDL_Flip(screen);
-    }
+  src.x = 0;
+  src.y = 0;
+  src.w = xdots;
+  src.h = ydots;
+  dest = src;
+  SDL_BlitSurface( backscrn, &src, screen, &dest );
+  SDL_Flip(screen);
 }
 
 /*
@@ -692,11 +658,9 @@ void outtext(int row, int col, int max_c)
     {
       SDL_BlitSurface(text_surface,NULL,screen,&text_rect);
       SDL_FreeSurface(text_surface);
+      /* Update just the rectangle of text */
+      SDL_UpdateRect(screen, text_rect.x, text_rect.y, text_rect.w, text_rect.h);
     }
-
-  /* Update just the rectangle of text */
-  SDL_UpdateRect(screen, text_rect.x, text_rect.y, text_rect.w, text_rect.h);
-
 }
 
 /*
@@ -1124,15 +1088,22 @@ static U32 next_time = 0;
 
 int time_to_update(void)
 {
-  /* return a 1 every 200 milliseconds */
+  /* return a 1 every 200 milliseconds if calculating */
+  /* return a 1 every 20 milliseconds if not calculating */
   U32 now;
 
-  now = SDL_GetTicks();
-  if (next_time <= now)
+  if (calc_status == 1) /* calculating */
     {
-      next_time = SDL_GetTicks() + TICK_INTERVAL;
-      return (1);
+      now = SDL_GetTicks();
+      if (next_time <= now)
+        {
+          next_time = SDL_GetTicks() + TICK_INTERVAL;
+          return (1);
+        }
+      else
+        return (0);
     }
-  else
-    return (0);
+  else /* not calculating */
+    delay (20);
+  return(1);
 }
