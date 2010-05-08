@@ -529,20 +529,3 @@ int out_line (BYTE *pixels, int linelen)
   rowcount++;
   return 0;
 }
-
-/*
-; far move routine for savegraphics/restoregraphics
-*/
-// NOTE (jonathan#1#): Next not used.
-void movewords (int len, BYTE *fromptr, BYTE *toptr)
-{
-  bcopy (fromptr, toptr, len);
-}
-
-void swapnormread (void)
-{
-}
-void swapnormwrite (void)
-{
-}
-
