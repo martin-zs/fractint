@@ -978,6 +978,16 @@ extern long calcmandfp_c(void);
 
 extern void findpath(char *,char *);
 extern void ftimex(struct timebx *);
+#ifdef LINUX
+extern unsigned short _rotl(unsigned short, short);
+extern int ltoa(long, char *, int);
+extern char *strlwr(char *);
+extern int memicmp(char *, char *, int);
+#ifndef HAVESTRI
+extern int stricmp(char *, char *);
+extern int strnicmp(char *, char *, int);
+#endif /* HAVESTRI */
+#endif /* LINUX */
 
 /*  video -- C file prototypes */
 

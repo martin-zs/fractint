@@ -201,16 +201,6 @@ kbhit()
   return 0;
 }
 
-// FIXME (jonathan#1#): Next is needed for Linux version.
-#ifdef LINUX
-unsigned short _rotl(unsigned short num, short bits)
-{
-  unsigned long ll;
-  ll = (((unsigned long)num << 16) + num) << (bits&15);
-  return((unsigned short)(ll>>16));
-}
-#endif
-
 /*
 ; ****************** Function buzzer(int buzzertype) *******************
 ;
@@ -306,6 +296,8 @@ long stackavail(void)
   return 8192;
 }
 
+// FIXME (jonathan#1#): Check the following for deletion
+#if 1
 /*
 ; ************************* Far Segment RAM Support **************************
 ;
@@ -439,6 +431,7 @@ int len;
 {
   memicmp(a,b,len);
 }
+#endif
 
 /* --------------------------------------------------------------------
  * The following routines are used for encoding/decoding gif images.
@@ -448,12 +441,13 @@ int len;
  * If dir==0, we convert to MSDOS form.  Otherwise we convert from MSDOS.
  */
 
-static void getChar(), getInt(), getLong(), getFloat(), getDouble();
+static void getChar(unsigned char *, unsigned char **, int);
+static void getInt(short *, unsigned char **, int);
+static void getLong(long *, unsigned char **, int);
+static void getDouble(double *, unsigned char **, int);
+static void getFloat(float *, unsigned char **, int);
 
-void
-decode_fractal_info(info,dir)
-struct fractal_info *info;
-int dir;
+void decode_fractal_info(struct fractal_info *info, int dir)
 {
   unsigned char *buf;
   unsigned char *bufPtr;
@@ -507,7 +501,7 @@ int dir;
   getInt(&info->rflag,&bufPtr,dir);
   getInt(&info->biomorph,&bufPtr,dir);
   getInt(&info->inside,&bufPtr,dir);
-  getInt(&info->logmap,&bufPtr,dir);
+  getInt(&info->logmapold,&bufPtr,dir);
   getFloat(&info->invert[0],&bufPtr,dir);
   getFloat(&info->invert[1],&bufPtr,dir);
   getFloat(&info->invert[2],&bufPtr,dir);
@@ -537,7 +531,7 @@ int dir;
   getChar(&info->useinitorbit,&bufPtr,dir);
   getInt(&info->calc_status,&bufPtr,dir);
   getLong(&info->tot_extend_len,&bufPtr,dir);
-  getInt(&info->distest,&bufPtr,dir);
+  getInt(&info->distestold,&bufPtr,dir);
   getInt(&info->floatflag,&bufPtr,dir);
   getInt(&info->bailoutold,&bufPtr,dir);
   getLong(&info->calctime,&bufPtr,dir);
@@ -630,10 +624,7 @@ int dir;
  * This routine gets a char out of the buffer.
  * It updates the buffer pointer accordingly.
  */
-static void getChar(dst,src,dir)
-unsigned char *dst;
-unsigned char **src;
-int dir;
+static void getChar(unsigned char *dst, unsigned char **src, int dir)
 {
   if (dir==1)
     {
@@ -650,10 +641,7 @@ int dir;
  * This routine gets an int out of the buffer.
  * It updates the buffer pointer accordingly.
  */
-static void getInt(dst,src,dir)
-short *dst;
-unsigned char **src;
-int dir;
+static void getInt(short *dst, unsigned char **src, int dir)
 {
   if (dir==1)
     {
@@ -671,10 +659,7 @@ int dir;
  * This routine gets a long out of the buffer.
  * It updates the buffer pointer accordingly.
  */
-static void getLong(dst,src,dir)
-long *dst;
-unsigned char **src;
-int dir;
+static void getLong(long *dst, unsigned char **src, int dir)
 {
   if (dir==1)
     {
@@ -715,10 +700,7 @@ int dir;
  * buffer;
  * It updates the buffer pointer accordingly.
  */
-static void getDouble(dst,src,dir)
-double *dst;
-unsigned char **src;
-int dir;
+static void getDouble(double *dst, unsigned char **src, int dir)
 {
   int e;
   double f;
@@ -805,10 +787,7 @@ int dir;
  * This routine gets a float out of the buffer.
  * It updates the buffer pointer accordingly.
  */
-static void getFloat(dst,src,dir)
-float *dst;
-unsigned char **src;
-int dir;
+static void getFloat(float *dst, unsigned char **src, int dir)
 {
   int e;
   double f;
@@ -883,10 +862,7 @@ int dir;
 /*
  * Fix up the ranges data.
  */
-void
-fix_ranges(ranges,num,dir)
-int *ranges, num;
-int dir;
+void fix_ranges(int *ranges, int num, int dir)
 {
   unsigned char *buf;
   unsigned char *bufPtr;
@@ -906,15 +882,12 @@ int dir;
     }
   for (i=0;i<num;i++)
     {
-      getInt(&ranges[i],&bufPtr,dir);
+      getInt((short *)&ranges[i],&bufPtr,dir);
     }
   free((char *)buf);
 }
 
-void
-decode_evolver_info(info,dir)
-struct evolution_info *info;
-int dir;
+void decode_evolver_info(struct evolution_info *info, int dir)
 {
   unsigned char *buf;
   unsigned char *bufPtr;
@@ -973,10 +946,7 @@ int dir;
   free(buf);
 }
 
-void
-decode_orbits_info(info,dir)
-struct orbits_info *info;
-int dir;
+void decode_orbits_info(struct orbits_info *info, int dir)
 {
   unsigned char *buf;
   unsigned char *bufPtr;
@@ -1041,9 +1011,7 @@ int dir;
  *
  *----------------------------------------------------------------------
  */
-void
-findpath(filename, fullpathname)
-char *filename, *fullpathname;
+void findpath(char *filename, char *fullpathname)
 {
   int fd;
   char *fractdir;
@@ -1107,8 +1075,7 @@ char *filename, *fullpathname;
  *
  *----------------------------------------------------------------------
  */
-int
-splitpath(char *template,char *drive,char *dir,char *fname,char *ext)
+int splitpath(char *template,char *drive,char *dir,char *fname,char *ext)
 {
   int length;
   int len;
@@ -1214,3 +1181,166 @@ void ftimex(struct timebx *tp)
   tp->dstflag = timezp.tz_dsttime;
 }
 
+#ifdef LINUX
+unsigned short _rotl(unsigned short num, short bits)
+{
+  unsigned long ll;
+  ll = (((unsigned long)num << 16) + num) << (bits&15);
+  return((unsigned short)(ll>>16));
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * ltoa --
+ *
+ *      Convert long to string.
+ *
+ * Results:
+ *      0.
+ *
+ * Side effects:
+ *      Prints number into the string.
+ *
+ *----------------------------------------------------------------------
+ */
+int ltoa(long num, char *str, int len)
+{
+  sprintf(str,"%10d",(int)num);
+  return 0;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * strlwr --
+ *
+ *      Convert string to lower case.
+ *
+ * Results:
+ *      The string.
+ *
+ * Side effects:
+ *      Modifies the string.
+ *
+ *----------------------------------------------------------------------
+ */
+char *strlwr(char *s)
+{
+  register char *sptr = s;
+  while (*sptr != '\0')
+    {
+      if (isupper(*sptr))
+        {
+          *sptr = tolower(*sptr);
+        }
+      sptr++;
+    }
+  return s;
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * memicmp --
+ *
+ *      Compare memory (like memcmp), but ignoring case.
+ *
+ * Results:
+ *      -1,0,1.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+int memicmp(char *s1, char *s2, int n)
+{
+  register char c1,c2;
+  while (--n >= 0)
+    {
+      c1 = *s1++;
+      if (isupper(c1)) c1 = tolower(c1);
+      c2 = *s2++;
+      if (isupper(c2)) c2 = tolower(c2);
+      if (c1 != c2)
+        return (c1 - c2);
+    }
+  return (0);
+}
+
+#ifndef HAVESTRI
+/*
+ *----------------------------------------------------------------------
+ *
+ * stricmp --
+ *
+ *      Compare strings, ignoring case.
+ *
+ * Results:
+ *      -1,0,1.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+int stricmp(char *s1, char *s2)
+{
+  int c1, c2;
+
+  while (1)
+    {
+      c1 = *s1++;
+      c2 = *s2++;
+      if (isupper(c1)) c1 = tolower(c1);
+      if (isupper(c2)) c2 = tolower(c2);
+      if (c1 != c2)
+        {
+          return c1 - c2;
+        }
+      if (c1 == 0)
+        {
+          return 0;
+        }
+    }
+}
+
+/*
+ *----------------------------------------------------------------------
+ *
+ * strnicmp --
+ *
+ *      Compare strings, ignoring case.  Maximum length is specified.
+ *
+ * Results:
+ *      -1,0,1.
+ *
+ * Side effects:
+ *      None.
+ *
+ *----------------------------------------------------------------------
+ */
+int strnicmp(char *s1, char *s2, int numChars)
+{
+  register char c1, c2;
+
+  for ( ; numChars > 0; --numChars)
+    {
+      c1 = *s1++;
+      c2 = *s2++;
+      if (isupper(c1)) c1 = tolower(c1);
+      if (isupper(c2)) c2 = tolower(c2);
+      if (c1 != c2)
+        {
+          return c1 - c2;
+        }
+      if (c1 == '\0')
+        {
+          return 0;
+        }
+    }
+  return 0;
+}
+#endif /* HAVESTRI */
+#endif /* LINUX */

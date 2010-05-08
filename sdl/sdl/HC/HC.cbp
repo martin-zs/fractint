@@ -33,9 +33,6 @@
 		<Unit filename="..\..\headers\helpcom.h" />
 		<Unit filename="..\..\headers\port.h" />
 		<Unit filename="..\..\headers\unix.h" />
-		<Unit filename="..\..\unix\unix.c">
-			<Option compilerVar="CC" />
-		</Unit>
 		<Extensions>
 			<code_completion />
 			<debugger />
