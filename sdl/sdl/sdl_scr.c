@@ -30,7 +30,7 @@ SDL_Color XlateText[] =
   {127,192,192}, /* L_Cyan */
   {192,127,127}, /* L_Red */
   {192,127,255}, /* L_Magenta */
-  {192,192,  0}, /* L_Magenta */
+  {192,192,  0}, /* Yellow */
   {255,255,255}  /* L_White */
 };
 
@@ -125,7 +125,8 @@ int ResizeScreen(int mode)
       xdots = 800;
       ydots = 600;
     }
-//  screen = SDL_SetVideoMode(xdots, ydots, 0, SDL_HWSURFACE|SDL_DOUBLEBUF);
+//  screen = SDL_SetVideoMode(xdots, ydots, 0,
+//                          SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_RESIZABLE);
   screen = SDL_SetVideoMode(xdots, ydots, 8,
                             SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_RESIZABLE);
   if (screen == NULL )
@@ -174,10 +175,11 @@ int ResizeScreen(int mode)
   if (backscrn == NULL )
     fprintf(stderr, "No backscrn\n");
 #endif
+
   if (screen_handle != 0) /* this won't work after a resize, free the memory */
     MemoryRelease(screen_handle);
 
-  fontsize = (int)(ydots / 34) + 1;
+  fontsize = (int)(ydots / 32) + 1; /* arbitrary font size, not too big */
   font = TTF_OpenFont("crystal.ttf", fontsize);
   if ( font == NULL )
     {
@@ -572,7 +574,7 @@ int writevideopalette(void)
     }
   /* Set palette */
   SDL_SetColors(screen, cols, 0, 256);
-//  SDL_SetColors(backscrn, cols, 0, 256);
+  SDL_SetColors(backscrn, cols, 0, 256);
 }
 
 /* start of text processing routines */
@@ -713,7 +715,6 @@ void unstackscreen(void)
             text_screen[r][c] = stack_text_screen[r][c];
             text_attr[r][c] = stack_text_attr[r][c];
           }
-// FIXME (jonathan#1#): The following won't work completely, but will get us close.
       outtext(r, 0, c);
     }
   else
