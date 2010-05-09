@@ -17,20 +17,20 @@ TTF_Font *font = NULL;
 SDL_Color XlateText[] =
 {
   {  0,  0,  0}, /* black */
-  {  0,  0,192}, /* Blue */
-  {  0,192,  0}, /* Green */
-  {  0,192,192}, /* Cyan */
-  {192,  0,  0}, /* Red */
-  {192,  0,192}, /* Magenta */
-  {127,127,  0}, /* Brown */
-  {192,192,192}, /* White */
+  {  0,  0,205}, /* Blue */
+  {  0,205,  0}, /* Green */
+  {  0,205,205}, /* Cyan */
+  {205,  0,  0}, /* Red */
+  {205,  0,205}, /* Magenta */
+  {205,205,  0}, /* Brown */
+  {205,205,205}, /* White */
   {127,127,127}, /* Gray */
-  {127,127,192}, /* L_Blue */
-  {127,192,127}, /* L_Green */
-  {127,192,192}, /* L_Cyan */
-  {192,127,127}, /* L_Red */
-  {192,127,255}, /* L_Magenta */
-  {192,192,  0}, /* Yellow */
+  {  0,  0,255}, /* L_Blue */
+  {  0,255,  0}, /* L_Green */
+  {  0,255,255}, /* L_Cyan */
+  {255,  0,  0}, /* L_Red */
+  {255,  0,255}, /* L_Magenta */
+  {255,255,  0}, /* Yellow */
   {255,255,255}  /* L_White */
 };
 
@@ -331,9 +331,9 @@ void gettruecolor_SDL(SDL_Surface *screen, int x, int y, Uint8 *red, Uint8 *gree
   Uint32 pixel;
 
   fmt = screen->format;
-  SDL_LockSurface(screen);
+  Slock();
   pixel = getpixel(screen, x, y);
-  SDL_UnlockSurface(screen);
+  Sulock();
 
   SDL_GetRGB(pixel, fmt, (Uint8 *)red, (Uint8 *)green, (Uint8 *)blue);
 }
