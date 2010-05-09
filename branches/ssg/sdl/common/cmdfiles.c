@@ -902,7 +902,7 @@ static int next_line(FILE *handle,char *linebuf,int mode)
          strncpy(tmpbuf,&linebuf[1],10);
          tmpbuf[10] = 0;
          strlwr(tmpbuf);
-         toolssection = far_strncmp(tmpbuf,"xfractint]",10);
+         toolssection = strncmp(tmpbuf,"xfractint]",10);
 #endif
          continue;                              /* skip tools section heading */
          }
