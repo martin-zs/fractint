@@ -40,7 +40,7 @@ int gotrealdac = 0;        /* 1 if loaddac has a dacbox */
 int rowcount = 0;          /* row-counter for decoder and out_line */
 // int textaddr = 0xb800;  /* b800 for mode 3, b000 for mode 7 */
 // NOTE (jonathan#1#): Next can be removed eventually since only one type is recognized.
-int text_type = 0; /* always 0 */
+int text_type = 2; /* always 2 */
 int textrow = 0;   /* for putstring(-1,...) */
 int textcol = 0;   /* for putstring(..,-1,...) */
 int textrbase = 0; /* textrow is relative to this */
