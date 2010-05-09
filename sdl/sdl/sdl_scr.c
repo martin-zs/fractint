@@ -146,12 +146,20 @@ int ResizeScreen(int mode)
   {
     char msg[40];
 
+#ifndef LINUX
     sprintf(msg, "Fractint at %dx%dx%d", xdots, ydots, bpp);
+#else
+    sprintf(msg, "Xfractint at %dx%dx%d", xdots, ydots, bpp);
+#endif /* LINUX */
     SDL_WM_SetCaption( msg, NULL );
   }
 #else
+#ifndef LINUX
   SDL_WM_SetCaption( "Fractint", NULL );
-#endif
+#else
+  SDL_WM_SetCaption( "Xfractint", NULL );
+#endif /* LINUX */
+#endif /* 1 */
 
 #if DEBUG
   fprintf(stderr, "Set %dx%d at %d bits-per-pixel mode\n", xdots, ydots, bpp);

@@ -674,7 +674,7 @@ is not in the data structure */
 #define FK_F9  "F9"
 #endif
 
-#if 1
+#ifndef LINUX
 #define Fractint  "Fractint"
 #define FRACTINT  "FRACTINT"
 #else
