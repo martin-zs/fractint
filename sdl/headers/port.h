@@ -21,7 +21,7 @@
 #  define STDC
 #endif
 
-#if (defined(LINUX)) && !defined(STDC)
+#if (defined(XFRACT)) && !defined(STDC)
 #  define STDC
 #endif
 
@@ -88,7 +88,7 @@ typedef int sigfunc(int);
 
 #ifndef BYTE_ORDER
 /* change for little endians that don't have this defined elsewhere (endian.h) */
-#ifdef LINUX
+#ifdef XFRACT
 #define BYTE_ORDER LITTLE_ENDIAN
 #else
 #define BYTE_ORDER BIG_ENDIAN /* the usual case */
@@ -102,8 +102,7 @@ typedef int sigfunc(int);
 #define BIG_ANSI_C
 #endif
 
-// FIXME (jonathan#1#): Need to differentiate between windows and linux
-#ifndef LINUX
+#ifndef XFRACT
  #define CONST          const
  #define SLASHC         '\\'
  #define SLASH          "\\"
@@ -136,7 +135,7 @@ typedef int sigfunc(int);
  * avoid inconsistent declarations in dos_help/hc.c and unix/unix.c. */
 
 /* these are used to declare arrays for file names */
-#ifdef XFRACT
+#if 1 /* XFRACT */
 #define FILE_MAX_PATH  256       /* max length of path+filename  */
 #define FILE_MAX_DIR   256       /* max length of directory name */
 #else

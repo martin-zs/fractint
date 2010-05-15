@@ -52,14 +52,6 @@ static BFCODE paletteBW[] =
   0, 0, 0, 63, 63, 63,
 };
 
-#ifndef XFRACT
-static BFCODE paletteCGA[] =
-{
-  /* 4-color (CGA) palette  */
-  0, 0, 0, 21, 63, 63, 63, 21, 63, 63, 63, 63,
-};
-#endif
-
 static BFCODE paletteEGA[] =
 {
   /* 16-color (EGA/CGA) pal */
@@ -256,7 +248,7 @@ int encoder()
 
   setup_save_info(&save_info);
 
-#ifndef XFRACT
+#if 0
   bitsperpixel = 0;            /* calculate bits / pixel */
   for (i = colors; i >= 2; i /= 2)
     bitsperpixel++;
@@ -315,7 +307,7 @@ int encoder()
   if (fputc(i, g_outfile) != i)
     goto oops;                /* pixel aspect ratio */
 
-#ifndef XFRACT
+#if 0
   if (colors == 256)
     {
       /* write out the 256-color palette */
@@ -348,7 +340,7 @@ int encoder()
       if (!shftwrite((BYTE *)paletteBW, colors))
         goto oops;
     }
-#ifndef XFRACT
+#if 0
   if (colors == 4)
     {
       /* write out the CGA palette */
@@ -832,10 +824,8 @@ static int maxcode;                  /* maximum code, given n_bits */
 static int maxmaxcode = (int)1 << BITSF; /* should NEVER generate this code */
 # define MAXCODE(n_bits)        (((int) 1 << (n_bits)) - 1)
 
-#ifdef XFRACT
 unsigned int strlocn[10240];
 BYTE block[4096];
-#endif
 
 static long *htab;
 static unsigned short *codetab = (unsigned short *)strlocn;

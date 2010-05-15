@@ -80,33 +80,33 @@ void rotate(int direction)      /* rotate-the-palette routine */
   while (more)
     {
       while (!keypressed())  /* rotate until key hit, at least once so step=oldstep ok */
-          {
-            if (fkey > 0)                  /* randomizing is on */
-              {
-                for (istep = 0; istep < step; istep++)
-                  {
-                    jstep = next + (istep * direction);
-                    while (jstep < rotate_lo)  jstep += rotate_size;
-                    while (jstep > rotate_max) jstep -= rotate_size;
-                    if (++incr > fstep)      /* time to randomize */
-                      {
-                        incr = 1;
-                        fstep = ((fsteps[fkey-1]* (rand15() >> 8)) >> 6) + 1;
-                        fromred   = dacbox[last][0];
-                        fromgreen = dacbox[last][1];
-                        fromblue  = dacbox[last][2];
-                        tored     = rand15() >> 9;
-                        togreen   = rand15() >> 9;
-                        toblue    = rand15() >> 9;
-                      }
-                    dacbox[jstep][0] = (BYTE)(fromred   + (((tored    - fromred  )*incr)/fstep));
-                    dacbox[jstep][1] = (BYTE)(fromgreen + (((togreen - fromgreen)*incr)/fstep));
-                    dacbox[jstep][2] = (BYTE)(fromblue  + (((toblue  - fromblue )*incr)/fstep));
-                  }
-              }
-            if (step >= rotate_size) step = oldstep;
-            spindac(direction, step);
-          }
+        {
+          if (fkey > 0)                  /* randomizing is on */
+            {
+              for (istep = 0; istep < step; istep++)
+                {
+                  jstep = next + (istep * direction);
+                  while (jstep < rotate_lo)  jstep += rotate_size;
+                  while (jstep > rotate_max) jstep -= rotate_size;
+                  if (++incr > fstep)      /* time to randomize */
+                    {
+                      incr = 1;
+                      fstep = ((fsteps[fkey-1]* (rand15() >> 8)) >> 6) + 1;
+                      fromred   = dacbox[last][0];
+                      fromgreen = dacbox[last][1];
+                      fromblue  = dacbox[last][2];
+                      tored     = rand15() >> 9;
+                      togreen   = rand15() >> 9;
+                      toblue    = rand15() >> 9;
+                    }
+                  dacbox[jstep][0] = (BYTE)(fromred   + (((tored    - fromred  )*incr)/fstep));
+                  dacbox[jstep][1] = (BYTE)(fromgreen + (((togreen - fromgreen)*incr)/fstep));
+                  dacbox[jstep][2] = (BYTE)(fromblue  + (((toblue  - fromblue )*incr)/fstep));
+                }
+            }
+          if (step >= rotate_size) step = oldstep;
+          spindac(direction, step);
+        }
       if (step >= rotate_size) step = oldstep;
       kbdchar = getakey();
       if (paused && (kbdchar != ' '
@@ -162,7 +162,8 @@ void rotate(int direction)      /* rotate-the-palette routine */
         case F8:
         case F9:
         case F10:
-#ifndef XFRACT
+// NOTE (jonathan#1#): Shouldn't need next for function keys.
+#if 0
           fkey = kbdchar-1058;
 #else
           switch (kbdchar)
@@ -223,7 +224,6 @@ void rotate(int direction)      /* rotate-the-palette routine */
         case 'G':                      /* color changes */
           if (changecolor    == -1) changecolor = 1;
         case 'B':                      /* color changes */
-          if (dotmode == 11) break;
           if (changecolor    == -1) changecolor = 2;
           if (changedirection == 0) changedirection = 1;
           for (i = 1; i < 256; i++)
@@ -364,8 +364,6 @@ static void pauserotate()               /* pause-the-rotate routine */
       dacbox[0][2] = 48;
       spindac(0,1);                     /* show white border */
       waitkeypressed(0);                /* wait for any key */
-      if (dotmode == 11)
-        dvid_status(0,"");
       dacbox[0][0] = olddac0;
       dacbox[0][1] = olddac1;
       dacbox[0][2] = olddac2;

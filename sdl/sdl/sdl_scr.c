@@ -146,19 +146,19 @@ int ResizeScreen(int mode)
   {
     char msg[40];
 
-#ifndef LINUX
+#ifndef XFRACT
     sprintf(msg, "Fractint at %dx%dx%d", xdots, ydots, bpp);
 #else
     sprintf(msg, "Xfractint at %dx%dx%d", xdots, ydots, bpp);
-#endif /* LINUX */
+#endif /* XFRACT */
     SDL_WM_SetCaption( msg, NULL );
   }
 #else
-#ifndef LINUX
+#ifndef XFRACT
   SDL_WM_SetCaption( "Fractint", NULL );
 #else
   SDL_WM_SetCaption( "Xfractint", NULL );
-#endif /* LINUX */
+#endif /* XFRACT */
 #endif /* 1 */
 
 #if DEBUG

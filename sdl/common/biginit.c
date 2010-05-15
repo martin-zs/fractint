@@ -100,7 +100,7 @@ static void init_bf_2(void)
   calc_lengths();
 
   /* allocate all the memory at once */
-  bnroot = (bf_t)malloc(64000); /* arbitrarily a big number */
+  bnroot = (bf_t)malloc(128000); /* arbitrarily a big number */
   /* at present time one call would suffice, but this logic allows
      multiple kinds of alternate math eg long double */
   if ((i = find_alternate_math(fractype, BIGNUM)) > -1)

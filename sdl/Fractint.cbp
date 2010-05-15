@@ -12,8 +12,9 @@ Remove printer functions.
 Remove XFRACT defines and far routines.
 May need defines for LINUX and/or WIN32.
  ==> 8-bit mode color cycling locks up.
-bf math crashes.
-zoom box is broken in truecolor modes.]]>
+bf math works, but can't zoom.
+Need to code an integer version on mandel.
+Need to fix text colors.]]>
 			</notes>
 		</Option>
 		<Build>

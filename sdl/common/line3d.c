@@ -101,7 +101,7 @@ static FCODE acro_s1[] =
 static FCODE acro_s2[] = {"LineList From To\n"};
 static FCODE s3[] = {"{ Created by FRACTINT Ver. "};
 static FCODE s3a[] = {" }\n\n"};
-#ifndef XFRACT
+#if 0
 static char banner[] = "%Fs%#4.2f%Fs";
 #else
 static char banner[] = "%s%#4.2f%s";

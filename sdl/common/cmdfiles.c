@@ -893,7 +893,7 @@ static int next_line(FILE *handle,char *linebuf,int mode)
    toolssection = 0;
    while (file_gets(linebuf,512,handle) >= 0) {
       if (mode == 1 && linebuf[0] == '[') {     /* check for [fractint] */
-#ifndef LINUX
+#ifndef XFRACT
          strncpy(tmpbuf,&linebuf[1],9);
          tmpbuf[9] = 0;
          strlwr(tmpbuf);

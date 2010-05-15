@@ -406,7 +406,7 @@ static void free_lcmds(void)
     free(*sc++);
 }
 
-#ifdef XFRACT
+#if 1 /* XFRACT */
 #define lsysi_doslash_386 lsysi_doslash
 #define lsysi_dobslash_386 lsysi_dobslash
 #define lsys_doat lsysi_doat
@@ -899,7 +899,7 @@ static struct lsys_cmd *
             num = 3;
             break;
           }
-#ifdef XFRACT
+#if 1 /* XFRACT */
         ret[n].f = (void (*)())f;
 #else
         ret[n].f = (void (*)(struct lsys_turtlestatei *))f;
@@ -1028,7 +1028,7 @@ static struct lsys_cmd *
             num = 3;
             break;
           }
-#ifdef XFRACT
+#if 1 /* XFRACT */
         ret[n].f = (void (*)())f;
 #else
         ret[n].f = (void (*)(struct lsys_turtlestatei *))f;

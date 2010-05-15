@@ -988,13 +988,12 @@ static int Bif_Periodic (long time)  /* Bifurcation Population Periodicity Check
 /* The following are Bifurcation "orbitcalc" routines...              */
 /*                                                                                                    */
 /**********************************************************************/
-#ifdef XFRACT
+
 int BifurcLambda() /* Used by lyanupov */
 {
   Population = Rate * Population * (1 - Population);
   return (fabs(Population) > BIG);
 }
-#endif
 
 /* Modified formulas below to generalize bifurcations. JCO 7/3/92 */
 
@@ -1013,7 +1012,7 @@ int BifurcVerhulstTrig()
 
 int LongBifurcVerhulstTrig()
 {
-#ifndef XFRACT
+#if 1
   ltmp.x = lPopulation;
   ltmp.y = 0;
   LCMPLXtrig0(ltmp, ltmp);
@@ -1035,7 +1034,7 @@ int BifurcStewartTrig()
 
 int LongBifurcStewartTrig()
 {
-#ifndef XFRACT
+#if 1
   ltmp.x = lPopulation;
   ltmp.y = 0;
   LCMPLXtrig0(ltmp, ltmp);
@@ -1057,7 +1056,7 @@ int BifurcSetTrigPi()
 
 int LongBifurcSetTrigPi()
 {
-#ifndef XFRACT
+#if 1
   ltmp.x = multiply(lPopulation,LPI,bitshift);
   ltmp.y = 0;
   LCMPLXtrig0(ltmp, ltmp);
@@ -1077,7 +1076,7 @@ int BifurcAddTrigPi()
 
 int LongBifurcAddTrigPi()
 {
-#ifndef XFRACT
+#if 1
   ltmp.x = multiply(lPopulation,LPI,bitshift);
   ltmp.y = 0;
   LCMPLXtrig0(ltmp, ltmp);
@@ -1098,7 +1097,7 @@ int BifurcLambdaTrig()
 
 int LongBifurcLambdaTrig()
 {
-#ifndef XFRACT
+#if 1
   ltmp.x = lPopulation;
   ltmp.y = 0;
   LCMPLXtrig0(ltmp, ltmp);
@@ -1124,7 +1123,7 @@ int BifurcMay()
 
 int LongBifurcMay()
 {
-#ifndef XFRACT
+#if 1
   ltmp.x = lPopulation + fudge;
   ltmp.y = 0;
   lparm2.x = beta * fudge;
@@ -1238,7 +1237,7 @@ int lyapunov ()
       a = dypixel();
       b = dxpixel();
     }
-#ifndef XFRACT
+# if 0 /* #ifndef XFRACT */
   /*  the assembler routines don't work for a & b outside the
       ranges 0 < a < 4 and 0 < b < 4. So, fall back on the C
       routines if part of the image sticks out.
@@ -1253,7 +1252,7 @@ int lyapunov ()
 #endif
 #else
   color=lyapunov_cycles_in_c(filter_cycles, a, b);
-#endif
+#endif /* #ifndef XFRACT */
   if (inside>0 && color==0)
     color = inside;
   else if (color>=colors)
@@ -1302,8 +1301,8 @@ int lya_setup ()
   lyaLength = 1;
 
   i = (long)param[0];
-#ifndef XFRACT
-  if (save_release<1732) i &= 0x0FFFFL; /* make it a short to reporduce prior stuff*/
+#if 0
+  if (save_release<1732) i &= 0x0FFFFL; /* make it a short to reproduce prior stuff*/
 #endif
   lyaRxy[0] = 1;
   for (t=31; t>=0; t--)
@@ -1423,11 +1422,7 @@ jumpout:
 
 #define CELLULAR_DONE 10
 
-#ifndef XFRACT
 static BYTE *cell_array[2];
-#else
-static BYTE *cell_array[2];
-#endif
 
 S16 r, k_1, rule_digits;
 int lstscreenflag;
@@ -1502,13 +1497,13 @@ void abort_cellular(int err, int t)
       break;
     }
   if (cell_array[0] != NULL)
-#ifndef XFRACT
+#if 0
     cell_array[0] = NULL;
 #else
     free((char *)cell_array[0]);
 #endif
   if (cell_array[1] != NULL)
-#ifndef XFRACT
+#if 0
     cell_array[1] = NULL;
 #else
     free((char *)cell_array[1]);
@@ -1592,7 +1587,7 @@ int cellular ()
   if (!rflag) ++rseed;
 
   /* generate rule table from parameter 1 */
-#ifndef XFRACT
+#if 0 /* #ifndef XFRACT */
   n = param[1];
 #else
   /* gcc can't manage to convert a big double to an unsigned long properly. */
@@ -1637,7 +1632,7 @@ int cellular ()
 
 
   start_row = 0;
-#ifndef XFRACT
+#if 0
   /* two 4096 byte arrays, at present at most 2024 + 1 bytes should be */
   /* needed in each array (max screen width + 1) */
   cell_array[0] = (BYTE *)&dstack[0]; /* dstack is in general.asm */

@@ -1192,25 +1192,14 @@ void goodbye(void)                  /* we done.  Bail out */
 
 /* --------------------------------------------------------------------- */
 
-#ifdef XFRACT
+
 static char searchdir[FILE_MAX_DIR];
 static char searchname[FILE_MAX_PATH];
 static char searchext[FILE_MAX_EXT];
 static DIR *currdir = NULL;
-#endif
+
 int  fr_findfirst(char *path)       /* Find 1st file (or subdir) meeting path/filespec */
 {
-#ifndef XFRACT
-  union REGS regs;
-  regs.h.ah = 0x1A;             /* Set DTA to filedata */
-  regs.x.dx = (unsigned)&DTA;
-  intdos(&regs, &regs);
-  regs.h.ah = 0x4E;             /* Find 1st file meeting path */
-  regs.x.dx = (unsigned)path;
-  regs.x.cx = FILEATTR;
-  intdos(&regs, &regs);
-  return(regs.x.ax);            /* Return error code */
-#else
   if (currdir != NULL)
     {
       closedir(currdir);
@@ -1233,7 +1222,7 @@ int  fr_findfirst(char *path)       /* Find 1st file (or subdir) meeting path/fi
     {
       return fr_findnext();
     }
-#endif
+
 }
 
 int  fr_findnext()              /* Find next file (or subdir) meeting above path/filespec */
@@ -1878,36 +1867,14 @@ FILE *dir_fopen(char *dir, char *filename, char *mode )
 /* converts relative path to absolute path */
 static int expand_dirname(char *dirname,char *drive)
 {
-#ifdef XFRACT
   char *dummy; /* to quiet compiler */
-#endif
+
   fix_dirname(dirname);
   if (dirname[0] != SLASHC)
     {
       char buf[FILE_MAX_DIR+1],curdir[FILE_MAX_DIR+1];
-#ifndef XFRACT
-      int i=0;
-      union REGS regs;
-      struct SREGS sregs;
-      curdir[0] = 0;
-      regs.h.ah = 0x47; /* get current directory */
-      regs.h.dl = 0;
-      if (drive[0] && drive[0] != ' ')
-        regs.h.dl = (char)(tolower(drive[0])-'a'+1);
-      regs.x.si = (unsigned int) &curdir[0];
-      segread(&sregs);
-      intdosx(&regs, &regs, &sregs);
-#else
       dummy = getcwd(curdir,FILE_MAX_DIR);
-#endif
       strcat(curdir,SLASH);
-#ifndef XFRACT
-      while (curdir[i] != 0)
-        {
-          curdir[i] = (char)tolower(curdir[i]);
-          i++;
-        }
-#endif
       while (strncmp(dirname,DOTSLASH,2) == 0)
         {
           strcpy(buf,&dirname[2]);
@@ -2615,7 +2582,7 @@ int merge_pathnames(char *oldfullpath, char *newfilename, int mode)
   if (strcmp(newfilename,SLASH)==0)
     isadir = 1;
 #endif
-#ifndef LINUX
+#ifndef XFRACT
   /* if drive, colon, slash, is a directory */
   if (strlen(newfilename) == 3 &&
       newfilename[1] == ':' &&

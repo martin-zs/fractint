@@ -301,6 +301,7 @@ long normalize(char *ptr)
   return (long) ptr;
 }
 
+#ifdef XFRACT
 /* --------------------------------------------------------------------
  * The following routines are used for encoding/decoding gif images.
  * If we aren't on a PC, things are rough for decoding the fractal info
@@ -860,6 +861,7 @@ void decode_orbits_info(struct orbits_info *info, int dir)
 
   free(buf);
 }
+#endif /* XFRACT */
 
 /*
  *----------------------------------------------------------------------
@@ -1049,7 +1051,7 @@ void ftimex(struct timebx *tp)
   tp->dstflag = timezp.tz_dsttime;
 }
 
-#ifdef LINUX
+#ifdef XFRACT
 unsigned short _rotl(unsigned short num, short bits)
 {
   unsigned long ll;
@@ -1211,4 +1213,4 @@ int strnicmp(char *s1, char *s2, int numChars)
   return 0;
 }
 #endif /* HAVESTRI */
-#endif /* LINUX */
+#endif /* XFRACT */

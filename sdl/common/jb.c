@@ -62,16 +62,6 @@ JulibrotSetup(void)
    int r = 0;
    char *mapname;
 
-#ifndef XFRACT
-   if (colors < 255)
-   {
-      static FCODE msg[] =
-      {"Sorry, but Julibrots require a 256-color video mode"};
-      stopmsg(0, msg);
-      return (0);
-   }
-#endif
-
    xoffsetfp = (xxmax + xxmin) / 2;     /* Calculate average */
    yoffsetfp = (yymax + yymin) / 2;     /* Calculate average */
    dmxfp = (mxmaxfp - mxminfp) / zdots;
@@ -274,9 +264,8 @@ zline(long x, long y)
 int
 zlinefp(double x, double y)
 {
-#ifdef XFRACT
    static int keychk = 0;
-#endif
+
    xpixelfp = x;
    ypixelfp = y;
    mxfp = mxminfp;
@@ -324,7 +313,7 @@ zlinefp(double x, double y)
          qcj = param[2];
          qck = param[3];
       }
-#ifdef XFRACT
+#if 1 /* XFRACT */
       if (keychk++ > 500)
       {
          keychk = 0;

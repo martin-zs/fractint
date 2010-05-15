@@ -190,9 +190,7 @@ short far sizeofstring[MAX_CODES + 1];  /* size of string list */
 
 short decoder(short linewidth)
 {
-#ifdef XFRACT
    U16 prefix[MAX_CODES+1];     /* Prefix linked list */
-#endif
    BYTE far *sp;
    short code;
    short old_code;
