@@ -969,16 +969,6 @@ char *despace(char *str)
   *nbuf = 0;
   return str;
 }
-#ifdef XFRACT
-/* case independent version of strncmp */
-int strncasecmp(char *s,char *t,int ct)
-{
-  for (; (tolower(*s) == tolower(*t)) && --ct ; s++,t++)
-    if (*s == '\0')
-      return(0);
-  return(tolower(*s) - tolower(*t));
-}
-#endif
 
 #define LOADPROMPTSCHOICES(X,Y)     {\
    static FCODE tmp[] = { Y };\

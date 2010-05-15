@@ -874,9 +874,6 @@ extern void discardgraphics(void);
 extern void freetempmsg(void);
 extern char *despace(char *);
 extern int menu_checkkey(int ,int);
-#ifdef XFRACT
-extern int strncasecmp(char *,char *,int);
-#endif
 
 /*  rotate -- C file prototypes */
 
