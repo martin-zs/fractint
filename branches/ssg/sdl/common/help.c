@@ -319,7 +319,7 @@ static void color_link(LINK *link, int color)
 }
 
 /* #define PUT_KEY(name, descrip) putstring(-1,-1,C_HELP_INSTR_KEYS,name), putstring(-1,-1,C_HELP_INSTR," "descrip"  ") */
-#ifndef XFRACT
+#if 0
 #define PUT_KEY(name, descrip) putstring(-1,-1,C_HELP_INSTR,name); putstring(-1,-1,C_HELP_INSTR,":"descrip"  ")
 #else
 #define PUT_KEY(name, descrip) putstring(-1,-1,C_HELP_INSTR,name);\
@@ -905,7 +905,7 @@ int help(int action)
   return(0);
 }
 
-#ifndef XFRACT
+#if 0
 static char s_fractintexe[] = "FRACTINT.EXE";
 #endif
 
@@ -925,7 +925,8 @@ static int can_read_file(char *path)
 
 static int exe_path(char *filename, char *path)
 {
-#ifndef XFRACT
+// NOTE (jonathan#1#): May want to implement next in some form
+#if 0
   char *ptr;
 
   if (dos_version() >= 300)  /* DOS version 3.00+ ? */
@@ -948,7 +949,7 @@ static int exe_path(char *filename, char *path)
 #else
   /*   strcpy(path,SRCDIR); for now use dot */
   strcpy(path,".");
-  strcat(path,"/"); // FIXME (jonathan#1#): Need to fix slash for different environments
+  strcat(path,SLASH);
   strcat(path,filename);
   return 1;
 #endif
@@ -1046,7 +1047,7 @@ typedef struct PRINT_DOC_INFO
     char      id[81];        /* buffer to store id in */
     char      title[81];     /* buffer to store title in */
 
-#ifndef XFRACT
+#if 0
     int     (*msg_func)(int pnum, int num_page);
 #else
     int     (*msg_func)();

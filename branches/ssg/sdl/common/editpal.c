@@ -139,11 +139,7 @@
 
 #define CURSOR_SIZE         5     /* length of one side of the x-hair cursor */
 
-#ifndef XFRACT
-#define CURSOR_BLINK_RATE   3     /* timer ticks between cursor blinks */
-#else
 #define CURSOR_BLINK_RATE   300   /* timer ticks between cursor blinks */
-#endif
 
 #define FAR_RESERVE     8192L     /* amount of far mem we will leave avail. */
 
@@ -161,9 +157,7 @@ char undofile[] = "FRACTINT.$$2";  /* file where undo list is stored */
 #define new(class)     (class *)(mem_alloc(sizeof(class)))
 #define delete(block)  block=NULL  /* just for warning */
 
-#ifdef XFRACT
 int editpal_cursor = 0;
-#endif
 
 
 /*
@@ -171,7 +165,7 @@ int editpal_cursor = 0;
  */
 
 #if 0
-/* declarations moved to PRORTOTYPE.H - this left for docs */
+/* declarations moved to PROTOTYPE.H - this left for docs */
 BYTE dacbox[256][3];            /* DAC spindac() will use           */
 int         sxdots;             /* width of physical screen         */
 int         sydots;             /* depth of physical screen         */
@@ -621,12 +615,7 @@ VOIDPTR mem_alloc(unsigned size)
 {
   VOIDPTR block;
 
-#ifndef XFRACT
-  if (size & 1)
-    ++size;   /* allocate even sizes */
-#else
   size = (size+3)&~3; /* allocate word-aligned memory */
-#endif
 
   if (mem_avail < size)   /* don't let this happen! */
     {
@@ -861,7 +850,6 @@ void Cursor_Show(void)
     }
 }
 
-#ifdef XFRACT
 void Cursor_StartMouseTracking()
 {
   editpal_cursor = 1;
@@ -871,7 +859,6 @@ void Cursor_EndMouseTracking()
 {
   editpal_cursor = 0;
 }
-#endif
 
 /* See if the cursor should blink yet, and blink it if so */
 void Cursor_CheckBlink(void)
@@ -893,7 +880,7 @@ void Cursor_CheckBlink(void)
 int Cursor_WaitKey(void)   /* blink cursor while waiting for a key */
 {
 
-#ifndef XFRACT
+#if 0 /* #ifndef XFRACT */
   while ( !keypressed() )
     {
       Cursor_CheckBlink();
@@ -1141,9 +1128,8 @@ static BOOLEAN MoveBox_Process(MoveBox *this)
 
   MoveBox__Draw(this);
 
-#ifdef XFRACT
   Cursor_StartMouseTracking();
-#endif
+
   for (;;)
     {
       Cursor_WaitKey();
@@ -1216,9 +1202,7 @@ static BOOLEAN MoveBox_Process(MoveBox *this)
         }
     }
 
-#ifdef XFRACT
   Cursor_EndMouseTracking();
-#endif
 
   MoveBox__Erase(this);
 
@@ -1246,7 +1230,7 @@ struct _CEditor
     int       val;
     BOOLEAN   done;
     BOOLEAN   hidden;
-#ifndef XFRACT
+#if 0 /* #ifndef XFRACT */
     void    (*other_key)(int key, struct _CEditor *ce, VOIDPTR info);
     void    (*change)(struct _CEditor *ce, VOIDPTR info);
 #else
@@ -1261,7 +1245,7 @@ struct _CEditor
 
 /* public: */
 
-#ifndef XFRACT
+#if 0 /* #ifndef XFRACT */
 static CEditor *CEditor_Construct( int x, int y, char letter,
                                    void (*other_key)(int,CEditor*,void*),
                                    void (*change)(CEditor*,void*), VOIDPTR info);
@@ -1292,7 +1276,7 @@ static int  CEditor_Edit    (CEditor *);
 
 
 
-#ifndef XFRACT
+#if 0 /* #ifndef XFRACT */
 static CEditor *CEditor_Construct( int x, int y, char letter,
                                    void (*other_key)(int,CEditor*,VOIDPTR),
                                    void (*change)(CEditor*, VOIDPTR), VOIDPTR info)
@@ -1385,9 +1369,8 @@ static int CEditor_Edit(CEditor *this)
       Cursor_Show();
     }
 
-#ifdef XFRACT
   Cursor_StartMouseTracking();
-#endif
+
   while ( !this->done )
     {
       Cursor_WaitKey();
@@ -1475,9 +1458,8 @@ static int CEditor_Edit(CEditor *this)
           break;
         } /* switch */
     } /* while */
-#ifdef XFRACT
+
   Cursor_EndMouseTracking();
-#endif
 
   if (!this->hidden)
     {
@@ -1505,7 +1487,7 @@ struct _RGBEditor
     BOOLEAN   done;
     BOOLEAN   hidden;
     CEditor  *color[3];        /* color editors 0=r, 1=g, 2=b */
-#ifndef XFRACT
+#if 0 /* #ifndef XFRACT */
     void    (*other_key)(int key, struct _RGBEditor *e, VOIDPTR info);
     void    (*change)(struct _RGBEditor *e, VOIDPTR info);
 #else
@@ -1524,7 +1506,7 @@ static void      RGBEditor__change    (CEditor *ceditor, VOIDPTR info);
 
 /* public: */
 
-#ifndef XFRACT
+#if 0 /* #ifndef XFRACT */
 static RGBEditor *RGBEditor_Construct(int x, int y,
                                       void (*other_key)(int,RGBEditor*,void*),
                                       void (*change)(RGBEditor*,void*), VOIDPTR info);
@@ -1553,7 +1535,7 @@ static PALENTRY RGBEditor_GetRGB   (RGBEditor *this);
 
 
 
-#ifndef XFRACT
+#if 0 /* #ifndef XFRACT */
 static RGBEditor *RGBEditor_Construct(int x, int y, void (*other_key)(int,RGBEditor*,void*),
                                       void (*change)(RGBEditor*,void*), VOIDPTR info)
 #else
@@ -3159,11 +3141,9 @@ static void PalTable__other_key(int key, RGBEditor *rgb, VOIDPTR info)
       PalTable__SaveUndoData(this, 0, 255);
 
       load_palette();
-#ifndef XFRACT
-      getpalrange(0, colors, this->pal);
-#else
+
       getpalrange(0, 256, this->pal);
-#endif
+
       PalTable__UpdateDAC(this);
       RGBEditor_SetRGB(this->rgb[0], this->curr[0], &(this->pal[this->curr[0]]));
       RGBEditor_Update(this->rgb[0]);
@@ -3175,11 +3155,8 @@ static void PalTable__other_key(int key, RGBEditor *rgb, VOIDPTR info)
     case 'S':     /* save a .map palette */
     case 's':
     {
-#ifndef XFRACT
-      setpalrange(0, colors, this->pal);
-#else
       setpalrange(0, 256, this->pal);
-#endif
+
       save_palette();
       PalTable__UpdateDAC(this);
       break;

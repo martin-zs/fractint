@@ -45,7 +45,7 @@ int patchlevel=10; /* patchlevel for DOS version */
        &8 for Fractint for Windows & parser - use a fixed pitch font
       &16 for info only message (green box instead of red in DOS vsn)
    */
-#ifdef XFRACT
+#if 1 /* XFRACT */
 static char s_errorstart[] = {"*** Error during startup:"};
 extern char * Xmessage;
 #endif
@@ -409,7 +409,7 @@ void process_speedstring(char    *speedstring,
     speedstring[--i] = 0;
   if (33 <= curkey && curkey <= 126 && i < 30)
     {
-#ifndef XFRACT
+#if 0
       curkey = tolower(curkey);
 #endif
       speedstring[i] = (char)curkey;
@@ -728,13 +728,13 @@ int fullscreen_choice(
       else
         movecursor(25,80);
 // FIXME (jonathan#1#): Will need to fix next
-#ifndef XFRACT
+#if 0 /* ifndef XFRACT */
       while (!keypressed()) { } /* enables help */
 #else
       waitkeypressed(0); /* enables help */
 #endif
       curkey = getakey();
-#ifdef XFRACT
+#if 0 /* XFRACT */
       if (curkey==F10) curkey=')';
       if (curkey==F9) curkey='(';
       if (curkey==F8) curkey='*';
@@ -969,10 +969,9 @@ char *despace(char *str)
   *nbuf = 0;
   return str;
 }
-// NOTE (jonathan#1#): Do we need next?
-#ifndef XFRACT
+#ifdef XFRACT
 /* case independent version of strncmp */
-int strncasecmp(char far *s,char far *t,int ct)
+int strncasecmp(char *s,char *t,int ct)
 {
   for (; (tolower(*s) == tolower(*t)) && --ct ; s++,t++)
     if (*s == '\0')
@@ -1065,17 +1064,6 @@ top:
     }
   LOADPROMPTSCHOICES(nextleft+=2,"      NEW IMAGE             ");
   attributes[nextleft] = 256+MENU_HDG;
-#if 0
-#ifdef XFRACT
-  choicekey[nextleft+=2] = DELETE;
-  attributes[nextleft] = MENU_ITEM;
-  LOADPROMPTSCHOICES(nextleft,"draw fractal           <d>  ");
-#else
-  choicekey[nextleft+=2] = DELETE;
-  attributes[nextleft] = MENU_ITEM;
-  LOADPROMPTSCHOICES(nextleft,"select video mode...  <del> ");
-#endif
-#endif
   choicekey[nextleft+=2] = 't';
   attributes[nextleft] = MENU_ITEM;
   LOADPROMPTSCHOICES(nextleft,"select fractal type    <t>  ");
@@ -1141,7 +1129,7 @@ top:
       LOADPROMPTSCHOICES(nextleft,"evolver parms...     <ctl-e>");
     }
 // FIXME (jonathan#1#): Need to use next when sound is implemented
-#ifndef XFRACT
+#if 0 /* #ifndef XFRACT */
   if (fullmenu)
     {
       choicekey[nextleft+=2] = 6;
@@ -1181,24 +1169,17 @@ top:
   choicekey[nextright+=2] = 'g';
   attributes[nextright] = MENU_ITEM;
   LOADPROMPTSCHOICES(nextright,"give command string      <g>  ");
-#ifdef XFRACT
   choicekey[nextright+=2] = 'u';
   attributes[nextright] = MENU_ITEM;
   LOADPROMPTSCHOICES(nextright,"list of contributors     <u>  ");
-#endif
   choicekey[nextright+=2] = INSERT;
   attributes[nextright] = MENU_ITEM;
   LOADPROMPTSCHOICES(nextright,"restart "FRACTINT"       <ins> ");
   choicekey[nextright+=2] = ESC;
   attributes[nextright] = MENU_ITEM;
   LOADPROMPTSCHOICES(nextright,"quit "FRACTINT"          <esc> ");
-#ifdef XFRACT
-  if (fullmenu && (gotrealdac || fake_lut) && colors >= 16)
+  if (fullmenu && (gotrealdac || fake_lut))
     {
-#else
-  if (fullmenu && gotrealdac && colors >= 16)
-    {
-#endif
       /* nextright += 2; */
       LOADPROMPTSCHOICES(nextright+=2,"       COLORS                 ");
       attributes[nextright] = 256+MENU_HDG;
@@ -1277,7 +1258,7 @@ int menu_checkkey(int curkey,int choice)
   int testkey;
   menutype = choice; /* for intro screen only */
   testkey = (curkey>='A' && curkey<='Z') ? curkey+('a'-'A') : curkey;
-#ifdef XFRACT
+#if 0 /* XFRACT */
 // FIXME (jonathan#1#): We may be able to remove this
   /* We use F2 for shift-@, annoyingly enough */
   if (testkey == F2) return(0-testkey);

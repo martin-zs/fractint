@@ -651,9 +651,7 @@ void Jiim(int which)         /* called by fractint */
   still = 1;
   zoom = 1;
 
-#ifdef XFRACT
   Cursor_StartMouseTracking();
-#endif
 
   while (still)
     {
@@ -791,7 +789,7 @@ void Jiim(int which)         /* called by fractint */
                       windows = 2;
                     }
                   break;
-#ifdef XFRACT
+#if 1 /* XFRACT */
                 case ENTER:
                   break;
 #endif
@@ -820,7 +818,7 @@ void Jiim(int which)         /* called by fractint */
                 exact = 0;
               col += dcol;
               row += drow;
-#ifdef XFRACT
+#if 1 /* XFRACT */
               if (kbdchar == ENTER)
                 {
                   /* We want to use the position of the cursor */
@@ -1236,9 +1234,9 @@ finish:
         }
     }
   Cursor_Destroy();
-#ifdef XFRACT
+
   Cursor_EndMouseTracking();
-#endif
+
   delete(line_buff);
 
   if (memory_handle != 0)

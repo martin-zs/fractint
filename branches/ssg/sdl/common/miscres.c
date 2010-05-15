@@ -1275,7 +1275,7 @@ static void area(void)
     {
       msg = (char *)"";
     }
-#ifndef XFRACT
+#if 0
   sprintf(buf,"%Fs%ld inside pixels of %ld%Fs%f",
           msg,cnt,(long)xdots*(long)ydots,(char *)total_area,
           cnt/((float)xdots*(float)ydots)*(xxmax-xxmin)*(yymax-yymin));
@@ -1544,7 +1544,7 @@ int find_file_item(char *filename,char *itemname,FILE **fileptr, int itemtype)
             {
               sprintf(msg,"Searching %s for %s      ",DTA.filename,itemname);
               showtempmsg(msg);
-#ifndef XFRACT
+#if 0
               strlwr(DTA.filename);
 #endif
               splitpath(DTA.filename,NULL,NULL,fname,ext);
@@ -1652,14 +1652,9 @@ int file_gets(char *buf,int maxlen,FILE *infile)
 }
 
 int matherr_ct = 0;
-
-#ifndef XFRACT
-#ifdef WINFRACT
-/* call this something else to dodge the QC4WIN bullet... */
-int win_matherr( struct exception *except )
-#else
-int _cdecl _matherr( struct exception *except )
-#endif
+// NOTE (jonathan#1#): May want to implement next at a later date.
+#if 0
+int _matherr( struct exception *except )
 {
   if (debugflag != 0)
     {

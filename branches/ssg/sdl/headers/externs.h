@@ -391,9 +391,6 @@ extern unsigned              posp;
 extern int                   pot16bit;
 extern int                   potflag;
 extern double                potparam[];
-#ifndef XFRACT
-extern U16                   prefix[];
-#endif
 extern char                  preview;
 extern int                   previewfactor;
 extern int                   px;
@@ -743,7 +740,6 @@ extern char                  temp1[];
 extern double                tempsqrx;
 extern double                tempsqry;
 extern BYTE                  teststring[];
-extern int                   textaddr;
 extern int                   textcbase;
 extern int                   textcol;
 extern int                   textrbase;
@@ -848,8 +844,6 @@ extern int                   zscroll;
 extern double                zskew;
 extern double                zwidth;
 
-#ifdef XFRACT
 extern  int                  fake_lut;
-#endif
 
 #endif

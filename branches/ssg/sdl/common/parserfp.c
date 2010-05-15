@@ -115,7 +115,7 @@
 /* global data  */
 struct fls far *pfls = (struct fls far *)0;
 
-#ifndef XFRACT /* --  */
+#if 0 /* #ifndef XFRACT */ /* --  */
 
 /* not moved to PROTOTYPE.H because these only communicate within
    PARSER.C and other parser modules */
@@ -261,7 +261,7 @@ int pstopmsg(int x,char far *msg)
       fp = fopen("fpdebug.txt","w");
    if(fp)
    {
-#ifndef XFRACT
+#if 0
       fprintf(fp,"%Fs\n",msg);
 #else
       fprintf(fp,"%s\n",msg);

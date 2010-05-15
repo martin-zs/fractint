@@ -469,7 +469,7 @@ resumeloop:                             /* return here on failed overlays */
                   if (autobrowse && !no_sub_images) kbdchar = 'l';
                   else
                     {
-#ifndef XFRACT
+#if 0
                       while (!keypressed());/* { }*/  /* enables help */
 #else
                       waitkeypressed(0);
@@ -547,7 +547,7 @@ resumeloop:                             /* return here on failed overlays */
                 }
             }
 
-#ifndef XFRACT
+#if 0
           if ('A' <= kbdchar && kbdchar <= 'Z')
             kbdchar = tolower(kbdchar);
 #endif
@@ -717,12 +717,8 @@ int main_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stacked,
           *kbdmore = calc_status = 0;
         }
       break;
-#ifndef XFRACT
     case '@':                    /* execute commands */
     case '2':                    /* execute commands */
-#else
-    case F2:                     /* execute commands */
-#endif
       stackscreen();
       i = get_commands();
       if (initmode != -1)
@@ -1043,35 +1039,6 @@ int main_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stacked,
           return(IMAGESTART);
         }
       break;
-    case 'd':                 /* shell to MS-DOS (redraw image in Xfractint) */
-#ifndef XFRACT
-      stackscreen();
-      if (75000L > fr_farfree())
-        {
-          static FCODE dosmsg[] = {"Not enough memory to Shell-to-DOS"};
-          unstackscreen();
-          stopmsg(0, dosmsg);
-          break;
-        }
-      if (axmode == 0 || axmode > 7)
-        {
-          static FCODE dosmsg[] =
-            {"\
-             Note:  Your graphics image is still squirreled away in your video\n\
-             adapter's memory.  Switching video modes will clobber part of that\n\
-             image.  Sorry - it's the best we could do."
-            };
-          putstring(0, 0, 7, dosmsg);
-          movecursor(6, 0);
-        }
-      shell_to_dos();
-      unstackscreen();
-#else
-      initmode = adapter;
-      return(IMAGESTART);
-#endif
-      /*             calc_status = 0; */
-      break;
     case 'c':                    /* switch to color cycling      */
     case '+':                    /* rotate palette               */
     case '-':                    /* rotate palette               */
@@ -1124,7 +1091,7 @@ int main_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stacked,
       diskisactive = 0;         /* flag for disk-video routines */
       return(CONTINUE);
     case '#':                    /* 3D overlay                   */
-#ifdef XFRACT
+#if 0 /* XFRACT */
     case F3:                     /* 3D overlay                   */
 #endif
       clear_zoombox();
@@ -2020,7 +1987,7 @@ static void move_zoombox(int keynum)
       */
       moveboxf((double)horizontal/dxsize,(double)vertical/dysize);
     }
-#ifndef XFRACT
+#if 0
   else                                 /* if no zoombox, scroll by arrows */
     scroll_relative(horizontal,vertical);
 #endif

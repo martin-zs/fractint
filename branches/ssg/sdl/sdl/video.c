@@ -38,7 +38,6 @@ int color_medium = 0;      /* nearest to medbright grey in palette
 int boxcolor = 0;          /* Zoom-Box color */
 int gotrealdac = 0;        /* 1 if loaddac has a dacbox */
 int rowcount = 0;          /* row-counter for decoder and out_line */
-// int textaddr = 0xb800;  /* b800 for mode 3, b000 for mode 7 */
 // NOTE (jonathan#1#): Next can be removed eventually since only one type is recognized.
 int text_type = 2; /* always 2 */
 int textrow = 0;   /* for putstring(-1,...) */

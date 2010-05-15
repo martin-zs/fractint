@@ -401,11 +401,11 @@ extern int key_count(int);
 extern int main_menu_switch(int *,int *,int *,char *,int);
 extern int pot_line(BYTE *,int );
 extern int sound_line(BYTE *,int );
-#ifndef XFRACT
+#if 0
 extern int _cdecl _matherr(struct exception *);
-#else
-extern int XZoomWaiting;
 #endif
+extern int XZoomWaiting;
+
 #ifndef USE_VARARGS
 extern int timer(int,int (*subrtn)(),...);
 #else
@@ -873,7 +873,10 @@ extern int restoregraphics(void);
 extern void discardgraphics(void);
 extern void freetempmsg(void);
 extern char *despace(char *);
-extern int menu_checkkey(int ,int );
+extern int menu_checkkey(int ,int);
+#ifdef XFRACT
+extern int strncasecmp(char *,char *,int);
+#endif
 
 /*  rotate -- C file prototypes */
 
@@ -979,7 +982,11 @@ extern long calcmandfp_c(void);
 extern void findpath(char *,char *);
 extern void ftimex(struct timebx *);
 extern long normalize(char *);
-#ifdef LINUX
+#ifdef XFRACT
+extern void decode_fractal_info(struct fractal_info *, int);
+extern void fix_ranges(int *, int, int);
+extern void decode_evolver_info(struct evolution_info *, int);
+extern void decode_orbits_info(struct orbits_info *, int);
 extern unsigned short _rotl(unsigned short, short);
 extern int ltoa(long, char *, int);
 extern char *strlwr(char *);
@@ -988,7 +995,7 @@ extern int memicmp(char *, char *, int);
 extern int stricmp(char *, char *);
 extern int strnicmp(char *, char *, int);
 #endif /* HAVESTRI */
-#endif /* LINUX */
+#endif /* XFRACT */
 
 /*  video -- C file prototypes */
 

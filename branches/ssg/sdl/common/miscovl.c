@@ -6,12 +6,6 @@
 #include <ctype.h>
 #include <time.h>
 
-#ifndef XFRACT
-#include <malloc.h>
-#include <process.h>
-#include <io.h>
-#endif
-
 #ifndef USE_VARARGS
 #include <stdarg.h>
 #else
@@ -1022,7 +1016,7 @@ void write_batch_parms(char *colorinf, int colorsonly, int maxcolor, int ii, int
             put_parm(s_seqs,s_sound,s_y);
           else if ((soundflag&7) == 4)
             put_parm(s_seqs,s_sound,s_z);
-#ifndef XFRACT
+#if 0
           if ((soundflag&7) && (soundflag&7) <=4)
             {
               if (soundflag&8)
@@ -1037,7 +1031,7 @@ void write_batch_parms(char *colorinf, int colorsonly, int maxcolor, int ii, int
 #endif
         }
 
-#ifndef XFRACT
+#if 0
       if (fm_vol != 63)
         put_parm(s_seqd,s_volume,fm_vol);
 

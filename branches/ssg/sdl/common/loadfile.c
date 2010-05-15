@@ -1184,9 +1184,7 @@ int fgetwindow(void)
     U16 vidlength;
     BYTE *winlistptr = (BYTE *)&winlist;
     int saved;
-#ifdef XFRACT
     U32 blinks;
-#endif
 
    oldbf_math = bf_math;
    bf_math = BIGFLT;
@@ -1207,7 +1205,7 @@ int fgetwindow(void)
       vid_too_big = 2;
    /* 4096 based on 4096B in boxx... max 1/4 pixels plotted, and need words */
    /* 4096 = 10240/2.5 based on size of boxx+boxy+boxvalues */
-#ifdef XFRACT
+#if 1 /* XFRACT */
    vidlength = 4; /* Xfractint only needs the 4 corners saved. */
 #endif
    browsehandle = MemoryAlloc((U16)sizeof(struct window),(long)MAX_WINDOWS_OPEN,FARMEM);
@@ -1314,9 +1312,8 @@ rescan:  /* entry for changed browse parms */
                                  done = 3 for rescan
                                  done = 4 for set boxes and exit to save image */
       {
-#ifdef XFRACT
         blinks = 1;
-#endif
+
         while (!keypressed())
         {
           time(&thistime);
@@ -1328,14 +1325,11 @@ rescan:  /* entry for changed browse parms */
              drawindow(color_bright,&winlist);   /* flash current window */
           else
              drawindow(color_dark,&winlist);
-#ifdef XFRACT
+
           blinks++;
-#endif
         }
-#ifdef XFRACT
           if ((blinks & 1) == 1)   /* Need an odd # of blinks, so next one leaves box turned off */
              drawindow(color_bright,&winlist);
-#endif
 
       c=getakey();
       switch (c) {
@@ -1359,7 +1353,7 @@ rescan:  /* entry for changed browse parms */
            MoveFromMemory((BYTE *)boxvalues,(U16)(vidlength>>1),1L,(long)index,boxvalueshandle);
            showtempmsg(winlist.name);
            break;
-#ifndef XFRACT
+#if 0
         case CTL_INSERT:
           color_of_box += key_count(CTL_INSERT);
           for (i=0 ; i < wincount ; i++) {
@@ -1389,10 +1383,8 @@ rescan:  /* entry for changed browse parms */
         case ESC:
         case 'l':
         case 'L':
-#ifdef XFRACT
         /* Need all boxes turned on, turn last one back on. */
           drawindow(color_bright,&winlist);
-#endif
           autobrowse = FALSE;
           done = 2;
           break;
@@ -1507,7 +1499,7 @@ rescan:  /* entry for changed browse parms */
           MoveFromMemory((BYTE *)boxvalues,(U16)(vidlength>>1),1L,(long)index,boxvalueshandle);
           boxcount >>= 1;
           if (boxcount > 0 )
-#ifdef XFRACT
+#if 1 /* XFRACT */
         /* Turn all boxes off */
              drawindow(color_bright,&winlist);
 #else
@@ -1542,7 +1534,7 @@ rescan:  /* entry for changed browse parms */
 
 static void drawindow(int colour,struct window *info)
 {
-#ifndef XFRACT
+#if 0
    int cross_size;
    struct coords ibl,itr;
 #endif
@@ -1552,7 +1544,7 @@ static void drawindow(int colour,struct window *info)
     if (info->win_size >= minbox) {
     /* big enough on screen to show up as a box so draw it */
     /* corner pixels */
-#ifndef XFRACT
+#if 0
      addbox(info->itl);
      addbox(info->itr);
      addbox(info->ibl);
@@ -1573,7 +1565,7 @@ static void drawindow(int colour,struct window *info)
      dispbox();
     }
     else { /* draw crosshairs */
-#ifndef XFRACT
+#if 0
     cross_size = ydots / 45;
     if (cross_size < 2) cross_size = 2;
     itr.x = info->itl.x - cross_size;

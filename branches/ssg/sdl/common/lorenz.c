@@ -1172,7 +1172,7 @@ int martin2dfloatorbit(double *x, double *y, double *z)
 int mandelcloudfloat(double *x, double *y, double *z)
 {
     double newx,newy,x2,y2;
-#ifndef XFRACT
+#if 0
     newx = *z; /* for warning only */
 #endif
     x2 = (*x)*(*x);
@@ -1189,7 +1189,7 @@ int dynamfloat(double *x, double *y, double *z)
 {
       _CMPLX cp,tmp;
       double newx,newy;
-#ifndef XFRACT
+#if 0
       newx = *z; /* for warning only */
 #endif
       cp.x = b* *x;
@@ -2058,7 +2058,7 @@ int plotorbits2dfloat(void)
        /* else count >= orbit_delay and we want to plot it */
        col = (int)(o_cvt.a*new.x + o_cvt.b*new.y + o_cvt.e);
        row = (int)(o_cvt.c*new.x + o_cvt.d*new.y + o_cvt.f);
-#ifdef XFRACT
+#if 1 /* XFRACT */
        if ( col >= 0 && col < xdots && row >= 0 && row < ydots )
 #else
 /* don't know why the next line is necessary, the one above should work */
