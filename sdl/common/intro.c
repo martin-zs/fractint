@@ -78,7 +78,7 @@ void intro(void)
 loop_intro:
   for (j = 0; j < delaymax && !(keypressed()); j++)
     delay(100);
-  if (j = keypressed()) /* set j to returned key */
+  if ((j = keypressed())) /* set j to returned key */
     getakey();
   if (menu_checkkey(j,0) || j == 109) /* menu key or 'm' */
     goto intro_end;
@@ -90,7 +90,7 @@ wait_again:
 #else
       waitkeypressed(0);
 #endif
-      if (j = keypressed()) /* set j to returned key */
+      if ((j = keypressed())) /* set j to returned key */
         getakey();
       if (menu_checkkey(j,0) || j == 109) /* menu key or 'm' */
         goto intro_end;

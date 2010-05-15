@@ -189,7 +189,6 @@ int main(int argc, char **argv)
 {
 
   int     resumeflag;
-  int     kbdchar;                     /* keyboard key-hit value       */
   int     kbdmore;                     /* continuation variable        */
   char    stacked = 0;                 /* flag to indicate screen stacked */
 

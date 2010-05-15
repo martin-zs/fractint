@@ -1,3 +1,6 @@
+
+#include <string.h>
+
 #include "port.h"
 #include "prototyp.h"
 #include "fractype.h"

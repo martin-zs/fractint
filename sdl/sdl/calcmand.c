@@ -10,11 +10,12 @@
 unsigned long savedmask;
 long linitx, linity;
 
-int
-calcmandasm(void) {
-    printf("Warning: called calcmandasm\n");
-    return(0);
+long calcmandasm(void)
+{
+  printf("Warning: called calcmandasm\n");
+  return(0);
 }
+
 #if 0    /* not used */
 code16bit() {}
 checkperiod() {}

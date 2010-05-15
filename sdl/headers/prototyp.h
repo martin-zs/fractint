@@ -386,6 +386,7 @@ extern int DivideBrot5Setup(void);
 extern int ComplexNewton(void );
 extern int ComplexBasin(void );
 extern int NewtonFractal2(void );
+extern void invertz2(_CMPLX *);
 
 /*  fractint -- C file prototypes */
 
@@ -606,6 +607,8 @@ extern void Arctanhz(_CMPLX, _CMPLX *);
 extern void Arctanz(_CMPLX, _CMPLX *);
 extern void set_pixel_calc_functions(void);
 extern int  GausianNumber(int ,int);
+extern long multiply(long, long, int);
+extern long divide(long, long, int);
 
 /*  miscfrac -- C file prototypes */
 
@@ -893,6 +896,12 @@ extern void recordshw(int );
 extern int do_AutoStereo(void);
 extern int outline_stereo(BYTE *, int);
 
+/*  testpt -- C file prototypes */
+
+extern int teststart(void);
+extern void testend(void);
+extern int testpt(double, double, double, double, long, int);
+
 /*  zoom -- C file prototypes */
 
 extern void drawbox(int );
@@ -969,16 +978,55 @@ extern uclock_t usec_clock(void);
 extern void restart_uclock(void);
 extern void wait_until(int index, uclock_t wait_time);
 
+/*  calmand -- C file prototypes */
+
+extern long calcmandasm(void);
+
 /*  calmanfp -- C file prototypes */
 
 extern void calcmandfpasmstart(void);
 extern long calcmandfp_c(void);
+
+/*  fpu087 -- C file prototypes */
+
+extern void FPUcplxmul(_CMPLX *, _CMPLX *, _CMPLX *);
+extern void FPUcplxdiv(_CMPLX *, _CMPLX *, _CMPLX *);
+extern void FPUsincos(double *, double *, double *);
+extern void FPUsinhcosh(double *, double *, double *);
+extern void FPUcplxlog(_CMPLX *, _CMPLX *);
+extern void SinCos086(long , long *, long *);
+extern void SinhCosh086(long , long *, long *);
+extern long r16Mul(long , long );
+extern long RegFloat2Fg(long , int );
+extern long Exp086(long);
+extern unsigned long ExpFudged(long , int );
+extern long RegDivFloat(long , long );
+extern long LogFudged(unsigned long , int );
+extern long LogFloat14(unsigned long );
+#ifndef XFRACT
+extern long RegFg2Float(long, char);
+extern long RegSftFloat(long, char);
+#else
+extern long RegFg2Float(long , int );
+extern long RegSftFloat(long , int );
+#endif
 
 /*  general -- C file prototypes */
 
 extern void findpath(char *,char *);
 extern void ftimex(struct timebx *);
 extern long normalize(char *);
+extern int keypressed(void);
+extern int waitkeypressed(int);
+extern int getakeynohelp(void);
+extern int getakey(void);
+extern int kbhit(void);
+extern void buzzer(int);
+extern int soundon(int);
+extern void soundoff(void);
+extern void mute(void);
+extern long readticker(void);
+extern long stackavail(void);
 #ifdef XFRACT
 extern void decode_fractal_info(struct fractal_info *, int);
 extern void fix_ranges(int *, int, int);
@@ -996,14 +1044,24 @@ extern int strnicmp(char *, char *, int);
 
 /*  video -- C file prototypes */
 
+extern void setnullvideo (void);
 extern int getcolor (int, int);
 extern void putcolor_a (int, int, int);
 extern void get_line (int, int, int, BYTE *);
 extern void put_line (int, int, int, BYTE *);
 extern int out_line (BYTE *, int);
 extern void find_special_colors (void);
+extern char get_a_char (void);
+extern void put_a_char (int);
 extern void dac_to_rgb(BYTE, BYTE *, BYTE *, BYTE *);
 extern BYTE *findfont(int);
+extern void setvideotext (void);
+extern void loaddac (void);
+extern void setvideomode (int);
+extern void movecursor (int, int);
+extern int keycursor (int, int);
+extern void scrollup (int, int);
+extern void spindac (int, int);
 
 /*  sdl_src -- C file prototypes */
 
@@ -1022,10 +1080,12 @@ extern void gettruecolor(int, int, BYTE *, BYTE *, BYTE *);
 extern void readvideoline(int, int, int, BYTE *);
 extern void writevideoline(int, int, int, BYTE *);
 extern void readvideopalette(void);
-extern int writevideopalette(void);
+extern void writevideopalette(void);
 extern void stackscreen(void);
 extern void unstackscreen(void);
 extern void discardscreen(void);
+extern void putstring (int, int, int, CHAR *);
+extern void setattr (int, int, int, int);
 extern int get_key_event(int);
 extern void delay(int);
 extern long clock_ticks(void);

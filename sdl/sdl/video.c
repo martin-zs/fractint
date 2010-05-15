@@ -478,7 +478,7 @@ char get_a_char (void)
 
 void put_a_char (int ch)
 {
-// NOTE (jonathan#1#): Apparently this isn't used
+// NOTE (jonathan#1#): Used in slideshw.c!!!
 }
 
 /*

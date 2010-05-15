@@ -933,7 +933,7 @@ int cmdarg(char *curarg,int mode) /* process a single argument */
    char    charval[16];                 /* first character of arg    */
    int     yesnoval[16];                /* 0 if 'n', 1 if 'y', -1 if not */
    double  ftemp;
-   int     i, j, k, l;
+   int     i, j, k;
    char    *argptr,*argptr2;
    int     totparms;                    /* # of / delimited parms    */
    int     intparms;                    /* # of / delimited ints     */
