@@ -9,11 +9,13 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <sys/types.h>
 #include <sys/time.h>
 
 #include "port.h"
 #include "prototyp.h"
+
 int overflow = 0;
 
 int boxx[2304], boxy[1024];
@@ -195,8 +197,7 @@ int getkeyint(int block)
  *
  *----------------------------------------------------------------------
  */
-int
-kbhit()
+int kbhit(void)
 {
   return 0;
 }
@@ -245,8 +246,9 @@ void tone(int frequency, int delaytime)
 ;
 ; *****************************************************************
 */
-void soundon(int hertz)
+int soundon(int hertz)
 {
+    return(0);
 }
 
 void soundoff(void)
@@ -284,7 +286,7 @@ uclock_t usec_clock(void)
 }
 
 /*
-; long readticker() returns current bios ticker value
+; long readticker() returns current ticker value
 */
 long readticker(void)
 {

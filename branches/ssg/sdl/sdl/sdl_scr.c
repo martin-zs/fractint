@@ -570,7 +570,7 @@ void readvideopalette(void)
  *
  *----------------------------------------------------------------------
  */
-int writevideopalette(void)
+void writevideopalette(void)
 {
   int i;
 

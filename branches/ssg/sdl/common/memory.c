@@ -260,12 +260,11 @@ static int CheckBounds (long start, long length, U16 handle)
 void DisplayMemory (void)
 {
   long tmpfar;
-  U32 tmpdisk;
   char buf[MSGLEN];
   char msg[] = {"far=%ld"};
 
   tmpfar = fr_farfree();  /* FIXME (jonathan#1#): FIX THIS ????? 02/13/2010 */
-  sprintf(buf,msg,tmpfar,tmpdisk);
+  sprintf(buf,msg,tmpfar);
   stopmsg(20,(char *)buf);
 }
 

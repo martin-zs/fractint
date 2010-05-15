@@ -7,10 +7,6 @@
 #define sqr(x) ((x)*(x))
 #endif
 
-/* Routines in this module */
-long multiply(long, long, int);
-long divide(long, long, int);
-
 void FPUcplxexp(_CMPLX *x, _CMPLX *z)
 {
   double e2x, y;
@@ -24,7 +20,6 @@ void FPUcplxexp(_CMPLX *x, _CMPLX *z)
 _CMPLX ComplexPower(_CMPLX xx, _CMPLX yy)
 {
   _CMPLX z, cLog, t;
-  double e2x, siny, cosy;
 
   /* fixes power bug - if any complaints, backwards compatibility hook
      goes here TIW 3/95 */

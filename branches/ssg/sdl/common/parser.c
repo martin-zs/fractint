@@ -1552,13 +1552,14 @@ struct ConstArg *isconst(char *Str, int Len)
               }
           }
       }
+
     v[vsp].s = Str;
     v[vsp].len = Len;
-    v[vsp].a.d.x = v[vsp].a.d.y = 0.0;
-
-    /* v[vsp].a should already be zeroed out */
     switch (MathType)
       {
+      case D_MATH:
+        v[vsp].a.d.x = v[vsp].a.d.y = 0.0;
+        break;
       case L_MATH:
         v[vsp].a.l.x = v[vsp].a.l.y = 0;
         break;

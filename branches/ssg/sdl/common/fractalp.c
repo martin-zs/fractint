@@ -3,6 +3,8 @@
         and a *slew* of defines needed to get it to compile
 */
 
+#include <string.h>
+
 /* includes needed for fractalspecific */
 
   /* see Fractint.c for a description of the "include"  hierarchy */

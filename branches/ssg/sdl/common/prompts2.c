@@ -686,7 +686,6 @@ int get_view_params()
   int i, k;
   float old_viewreduction,old_aspectratio;
   int old_viewwindow,old_viewxdots,old_viewydots,old_sxdots,old_sydots;
-  unsigned long estm_xmax=32767,estm_ymax=32767;
 
   strcpy(hdg,o_hdg);
   ptr = (char *)malloc(16000);

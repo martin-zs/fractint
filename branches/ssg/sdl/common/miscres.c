@@ -824,8 +824,6 @@ int tab_display()       /* display the status of the current image */
   int saved=0;
   int dec;
   int k;
-  U16 save_extra_handle = 0;
-  BYTE *ptr_to_extraseg = NULL;
   int hasformparam = 0;
 
   if (calc_status < 0)         /* no active fractal image */

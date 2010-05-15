@@ -54,7 +54,7 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
 {
   int     frommandel;                  /* if julia entered from mandel */
 // FIXME (jonathan#1#): Next is not needed.  JCO 02/20/2010
-  int     axmode=0, bxmode, cxmode, dxmode; /* video mode (BIOS ##)    */
+  int     axmode=0; /* video mode (BIOS ##)    */
 
   double  ftemp;                       /* fp temp                      */
   int     i=0;                         /* temporary loop counters      */
@@ -586,7 +586,7 @@ resumeloop:                             /* return here on failed overlays */
 
 int main_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stacked, int axmode)
 {
-  int i,k;
+  int i;
   static double  jxxmin, jxxmax, jyymin, jyymax; /* "Julia mode" entry point */
   static double  jxx3rd, jyy3rd;
   long old_maxit;
@@ -1387,7 +1387,7 @@ do_3d_transform:
 
 int evolver_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stacked)
 {
-  int i,k;
+  int i;
 
   switch (*kbdchar)
     {
