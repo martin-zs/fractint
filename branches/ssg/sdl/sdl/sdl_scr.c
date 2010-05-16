@@ -36,13 +36,6 @@ SDL_Color XlateText[] =
   {255,255,255}  /* L_White */
 };
 
-enum
-{
-  TEXT_WIDTH = 80,
-  TEXT_HEIGHT = 25,
-  MOUSE_SCALE = 1
-};
-
 static int mousefkey[4][4] /* [button][dir] */ =
 {
   {RIGHT_ARROW,LEFT_ARROW,DOWN_ARROW,UP_ARROW},
@@ -923,7 +916,7 @@ static int translate_key(SDL_KeyboardEvent *key)
         case SDLK_DOWN:
           return DOWN_ARROW_2;
         default:
-          return tmp;
+          return CTL(tmp);
         }
     }
   else if (key->keysym.mod & KMOD_SHIFT) /* Shift key down */
@@ -1081,6 +1074,7 @@ int get_key_event(int block)
             case SDL_VIDEORESIZE:
               xdots = sxdots = event.resize.w;
               ydots = sydots = event.resize.h;
+              discardscreen(); /* dump text screen if in use */
               ResizeScreen(1);
               keypressed = ENTER;
               break;

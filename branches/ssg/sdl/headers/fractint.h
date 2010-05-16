@@ -727,6 +727,13 @@ extern struct trig_funct_lst trigfn[];
 
 #define BIG 100000.0
 
+enum
+{
+  TEXT_WIDTH = 80,
+  TEXT_HEIGHT = 25,
+  MOUSE_SCALE = 1
+};
+
 #define CTL(x) ((x)&0x1f)
 
 /* nonalpha tests if we have a control character */
