@@ -13,6 +13,8 @@
 SDL_Surface *screen = NULL;
 SDL_Surface *backscrn = NULL;
 TTF_Font *font = NULL;
+SDL_Color cols[256];
+SDL_Color text_cols[16];
 
 SDL_Color XlateText[] =
 {
@@ -37,7 +39,7 @@ SDL_Color XlateText[] =
 enum
 {
   TEXT_WIDTH = 80,
-  TEXT_HEIGHT = 26,
+  TEXT_HEIGHT = 25,
   MOUSE_SCALE = 1
 };
 
@@ -55,13 +57,13 @@ int screenctr = 0;
 int txt_ht;  /* text letter height = 2^txt_ht pixels */
 int txt_wt;  /* text letter width = 2^txt_wt pixels */
 
-char text_screen[TEXT_HEIGHT+1][TEXT_WIDTH+1];
-int  text_attr[TEXT_HEIGHT+1][TEXT_WIDTH+1];
-char stack_text_screen[TEXT_HEIGHT+1][TEXT_WIDTH+1];
-int  stack_text_attr[TEXT_HEIGHT+1][TEXT_WIDTH+1];
+char text_screen[TEXT_HEIGHT][TEXT_WIDTH];
+int  text_attr[TEXT_HEIGHT][TEXT_WIDTH];
+char stack_text_screen[TEXT_HEIGHT][TEXT_WIDTH];
+int  stack_text_attr[TEXT_HEIGHT][TEXT_WIDTH];
 
 void puttruecolor_SDL(SDL_Surface*, int, int, Uint8, Uint8, Uint8);
-
+void outtext(int, int, int);
 
 void Slock(void)
 {
@@ -527,8 +529,6 @@ void readvideoline(int y, int x, int lastx, BYTE *pixels)
     }
 }
 
-SDL_Color cols[256];
-
 /*
  *----------------------------------------------------------------------
  *
@@ -593,25 +593,37 @@ void setclear (void)
   int r, c;
 
   for (r = 0; r < TEXT_HEIGHT; r++)
-    for (c = 0; c < TEXT_WIDTH; c++)
-      {
-        text_attr[r][c] = 0;
-        text_screen[r][c] = ' ';
-      }
+    {
+      for (c = 0; c < TEXT_WIDTH; c++)
+        {
+          text_attr[r][c] = 0;
+          text_screen[r][c] = ' ';
+        }
+      outtext(r, 0, c); /* clear a row at a time */
+    }
 }
 
 void starttext(void)
 {
-  /* What needs to be done here??? */
+  /* Setup text palette */
+  int i;
+
+  for (i = 0; i < 16; i++)
+    {
+      text_cols[i].r = XlateText[i].r;
+      text_cols[i].g = XlateText[i].g;
+      text_cols[i].b = XlateText[i].b;
+    }
+  SDL_SetColors(screen, text_cols, 0, 16);
 }
 
 void outtext(int row, int col, int max_c)
 {
   /* Takes the text in text_screen[row][] with */
   /*     attributes in text_attr[row][] */
-  /* and puts it on the textmsg surface */
+  /* and puts it on the screen */
 
-  SDL_Color color = {0,0,0}, bgcolor = {0xff,0xff,0xff};
+  SDL_Color color, bgcolor;
   SDL_Surface *text_surface;
   SDL_Rect text_rect;
 
@@ -715,22 +727,23 @@ void unstackscreen(void)
 #if DEBUG
   fprintf(stderr, "unstackscreen, %i screens stacked\n", screenctr);
 #endif
-  if (--screenctr > 1)
+  if (screenctr > 1)
     {
       for (r = 0; r < TEXT_HEIGHT; r++)
         {
-        for (c = 0; c < TEXT_WIDTH; c++)
-          {
-            text_screen[r][c] = stack_text_screen[r][c];
-            text_attr[r][c] = stack_text_attr[r][c];
-          }
-        outtext(r, 0, c); /* restore a row at a time */
+          for (c = 0; c < TEXT_WIDTH; c++)
+            {
+              text_screen[r][c] = stack_text_screen[r][c];
+              text_attr[r][c] = stack_text_attr[r][c];
+            }
+          outtext(r, 0, c); /* restore a row at a time */
         }
     }
   else
     {
       restore_screen(); /* restore screen */
     }
+  screenctr--;
 }
 
 void discardscreen(void)
@@ -744,7 +757,7 @@ void discardscreen(void)
 
 void putstring (int row, int col, int attr, CHAR *msg)
 {
-  int r, c, s_r, s_c;
+  int r, c, s_c;
   int max_c = 0;
 #if DEBUG
   fprintf(stderr, "printstring, %s\n", msg);
@@ -755,19 +768,19 @@ void putstring (int row, int col, int attr, CHAR *msg)
   if (col != -1)
     textcol = col;
 
-  s_r = r = textrow + textrbase;
+  r = textrow + textrbase;
   s_c = c = textcol + textcbase;
 
   while (*msg)
     {
-      if (*msg == '\n')
+      if (*msg == '\n' || c == TEXT_WIDTH)
         {
-          /* output line here, get ready for the next one */
-          outtext(r, s_c, c);
-          textrow++;
-          r++;
           if (c > max_c)
             max_c = c;
+          /* output line here, get ready for the next one */
+          outtext(r, s_c, max_c);
+          textrow++;
+          r++;
           textcol = 0;
           c = s_c;
         }
@@ -787,9 +800,12 @@ void putstring (int row, int col, int attr, CHAR *msg)
       msg++;
     }
 
+  if (c > max_c)
+    max_c = c;
+
   /* output the last line here */
 
-  outtext(r, s_c, c);
+  outtext(r, s_c, max_c);
 }
 
 /*
@@ -802,7 +818,7 @@ void putstring (int row, int col, int attr, CHAR *msg)
 void setattr (int row, int col, int attr, int count)
 {
   int i = col;
-  int r, c, s_r, s_c;
+  int r, c, s_c;
 #if DEBUG
   fprintf(stderr, "setattr, row= %d col=%d attr=%d count=%d\n", row, col, attr, count);
 #endif
@@ -812,7 +828,7 @@ void setattr (int row, int col, int attr, int count)
   if (col != -1)
     textcol = col;
 
-  s_r = r = textrow + textrbase;
+  r = textrow + textrbase;
   s_c = c = textcol + textcbase;
 
   assert(count <= TEXT_WIDTH * TEXT_HEIGHT);
@@ -847,7 +863,7 @@ void scrollup (int top, int bot)
   fprintf(stderr, "scrollup(%d, %d)\n", top, bot);
 #endif
 
-  assert(bot <= TEXT_HEIGHT);
+  assert(bot < TEXT_HEIGHT);
   for (r = top; r < bot; r++)
     {
       for (c = 0; c < TEXT_WIDTH; c++)
