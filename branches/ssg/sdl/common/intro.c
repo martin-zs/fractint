@@ -32,7 +32,7 @@ void intro(void)
   oldhelpmode = helpmode;
   lookatmouse = 0;                     /* de-activate full mouse checking */
 
-  screen_text = malloc(16000);
+  screen_text = malloc(65000);
 
   i = 32767 + read_help_topic(INTRO_AUTHORS, 0, 32767, screen_text);
   screen_text[i++] = '\0';

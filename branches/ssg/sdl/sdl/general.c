@@ -209,7 +209,7 @@ int kbhit(void)
 ;
 ;       0 = normal completion of task
 ;       1 = interrupted task
-;       2 = error contition
+;       2 = error condition
 
 ;       "buzzer()" codes:  strings of two-word pairs
 ;               (frequency in cycles/sec, delay in milliseconds)

@@ -55,6 +55,7 @@ static char s_anykey[] = {"Any key to continue..."};
 static char s_custom[] = {"Customized Version"};
 static char s_incremental[] = {"Incremental release"};
 #endif
+
 int stopmsg (int flags, char *msg)
 {
   int ret,toprow,color,savelookatmouse;
@@ -121,7 +122,7 @@ int stopmsg (int flags, char *msg)
 
 
 static U16 temptextsave = 0;
-static int  textxdots,textydots;
+static int textxdots, textydots;
 
 /* texttempmsg(msg) displays a text message of up to 40 characters, waits
       for a key press, restores the prior display, and returns (without
@@ -143,7 +144,7 @@ void freetempmsg(void)
     MemoryRelease(temptextsave);
   temptextsave = 0;
 }
-
+// FIXME (jonathan#1#): Need to redo this routine.
 int showtempmsg(char *msgparm)
 {
   static long size = 0;
@@ -276,7 +277,7 @@ void blankrows(int row,int rows,int attr)
     putstring(row++,0,attr,buf);
 }
 
-void helptitle()
+void helptitle(void)
 {
   char msg[MSGLEN],buf[MSGLEN];
   setclear(); /* clear the screen */
@@ -331,10 +332,12 @@ int putstringcenter(int row, int col, int width, int attr, char *msg)
   char buf[81];
   int i,j,k;
   i = 0;
-#if 0
-  if (width>=80) width=79; /* Some systems choke in column 80 */
+#if 1
+  if (width > 80) width = 80; /* Sanity check */
+#else
+  if (width >= 80) width = 79; /* Some systems choke in column 80 */
 #endif
-  while (msg[i]) ++i; /* strlen for a far */
+  i = strlen(msg); /* get message length */
   if (i == 0) return(-1);
   if (i >= width) i = width - 1; /* sanity check */
   j = (width - i) / 2;
@@ -343,7 +346,8 @@ int putstringcenter(int row, int col, int width, int attr, char *msg)
   buf[width] = 0;
   i = 0;
   k = j;
-  while (msg[i]) buf[k++] = msg[i++]; /* strcpy for a far */
+  while (msg[i])
+    buf[k++] = msg[i++]; /* put msg in buf at correct location */
   putstring(row,col,attr,buf);
   return j;
 }
@@ -395,12 +399,12 @@ void show_speedstring(int speedrow,
     movecursor(25,80);
 }
 
-void process_speedstring(char    *speedstring,
-                         char **choices,         /* array of choice strings                */
-                         int       curkey,
-                         int      *pcurrent,
-                         int       numchoices,
-                         int       is_unsorted)
+void process_speedstring(char  *speedstring,
+                         char **choices,    /* array of choice strings */
+                         int    curkey,
+                         int   *pcurrent,
+                         int    numchoices,
+                         int    is_unsorted)
 {
   int i, comp_result;
 
