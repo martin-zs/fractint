@@ -202,18 +202,6 @@ void home (void)
 }
 
 /*
-; ************* Function scrollup(toprow, botrow) ******************
-
-;       Scroll the screen up (from toprow to botrow)
-*/
-void scrollup (int top, int bot)
-{
-// FIXME (jonathan#1#): Move the contents of text_screen and text_attr up 1 line, then blit all to screen.
-
-
-}
-
-/*
 ; *************** Function spindac(direction, rstep) ********************
 
 ;       Rotate the MCGA/VGA DAC in the (plus or minus) "direction"

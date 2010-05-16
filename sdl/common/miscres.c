@@ -811,7 +811,7 @@ again:
   return(ret);
 }
 
-int tab_display()       /* display the status of the current image */
+int tab_display(void) /* display the status of the current image */
 {
   int s_row, i, j, addrow=0;
   double Xctr, Yctr;

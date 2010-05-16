@@ -1705,8 +1705,8 @@ int isadirectory(char *s)
 }
 
 
-#if 0  /* This routine moved to unix.c so we can use it in hc.c */
-
+#if 0  /* This routine moved to general.c so we can use it in hc.c */
+       /* Does not appear to be needed in hc.c anymore */
 int splitpath(char *template,char *drive,char *dir,char *fname,char *ext)
 {
   int length;
@@ -1803,7 +1803,7 @@ int makepath(char *template,char *drive,char *dir,char *fname,char *ext)
     *template = 0;
   else
     return(-1);
-#if 0
+#ifndef XFRACT
   if (drive)
     strcpy(template,drive);
 #endif
