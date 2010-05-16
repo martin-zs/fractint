@@ -888,7 +888,7 @@ void findpath(char *filename, char *fullpathname)
   int fd;
   char *fractdir;
 
-  if (filename[0]=='/')
+  if (filename[0]==SLASHC)
     {
       strcpy(fullpathname,filename);
       fd = open(fullpathname,O_RDONLY);
@@ -902,7 +902,7 @@ void findpath(char *filename, char *fullpathname)
   if (fractdir != NULL)
     {
       strcpy(fullpathname,fractdir);
-      strcat(fullpathname,"/");
+      strcat(fullpathname,SLASH);
       strcat(fullpathname,filename);
       fd = open(fullpathname,O_RDONLY);
       if (fd != -1)
@@ -913,7 +913,7 @@ void findpath(char *filename, char *fullpathname)
     }
 // FIXME (jonathan#1#): This will need to be fixed.  02/14/2010
 //  strcpy(fullpathname,SRCDIR);
-//  strcat(fullpathname,"/");
+//  strcat(fullpathname,SLASH);
 //  strcat(fullpathname,filename);
 //  fd = open(fullpathname,O_RDONLY);
 //  if (fd != -1)
@@ -921,7 +921,7 @@ void findpath(char *filename, char *fullpathname)
 //      close(fd);
 //      return;
 //    }
-  strcpy(fullpathname,"./");
+  strcpy(fullpathname,DOTSLASH);
   strcat(fullpathname,filename);
   fd = open(fullpathname,O_RDONLY);
   if (fd != -1)

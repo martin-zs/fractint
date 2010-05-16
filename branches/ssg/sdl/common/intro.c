@@ -18,13 +18,12 @@
 
 void intro(void)
 {
-  /* following overlayed data safe if "putstrings" are resident */
   static FCODE PRESS_ENTER[] = {"Press ESC for main menu, F1 for help."};
-  int       toprow, botrow, i, j, delaymax;
+  int       toprow, botrow, i, j;
   char      oldchar;
   int       authors[100];              /* this should be enough for awhile */
-  char far *credits;
-  char far *screen_text;
+  char     *credits;
+  char     *screen_text;
   int       oldlookatmouse;
   int       oldhelpmode;
 
@@ -51,7 +50,7 @@ void intro(void)
   helptitle();
 #define END_MAIN_AUTHOR 5
   toprow = END_MAIN_AUTHOR+1;
-  botrow = 21;
+  botrow = END_MAIN_AUTHOR+15; /* room for 15 */
   putstringcenter(1,0,80,C_TITLE, PRESS_ENTER);
   putstring(2,0,C_CONTRIB,screen_text);
   setattr(2,0,C_AUTHDIV1,80);
@@ -71,13 +70,11 @@ void intro(void)
   credits[authors[i+1]] = 0;
   putstring(toprow,0,C_CONTRIB,credits+authors[j]);
   credits[authors[i+1]] = oldchar;
-  delaymax = 10;
   movecursor(25,80); /* turn it off */
   helpmode = HELPMENU;
 
 loop_intro:
-  for (j = 0; j < delaymax && !(keypressed()); j++)
-    delay(100);
+  delay(1000);
   if ((j = keypressed())) /* set j to returned key */
     getakey();
   if (menu_checkkey(j,0) || j == 109) /* menu key or 'm' */

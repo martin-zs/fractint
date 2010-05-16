@@ -37,7 +37,7 @@ SDL_Color XlateText[] =
 enum
 {
   TEXT_WIDTH = 80,
-  TEXT_HEIGHT = 25,
+  TEXT_HEIGHT = 26,
   MOUSE_SCALE = 1
 };
 
@@ -55,10 +55,10 @@ int screenctr = 0;
 int txt_ht;  /* text letter height = 2^txt_ht pixels */
 int txt_wt;  /* text letter width = 2^txt_wt pixels */
 
-char text_screen[TEXT_HEIGHT][TEXT_WIDTH];
-int  text_attr[TEXT_HEIGHT][TEXT_WIDTH];
-char stack_text_screen[TEXT_HEIGHT][TEXT_WIDTH];
-int  stack_text_attr[TEXT_HEIGHT][TEXT_WIDTH];
+char text_screen[TEXT_HEIGHT+1][TEXT_WIDTH+1];
+int  text_attr[TEXT_HEIGHT+1][TEXT_WIDTH+1];
+char stack_text_screen[TEXT_HEIGHT+1][TEXT_WIDTH+1];
+int  stack_text_attr[TEXT_HEIGHT+1][TEXT_WIDTH+1];
 
 void puttruecolor_SDL(SDL_Surface*, int, int, Uint8, Uint8, Uint8);
 
@@ -718,12 +718,14 @@ void unstackscreen(void)
   if (--screenctr > 1)
     {
       for (r = 0; r < TEXT_HEIGHT; r++)
+        {
         for (c = 0; c < TEXT_WIDTH; c++)
           {
             text_screen[r][c] = stack_text_screen[r][c];
             text_attr[r][c] = stack_text_attr[r][c];
           }
-      outtext(r, 0, c);
+        outtext(r, 0, c); /* restore a row at a time */
+        }
     }
   else
     {
@@ -831,6 +833,37 @@ void setattr (int row, int col, int attr, int count)
     }
   /* refresh text */
   outtext(r, s_c, c);
+}
+
+/*
+; ************* Function scrollup(toprow, botrow) ******************
+
+;       Scroll the screen up (from toprow to botrow)
+*/
+void scrollup (int top, int bot)
+{
+  int r, c;
+#if DEBUG
+  fprintf(stderr, "scrollup(%d, %d)\n", top, bot);
+#endif
+
+  assert(bot <= TEXT_HEIGHT);
+  for (r = top; r < bot; r++)
+    {
+      for (c = 0; c < TEXT_WIDTH; c++)
+        {
+          text_attr[r][c] = text_attr[r+1][c];
+          text_screen[r][c] = text_screen[r+1][c];
+        }
+      outtext(r, 0, c);
+    }
+  for (c = 0; c < TEXT_WIDTH; c++) /* clear bottom line */
+    {
+      text_attr[bot][c] = 0;
+      text_screen[bot][c] = ' ';
+    }
+  outtext(bot, 0, c);
+  /* bottom line is added by intro() */
 }
 
 static int translate_key(SDL_KeyboardEvent *key)

@@ -1003,7 +1003,7 @@ extern unsigned long ExpFudged(long , int );
 extern long RegDivFloat(long , long );
 extern long LogFudged(unsigned long , int );
 extern long LogFloat14(unsigned long );
-#ifndef XFRACT
+#if 0
 extern long RegFg2Float(long, char);
 extern long RegSftFloat(long, char);
 #else
@@ -1060,7 +1060,6 @@ extern void loaddac (void);
 extern void setvideomode (int);
 extern void movecursor (int, int);
 extern int keycursor (int, int);
-extern void scrollup (int, int);
 extern void spindac (int, int);
 
 /*  sdl_src -- C file prototypes */
@@ -1086,6 +1085,7 @@ extern void unstackscreen(void);
 extern void discardscreen(void);
 extern void putstring (int, int, int, CHAR *);
 extern void setattr (int, int, int, int);
+extern void scrollup (int, int);
 extern int get_key_event(int);
 extern void delay(int);
 extern long clock_ticks(void);
