@@ -330,6 +330,7 @@ init_restart:
     }
   /* We want this code if we're using the assembler calcmand */
   /* not needed any more??? JCO */
+#if 1
   if (fractype == MANDEL || fractype == JULIA)   /* adust shift bits if.. */
     {
       if (potflag == 0                            /* not using potential */
@@ -344,6 +345,7 @@ init_restart:
           && bailoutest == Mod)                     /* and bailout test = mod */
         bitshift = FUDGEFACTOR;                  /* use the larger bitshift */
     }
+#endif
 
   fudge = 1L << bitshift;
 

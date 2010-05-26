@@ -207,13 +207,13 @@ int convert_bn(bn_t new, bn_t old, int newbnlength, int newintlength,
       /* This will keep the integer part from overflowing past the array. */
       bnlength = oldbnlength - oldintlength + min(oldintlength, newintlength);
 
-      _fmemcpy(new+newbnlength-newintlength-oldbnlength+oldintlength,
+      memcpy(new+newbnlength-newintlength-oldbnlength+oldintlength,
                old,bnlength);
     }
   else
     {
       bnlength = newbnlength - newintlength + min(oldintlength, newintlength);
-      _fmemcpy(new,old+oldbnlength-oldintlength-newbnlength+newintlength,
+      memcpy(new,old+oldbnlength-oldintlength-newbnlength+newintlength,
                bnlength);
     }
   intlength = saveintlength;
@@ -697,10 +697,10 @@ bn_t unsafe_div_bn(bn_t r, bn_t n1, bn_t n2)
 
   /* shift n1, n2 */
   /* important!, use memmove(), not memcpy() */
-  _fmemmove(n1+scale1, n1, bnlength-scale1); /* shift bytes over */
-  _fmemset(n1, 0, scale1);  /* zero out the rest */
-  _fmemmove(n2+scale2, n2, bnlength-scale2); /* shift bytes over */
-  _fmemset(n2, 0, scale2);  /* zero out the rest */
+  memmove(n1+scale1, n1, bnlength-scale1); /* shift bytes over */
+  memset(n1, 0, scale1);  /* zero out the rest */
+  memmove(n2+scale2, n2, bnlength-scale2); /* shift bytes over */
+  memset(n2, 0, scale2);  /* zero out the rest */
 
   unsafe_inv_bn(r, n2);
   unsafe_mult_bn(bntmp1, n1, r);
@@ -712,14 +712,14 @@ bn_t unsafe_div_bn(bn_t r, bn_t n1, bn_t n2)
       if (scale1 > scale2) /* answer is too big, adjust it */
         {
           scale = scale1-scale2;
-          _fmemmove(r, r+scale, bnlength-scale); /* shift bytes over */
-          _fmemset(r+bnlength-scale, 0, scale);  /* zero out the rest */
+          memmove(r, r+scale, bnlength-scale); /* shift bytes over */
+          memset(r+bnlength-scale, 0, scale);  /* zero out the rest */
         }
       else if (scale1 < scale2) /* answer is too small, adjust it */
         {
           scale = scale2-scale1;
-          _fmemmove(r+scale, r, bnlength-scale); /* shift bytes over */
-          _fmemset(r, 0, scale);                 /* zero out the rest */
+          memmove(r+scale, r, bnlength-scale); /* shift bytes over */
+          memset(r, 0, scale);                 /* zero out the rest */
         }
       /* else scale1 == scale2 */
 

@@ -33,10 +33,10 @@ Wesley Loewer's Big Numbers.        (C) 1994-95, Wesley B. Loewer
 bn_t clear_bn(bn_t r)
 {
 #ifdef BIG_BASED
-  _fmemset( r, 0, bnlength); /* set array to zero */
+  memset( r, 0, bnlength); /* set array to zero */
 #else
 #ifdef BIG_FAR
-  _fmemset( r, 0, bnlength); /* set array to zero */
+  memset( r, 0, bnlength); /* set array to zero */
 #else
   memset( r, 0, bnlength); /* set array to zero */
 #endif
@@ -49,10 +49,10 @@ bn_t clear_bn(bn_t r)
 bn_t max_bn(bn_t r)
 {
 #ifdef BIG_BASED
-  _fmemset( r, 0xFF, bnlength-1); /* set to max values */
+  memset( r, 0xFF, bnlength-1); /* set to max values */
 #else
 #ifdef BIG_FAR
-  _fmemset( r, 0xFF, bnlength-1); /* set to max values */
+  memset( r, 0xFF, bnlength-1); /* set to max values */
 #else
   memset( r, 0xFF, bnlength-1); /* set to max values */
 #endif
@@ -66,10 +66,10 @@ bn_t max_bn(bn_t r)
 bn_t copy_bn(bn_t r, bn_t n)
 {
 #ifdef BIG_BASED
-  _fmemcpy( r, n, bnlength);
+  memcpy( r, n, bnlength);
 #else
 #ifdef BIG_FAR
-  _fmemcpy( r, n, bnlength);
+  memcpy( r, n, bnlength);
 #else
   memcpy( r, n, bnlength);
 #endif
@@ -894,7 +894,7 @@ LDBL bntofloat(bn_t n)
 /* r = 0 */
 bf_t clear_bf(bf_t r)
 {
-  _fmemset( r, 0, bflength+2); /* set array to zero */
+  memset( r, 0, bflength+2); /* set array to zero */
   return r;
 }
 
@@ -902,7 +902,7 @@ bf_t clear_bf(bf_t r)
 /* r = n */
 bf_t copy_bf(bf_t r, bf_t n)
 {
-  _fmemcpy( r, n, bflength+2);
+  memcpy( r, n, bflength+2);
   return r;
 }
 

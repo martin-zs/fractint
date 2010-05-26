@@ -224,7 +224,7 @@ void SetupSDL(void)
 //      exit(1);
 //    }
 
-  SDL_EnableKeyRepeat(250,30);
+  SDL_EnableKeyRepeat(500,30);
 
 }
 
@@ -878,17 +878,47 @@ void scrollup (int top, int bot)
 static int translate_key(SDL_KeyboardEvent *key)
 {
   int tmp = key->keysym.sym & 0xff;
+  static int got_mod_key = 0;
 #if DEBUG
   fprintf(stderr, "translate_key(%i): ``%c''\n", key->keysym.sym, key->keysym.sym);
 #endif
 
-  if (tmp >= 'a' && tmp <= 'z')
-    return tmp;
+  /* Key state modifier keys and Miscellaneous function keys */
+  /* See SDL_keysym.h */
+  if (key->keysym.sym >= 300)
+    got_mod_key = 1;
+  else
+    got_mod_key = 0;
+
   /* This is the SDL key mapping */
-  else if (key->keysym.mod & KMOD_CTRL) /* Control key down */
+  if (key->keysym.mod & KMOD_CTRL) /* Control key down */
     {
       switch (key->keysym.sym)
         {
+        case SDLK_F1:
+          return CF1;
+        case SDLK_F2:
+          return CF2;
+        case SDLK_F3:
+          return CF3;
+        case SDLK_F4:
+          return CF4;
+        case SDLK_F5:
+          return CF5;
+        case SDLK_F6:
+          return CF6;
+        case SDLK_F7:
+          return CF7;
+        case SDLK_F8:
+          return CF8;
+        case SDLK_F9:
+          return CF9;
+        case SDLK_F10:
+          return CF10;
+        case SDLK_TAB:
+          return CTL_TAB;
+        case SDLK_BACKSLASH:
+          return CTL_BACKSLASH;
         case SDLK_MINUS:
           return CTL_MINUS;
         case SDLK_PLUS:
@@ -915,8 +945,11 @@ static int translate_key(SDL_KeyboardEvent *key)
           return UP_ARROW_2;
         case SDLK_DOWN:
           return DOWN_ARROW_2;
+        case SDLK_KP_ENTER:
+          return CTL_ENTER_2;
         default:
-          return CTL(tmp);
+          if (tmp >= 'a' && tmp <= 'z')
+            return (tmp - 'a' + 1);
         }
     }
   else if (key->keysym.mod & KMOD_SHIFT) /* Shift key down */
@@ -946,66 +979,97 @@ static int translate_key(SDL_KeyboardEvent *key)
         case SDLK_TAB:
           return BACK_TAB;
         default:
-          return tmp;
+          if (tmp >= 'a' && tmp <= 'z')
+            return (tmp - ('a' - 'A'));
         }
     }
-  else  /* No modifier key down */
+  else if (key->keysym.mod & KMOD_ALT) /* Alt key down */
     {
       switch (key->keysym.sym)
         {
         case SDLK_F1:
-          return F1;
+          return AF1;
         case SDLK_F2:
-          return F2;
+          return AF2;
         case SDLK_F3:
-          return F3;
+          return AF3;
         case SDLK_F4:
-          return F4;
+          return AF4;
         case SDLK_F5:
-          return F5;
+          return AF5;
         case SDLK_F6:
-          return F6;
+          return AF6;
         case SDLK_F7:
-          return F7;
+          return AF7;
         case SDLK_F8:
-          return F8;
+          return AF8;
         case SDLK_F9:
-          return F9;
+          return AF9;
         case SDLK_F10:
-          return F10;
-        case SDLK_INSERT:
-          return INSERT;
-        case SDLK_DELETE:
-          return DELETE;
-        case SDLK_HOME:
-          return HOME;
-        case SDLK_END:
-          return END;
-        case SDLK_PAGEUP:
-          return PAGE_UP;
-        case SDLK_PAGEDOWN:
-          return PAGE_DOWN;
-        case SDLK_LEFT:
-          return LEFT_ARROW;
-        case SDLK_RIGHT:
-          return RIGHT_ARROW;
-        case SDLK_UP:
-          return UP_ARROW;
-        case SDLK_DOWN:
-          return DOWN_ARROW;
-        case SDLK_ESCAPE:
-          return ESC;
-        case SDLK_KP_ENTER:
-          return ENTER_2;
-        case SDLK_RETURN:
-          return ENTER;
-        case -2:
-          return CTL_ENTER_2;
+          return AF10;
+        case SDLK_TAB:
+          return ALT_TAB;
         default:
           return tmp;
         }
     }
-  return tmp;
+  /* No modifier key down */
+  switch (key->keysym.sym)
+    {
+    case SDLK_F1:
+      return F1;
+    case SDLK_F2:
+      return F2;
+    case SDLK_F3:
+      return F3;
+    case SDLK_F4:
+      return F4;
+    case SDLK_F5:
+      return F5;
+    case SDLK_F6:
+      return F6;
+    case SDLK_F7:
+      return F7;
+    case SDLK_F8:
+      return F8;
+    case SDLK_F9:
+      return F9;
+    case SDLK_F10:
+      return F10;
+    case SDLK_INSERT:
+      return INSERT;
+    case SDLK_DELETE:
+      return DELETE;
+    case SDLK_HOME:
+      return HOME;
+    case SDLK_END:
+      return END;
+    case SDLK_PAGEUP:
+      return PAGE_UP;
+    case SDLK_PAGEDOWN:
+      return PAGE_DOWN;
+    case SDLK_LEFT:
+      return LEFT_ARROW;
+    case SDLK_RIGHT:
+      return RIGHT_ARROW;
+    case SDLK_UP:
+      return UP_ARROW;
+    case SDLK_DOWN:
+      return DOWN_ARROW;
+    case SDLK_ESCAPE:
+      return ESC;
+    case SDLK_KP_ENTER:
+      return ENTER_2;
+    case SDLK_RETURN:
+      return ENTER;
+    default:
+      break;
+    }
+
+  if (got_mod_key)
+    return 0;
+  else
+    return tmp;
 }
 
 #if 0

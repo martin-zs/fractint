@@ -91,6 +91,7 @@ int keypressed(void)
   return ch;
 }
 
+// NOTE (jonathan#1#): Next does not do what is described here.  There is not delay.
 /* Wait for a key.
  * This should be used instead of:
  * while (!keypressed()) {}
@@ -220,7 +221,7 @@ void buzzer(int buzzertype)
 {
   if ((soundflag & 7) != 0)
     {
-      printf("\007");
+      printf("\007 \n");
       fflush(stdout);
     }
   if (buzzertype==0)
