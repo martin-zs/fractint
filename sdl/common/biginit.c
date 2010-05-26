@@ -100,7 +100,7 @@ static void init_bf_2(void)
   calc_lengths();
 
   /* allocate all the memory at once */
-  bnroot = (bf_t)malloc(128000); /* arbitrarily a big number */
+  bnroot = (bf_t)malloc(65000); /* arbitrarily a big number */
   /* at present time one call would suffice, but this logic allows
      multiple kinds of alternate math eg long double */
   if ((i = find_alternate_math(fractype, BIGNUM)) > -1)
@@ -580,7 +580,7 @@ void init_big_pi(void)
 
   length = bflength+2; /* 2 byte exp */
   pi_offset = sizeof pi_table - length;
-  _fmemcpy(big_pi, pi_table + pi_offset, length);
+  memcpy(big_pi, pi_table + pi_offset, length);
 
   /* notice that bf_pi and bn_pi can share the same memory space */
   bf_pi = big_pi;

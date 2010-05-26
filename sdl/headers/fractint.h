@@ -734,8 +734,6 @@ enum
   MOUSE_SCALE = 1
 };
 
-#define CTL(x) ((x)&0x1f)
-
 /* nonalpha tests if we have a control character */
 #define nonalpha(c) ((c)<32 || (c)>127)
 
@@ -794,6 +792,26 @@ enum
 #define   SF8            1091
 #define   SF9            1092
 #define   SF10           1093
+#define   CF1            1094
+#define   CF2            1095
+#define   CF3            1096
+#define   CF4            1097
+#define   CF5            1098
+#define   CF6            1099
+#define   CF7            1100
+#define   CF8            1101
+#define   CF9            1102
+#define   CF10           1103
+#define   AF1            1104
+#define   AF2            1105
+#define   AF3            1106
+#define   AF4            1107
+#define   AF5            1108
+#define   AF6            1109
+#define   AF7            1100
+#define   AF8            1111
+#define   AF9            1112
+#define   AF10           1113
 /* text colors */
 #define BLACK      0
 #define BLUE       1

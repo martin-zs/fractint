@@ -263,7 +263,7 @@ void DisplayMemory (void)
   char buf[MSGLEN];
   char msg[] = {"far=%ld"};
 
-  tmpfar = fr_farfree();  /* FIXME (jonathan#1#): FIX THIS ????? 02/13/2010 */
+  tmpfar = fr_farfree();  /* Not really far memory */
   sprintf(buf,msg,tmpfar);
   stopmsg(20,(char *)buf);
 }

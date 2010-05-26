@@ -306,7 +306,7 @@ void rotate(int direction)      /* rotate-the-palette routine */
           break;
         default:                       /* maybe a new palette */
           fkey = 0;                   /* disable random generation */
-          if (kbdchar == 1084) set_palette(Black, White);
+          if (kbdchar == SF1) set_palette(Black, White);
           if (kbdchar == SF2) set_palette(Red, Yellow);
           if (kbdchar == SF3) set_palette(Blue, Green);
           if (kbdchar == SF4) set_palette(Black, Yellow);
@@ -315,27 +315,27 @@ void rotate(int direction)      /* rotate-the-palette routine */
           if (kbdchar == SF7) set_palette(Black, Green);
           if (kbdchar == SF8) set_palette(Blue, Yellow);
           if (kbdchar == SF9) set_palette(Red, Green);
-          if (kbdchar == 1093) set_palette(Green, White);
-          if (kbdchar == 1094) set_palette2(Black, White);
-          if (kbdchar == 1095) set_palette2(Red, Yellow);
-          if (kbdchar == 1096) set_palette2(Blue, Green);
-          if (kbdchar == 1097) set_palette2(Black, Yellow);
-          if (kbdchar == 1098) set_palette2(Black, Red);
-          if (kbdchar == 1099) set_palette2(Black, Blue);
-          if (kbdchar == 1100) set_palette2(Black, Green);
-          if (kbdchar == 1101) set_palette2(Blue, Yellow);
-          if (kbdchar == 1102) set_palette2(Red, Green);
-          if (kbdchar == 1103) set_palette2(Green, White);
-          if (kbdchar == 1104) set_palette3(Blue, Green, Red);
-          if (kbdchar == 1105) set_palette3(Blue, Yellow, Red);
-          if (kbdchar == 1106) set_palette3(Red, White, Blue);
-          if (kbdchar == 1107) set_palette3(Red, Yellow, White);
-          if (kbdchar == 1108) set_palette3(Black, Brown, Yellow);
-          if (kbdchar == 1109) set_palette3(Blue, Brown, Green);
-          if (kbdchar == 1110) set_palette3(Blue, Green, Green);
-          if (kbdchar == 1111) set_palette3(Blue, Green, White);
-          if (kbdchar == 1112) set_palette3(Green, Green, White);
-          if (kbdchar == 1113) set_palette3(Red, Blue, White);
+          if (kbdchar == SF10) set_palette(Green, White);
+          if (kbdchar == CF1) set_palette2(Black, White);
+          if (kbdchar == CF2) set_palette2(Red, Yellow);
+          if (kbdchar == CF3) set_palette2(Blue, Green);
+          if (kbdchar == CF4) set_palette2(Black, Yellow);
+          if (kbdchar == CF5) set_palette2(Black, Red);
+          if (kbdchar == CF6) set_palette2(Black, Blue);
+          if (kbdchar == CF7) set_palette2(Black, Green);
+          if (kbdchar == CF8) set_palette2(Blue, Yellow);
+          if (kbdchar == CF9) set_palette2(Red, Green);
+          if (kbdchar == CF10) set_palette2(Green, White);
+          if (kbdchar == AF1) set_palette3(Blue, Green, Red);
+          if (kbdchar == AF2) set_palette3(Blue, Yellow, Red);
+          if (kbdchar == AF3) set_palette3(Red, White, Blue);
+          if (kbdchar == AF4) set_palette3(Red, Yellow, White);
+          if (kbdchar == AF5) set_palette3(Black, Brown, Yellow);
+          if (kbdchar == AF6) set_palette3(Blue, Brown, Green);
+          if (kbdchar == AF7) set_palette3(Blue, Green, Green);
+          if (kbdchar == AF8) set_palette3(Blue, Green, White);
+          if (kbdchar == AF9) set_palette3(Green, Green, White);
+          if (kbdchar == AF10) set_palette3(Red, Blue, White);
           pauserotate();  /* update palette and pause */
           colorstate = 1;             /* not a known color map */
           break;

@@ -42,25 +42,6 @@
 #define LITTLE_ENDIAN 1234
 #endif
 
-#define overwrite   fract_overwrite      /* avoid name conflict with curses */
-
-/* remove far's */
-#ifdef far
-#undef far
-#endif
-#define far
-#ifdef _far
-#undef _far
-#endif
-#define _far
-#ifdef __far
-#undef __far
-#endif
-#define __far
-#define _fmemcpy  memcpy
-#define _fmemset  memset
-#define _fmemmove memmove
-
         typedef unsigned char  U8;
         typedef signed char    S8;
         typedef unsigned short U16;
@@ -191,7 +172,6 @@ extern struct DIR_SEARCH DTA;   /* Disk Transfer Area */
 /*   scanf("%Lf", &longdoublevar);                            */
 /* to read in a long double, then uncomment this next line    */
 /* #define DO_NOT_USE_LONG_DOUBLE */
-/* #define USE_BIGNUM_C_CODE */  /* ASM code requires using long double */
 
 #ifndef DO_NOT_USE_LONG_DOUBLE
 #ifdef LDBL_DIG
