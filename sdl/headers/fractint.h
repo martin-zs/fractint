@@ -812,6 +812,9 @@ enum
 #define   AF8            1111
 #define   AF9            1112
 #define   AF10           1113
+#define   ALT_A          1030
+#define   ALT_S          1031
+
 /* text colors */
 #define BLACK      0
 #define BLUE       1

@@ -12,6 +12,7 @@
 /* SDL global variables */
 SDL_Surface *screen = NULL;
 SDL_Surface *backscrn = NULL;
+SDL_Surface *backtext = NULL;
 TTF_Font *font = NULL;
 SDL_Color cols[256];
 SDL_Color text_cols[16];
@@ -26,7 +27,7 @@ SDL_Color XlateText[] =
   {205,  0,205}, /* Magenta */
   {205,205,  0}, /* Brown */
   {205,205,205}, /* White */
-  {127,127,127}, /* Gray */
+  {100,100,100}, /* Gray */
   {  0,  0,255}, /* L_Blue */
   {  0,255,  0}, /* L_Green */
   {  0,255,255}, /* L_Cyan */
@@ -85,6 +86,7 @@ void CleanupSDL(void)
    * etc.  Called by goodbye() routine.
    */
   SDL_FreeSurface(backscrn);
+  SDL_FreeSurface(backtext);
 // NOTE (jonathan#1#): May not need this once png support is added.
 //  IMG_Quit();
 
@@ -172,11 +174,15 @@ int ResizeScreen(int mode)
       TTF_CloseFont(font);
     }
 
-  backscrn = SDL_CreateRGBSurface(SDL_SWSURFACE, xdots, ydots, bpp,
+  backscrn = SDL_CreateRGBSurface(SDL_HWSURFACE|SDL_SWSURFACE, xdots, ydots, bpp,
+                                  rmask, gmask, bmask, amask);
+  backtext = SDL_CreateRGBSurface(SDL_HWSURFACE|SDL_SWSURFACE, xdots, ydots, bpp,
                                   rmask, gmask, bmask, amask);
 #if DEBUG
   if (backscrn == NULL )
     fprintf(stderr, "No backscrn\n");
+  if (backtext == NULL )
+    fprintf(stderr, "No backtext\n");
 #endif
 
   if (screen_handle != 0) /* this won't work after a resize, free the memory */
@@ -455,7 +461,18 @@ void save_screen(void)
   src.h = ydots;
   dest = src;
   SDL_BlitSurface( screen, &src, backscrn, &dest ); /* save screen */
-//  SDL_Flip(backscrn);
+}
+
+void save_text(void)
+{
+  SDL_Rect  src, dest;
+
+  src.x = 0;
+  src.y = 0;
+  src.w = xdots;
+  src.h = ydots;
+  dest = src;
+  SDL_BlitSurface( screen, &src, backtext, &dest ); /* save text screen */
 }
 
 void restore_screen(void)
@@ -468,6 +485,19 @@ void restore_screen(void)
   src.h = ydots;
   dest = src;
   SDL_BlitSurface( backscrn, &src, screen, &dest );
+  SDL_Flip(screen);
+}
+
+void restore_text(void)
+{
+  SDL_Rect  src, dest;
+
+  src.x = 0;
+  src.y = 0;
+  src.w = xdots;
+  src.h = ydots;
+  dest = src;
+  SDL_BlitSurface( backtext, &src, screen, &dest );
   SDL_Flip(screen);
 }
 
@@ -608,6 +638,7 @@ void starttext(void)
       text_cols[i].b = XlateText[i].b;
     }
   SDL_SetColors(screen, text_cols, 0, 16);
+  SDL_SetColors(backtext, text_cols, 0, 16);
 }
 
 void outtext(int row, int col, int max_c)
@@ -621,28 +652,14 @@ void outtext(int row, int col, int max_c)
   SDL_Rect text_rect;
 
   int i, j;
-  int attr = text_attr[row][col];
+  int attr    = text_attr[row][col];
   int foregnd = attr & 15;
   int backgnd = (attr >> 4) & 15;
-  int tmp_attr;
   char buf[TEXT_WIDTH+1]; /* room for text and null terminator */
 #if DEBUG
   fprintf(stderr, "outtext, %d, %d, %d\n", row, col, max_c);
+  fprintf(stderr, "  attributes, %d, %d, %d\n", attr, foregnd, backgnd);
 #endif
-
-  if (attr & BRIGHT && !(attr & INVERSE))   /* bright */
-    {
-      foregnd += 8;
-    }
-  if (attr & INVERSE)   /* inverse video */
-    {
-      tmp_attr = backgnd;
-      backgnd = foregnd;
-    }
-  else
-    {
-      tmp_attr = foregnd;
-    }
 
   text_rect.x = col * txt_wt;   /* starting column */
   text_rect.y = row * txt_ht;   /* starting row */
@@ -659,10 +676,10 @@ void outtext(int row, int col, int max_c)
       buf[j++] = text_screen[row][i];
     }
 
-  color = XlateText[tmp_attr];
+  color   = XlateText[foregnd];
   bgcolor = XlateText[backgnd];
 
-  if (!(text_surface=TTF_RenderText_Shaded(font,buf,color,bgcolor)))
+  if (!(text_surface = TTF_RenderText_Shaded(font,buf,color,bgcolor)))
     {
       /* Handle error here */
 #if DEBUG
@@ -704,6 +721,7 @@ void stackscreen(void)
     }
   if (screenctr > 0)
     {
+      save_text();
       for (r = 0; r < TEXT_HEIGHT; r++)
         for (c = 0; c < TEXT_WIDTH; c++)
           {
@@ -722,6 +740,7 @@ void unstackscreen(void)
 #endif
   if (screenctr > 1)
     {
+      restore_text();
       for (r = 0; r < TEXT_HEIGHT; r++)
         {
           for (c = 0; c < TEXT_WIDTH; c++)
@@ -729,7 +748,6 @@ void unstackscreen(void)
               text_screen[r][c] = stack_text_screen[r][c];
               text_attr[r][c] = stack_text_attr[r][c];
             }
-          outtext(r, 0, c); /* restore a row at a time */
         }
     }
   else
@@ -875,23 +893,38 @@ void scrollup (int top, int bot)
   /* bottom line is added by intro() */
 }
 
+static int got_mod_key = 0;
+
+static void key_released(SDL_KeyboardEvent *key)
+{
+#if DEBUG
+  fprintf(stderr, "  key_released(%i): ''%c'' with mod %i\n",
+          key->keysym.sym, key->keysym.sym, got_mod_key);
+#endif
+
+  if (key->keysym.sym >= 300)
+    got_mod_key = 0;
+}
+
 static int translate_key(SDL_KeyboardEvent *key)
 {
-  int tmp = key->keysym.sym & 0xff;
-  static int got_mod_key = 0;
+  int tmp = key->keysym.sym & 0x7f; /* 0 - 127 */
+
 #if DEBUG
-  fprintf(stderr, "translate_key(%i): ``%c''\n", key->keysym.sym, key->keysym.sym);
+  fprintf(stderr, "translate_key(%i): ''%c'' with mod %i\n",
+          key->keysym.sym, key->keysym.sym, got_mod_key);
 #endif
 
   /* Key state modifier keys and Miscellaneous function keys */
   /* See SDL_keysym.h */
   if (key->keysym.sym >= 300)
-    got_mod_key = 1;
-  else
-    got_mod_key = 0;
+  {
+    got_mod_key = key->keysym.sym;
+    return 0;
+  }
 
   /* This is the SDL key mapping */
-  if (key->keysym.mod & KMOD_CTRL) /* Control key down */
+  if (got_mod_key == SDLK_RCTRL || got_mod_key == SDLK_LCTRL) /* Control key down */
     {
       switch (key->keysym.sym)
         {
@@ -952,10 +985,52 @@ static int translate_key(SDL_KeyboardEvent *key)
             return (tmp - 'a' + 1);
         }
     }
-  else if (key->keysym.mod & KMOD_SHIFT) /* Shift key down */
+  else if (got_mod_key == SDLK_RSHIFT || got_mod_key == SDLK_LSHIFT) /* Shift key down */
     {
       switch (key->keysym.sym)
         {
+        case SDLK_BACKQUOTE:
+          return '~';
+        case SDLK_0:
+          return SDLK_RIGHTPAREN;
+        case SDLK_1:
+          return SDLK_EXCLAIM;
+        case SDLK_2:
+          return SDLK_AT;
+        case SDLK_3:
+          return SDLK_HASH;
+        case SDLK_4:
+          return SDLK_DOLLAR;
+        case SDLK_5:
+          return '%';
+        case SDLK_6:
+          return SDLK_CARET;
+        case SDLK_7:
+          return SDLK_AMPERSAND;
+        case SDLK_8:
+          return SDLK_ASTERISK;
+        case SDLK_9:
+          return SDLK_LEFTPAREN;
+        case SDLK_MINUS:
+          return SDLK_UNDERSCORE;
+        case SDLK_EQUALS:
+          return SDLK_PLUS;
+        case SDLK_LEFTBRACKET:
+          return '{';
+        case SDLK_RIGHTBRACKET:
+          return '}';
+        case SDLK_BACKSLASH:
+          return '|';
+        case SDLK_SEMICOLON:
+          return SDLK_COLON;
+        case SDLK_QUOTE:
+          return SDLK_QUOTEDBL;
+        case SDLK_COMMA:
+          return SDLK_LESS;
+        case SDLK_PERIOD:
+          return SDLK_GREATER;
+        case SDLK_SLASH:
+          return SDLK_QUESTION;
         case SDLK_F1:
           return SF1;
         case SDLK_F2:
@@ -983,7 +1058,7 @@ static int translate_key(SDL_KeyboardEvent *key)
             return (tmp - ('a' - 'A'));
         }
     }
-  else if (key->keysym.mod & KMOD_ALT) /* Alt key down */
+  else if (got_mod_key == SDLK_RALT || got_mod_key == SDLK_LALT) /* Alt key down */
     {
       switch (key->keysym.sym)
         {
@@ -1009,8 +1084,10 @@ static int translate_key(SDL_KeyboardEvent *key)
           return AF10;
         case SDLK_TAB:
           return ALT_TAB;
-        default:
-          return tmp;
+        case SDLK_a:
+          return ALT_A;
+        case SDLK_s:
+          return ALT_S;
         }
     }
   /* No modifier key down */
@@ -1066,10 +1143,10 @@ static int translate_key(SDL_KeyboardEvent *key)
       break;
     }
 
-  if (got_mod_key)
-    return 0;
-  else
+  if (key->keysym.sym <= 127)
     return tmp;
+  else
+    return 0;
 }
 
 #if 0
@@ -1144,6 +1221,9 @@ int get_key_event(int block)
               break;
             case SDL_KEYDOWN:
               keypressed = translate_key(&event.key);
+              break;
+            case SDL_KEYUP:
+              key_released(&event.key);
               break;
             case SDL_QUIT:
               exit(0);

@@ -50,7 +50,7 @@ void intro(void)
   helptitle();
 #define END_MAIN_AUTHOR 5
   toprow = END_MAIN_AUTHOR+1;
-  botrow = END_MAIN_AUTHOR+15; /* room for 15 */
+  botrow = END_MAIN_AUTHOR+16; /* room for 16 */
   putstringcenter(1,0,80,C_TITLE, PRESS_ENTER);
   putstring(2,0,C_CONTRIB,screen_text);
   setattr(2,0,C_AUTHDIV1,80);
@@ -61,7 +61,7 @@ void intro(void)
   setattr(toprow,0,C_CONTRIB,(botrow-END_MAIN_AUTHOR)*80);
   setattr(botrow+1,0,C_AUTHDIV2,80);
   setattr(botrow+2,0,C_PROMPT_BKGRD,80);
-  setattr(botrow+3,0,C_TITLE_LOW,160);
+  setattr(botrow+3,0,C_TITLE_LOW,80);
   i = botrow - toprow;
   srand((unsigned int)clock_ticks());
   j = rand()%(j-(botrow-toprow)); /* first to use */

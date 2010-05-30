@@ -1160,7 +1160,6 @@ void goodbye(void)                  /* we done.  Bail out */
   if (extraseg)
     free(extraseg);
   enddisk();
-  discardgraphics();
   free_bf_vars();
   ExitCheck();
   strcpy(goodbyemessage, gbm);
@@ -1173,7 +1172,6 @@ void goodbye(void)                  /* we done.  Bail out */
   if (*s_makepar != 0)
     {
       movecursor(6,0);
-      discardgraphics(); /* if any emm/xmm tied up there, release it */
     }
   stopslideshow();
   end_help();
