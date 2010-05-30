@@ -20,8 +20,8 @@ int menu_checkkey(int curkey,int choice);
 /*
 #define PRODUCTION
 */
-int release=2004;  /* this has 2 implied decimals; increment it every synch */
-int patchlevel=10; /* patchlevel for DOS version */
+int release=2050;  /* this has 2 implied decimals; increment it every synch */
+int patchlevel=0; /* patchlevel for DOS version */
 
 /* fullscreen_choice options */
 #define CHOICERETURNKEY 1
@@ -1283,7 +1283,7 @@ int menu_checkkey(int curkey,int choice)
             return(0-testkey);
         }
       /* Alt-A and Alt-S */
-      if (testkey == 1030 || testkey == 1031 )
+      if (testkey == ALT_A || testkey == ALT_S )
         return(0-testkey);
     }
   return(0);
@@ -1349,7 +1349,7 @@ int input_field(
           offset = strlen(fld);
           started = 1;
           break;
-        case 8:
+        case BACKSPACE:
         case 127:                              /* backspace */
           if (offset > 0)
             {
@@ -1571,24 +1571,15 @@ void clear_screen(int dummy)  /* a stub for a windows only subroutine */
 
 /* savegraphics/restoregraphics: video.asm subroutines */
 
-unsigned long swaptotlen;
-unsigned long swapoffset;
-BYTE *swapvidbuf;
-int swaplength;
-
-#define SWAPBLKLEN 4096 /* must be a power of 2 */
-
 BYTE suffix[10000];
 
 int savegraphics()
 {
+  save_screen();
   return 0;
 }
 int restoregraphics()
 {
+  restore_screen();
   return 0;
-}
-
-void discardgraphics() /* release expanded/extended memory if any in use */
-{
 }
