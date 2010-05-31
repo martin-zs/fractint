@@ -114,7 +114,7 @@ static FCODE swait[] = "WAIT";
 /* places a temporary message on the screen in text mode */
 static int showtempmsg_txt(int row, int col, int attr,int secs,char *txt)
 {
-   int savescrn[80];
+   char savescrn[80];
    int i;
    if(text_type > 1)
       return(1);
