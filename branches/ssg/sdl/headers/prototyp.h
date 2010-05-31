@@ -1051,7 +1051,7 @@ extern void put_line (int, int, int, BYTE *);
 extern int out_line (BYTE *, int);
 extern void find_special_colors (void);
 extern char get_a_char (void);
-extern void put_a_char (int);
+extern void put_a_char (char);
 extern void dac_to_rgb(BYTE, BYTE *, BYTE *, BYTE *);
 extern BYTE *findfont(int);
 extern void setvideotext (void);

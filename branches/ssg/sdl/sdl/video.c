@@ -466,15 +466,15 @@ char get_a_char (void)
 
 extern int text_attr[TEXT_HEIGHT][TEXT_WIDTH];
 
-void put_a_char (int ch)
+void put_a_char (char ch)
 {
 // NOTE (jonathan#1#): Used in slideshw.c!!!
   int attr = text_attr[textrow][textcol];
 
-  putstring (-1, -1, attr, (CHAR *)(ch));
+  putstring (-1, -1, attr, &ch);
 }
 
-void blink_cursor (int ch)
+void blink_cursor (char ch)
 {
   int attr = text_attr[textrow][textcol];
 
@@ -483,7 +483,7 @@ void blink_cursor (int ch)
   else
     attr += INVERSE;
   delay(300);
-  putstring (-1, -1, attr, (CHAR *)(ch));
+  putstring (-1, -1, attr, &ch);
 }
 
 /*
