@@ -28,7 +28,7 @@
 /* For disk memory: */
 #define DISKWRITELEN 2048L /* max # bytes transferred to/from disk mem at once */
 
-BYTE far *charbuf = NULL;
+BYTE *charbuf = NULL;
 int numEXThandles;
 long ext_xfer_size;
 U16 start_avail_extra = 0;
@@ -50,7 +50,7 @@ struct farmem
   {
     enum stored_at_values stored_at;
     long size;
-    BYTE far *farmemory;
+    BYTE *farmemory;
   };
 
 struct disk
@@ -67,7 +67,7 @@ union mem
     struct disk Disk;
   };
 
-union mem far handletable[MAXHANDLES];
+union mem handletable[MAXHANDLES];
 
 /* Routines in this module */
 static int CheckDiskSpace(long howmuch);
@@ -168,7 +168,7 @@ static int check_for_mem(int stored_at, long howmuch)
   /* This is where the memory requested can be allocated. */
 
   long maxmem;
-  BYTE far *temp;
+  BYTE *temp;
   int use_this_type;
 
   use_this_type = NOWHERE;

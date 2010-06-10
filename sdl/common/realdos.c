@@ -1460,7 +1460,7 @@ int field_prompt(
   int promptcol;
   int i,j;
   char buf[81];
-  static char far DEFLT_INST[] = {"Press ENTER when finished (or ESCAPE to back out)"};
+  static char DEFLT_INST[] = {"Press ENTER when finished (or ESCAPE to back out)"};
   helptitle();                           /* clear screen, display title */
   setattr(1,0,C_PROMPT_BKGRD,24*80);     /* init rest to background */
   charptr = hdg;                         /* count title lines, find widest */

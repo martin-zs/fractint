@@ -380,6 +380,7 @@ long lsqrt(long f)
       y0 = multiply(c,y0, bitshift);
     }
   N /= 2;
+// NOTE (jonathan#1#): Aren't both return's the same????
   if (N >= 0)
     return y0 <<  N;                        /* correct for shift above */
   else
@@ -429,7 +430,7 @@ _CMPLX ComplexSqrtFloat(double x, double y)
 
 /***** FRACTINT specific routines and variables *****/
 
-BYTE far *LogTable = (BYTE far *)0;
+BYTE *LogTable = (BYTE *)0;
 long MaxLTSize;
 int  Log_Calc = 0;
 static double mlf;

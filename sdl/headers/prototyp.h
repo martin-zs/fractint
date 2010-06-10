@@ -403,9 +403,8 @@ extern int main_menu_switch(int *,int *,int *,char *,int);
 extern int pot_line(BYTE *,int );
 extern int sound_line(BYTE *,int );
 #if 0
-extern int _cdecl _matherr(struct exception *);
+extern int _matherr(struct exception *);
 #endif
-extern int XZoomWaiting;
 
 #ifndef USE_VARARGS
 extern int timer(int,int (*subrtn)(),...);
@@ -798,7 +797,7 @@ extern int fill_if_group(int endif_index, JUMP_PTRS_ST *jump_data);
 
 /*  plot3d -- C file prototypes */
 
-extern void cdecl draw_line(int ,int ,int ,int ,int );
+extern void draw_line(int ,int ,int ,int ,int );
 extern void plot3dsuperimpose16(int ,int ,int );
 extern void plot3dsuperimpose256(int ,int ,int );
 extern void plotIFS3dsuperimpose256(int ,int ,int );
@@ -839,7 +838,7 @@ extern int splitpath(char *template,char *drive,char *dir,char *fname,char *ext)
 extern int makepath(char *template,char *drive,char *dir,char *fname,char *ext);
 extern int fr_findfirst(char *path);
 extern int fr_findnext(void );
-extern void shell_sort(void *,int n,unsigned,int (__cdecl *fct)(VOIDFARPTR,VOIDFARPTR));
+extern void shell_sort(void *,int n,unsigned,int (*fct)(VOIDFARPTR,VOIDFARPTR));
 extern void fix_dirname(char *dirname);
 extern int merge_pathnames(char *, char *, int);
 extern int get_browse_params(void);

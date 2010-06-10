@@ -32,7 +32,8 @@
 #define MAXRULES 27 /* this limits rules to 25 */
 #define MAX_LSYS_LINE_LEN 255 /* this limits line length to 255 */
 
-struct lsys_turtlestatei {
+struct lsys_turtlestatei
+  {
     char counter, angle, reverse, stackoflow;
     /* dmaxangle is maxangle - 1 */
     char maxangle, dmaxangle, curcolor, dummy;  /* dummy ensures longword alignment */
@@ -42,9 +43,10 @@ struct lsys_turtlestatei {
     long xmin, ymin, xmax, ymax; /* as are these */
     long aspect; /* aspect ratio of each pixel, ysize/xsize */
     long num;
-};
+  };
 
-struct lsys_turtlestatef {
+struct lsys_turtlestatef
+  {
     char counter, angle, reverse, stackoflow;
     /* dmaxangle is maxangle - 1 */
     char maxangle, dmaxangle, curcolor, dummy;  /* dummy ensures longword alignment */
@@ -53,11 +55,12 @@ struct lsys_turtlestatef {
     LDBL xpos, ypos;
     LDBL xmin, ymin, xmax, ymax;
     LDBL aspect; /* aspect ratio of each pixel, ysize/xsize */
-    union {
+    union
+      {
         long n;
         LDBL nf;
-    } parm;
-};
+      } parm;
+  };
 
 extern char maxangle;
 
@@ -81,7 +84,7 @@ extern void lsys_donefpu(struct lsys_turtlestatef *);
 /* routines in lsysf.c */
 
 extern struct lsys_cmd * drawLSysF(struct lsys_cmd *command,struct lsys_turtlestatef *ts, struct lsys_cmd **rules,int depth);
-extern int lsysf_findscale(struct lsys_cmd *command, struct lsys_turtlestatef *ts, struct lsys_cmd far **rules, int depth);
+extern int lsysf_findscale(struct lsys_cmd *command, struct lsys_turtlestatef *ts, struct lsys_cmd **rules, int depth);
 extern struct lsys_cmd *LSysFSizeTransform(char *s, struct lsys_turtlestatef *ts);
 extern struct lsys_cmd *LSysFDrawTransform(char *s, struct lsys_turtlestatef *ts);
 extern void lsysf_dosincos(void);

@@ -579,7 +579,7 @@ TrigPlusTrigfpSetup(void)
 int
 FnPlusFnSym(void) /* set symmetry matrix for fn+fn type */
 {
-  static char far fnplusfn[7][7] =
+  static char fnplusfn[7][7] =
   {
     /* fn2 ->sin     cos    sinh    cosh   exp    log    sqr  */
     /* fn1 */
@@ -830,7 +830,7 @@ SqrTrigSetup(void)
 int
 FnXFnSetup(void)
 {
-  static char far fnxfn[7][7] =
+  static char fnxfn[7][7] =
   {
     /* fn2 ->sin     cos    sinh    cosh  exp    log    sqr */
     /* fn1 */

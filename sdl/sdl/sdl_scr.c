@@ -918,10 +918,10 @@ static int translate_key(SDL_KeyboardEvent *key)
   /* Key state modifier keys and Miscellaneous function keys */
   /* See SDL_keysym.h */
   if (key->keysym.sym >= 300)
-  {
-    got_mod_key = key->keysym.sym;
-    return 0;
-  }
+    {
+      got_mod_key = key->keysym.sym;
+      return 0;
+    }
 
   /* This is the SDL key mapping */
   if (got_mod_key == SDLK_RCTRL || got_mod_key == SDLK_LCTRL) /* Control key down */
@@ -954,6 +954,7 @@ static int translate_key(SDL_KeyboardEvent *key)
           return CTL_BACKSLASH;
         case SDLK_MINUS:
           return CTL_MINUS;
+        case SDLK_EQUALS: /* pretend shift is pressed */
         case SDLK_PLUS:
           return CTL_PLUS;
         case SDLK_RETURN:
@@ -1088,6 +1089,20 @@ static int translate_key(SDL_KeyboardEvent *key)
           return ALT_A;
         case SDLK_s:
           return ALT_S;
+        case SDLK_1:
+          return ALT_1;
+        case SDLK_2:
+          return ALT_2;
+        case SDLK_3:
+          return ALT_3;
+        case SDLK_4:
+          return ALT_4;
+        case SDLK_5:
+          return ALT_5;
+        case SDLK_6:
+          return ALT_6;
+        case SDLK_7:
+          return ALT_7;
         }
     }
   /* No modifier key down */
@@ -1149,55 +1164,160 @@ static int translate_key(SDL_KeyboardEvent *key)
     return 0;
 }
 
+// NOTE (jonathan#1#): 1 if testing mouse support, 0 if not.
 #if 0
-int get_event(void)
+
+void check_mouse(void)
 {
-  SDL_Event event;
+
+  SDL_Event mevent;
   static int lastx,lasty;
   static int dx,dy;
-  int keypressed = 0;
+  int bandx0, bandy0, bandx1, bandy1;
+  int done = 0;
+  int banding = 0;
 
-  /* look for an event */
-  if ( SDL_PollEvent ( &event ) )
+  if (screenctr) /* don't do it, we're on a text screen */
+    break;
+  if (lookatmouse == 3 || zoomoff == 0)
     {
-      /* an event was found */
-      switch (event.type)
-        {
-        case SDL_MOUSEBUTTONDOWN:
-          if (event.button.button == SDL_BUTTON_LEFT)
-            {
-              /* Get the mouse offsets */
-              dx += (event.button.x - lastx) / MOUSE_SCALE;
-              dy += (event.button.y - lasty) / MOUSE_SCALE;
-              lastx = event.button.x;
-              lasty = event.button.y;
-              break;
-            }
-          if (event.button.button == SDL_BUTTON_RIGHT)
-            {
+      lastx = event.button.x;
+      lasty = event.button.y;
+      break;
+    }
+  bandx1 = bandx0 = event.button.x;
+  bandy1 = bandy0 = event.button.y;
 
+  while (!done)
+    {
+      SDL_PeepEvents(&mevent, 1, SDL_GETEVENT,
+                     SDL_MOUSEMOTION | SDL_MOUSEBUTTONDOWN |SDL_MOUSEBUTTONUP);
+      switch (mevent.type)
+        {
+        case SDL_MOUSEMOTION:
+          /* loop until mouse stops */
+          while (SDL_PeepEvents(&mevent, 1, SDL_GETEVENT,
+                                SDL_MOUSEMOTION | SDL_MOUSEBUTTONUP)) {}
+
+          if (banding)
+            {
+              drawbox (1);
+//    XDrawRectangle(Xdp,Xw,Xgc,MIN(bandx0,bandx1),
+//        MIN(bandy0,bandy1), ABS(bandx1-bandx0),
+//        ABS(bandy1-bandy0));
             }
+          bandx1 = mevent.motion.x;
+          bandy1 = mevent.motion.y;
+          if (ABS(bandx1-bandx0)*finalaspectratio >
+              ABS(bandy1-bandy0))
+            {
+              bandy1 = SIGN(bandy1-bandy0)*ABS(bandx1-bandx0)*
+                       finalaspectratio + bandy0;
+            }
+          else
+            {
+              bandx1 = SIGN(bandx1-bandx0)*ABS(bandy1-bandy0)/
+                       finalaspectratio + bandx0;
+            }
+          if (!banding)
+            {
+              /* Don't start rubber-banding until the mouse
+                 gets moved.  Otherwise a click messes up the
+                 window */
+              if (ABS(bandx1-bandx0)>10 ||
+                  ABS(bandy1-bandy0)>10)
+                {
+                  banding = 1;
+                  XSetForeground(Xdp, Xgc, colors-1);
+                  XSetFunction(Xdp, Xgc, GXxor);
+                }
+            }
+          if (banding)
+            {
+              XDrawRectangle(Xdp,Xw,Xgc,MIN(bandx0,bandx1),
+                             MIN(bandy0,bandy1), ABS(bandx1-bandx0),
+                             ABS(bandy1-bandy0));
+            }
+          XFlush(Xdp);
+
+//                      if (mevent.button.button == SDL_BUTTON_LEFT)
+//                        {
+//                          /* Get the mouse offsets */
+//                          dx += (mevent.button.x - lastx) / MOUSE_SCALE;
+//                          dy += (mevent.button.y - lasty) / MOUSE_SCALE;
+//                          lastx = mevent.button.x;
+//                          lasty = mevent.button.y;
+//                          break;
+//                        }
+//                      if (mevent.button.button == SDL_BUTTON_RIGHT)
+//                        {
+//
+//                        }
+
+
+
           break;
         case SDL_MOUSEBUTTONUP:
-// same as above???
+          done = 1;
           break;
-
-        case SDL_KEYDOWN:
-          keypressed = event.key.keysym.sym;
-          break;
-        case SDL_QUIT:
-          exit(0);
-          break;
-        default:
-          break;
-
-
-
         }
     }
 
+
 }
-#endif
+
+int get_key_event(int block)
+{
+  SDL_Event event;
+  int keypressed = 0;
+
+  do
+    {
+      /* look for an event */
+      if ( SDL_PollEvent ( &event ) )
+        {
+          /* an event was found */
+          switch (event.type)
+            {
+            case SDL_VIDEORESIZE:
+              xdots = sxdots = event.resize.w;
+              ydots = sydots = event.resize.h;
+              discardscreen(); /* dump text screen if in use */
+              ResizeScreen(1);
+              keypressed = ENTER;
+              break;
+            case SDL_MOUSEBUTTONDOWN:
+              check_mouse();
+              break;
+
+            case SDL_KEYDOWN:
+              keypressed = translate_key(&event.key);
+              break;
+            case SDL_KEYUP:
+              key_released(&event.key);
+              break;
+            case SDL_QUIT:
+              exit(0);
+              break;
+            default:
+              break;
+            }
+        }
+// FIXME (jonathan#1#): Need to adjust this for bf math.
+      /* time_to_update() should work outside of while loop, but doesn't */
+      if (time_to_update()) /* set to 200 milli seconds, below */
+        {
+          SDL_Flip(screen);
+        }
+    }
+  while (block && !keypressed);
+  if (time_to_update()) /* set to 200 milli seconds, below */
+    {
+      SDL_Flip(screen);
+    }
+  return (keypressed);
+}
+#else
 
 int get_key_event(int block)
 {
@@ -1246,6 +1366,7 @@ int get_key_event(int block)
     }
   return (keypressed);
 }
+#endif
 
 /*
 ; ***************** Function delay(int delaytime) ************************

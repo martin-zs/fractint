@@ -1,5 +1,5 @@
 
-  /* see Fractint.c for a description of the "include"  hierarchy */
+/* see Fractint.c for a description of the "include"  hierarchy */
 #include "port.h"
 #include "prototyp.h"
 #include "helpdefs.h"
@@ -23,14 +23,14 @@ static long jx, jy, mx, my, xoffset, yoffset;
 static double jxfp, jyfp, mxfp, myfp, xoffsetfp, yoffsetfp;
 
 struct Perspective
-{
-   long x, y, zx, zy;
-};
+  {
+    long x, y, zx, zy;
+  };
 
 struct Perspectivefp
-{
-   double x, y, zx, zy;
-};
+  {
+    double x, y, zx, zy;
+  };
 
 struct Perspective LeftEye, RightEye, *Per;
 struct Perspectivefp LeftEyefp, RightEyefp, *Perfp;
@@ -58,40 +58,40 @@ int neworbittype = JULIA;
 int
 JulibrotSetup(void)
 {
-   long origin;
-   int r = 0;
-   char *mapname;
+  long origin;
+  int r = 0;
+  char *mapname;
 
-   xoffsetfp = (xxmax + xxmin) / 2;     /* Calculate average */
-   yoffsetfp = (yymax + yymin) / 2;     /* Calculate average */
-   dmxfp = (mxmaxfp - mxminfp) / zdots;
-   dmyfp = (mymaxfp - myminfp) / zdots;
-   floatparm = &jbcfp;
-   x_per_inchfp = (xxmin - xxmax) / widthfp;
-   y_per_inchfp = (yymax - yymin) / heightfp;
-   inch_per_xdotfp = widthfp / xdots;
-   inch_per_ydotfp = heightfp / ydots;
-   initzfp = originfp - (depthfp / 2);
-   if(juli3Dmode == 0)
-      RightEyefp.x = 0.0;
-   else
-      RightEyefp.x = eyesfp / 2;
-   LeftEyefp.x = -RightEyefp.x;
-   LeftEyefp.y = RightEyefp.y = 0;
-   LeftEyefp.zx = RightEyefp.zx = distfp;
-   LeftEyefp.zy = RightEyefp.zy = distfp;
-   bbase = 128;
+  xoffsetfp = (xxmax + xxmin) / 2;     /* Calculate average */
+  yoffsetfp = (yymax + yymin) / 2;     /* Calculate average */
+  dmxfp = (mxmaxfp - mxminfp) / zdots;
+  dmyfp = (mymaxfp - myminfp) / zdots;
+  floatparm = &jbcfp;
+  x_per_inchfp = (xxmin - xxmax) / widthfp;
+  y_per_inchfp = (yymax - yymin) / heightfp;
+  inch_per_xdotfp = widthfp / xdots;
+  inch_per_ydotfp = heightfp / ydots;
+  initzfp = originfp - (depthfp / 2);
+  if (juli3Dmode == 0)
+    RightEyefp.x = 0.0;
+  else
+    RightEyefp.x = eyesfp / 2;
+  LeftEyefp.x = -RightEyefp.x;
+  LeftEyefp.y = RightEyefp.y = 0;
+  LeftEyefp.zx = RightEyefp.zx = distfp;
+  LeftEyefp.zy = RightEyefp.zy = distfp;
+  bbase = 128;
 
-   if (fractalspecific[fractype].isinteger > 0)
-   {
+  if (fractalspecific[fractype].isinteger > 0)
+    {
       long jxmin, jxmax, jymin, jymax, mxmax, mymax;
       if (fractalspecific[neworbittype].isinteger == 0)
-      {
-         static FCODE msg[] = {"Julibrot orbit type isinteger mismatch"};
-         stopmsg(0, (char far *)msg);
-      }
+        {
+          static FCODE msg[] = {"Julibrot orbit type isinteger mismatch"};
+          stopmsg(0, (char *)msg);
+        }
       if (fractalspecific[neworbittype].isinteger > 1)
-         bitshift = fractalspecific[neworbittype].isinteger;
+        bitshift = fractalspecific[neworbittype].isinteger;
       fg = (double) (1L << bitshift);
       fg16 = (double) (1L << 16);
       jxmin = (long) (xxmin * fg);
@@ -119,70 +119,70 @@ JulibrotSetup(void)
       inch_per_xdot = (long) ((widthfp / xdots) * fg16);
       inch_per_ydot = (long) ((heightfp / ydots) * fg16);
       initz = origin - (depth / 2);
-      if(juli3Dmode == 0)
-         RightEye.x = 0l;
+      if (juli3Dmode == 0)
+        RightEye.x = 0l;
       else
-         RightEye.x = eyes / 2;
+        RightEye.x = eyes / 2;
       LeftEye.x = -RightEye.x;
       LeftEye.y = RightEye.y = 0l;
       LeftEye.zx = RightEye.zx = dist;
       LeftEye.zy = RightEye.zy = dist;
       bbase = (int) (128.0 * brratiofp);
-   }
+    }
 
-   if (juli3Dmode == 3)
-   {
+  if (juli3Dmode == 3)
+    {
       savedac = 0;
       mapname = Glasses1Map;
-   }
-   else
-      mapname = GreyFile;
-   if(savedac != 1)
-   {
-   if (ValidateLuts(mapname) != 0)
-      return (0);
-   spindac(0, 1);               /* load it, but don't spin */
-      if(savedac == 2)
+    }
+  else
+    mapname = GreyFile;
+  if (savedac != 1)
+    {
+      if (ValidateLuts(mapname) != 0)
+        return (0);
+      spindac(0, 1);               /* load it, but don't spin */
+      if (savedac == 2)
         savedac = 1;
-   }
-   return (r >= 0);
+    }
+  return (r >= 0);
 }
 
 
 int
 jb_per_pixel(void)
 {
-   jx = multiply(Per->x - xpixel, initz, 16);
-   jx = divide(jx, dist, 16) - xpixel;
-   jx = multiply(jx << (bitshift - 16), x_per_inch, bitshift);
-   jx += xoffset;
-   djx = divide(depth, dist, 16);
-   djx = multiply(djx, Per->x - xpixel, 16) << (bitshift - 16);
-   djx = multiply(djx, x_per_inch, bitshift) / zdots;
+  jx = multiply(Per->x - xpixel, initz, 16);
+  jx = divide(jx, dist, 16) - xpixel;
+  jx = multiply(jx << (bitshift - 16), x_per_inch, bitshift);
+  jx += xoffset;
+  djx = divide(depth, dist, 16);
+  djx = multiply(djx, Per->x - xpixel, 16) << (bitshift - 16);
+  djx = multiply(djx, x_per_inch, bitshift) / zdots;
 
-   jy = multiply(Per->y - ypixel, initz, 16);
-   jy = divide(jy, dist, 16) - ypixel;
-   jy = multiply(jy << (bitshift - 16), y_per_inch, bitshift);
-   jy += yoffset;
-   djy = divide(depth, dist, 16);
-   djy = multiply(djy, Per->y - ypixel, 16) << (bitshift - 16);
-   djy = multiply(djy, y_per_inch, bitshift) / zdots;
+  jy = multiply(Per->y - ypixel, initz, 16);
+  jy = divide(jy, dist, 16) - ypixel;
+  jy = multiply(jy << (bitshift - 16), y_per_inch, bitshift);
+  jy += yoffset;
+  djy = divide(depth, dist, 16);
+  djy = multiply(djy, Per->y - ypixel, 16) << (bitshift - 16);
+  djy = multiply(djy, y_per_inch, bitshift) / zdots;
 
-   return (1);
+  return (1);
 }
 
 int
 jbfp_per_pixel(void)
 {
-   jxfp = ((Perfp->x - xpixelfp) * initzfp / distfp - xpixelfp) * x_per_inchfp;
-   jxfp += xoffsetfp;
-   djxfp = (depthfp / distfp) * (Perfp->x - xpixelfp) * x_per_inchfp / zdots;
+  jxfp = ((Perfp->x - xpixelfp) * initzfp / distfp - xpixelfp) * x_per_inchfp;
+  jxfp += xoffsetfp;
+  djxfp = (depthfp / distfp) * (Perfp->x - xpixelfp) * x_per_inchfp / zdots;
 
-   jyfp = ((Perfp->y - ypixelfp) * initzfp / distfp - ypixelfp) * y_per_inchfp;
-   jyfp += yoffsetfp;
-   djyfp = depthfp / distfp * (Perfp->y - ypixelfp) * y_per_inchfp / zdots;
+  jyfp = ((Perfp->y - ypixelfp) * initzfp / distfp - ypixelfp) * y_per_inchfp;
+  jyfp += yoffsetfp;
+  djyfp = depthfp / distfp * (Perfp->y - ypixelfp) * y_per_inchfp / zdots;
 
-   return (1);
+  return (1);
 }
 
 static int zpixel, plotted;
@@ -191,257 +191,257 @@ static long n;
 int
 zline(long x, long y)
 {
-   xpixel = x;
-   ypixel = y;
-   mx = mxmin;
-   my = mymin;
-   switch(juli3Dmode)
-   {
-   case 0:
-   case 1:
+  xpixel = x;
+  ypixel = y;
+  mx = mxmin;
+  my = mymin;
+  switch (juli3Dmode)
+    {
+    case 0:
+    case 1:
       Per = &LeftEye;
       break;
-   case 2:
+    case 2:
       Per = &RightEye;
       break;
-   case 3:
+    case 3:
       if ((row + col) & 1)
-         Per = &LeftEye;
+        Per = &LeftEye;
       else
-         Per = &RightEye;
+        Per = &RightEye;
       break;
-   }
-   jb_per_pixel();
-   for (zpixel = 0; zpixel < zdots; zpixel++)
-   {
+    }
+  jb_per_pixel();
+  for (zpixel = 0; zpixel < zdots; zpixel++)
+    {
       lold.x = jx;
       lold.y = jy;
       jbc.x = mx;
       jbc.y = my;
       if (keypressed())
-         return (-1);
+        return (-1);
       ltempsqrx = multiply(lold.x, lold.x, bitshift);
       ltempsqry = multiply(lold.y, lold.y, bitshift);
       for (n = 0; n < maxit; n++)
-         if (fractalspecific[neworbittype].orbitcalc())
-            break;
+        if (fractalspecific[neworbittype].orbitcalc())
+          break;
       if (n == maxit)
-      {
-         if (juli3Dmode==3)
-         {
-            color = (int) (128l * zpixel / zdots);
-            if ((row + col) & 1)
+        {
+          if (juli3Dmode==3)
             {
+              color = (int) (128l * zpixel / zdots);
+              if ((row + col) & 1)
+                {
 
-               (*plot) (col, row, 127 - color);
+                  (*plot) (col, row, 127 - color);
+                }
+              else
+                {
+                  color = (int) (multiply((long) color << 16, brratio, 16) >> 16);
+                  if (color < 1)
+                    color = 1;
+                  if (color > 127)
+                    color = 127;
+                  (*plot) (col, row, 127 + bbase - color);
+                }
             }
-            else
+          else
             {
-               color = (int) (multiply((long) color << 16, brratio, 16) >> 16);
-               if (color < 1)
-                  color = 1;
-               if (color > 127)
-                  color = 127;
-               (*plot) (col, row, 127 + bbase - color);
+              color = (int) (254l * zpixel / zdots);
+              (*plot) (col, row, color + 1);
             }
-         }
-         else
-         {
-            color = (int) (254l * zpixel / zdots);
-            (*plot) (col, row, color + 1);
-         }
-         plotted = 1;
-         break;
-      }
+          plotted = 1;
+          break;
+        }
       mx += dmx;
       my += dmy;
       jx += djx;
       jy += djy;
-   }
-   return (0);
+    }
+  return (0);
 }
 
 int
 zlinefp(double x, double y)
 {
-   static int keychk = 0;
+  static int keychk = 0;
 
-   xpixelfp = x;
-   ypixelfp = y;
-   mxfp = mxminfp;
-   myfp = myminfp;
-   switch(juli3Dmode)
-   {
-   case 0:
-   case 1:
+  xpixelfp = x;
+  ypixelfp = y;
+  mxfp = mxminfp;
+  myfp = myminfp;
+  switch (juli3Dmode)
+    {
+    case 0:
+    case 1:
       Perfp = &LeftEyefp;
       break;
-   case 2:
+    case 2:
       Perfp = &RightEyefp;
       break;
-   case 3:
+    case 3:
       if ((row + col) & 1)
-         Perfp = &LeftEyefp;
+        Perfp = &LeftEyefp;
       else
-         Perfp = &RightEyefp;
+        Perfp = &RightEyefp;
       break;
-   }
-   jbfp_per_pixel();
-   for (zpixel = 0; zpixel < zdots; zpixel++)
-   {
+    }
+  jbfp_per_pixel();
+  for (zpixel = 0; zpixel < zdots; zpixel++)
+    {
       /* Special initialization for Mandelbrot types */
       if ((neworbittype == QUATFP || neworbittype == HYPERCMPLXFP)
           && save_release > 2002)
-      {
-         old.x = 0.0;
-         old.y = 0.0;
-         jbcfp.x = 0.0;
-         jbcfp.y = 0.0;
-         qc = jxfp;
-         qci = jyfp;
-         qcj = mxfp;
-         qck = myfp;
-      }
+        {
+          old.x = 0.0;
+          old.y = 0.0;
+          jbcfp.x = 0.0;
+          jbcfp.y = 0.0;
+          qc = jxfp;
+          qci = jyfp;
+          qcj = mxfp;
+          qck = myfp;
+        }
       else
-      {
-         old.x = jxfp;
-         old.y = jyfp;
-         jbcfp.x = mxfp;
-         jbcfp.y = myfp;
-         qc = param[0];
-         qci = param[1];
-         qcj = param[2];
-         qck = param[3];
-      }
+        {
+          old.x = jxfp;
+          old.y = jyfp;
+          jbcfp.x = mxfp;
+          jbcfp.y = myfp;
+          qc = param[0];
+          qci = param[1];
+          qcj = param[2];
+          qck = param[3];
+        }
 #if 1 /* XFRACT */
       if (keychk++ > 500)
-      {
-         keychk = 0;
-         if (keypressed())
+        {
+          keychk = 0;
+          if (keypressed())
             return (-1);
-      }
+        }
 #else
       if (keypressed())
-         return (-1);
+        return (-1);
 #endif
       tempsqrx = sqr(old.x);
       tempsqry = sqr(old.y);
 
       for (n = 0; n < maxit; n++)
-         if (fractalspecific[neworbittype].orbitcalc())
-            break;
+        if (fractalspecific[neworbittype].orbitcalc())
+          break;
       if (n == maxit)
-      {
-         if (juli3Dmode == 3)
-         {
-            color = (int) (128l * zpixel / zdots);
-            if ((row + col) & 1)
-               (*plot) (col, row, 127 - color);
-            else
+        {
+          if (juli3Dmode == 3)
             {
-               color = (int)(color * brratiofp);
-               if (color < 1)
-                  color = 1;
-               if (color > 127)
-                  color = 127;
-               (*plot) (col, row, 127 + bbase - color);
+              color = (int) (128l * zpixel / zdots);
+              if ((row + col) & 1)
+                (*plot) (col, row, 127 - color);
+              else
+                {
+                  color = (int)(color * brratiofp);
+                  if (color < 1)
+                    color = 1;
+                  if (color > 127)
+                    color = 127;
+                  (*plot) (col, row, 127 + bbase - color);
+                }
             }
-         }
-         else
-         {
-            color = (int) (254l * zpixel / zdots);
-            (*plot) (col, row, color + 1);
-         }
-         plotted = 1;
-         break;
-      }
+          else
+            {
+              color = (int) (254l * zpixel / zdots);
+              (*plot) (col, row, color + 1);
+            }
+          plotted = 1;
+          break;
+        }
       mxfp += dmxfp;
       myfp += dmyfp;
       jxfp += djxfp;
       jyfp += djyfp;
-   }
-   return (0);
+    }
+  return (0);
 }
 
 int
 Std4dFractal(void)
 {
-   long x, y;
-   int xdot, ydot;
-   c_exp = (int)param[2];
-   if(neworbittype == LJULIAZPOWER)
-   {
-      if(c_exp < 1)
-         c_exp = 1;
-      if(param[3] == 0.0 && debugflag != 6000 && (double)c_exp == param[2])
-          fractalspecific[neworbittype].orbitcalc = longZpowerFractal;
+  long x, y;
+  int xdot, ydot;
+  c_exp = (int)param[2];
+  if (neworbittype == LJULIAZPOWER)
+    {
+      if (c_exp < 1)
+        c_exp = 1;
+      if (param[3] == 0.0 && debugflag != 6000 && (double)c_exp == param[2])
+        fractalspecific[neworbittype].orbitcalc = longZpowerFractal;
       else
-          fractalspecific[neworbittype].orbitcalc = longCmplxZpowerFractal;
-   }
+        fractalspecific[neworbittype].orbitcalc = longCmplxZpowerFractal;
+    }
 
-   for (y = 0, ydot = (ydots >> 1) - 1; ydot >= 0; ydot--, y -= inch_per_ydot)
-   {
+  for (y = 0, ydot = (ydots >> 1) - 1; ydot >= 0; ydot--, y -= inch_per_ydot)
+    {
       plotted = 0;
       x = -(width >> 1);
       for (xdot = 0; xdot < xdots; xdot++, x += inch_per_xdot)
-      {
-         col = xdot;
-         row = ydot;
-         if (zline(x, y) < 0)
+        {
+          col = xdot;
+          row = ydot;
+          if (zline(x, y) < 0)
             return (-1);
-         col = xdots - col - 1;
-         row = ydots - row - 1;
-         if (zline(-x, -y) < 0)
+          col = xdots - col - 1;
+          row = ydots - row - 1;
+          if (zline(-x, -y) < 0)
             return (-1);
-      }
+        }
       if (plotted == 0)
-      {
-         if (y == 0)
-           plotted = -1;  /* no points first pass; don't give up */
-         else
-           break;
-      }
-   }
-   return (0);
+        {
+          if (y == 0)
+            plotted = -1;  /* no points first pass; don't give up */
+          else
+            break;
+        }
+    }
+  return (0);
 }
 int
 Std4dfpFractal(void)
 {
-   double x, y;
-   int xdot, ydot;
-   c_exp = (int)param[2];
+  double x, y;
+  int xdot, ydot;
+  c_exp = (int)param[2];
 
-   if(neworbittype == FPJULIAZPOWER)
-   {
-      if(param[3] == 0.0 && debugflag != 6000 && (double)c_exp == param[2])
-          fractalspecific[neworbittype].orbitcalc = floatZpowerFractal;
+  if (neworbittype == FPJULIAZPOWER)
+    {
+      if (param[3] == 0.0 && debugflag != 6000 && (double)c_exp == param[2])
+        fractalspecific[neworbittype].orbitcalc = floatZpowerFractal;
       else
-          fractalspecific[neworbittype].orbitcalc = floatCmplxZpowerFractal;
+        fractalspecific[neworbittype].orbitcalc = floatCmplxZpowerFractal;
       get_julia_attractor (param[0], param[1]); /* another attractor? */
-   }
+    }
 
-   for (y = 0, ydot = (ydots >> 1) - 1; ydot >= 0; ydot--, y -= inch_per_ydotfp)
-   {
+  for (y = 0, ydot = (ydots >> 1) - 1; ydot >= 0; ydot--, y -= inch_per_ydotfp)
+    {
       plotted = 0;
       x = -widthfp / 2;
       for (xdot = 0; xdot < xdots; xdot++, x += inch_per_xdotfp)
-      {
-         col = xdot;
-         row = ydot;
-         if (zlinefp(x, y) < 0)
+        {
+          col = xdot;
+          row = ydot;
+          if (zlinefp(x, y) < 0)
             return (-1);
-         col = xdots - col - 1;
-         row = ydots - row - 1;
-         if (zlinefp(-x, -y) < 0)
+          col = xdots - col - 1;
+          row = ydots - row - 1;
+          if (zlinefp(-x, -y) < 0)
             return (-1);
-      }
+        }
       if (plotted == 0)
-      {
-         if (y == 0)
-           plotted = -1;  /* no points first pass; don't give up */
-         else
-           break;
-      }
-   }
-   return (0);
+        {
+          if (y == 0)
+            plotted = -1;  /* no points first pass; don't give up */
+          else
+            break;
+        }
+    }
+  return (0);
 }

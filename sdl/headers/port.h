@@ -35,6 +35,13 @@
 /* but if you have this file, it can make it more fool proof. */
 // TODO (jonathan#1#): Found SDL_endian.h, use SDL_BIG_ENDIAN & SDL_LIL_ENDIAN
 // #include <endian.h>
+#if (defined(XFRACT) && !defined(__sun))
+#if defined(sgi)
+#include <sys/endian.h>
+#else
+#include <endian.h>
+#endif
+#endif
 #ifndef BIG_ENDIAN
 #define BIG_ENDIAN    4321  /* to show byte order (taken from gcc) */
 #endif
@@ -51,10 +58,6 @@
         typedef unsigned char  BYTE;
         typedef char           CHAR;
 
-#ifndef __cdecl
-#define __cdecl
-#endif
-
 # ifdef BADVOID
    typedef char          *VOIDPTR;
    typedef char          *VOIDFARPTR;
@@ -69,12 +72,12 @@ typedef int sigfunc(int);
 
 #ifndef BYTE_ORDER
 /* change for little endians that don't have this defined elsewhere (endian.h) */
-#ifdef XFRACT
 #define BYTE_ORDER LITTLE_ENDIAN
-#else
+// FIXME (jonathan#1#): How to make next work?
+#if 0
 #define BYTE_ORDER BIG_ENDIAN /* the usual case */
 #endif
-#endif
+#endif /* ifndef BYTE_ORDER */
 
 #ifndef USE_BIGNUM_C_CODE
 #define USE_BIGNUM_C_CODE
