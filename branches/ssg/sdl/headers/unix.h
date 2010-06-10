@@ -4,10 +4,6 @@
 #ifndef _UNIX_H
 #define _UNIX_H
 
-#define far
-#define cdecl
-#define huge
-#define near
 #ifndef RAND_MAX
 #define RAND_MAX 0x7fffffff
 #endif
@@ -70,14 +66,11 @@ char *strupr(char *s);
 # define bzero(buf,siz) memset(buf,0,siz)
 # define bcmp(buf1,buf2,len) memcmp(buf1,buf2,len)
 
-/* For Unix, all memory is FARMEM */
-#define EXPANDED FARMEM
-#define EXTENDED FARMEM
-
 /*
  * These defines are so movedata, etc. will work properly, without worrying
  * about the silly segment stuff.
  */
+// NOTE (jonathan#1#): Only thing used below is FP_OFF
 #define movedata(s_seg,s_off,d_seg,d_off,len) bcopy(s_off,d_off,len)
 struct SREGS {
     int ds;

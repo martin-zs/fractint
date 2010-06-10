@@ -59,7 +59,7 @@ struct videoinfo {              /* All we need to know about a Video Adapter */
         int     colors;         /* number of colors available           */
         };
 
-typedef struct videoinfo far        VIDEOINFO;
+typedef struct videoinfo VIDEOINFO;
 #define INFO_ID         "Fractal"
 typedef    struct fractal_info FRACTAL_INFO;
 
@@ -536,8 +536,8 @@ enum Minor  {left_first, right_first};
 #define NOGROUT         8    /* no gaps between images                                   */
 
 
-extern struct fractalspecificstuff far fractalspecific[];
-extern struct fractalspecificstuff far *curfractalspecific;
+extern struct fractalspecificstuff fractalspecific[];
+extern struct fractalspecificstuff *curfractalspecific;
 
 #define DEFAULTFRACTALTYPE      ".gif"
 #define ALTERNATEFRACTALTYPE    ".fra"
@@ -814,6 +814,13 @@ enum
 #define   AF10           1113
 #define   ALT_A          1030
 #define   ALT_S          1031
+#define   ALT_1          1120
+#define   ALT_2          1121
+#define   ALT_3          1122
+#define   ALT_4          1123
+#define   ALT_5          1124
+#define   ALT_6          1125
+#define   ALT_7          1126
 
 /* text colors */
 #define BLACK      0
@@ -1045,19 +1052,19 @@ typedef char FCODE;
 
 typedef FCODE * PFCODE;
 
-typedef BYTE far BFCODE;
+typedef BYTE BFCODE;
 
-typedef short far SIFCODE;
+typedef short SIFCODE;
 
-typedef short far USFCODE;
+typedef short USFCODE;
 
-typedef int far IFCODE;
+typedef int IFCODE;
 
-typedef unsigned int far UIFCODE;
+typedef unsigned int UIFCODE;
 
-typedef long far LFCODE;
+typedef long LFCODE;
 
-typedef unsigned long far ULFCODE;
+typedef unsigned long ULFCODE;
 
-typedef double far DFCODE;
+typedef double DFCODE;
 #endif

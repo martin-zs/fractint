@@ -26,7 +26,7 @@ void save_history_info()
 
   if (maxhistory <= 0 || bf_math || history == 0)
     return;
-  MoveFromMemory((BYTE far *)&last,(U16)sizeof(HISTORY),1L,(long)saveptr,history);
+  MoveFromMemory((BYTE *)&last,(U16)sizeof(HISTORY),1L,(long)saveptr,history);
 
   memset((void *)&current,0,sizeof(HISTORY));
   current.fractal_type    = (short)fractype           ;

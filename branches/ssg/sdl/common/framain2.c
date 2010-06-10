@@ -245,7 +245,7 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
         }
 
       zoomoff = 1;                      /* zooming is enabled */
-      if (dotmode == 11 || (curfractalspecific->flags&NOZOOM) != 0)
+      if (curfractalspecific->flags&NOZOOM != 0)
         zoomoff = 0;                   /* for these cases disable zooming */
       if (!evolving)
         calcfracinit();
@@ -482,22 +482,7 @@ resumeloop:                             /* return here on failed overlays */
                         /* don't ask, just get out */
                         goodbye();
                       stackscreen();
-#if 1
                       kbdchar = main_menu(1);
-#else
-                      if (XZoomWaiting)
-                        {
-                          kbdchar = ENTER;
-                        }
-                      else
-                        {
-                          kbdchar = main_menu(1);
-                          if (XZoomWaiting)
-                            {
-                              kbdchar = ENTER;
-                            }
-                        }
-#endif
                       if (kbdchar == '\\' || kbdchar == CTL_BACKSLASH ||
                           kbdchar == 'h' || kbdchar == 8)
                         discardscreen();
@@ -1250,9 +1235,6 @@ do_3d_transform:
 #endif
     case ENTER:                  /* Enter                        */
     case ENTER_2:                /* Numeric-Keypad Enter         */
-#if 0
-      XZoomWaiting = 0;
-#endif
       if (zwidth != 0.0)
         {
           /* do a zoom */
@@ -1350,13 +1332,13 @@ do_3d_transform:
       boxcolor -= key_count(CTL_DEL);
       break;
 
-    case 1120: /* alt + number keys set mutation level and start evolution engine */
-    case 1121:
-    case 1122:
-    case 1123:
-    case 1124:
-    case 1125:
-    case 1126:
+    case ALT_1: /* alt + number keys set mutation level and start evolution engine */
+    case ALT_2:
+    case ALT_3:
+    case ALT_4:
+    case ALT_5:
+    case ALT_6:
+    case ALT_7:
       /*
          case 1127:
          case 1128:
@@ -1610,9 +1592,6 @@ int evolver_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stack
       break;
     case ENTER:                  /* Enter                        */
     case ENTER_2:                /* Numeric-Keypad Enter         */
-#if 0
-      XZoomWaiting = 0;
-#endif
       if (zwidth != 0.0)
         {
           /* do a zoom */
@@ -1846,13 +1825,13 @@ int evolver_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stack
     *kbdmore = calc_status = 0;
     break;
 
-    case 1120: /* alt + number keys set mutation level */
-    case 1121:
-    case 1122:
-    case 1123:
-    case 1124:
-    case 1125:
-    case 1126:
+    case ALT_1: /* alt + number keys set mutation level */
+    case ALT_2:
+    case ALT_3:
+    case ALT_4:
+    case ALT_5:
+    case ALT_6:
+    case ALT_7:
       /*
          case 1127:
          case 1128:
@@ -1987,10 +1966,6 @@ static void move_zoombox(int keynum)
       */
       moveboxf((double)horizontal/dxsize,(double)vertical/dysize);
     }
-#if 0
-  else                                 /* if no zoombox, scroll by arrows */
-    scroll_relative(horizontal,vertical);
-#endif
 }
 
 /* displays differences between current image file and new image */
