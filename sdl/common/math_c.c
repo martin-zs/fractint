@@ -9,12 +9,14 @@
 
 void FPUcplxexp(_CMPLX *x, _CMPLX *z)
 {
-  double e2x, y;
+  LDBL e2x, y;
 
   y = x->y;
-  e2x = exp(x->x);
-  z->x = e2x * cos(y);
-  z->y = e2x * sin(y);
+  e2x = expl(x->x);
+  if (isnan(e2x) || isinf(e2x))
+    e2x = 1.0;
+  z->x = (double)(e2x * cosl(y));
+  z->y = (double)(e2x * sinl(y));
 }
 
 _CMPLX ComplexPower(_CMPLX xx, _CMPLX yy)
@@ -24,7 +26,7 @@ _CMPLX ComplexPower(_CMPLX xx, _CMPLX yy)
   /* fixes power bug - if any complaints, backwards compatibility hook
      goes here TIW 3/95 */
   if (ldcheck == 0)
-    if (xx.x == 0 && xx.y == 0)
+    if (xx.x == 0.0 && xx.y == 0.0)
       {
         z.x = z.y = 0.0;
         return(z);
