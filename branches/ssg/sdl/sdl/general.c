@@ -5,7 +5,7 @@
  * fractint license conditions, blah blah blah.
  */
 
-#include <fcntl.h>
+//#include <fcntl.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,8 +17,6 @@
 #include "port.h"
 #include "prototyp.h"
 
-int overflow = 0;
-
 int boxx[2304], boxy[1024];
 int boxvalues[512];
 char tstack[4096];
@@ -26,8 +24,6 @@ BYTE dacbox[256][3];
 BYTE olddacbox[256][3];
 
 extern int tabmode;
-
-int DivideOverflow = 0;
 
 /* ********************** Mouse Support Variables ************************** */
 
@@ -251,7 +247,7 @@ void tone(int frequency, int delaytime)
 */
 int soundon(int hertz)
 {
-    return(0);
+  return(0);
 }
 
 void soundoff(void)
@@ -868,176 +864,6 @@ void decode_orbits_info(struct orbits_info *info, int dir)
 }
 #endif /* XFRACT */
 
-/*
- *----------------------------------------------------------------------
- *
- * findpath --
- *
- *      Find where a file is.
- *	We return filename if it is an absolute path.
- *	Otherwise we first try FRACTDIR/filename, SRCDIR/filename,
- *      and then ./filename.
- *
- * Results:
- *      Returns full pathname in fullpathname.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
-void findpath(char *filename, char *fullpathname)
-{
-  int fd;
-  char *fractdir;
-
-  if (filename[0]==SLASHC)
-    {
-      strcpy(fullpathname,filename);
-      fd = open(fullpathname,O_RDONLY);
-      if (fd != -1)
-        {
-          close(fd);
-          return;
-        }
-    }
-  fractdir = getenv("FRACTDIR");
-  if (fractdir != NULL)
-    {
-      strcpy(fullpathname,fractdir);
-      strcat(fullpathname,SLASH);
-      strcat(fullpathname,filename);
-      fd = open(fullpathname,O_RDONLY);
-      if (fd != -1)
-        {
-          close(fd);
-          return;
-        }
-    }
-// FIXME (jonathan#1#): This will need to be fixed.  02/14/2010
-//  strcpy(fullpathname,SRCDIR);
-//  strcat(fullpathname,SLASH);
-//  strcat(fullpathname,filename);
-//  fd = open(fullpathname,O_RDONLY);
-//  if (fd != -1)
-//    {
-//      close(fd);
-//      return;
-//    }
-  strcpy(fullpathname,DOTSLASH);
-  strcat(fullpathname,filename);
-  fd = open(fullpathname,O_RDONLY);
-  if (fd != -1)
-    {
-      close(fd);
-      return;
-    }
-  fullpathname=NULL;
-}
-
-/*
- *----------------------------------------------------------------------
- *
- * splitpath --
- *
- *      This is the splitpath code from prompts.c
- *
- * Results:
- *      Returns drive, dir, base, and extension.
- *
- * Side effects:
- *      None.
- *
- *----------------------------------------------------------------------
- */
-int splitpath(char *template,char *drive,char *dir,char *fname,char *ext)
-{
-  int length;
-  int len;
-  int offset;
-  char *tmp;
-
-  if (drive)
-    drive[0] = 0;
-  if (dir)
-    dir[0]   = 0;
-  if (fname)
-    fname[0] = 0;
-  if (ext)
-    ext[0]   = 0;
-
-  if ((length = strlen(template)) == 0)
-    return(0);
-  offset = 0;
-
-  /* get drive */
-  if (length >= 2)
-    if (template[1] == ':')
-      {
-        if (drive)
-          {
-            drive[0] = template[offset++];
-            drive[1] = template[offset++];
-            drive[2] = 0;
-          }
-        else
-          {
-            offset++;
-            offset++;
-          }
-      }
-
-  /* get dir */
-  if (offset < length)
-    {
-      tmp = strrchr(template,SLASHC);
-      if (tmp)
-        {
-          tmp++;  /* first character after slash */
-          len = tmp - &template[offset];
-          if (len >=0 && len < FILE_MAX_DIR && dir)
-            strncpy(dir,&template[offset],min(len,FILE_MAX_DIR));
-          if (len < FILE_MAX_DIR && dir)
-            dir[len] = 0;
-          offset += len;
-        }
-    }
-  else
-    return(0);
-
-  /* get fname */
-  if (offset < length)
-    {
-      tmp = strrchr(template,'.');
-      if (tmp < strrchr(template,SLASHC) || tmp < strrchr(template,':'))
-        tmp = 0; /* in this case the '.' must be a directory */
-      if (tmp)
-        {
-          /* tmp++; */ /* first character past "." */
-          len = tmp - &template[offset];
-          if ((len > 0) && (offset+len < length) && fname)
-            {
-              strncpy(fname,&template[offset],min(len,FILE_MAX_FNAME));
-              if (len < FILE_MAX_FNAME)
-                fname[len] = 0;
-              else
-                fname[FILE_MAX_FNAME-1] = 0;
-            }
-          offset += len;
-          if ((offset < length) && ext)
-            {
-              strncpy(ext,&template[offset],FILE_MAX_EXT);
-              ext[FILE_MAX_EXT-1] = 0;
-            }
-        }
-      else if ((offset < length) && fname)
-        {
-          strncpy(fname,&template[offset],FILE_MAX_FNAME);
-          fname[FILE_MAX_FNAME-1] = 0;
-        }
-    }
-  return(0);
-}
 
 /* This ftime simulation routine is from Frank Chen */
 void ftimex(struct timebx *tp)

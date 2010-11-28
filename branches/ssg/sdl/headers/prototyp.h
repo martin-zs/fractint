@@ -9,6 +9,9 @@
 #include "helpcom.h"
 #include "externs.h"
 
+/*
+     FILES IN COMMON FOLDER
+*/
 
 /*  3d -- C file prototypes */
 
@@ -199,6 +202,39 @@ extern int snd_open(void);
 extern void w_snd(int);
 extern void snd_time_write(void);
 extern void close_snd(void);
+
+/*  fractalb.c -- C file prototypes */
+
+extern _CMPLX cmplxbntofloat(_BNCMPLX *);
+extern _CMPLX cmplxbftofloat(_BFCMPLX *);
+extern void comparevalues(char *,LDBL,bn_t);
+extern void comparevaluesbf(char *,LDBL,bf_t);
+extern void show_var_bf(char *s, bf_t n);
+extern void show_two_bf(char *,bf_t,char *, bf_t, int);
+extern void bfcornerstofloat(void);
+extern void showcornersdbl(char *);
+extern int MandelbnSetup(void);
+extern int mandelbn_per_pixel(void);
+extern int juliabn_per_pixel(void);
+extern int dividebrot5bn_per_pixel(void);
+extern int JuliabnFractal(void);
+extern int JuliaZpowerbnFractal(void);
+extern int DivideBrot5bnFractal(void);
+extern _BNCMPLX *cmplxlog_bn(_BNCMPLX *t, _BNCMPLX *s);
+extern _BNCMPLX *cplxmul_bn( _BNCMPLX *t, _BNCMPLX *x, _BNCMPLX *y);
+extern _BNCMPLX *cplxdiv_bn( _BNCMPLX *t, _BNCMPLX *x, _BNCMPLX *y);
+extern _BNCMPLX *ComplexPower_bn(_BNCMPLX *t, _BNCMPLX *xx, _BNCMPLX *yy);
+extern int MandelbfSetup(void);
+extern int mandelbf_per_pixel(void);
+extern int juliabf_per_pixel(void);
+extern int dividebrot5bf_per_pixel(void);
+extern int JuliabfFractal(void);
+extern int JuliaZpowerbfFractal(void);
+extern int DivideBrot5bfFractal(void);
+extern _BFCMPLX *cmplxlog_bf(_BFCMPLX *t, _BFCMPLX *s);
+extern _BFCMPLX *cplxmul_bf( _BFCMPLX *t, _BFCMPLX *x, _BFCMPLX *y);
+extern _BFCMPLX *cplxdiv_bf( _BFCMPLX *t, _BFCMPLX *x, _BFCMPLX *y);
+extern _BFCMPLX *ComplexPower_bf(_BFCMPLX *t, _BFCMPLX *xx, _BFCMPLX *yy);
 
 /*  fractalp -- C file prototypes */
 
@@ -609,6 +645,19 @@ extern int  GausianNumber(int ,int);
 extern long multiply(long, long, int);
 extern long divide(long, long, int);
 
+/*  memory -- C file prototypes */
+
+extern void DisplayMemory (void);
+extern void DisplayHandle (U16 handle);
+extern int MemoryType (U16 handle);
+extern void InitMemory (void);
+extern void ExitCheck (void);
+extern U16 MemoryAlloc(U16 size, long count, int stored_at);
+extern void MemoryRelease(U16 handle);
+extern int MoveToMemory(BYTE *buffer,U16 size,long count,long offset,U16 handle);
+extern int MoveFromMemory(BYTE *buffer,U16 size,long count,long offset,U16 handle);
+extern int SetMemory(int value,U16 size,long count,long offset,U16 handle);
+
 /*  miscfrac -- C file prototypes */
 
 extern void froth_cleanup(void);
@@ -654,12 +703,9 @@ extern void fix_inversion(double *);
 extern int ungetakey(int);
 extern void get_calculation_time(char *, long);
 
-/*  msccos -- C file prototypes */
-
-extern double _cos(double );
-
 /*  parser -- C file prototypes */
 
+// FIXME (jonathan#1#): Move this structure to a header file.
 struct fls { /* function, load, store pointers  CAE fp */
    void (*function)(void);
    union Arg *operand;
@@ -832,26 +878,14 @@ extern int get_view_params(void);
 extern int get_starfield_params(void );
 extern int get_commands(void);
 extern void goodbye(void);
-extern int isadirectory(char *s);
 extern int getafilename(char *,char *,char *);
-extern int splitpath(char *template,char *drive,char *dir,char *fname,char *ext);
-extern int makepath(char *template,char *drive,char *dir,char *fname,char *ext);
-extern int fr_findfirst(char *path);
-extern int fr_findnext(void );
 extern void shell_sort(void *,int n,unsigned,int (*fct)(VOIDFARPTR,VOIDFARPTR));
-extern void fix_dirname(char *dirname);
-extern int merge_pathnames(char *, char *, int);
 extern int get_browse_params(void);
 extern int get_cmd_string(void);
 extern int get_rds_params(void);
 extern int starfield(void);
 extern int get_a_number(double *, double *);
 extern int lccompare(VOIDFARPTR, VOIDFARPTR);
-extern int dir_open(char *, char *, int, int);
-extern int dir_remove(char *,char *);
-extern FILE *dir_fopen(char *, char *, char *);
-extern void extract_filename(char *, char *);
-extern char *has_ext(char *source);
 
 /*  realdos -- C file prototypes */
 
@@ -889,6 +923,11 @@ extern int startslideshow(void);
 extern void stopslideshow(void);
 extern void recordshw(int );
 
+/*  soi -- C file prototypes */
+
+extern void soi (void);
+extern void soi_ldbl (void);
+
 /*  stereo -- C file prototypes */
 
 extern int do_AutoStereo(void);
@@ -914,67 +953,10 @@ extern void addbox(struct coords);
 extern void clearbox(void);
 extern void dispbox(void);
 
-/*  fractalb.c -- C file prototypes */
-
-extern _CMPLX cmplxbntofloat(_BNCMPLX *);
-extern _CMPLX cmplxbftofloat(_BFCMPLX *);
-extern void comparevalues(char *,LDBL,bn_t);
-extern void comparevaluesbf(char *,LDBL,bf_t);
-extern void show_var_bf(char *s, bf_t n);
-extern void show_two_bf(char *,bf_t,char *, bf_t, int);
-extern void bfcornerstofloat(void);
-extern void showcornersdbl(char *);
-extern int MandelbnSetup(void);
-extern int mandelbn_per_pixel(void);
-extern int juliabn_per_pixel(void);
-extern int dividebrot5bn_per_pixel(void);
-extern int JuliabnFractal(void);
-extern int JuliaZpowerbnFractal(void);
-extern int DivideBrot5bnFractal(void);
-extern _BNCMPLX *cmplxlog_bn(_BNCMPLX *t, _BNCMPLX *s);
-extern _BNCMPLX *cplxmul_bn( _BNCMPLX *t, _BNCMPLX *x, _BNCMPLX *y);
-extern _BNCMPLX *cplxdiv_bn( _BNCMPLX *t, _BNCMPLX *x, _BNCMPLX *y);
-extern _BNCMPLX *ComplexPower_bn(_BNCMPLX *t, _BNCMPLX *xx, _BNCMPLX *yy);
-extern int MandelbfSetup(void);
-extern int mandelbf_per_pixel(void);
-extern int juliabf_per_pixel(void);
-extern int dividebrot5bf_per_pixel(void);
-extern int JuliabfFractal(void);
-extern int JuliaZpowerbfFractal(void);
-extern int DivideBrot5bfFractal(void);
-extern _BFCMPLX *cmplxlog_bf(_BFCMPLX *t, _BFCMPLX *s);
-extern _BFCMPLX *cplxmul_bf( _BFCMPLX *t, _BFCMPLX *x, _BFCMPLX *y);
-extern _BFCMPLX *cplxdiv_bf( _BFCMPLX *t, _BFCMPLX *x, _BFCMPLX *y);
-extern _BFCMPLX *ComplexPower_bf(_BFCMPLX *t, _BFCMPLX *xx, _BFCMPLX *yy);
-
-/*  memory -- C file prototypes */
-
-extern void DisplayMemory (void);
-extern void DisplayHandle (U16 handle);
-extern int MemoryType (U16 handle);
-extern void InitMemory (void);
-extern void ExitCheck (void);
-extern U16 MemoryAlloc(U16 size, long count, int stored_at);
-extern void MemoryRelease(U16 handle);
-extern int MoveToMemory(BYTE *buffer,U16 size,long count,long offset,U16 handle);
-extern int MoveFromMemory(BYTE *buffer,U16 size,long count,long offset,U16 handle);
-extern int SetMemory(int value,U16 size,long count,long offset,U16 handle);
-
-/*  soi -- C file prototypes */
-
-extern void soi (void);
-extern void soi_ldbl (void);
 
 /*
- *  uclock -- C file prototypes
- *  The  uclock_t typedef placed here because uclock.h
- *  prototype is for DOS version only.
- */
-typedef unsigned long uclock_t;
-
-extern uclock_t usec_clock(void);
-extern void restart_uclock(void);
-extern void wait_until(int index, uclock_t wait_time);
+     FILES IN SDL FOLDER
+*/
 
 /*  calmand -- C file prototypes */
 
@@ -984,6 +966,24 @@ extern long calcmandasm(void);
 
 extern void calcmandfpasmstart(void);
 extern long calcmandfp_c(void);
+
+/*  faccess -- C file prototypes */
+
+extern void findpath(char *,char *);
+extern int isadirectory(char *s);
+extern void expand_dirname(char *dirname, char *drive);
+extern int splitpath(char *template,char *drive,char *dir,char *fname,char *ext);
+extern int makepath(char *template,char *drive,char *dir,char *fname,char *ext);
+extern int fr_findfirst(char *path);
+extern int fr_findnext(void );
+extern void fix_dirname(char *dirname);
+extern int merge_pathnames(char *, char *, int);
+extern void extract_filename(char *, char *);
+extern char *has_ext(char *source);
+extern int dir_open(char *, char *, int, int);
+extern int dir_remove(char *,char *);
+extern FILE *dir_fopen(char *, char *, char *);
+
 
 /*  fpu087 -- C file prototypes */
 
@@ -1010,8 +1010,15 @@ extern long RegSftFloat(long , int );
 #endif
 
 /*  general -- C file prototypes */
+/*
+ *  The  uclock_t typedef placed here because uclock.h
+ *  prototype is for DOS version only.
+ */
+typedef unsigned long uclock_t;
 
-extern void findpath(char *,char *);
+extern uclock_t usec_clock(void);
+extern void restart_uclock(void);
+extern void wait_until(int index, uclock_t wait_time);
 extern void ftimex(struct timebx *);
 extern long normalize(char *);
 extern int keypressed(void);
@@ -1039,26 +1046,6 @@ extern int stricmp(char *, char *);
 extern int strnicmp(char *, char *, int);
 #endif /* HAVESTRI */
 #endif /* XFRACT */
-
-/*  video -- C file prototypes */
-
-extern void setnullvideo (void);
-extern int getcolor (int, int);
-extern void putcolor_a (int, int, int);
-extern void get_line (int, int, int, BYTE *);
-extern void put_line (int, int, int, BYTE *);
-extern int out_line (BYTE *, int);
-extern void find_special_colors (void);
-extern char get_a_char (void);
-extern void put_a_char (char);
-extern void dac_to_rgb(BYTE, BYTE *, BYTE *, BYTE *);
-extern BYTE *findfont(int);
-extern void setvideotext (void);
-extern void loaddac (void);
-extern void setvideomode (int);
-extern void movecursor (int, int);
-extern int keycursor (int, int);
-extern void spindac (int, int);
 
 /*  sdl_src -- C file prototypes */
 
@@ -1090,6 +1077,26 @@ extern int get_key_event(int);
 extern void delay(int);
 extern long clock_ticks(void);
 extern int time_to_update(void);
+
+/*  video -- C file prototypes */
+
+extern void setnullvideo (void);
+extern int getcolor (int, int);
+extern void putcolor_a (int, int, int);
+extern void get_line (int, int, int, BYTE *);
+extern void put_line (int, int, int, BYTE *);
+extern int out_line (BYTE *, int);
+extern void find_special_colors (void);
+extern char get_a_char (void);
+extern void put_a_char (char);
+extern void dac_to_rgb(BYTE, BYTE *, BYTE *, BYTE *);
+extern BYTE *findfont(int);
+extern void setvideotext (void);
+extern void loaddac (void);
+extern void setvideomode (int);
+extern void movecursor (int, int);
+extern int keycursor (int, int);
+extern void spindac (int, int);
 
 
 #endif

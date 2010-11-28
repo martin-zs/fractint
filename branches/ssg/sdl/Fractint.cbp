@@ -7,14 +7,15 @@
 		<Option compiler="gcc" />
 		<Option show_notes="0">
 			<notes>
-				<![CDATA[Try to delete fmath.h?
+				<![CDATA[Integer mandel not coded.
+Need font with arrow symbols
 Remove printer functions.
-Remove XFRACT defines and far routines.
-May need defines for LINUX and/or WIN32.
  ==> 8-bit mode color cycling locks up.
-bf math works, but can't zoom.
-Need to code an integer version on mandel.
-Need to fix text colors.]]>
+bf/bn math works, but can't zoom.  Inside options broken.
+Need to fix text colors.
+Need to work on key combinations: control-anykey.
+Resize with a text screen visible doesn't regenerate image.
+Fix file access.]]>
 			</notes>
 		</Option>
 		<Build>
@@ -22,7 +23,6 @@ Need to fix text colors.]]>
 				<Option output="Fractint" prefix_auto="1" extension_auto="1" />
 				<Option type="0" />
 				<Option compiler="gcc" />
-				<Option parameters="truemode=0" />
 				<Compiler>
 					<Add option="-fno-builtin" />
 				</Compiler>
@@ -236,6 +236,9 @@ Need to fix text colors.]]>
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="sdl\diskvidu.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="sdl\faccess.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="sdl\fpu087.c">

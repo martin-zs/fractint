@@ -94,8 +94,8 @@ typedef int sigfunc(int);
  #define SLASHDOT       "\\."
  #define DOTSLASH       ".\\"
  #define DOTDOTSLASH    "..\\"
- #define READMODE        "rb"    /* Correct DOS text-mode        */
- #define WRITEMODE       "wb"    /* file open "feature".         */
+ #define READMODE       "rb"    /* Correct DOS text-mode        */
+ #define WRITEMODE      "wb"    /* file open "feature".         */
 #else
  #define CONST          const
  #define SLASHC         '/'
@@ -105,14 +105,14 @@ typedef int sigfunc(int);
  #define DOTSLASH       "./"
  #define DOTDOTSLASH    "../"
  #define READMODE       "r"
- #define WRITEMODE        "w"
+ #define WRITEMODE      "w"
 #endif
 
-#       define write1(ptr,len,n,stream) (fputc(*(ptr),stream),1)
-#       define write2(ptr,len,n,stream) (fputc((*(ptr))&255,stream),fputc((*(ptr))>>8,stream),1)
-#       define rand15() (rand()&0x7FFF)
+#define write1(ptr,len,n,stream) (fputc(*(ptr),stream),1)
+#define write2(ptr,len,n,stream) (fputc((*(ptr))&255,stream),fputc((*(ptr))>>8,stream),1)
+#define rand15() (rand()&0x7FFF)
 
-#       include "unix.h"
+#include "unix.h"
 
 
 /* The following FILE_* #defines were moved here from fractint.h to
@@ -163,10 +163,10 @@ extern struct DIR_SEARCH DTA;   /* Disk Transfer Area */
 #endif
 
 #ifdef LOBYTEFIRST
-#define GET16(c,i)              (i) = *((U16*)(&(c)))
+#define GET16(c,i)    (i) = *((U16*)(&(c)))
 #else
-#define GET16(c,i)              (i) = (*(unsigned char *)&(c))+\
-                                ((*((unsigned char*)&(c)+1))<<8)
+#define GET16(c,i)    (i) = (*(unsigned char *)&(c))+\
+                      ((*((unsigned char*)&(c)+1))<<8)
 #endif
 
 /* Some compiler libraries don't correctly handle long double.*/

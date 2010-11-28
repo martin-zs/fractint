@@ -213,7 +213,7 @@ void cvtcorners(double Xctr, double Yctr, LDBL Magnification, double Xmagfactor,
   if (Xmagfactor == 0.0)
     Xmagfactor = 1.0;
 
-  h = (double)(1/Magnification);
+  h = (double)(1.0 / Magnification);
   w = h / (DEFAULTASPECT * Xmagfactor);
 
   if (Rotation == 0.0 && Skew == 0.0)
