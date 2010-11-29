@@ -1273,7 +1273,7 @@ int getafilename(char *hdg,char *template,char *flname)
   rds = (stereomapname == flname)?1:0;
 
   /* create array for "choices" */
-  choices = (struct CHOICE **)malloc(16000);
+  choices = (struct CHOICE **)malloc(32000);
   choices[0] = (struct CHOICE *)(choices + MAXNUMFILES+1);
   attributes = (int *)(choices[0] + MAXNUMFILES+1);
   instr = (char *)(attributes + MAXNUMFILES +1);

@@ -1,7 +1,5 @@
 /* This file contains all the file access routines */
 
-#include "port.h"
-#include "prototyp.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <dirent.h>
@@ -10,6 +8,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "port.h"
+#include "prototyp.h"
 
 #define   FILEATTR       0x37      /* File attributes; select all but volume labels */
 #define   HIDDEN         2
@@ -433,9 +433,7 @@ int merge_pathnames(char *oldfullpath, char *newfilename, int mode)
   char dir[FILE_MAX_DIR];
   char fname[FILE_MAX_FNAME];
   char ext[FILE_MAX_EXT];
-#ifndef XFRACT
   char temp_path[FILE_MAX_PATH];
-#endif
 
   char drive1[FILE_MAX_DRIVE];
   char dir1[FILE_MAX_DIR];
