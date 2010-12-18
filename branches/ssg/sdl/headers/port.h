@@ -175,6 +175,9 @@ extern struct DIR_SEARCH DTA;   /* Disk Transfer Area */
 /*   scanf("%Lf", &longdoublevar);                            */
 /* to read in a long double, then uncomment this next line    */
 /* #define DO_NOT_USE_LONG_DOUBLE */
+#ifndef XFRACT
+#define DO_NOT_USE_LONG_DOUBLE
+#endif
 
 #ifndef DO_NOT_USE_LONG_DOUBLE
 #ifdef LDBL_DIG

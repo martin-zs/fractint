@@ -23,10 +23,10 @@ MandelSetup(void)           /* Mandelbrot Routine */
       && (orbitsave&2) == 0)
 // FIXME (jonathan#1#): Need C code for calcmand.
 //    calctype = calcmand; /* the normal case - use CALCMAND */
-{
+    {
       calctype = StandardFractal;
       longparm = &linit;
-}
+    }
   else
     {
       /* special case: use the main processing loop */
@@ -47,11 +47,11 @@ JuliaSetup(void)            /* Julia Routine */
       && (orbitsave&2) == 0)
 // FIXME (jonathan#1#): Need C code for calcmand.
 //    calctype = calcmand; /* the normal case - use CALCMAND */
-{
+    {
       calctype = StandardFractal;
       longparm = &lparm;
       get_julia_attractor (0.0, 0.0);   /* another attractor? */
-}
+    }
   else
     {
       /* special case: use the main processing loop */
@@ -112,7 +112,7 @@ NewtonSetup(void)           /* Newton/NewtBasin Routines */
         roots = staticroots;
 
       /* list of roots to discover where we converged for newtbasin */
-      for (i=0;i<degree;i++)
+      for (i=0; i<degree; i++)
         {
           roots[i].x = cos(i*TWOPI/(double)degree);
           roots[i].y = sin(i*TWOPI/(double)degree);
@@ -995,11 +995,7 @@ HalleySetup(void)
   /* Halley */
   periodicitycheck=0;
 
-  if (usr_floatflag)
-    fractype = HALLEY; /* float on */
-  else
-    ; // force float here, MP math is being removed. JCO 02/09/2010
-//     fractype = MPHALLEY;
+  fractype = HALLEY; /* float on, only float is implemented */
 
   curfractalspecific = &fractalspecific[fractype];
 
@@ -1206,7 +1202,7 @@ int ComplexNewtonSetup(void)
       cdegree.x = param[0];
       cdegree.y = param[1];
       FPUcplxlog(&croot, &BaseLog);
-/*      TwoPi = asin(1.0) * 4; use TWOPI */
+      /*      TwoPi = asin(1.0) * 4; use TWOPI */
     }
   return(1);
 }
