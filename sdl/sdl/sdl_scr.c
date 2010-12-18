@@ -19,22 +19,22 @@ SDL_Color text_cols[16];
 
 SDL_Color XlateText[] =
 {
-  {  0,  0,  0}, /* black */
-  {  0,  0,205}, /* Blue */
-  {  0,205,  0}, /* Green */
-  {  0,205,205}, /* Cyan */
-  {205,  0,  0}, /* Red */
-  {205,  0,205}, /* Magenta */
-  {205,205,  0}, /* Brown */
-  {205,205,205}, /* White */
-  {100,100,100}, /* Gray */
-  {  0,  0,255}, /* L_Blue */
-  {  0,255,  0}, /* L_Green */
-  {  0,255,255}, /* L_Cyan */
-  {255,  0,  0}, /* L_Red */
-  {255,  0,255}, /* L_Magenta */
-  {255,255,  0}, /* Yellow */
-  {255,255,255}  /* L_White */
+  {  0,  0,  0,  0}, /* black */
+  {  0,  0,205,  0}, /* Blue */
+  {  0,205,  0,  0}, /* Green */
+  {  0,205,205,  0}, /* Cyan */
+  {205,  0,  0,  0}, /* Red */
+  {205,  0,205,  0}, /* Magenta */
+  {205,205,  0,  0}, /* Brown */
+  {205,205,205,  0}, /* White */
+  {100,100,100,  0}, /* Gray */
+  {  0,  0,255,  0}, /* L_Blue */
+  {  0,255,  0,  0}, /* L_Green */
+  {  0,255,255,  0}, /* L_Cyan */
+  {255,  0,  0,  0}, /* L_Red */
+  {255,  0,255,  0}, /* L_Magenta */
+  {255,255,  0,  0}, /* Yellow */
+  {255,255,255,  0}  /* L_White */
 };
 
 static int mousefkey[4][4] /* [button][dir] */ =
@@ -212,8 +212,7 @@ void SetupSDL(void)
       exit(1);
     }
 
-// NOTE (jonathan#1#): Next does not work.  Don't know why.
-  SDL_WM_SetIcon(SDL_LoadBMP("Fractint.ico"), NULL);
+  SDL_WM_SetIcon(SDL_LoadBMP("Fractint.bmp"), NULL);
 
   if (TTF_Init() < 0)
     {

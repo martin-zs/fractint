@@ -122,17 +122,16 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
                   if ((ydots = viewydots) == 0) /* calc ydots? */
                     ydots = (int)((double)xdots * ftemp + 0.5);
                 }
+              else if (finalaspectratio <= screenaspect)
+                {
+                  xdots = (int)((double)sxdots / viewreduction + 0.5);
+                  ydots = (int)((double)xdots * ftemp + 0.5);
+                }
               else
-                if (finalaspectratio <= screenaspect)
-                  {
-                    xdots = (int)((double)sxdots / viewreduction + 0.5);
-                    ydots = (int)((double)xdots * ftemp + 0.5);
-                  }
-                else
-                  {
-                    ydots = (int)((double)sydots / viewreduction + 0.5);
-                    xdots = (int)((double)ydots / ftemp + 0.5);
-                  }
+                {
+                  ydots = (int)((double)sydots / viewreduction + 0.5);
+                  xdots = (int)((double)ydots / ftemp + 0.5);
+                }
               if (xdots > sxdots || ydots > sydots)
                 {
                   static FCODE msg[] = {"View window too large; using full screen."};
@@ -225,7 +224,9 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
             }
           else
 // FIXME (jonathan#1#): Need to define actions for other filetypes
-            ;
+            {
+              ;
+            }
 //            i = funny_glasses_call(tgaview);
           if (outln_cleanup)             /* cleanup routine defined? */
             (*outln_cleanup)();
@@ -763,7 +764,7 @@ int main_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stacked,
         int oldtype, err, i;
         double oldparm[MAXPARAMS];
         oldtype = fractype;
-        for (i=0;i<MAXPARAMS;i++)
+        for (i=0; i<MAXPARAMS; i++)
           oldparm[i] = param[i];
         if (fractype != ANT)
           {
@@ -783,7 +784,7 @@ int main_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stacked,
         else
           unstackscreen();
         fractype = oldtype;
-        for (i=0;i<MAXPARAMS;i++)
+        for (i=0; i<MAXPARAMS; i++)
           param[i] = oldparm[i];
         if (err >= 0)
           return(CONTINUE);
@@ -1137,11 +1138,12 @@ do_3d_transform:
             case ENTER_2:
               showfile = 0;       /* trigger load */
               browsing = TRUE;    /* but don't ask for the file name as it's
-                                 * just been selected */
+                                   * just been selected */
               if (name_stack_ptr == 15)
-                {                   /* about to run off the end of the file
-                                 * history stack so shift it all back one to
-                                 * make room, lose the 1st one */
+                {
+                  /* about to run off the end of the file
+                   * history stack so shift it all back one to
+                   * make room, lose the 1st one */
                   int tmp;
                   for (tmp = 1; tmp < 16; tmp++)
                     strcpy(file_name_stack[tmp - 1], file_name_stack[tmp]);
@@ -1810,7 +1812,7 @@ int evolver_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stack
       GENEBASE gene[NUMGENES];
       /* get the gene array from memory */
       MoveFromMemory((BYTE *)&gene, (U16)sizeof(gene), 1L, 0L, gene_handle);
-      for (i =0;i < NUMGENES; i++)
+      for (i =0; i < NUMGENES; i++)
         {
           if (gene[i].mutate == 5)
             {
@@ -1986,7 +1988,7 @@ int cmp_line(BYTE *pixels, int linelen)
       if ((row & 1) != 0) return(0);
       row >>= 1;
     }
-  for (col=0;col<linelen;col++)
+  for (col=0; col<linelen; col++)
     {
       oldcolor=getcolor(col,row);
       if (oldcolor==(int)pixels[col])

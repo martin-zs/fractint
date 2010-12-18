@@ -59,8 +59,10 @@ typedef void (*SignalHandler)(int);
 
 extern int iocount;
 
+#if 0
 char *strlwr(char *s);
 char *strupr(char *s);
+#endif
 
 # define bcopy(src,dst,n) memcpy(dst,src,n)
 # define bzero(buf,siz) memset(buf,0,siz)
