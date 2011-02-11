@@ -15,7 +15,7 @@ bf/bn math works, but can't zoom.  Inside options broken.
 Need to fix text colors.
 Need to work on key combinations: control-anykey.
 Resize with a text screen visible doesn't regenerate image.
-Fix file access.]]>
+Fix stackscreen/unstackscreen - see area under <TAB>.]]>
 			</notes>
 		</Option>
 		<Build>

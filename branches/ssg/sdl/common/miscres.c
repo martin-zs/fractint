@@ -1242,16 +1242,15 @@ top:
 
 static void area(void)
 {
-  /* apologies to UNIX folks, we PC guys have to save near space */
-  static FCODE warning[] = {"Warning: inside may not be unique\n"};
-  static FCODE total_area[] = {".  Total area "};
+  char warning[] = {"Warning: inside may not be unique\n"};
+  char total_area[] = {".  Total area "};
   char *msg;
   int x,y;
   char buf[160];
   long cnt=0;
   if (inside<0)
     {
-      static FCODE msg[] = {"Need solid inside to compute area"};
+      char msg[] = {"Need solid inside to compute area"};
       stopmsg(0,msg);
       return;
     }

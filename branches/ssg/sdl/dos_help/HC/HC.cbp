@@ -13,6 +13,7 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-O2" />
+					<Add option="-nobuiltin" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -22,17 +23,16 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
-		<Unit filename="..\..\dos_help\hc.c">
+		<Unit filename="..\hc.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="..\..\dos_help\help.src" />
-		<Unit filename="..\..\dos_help\help2.src" />
-		<Unit filename="..\..\dos_help\help3.src" />
-		<Unit filename="..\..\dos_help\help4.src" />
-		<Unit filename="..\..\dos_help\help5.src" />
+		<Unit filename="..\help.src" />
+		<Unit filename="..\help2.src" />
+		<Unit filename="..\help3.src" />
+		<Unit filename="..\help4.src" />
+		<Unit filename="..\help5.src" />
 		<Unit filename="..\..\headers\helpcom.h" />
 		<Unit filename="..\..\headers\port.h" />
-		<Unit filename="..\..\headers\unix.h" />
 		<Extensions>
 			<code_completion />
 			<debugger />

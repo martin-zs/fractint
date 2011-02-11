@@ -45,10 +45,6 @@ int patchlevel=0; /* patchlevel for DOS version */
        &8 for Fractint for Windows & parser - use a fixed pitch font
       &16 for info only message (green box instead of red in DOS vsn)
    */
-#if 1 /* XFRACT */
-static char s_errorstart[] = {"*** Error during startup:"};
-extern char * Xmessage;
-#endif
 static char s_escape_cancel[] = {"Escape to cancel, any other key to continue..."};
 static char s_anykey[] = {"Any key to continue..."};
 #ifndef PRODUCTION
