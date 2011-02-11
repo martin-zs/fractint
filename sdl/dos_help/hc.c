@@ -2776,7 +2776,7 @@ typedef struct
             tnum,
             link_dest_warn;
 
-   char far *start;
+   char     *start;
    CONTENT  *c;
    LABEL    *lbl;
 
@@ -3395,7 +3395,7 @@ void printerc(PRINT_DOC_INFO *info, int c, int n)
    }
 
 
-void printers(PRINT_DOC_INFO *info, char far *s, int n)
+void printers(PRINT_DOC_INFO *info, char *s, int n)
    {
    if (n > 0)
       {

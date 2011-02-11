@@ -1,0 +1,23 @@
+# depslib dependency file v1.0
+1287494465 source:c:\svn\sdl\sdl\general.c
+	<string.h>
+	<stdio.h>
+	<stdlib.h>
+	<signal.h>
+	<ctype.h>
+	<sys/types.h>
+	<sys/time.h>
+	"port.h"
+	"prototyp.h"
+
+1297429643 source:c:\svn\sdl\dos_help\hc.c
+	<io.h>
+	<stdarg.h>
+	<varargs.h>
+	<fcntl.h>
+	<string.h>
+	<ctype.h>
+	<assert.h>
+	"port.h"
+	"helpcom.h"
+
