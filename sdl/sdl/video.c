@@ -45,12 +45,58 @@ int textcol = 0;   /* for putstring(..,-1,...) */
 int textrbase = 0; /* textrow is relative to this */
 int textcbase = 0; /* textcol is relative to this */
 
+struct videoinfo videoentry;
+
 void setfortext (void);
 void setforgraphics (void);
 void setvideomode (int);
 void putstring (int, int, int, CHAR *);
 void normaline (int, int, int, BYTE *);
 void normalineread (int, int, int, BYTE *);
+
+/*
+    name of mode              | Comments
+   key | mode | x | y | clr
+*/
+
+struct videoinfo videotable[MAXVIDEOTABLE] = {
+  {"4-bit palette based      ", "                         ",
+   F2, 4, 640, 350, 16},
+  {"8-bit palette based      ", "                         ",
+   F3, 8, 320, 200, 256},
+  {"4-bit palette based      ", "                         ",
+   F4, 4, 640, 480, 16},
+  {"2-bit palette based      ", "                         ",
+   F5, 2, 320, 200, 4},
+  {"1-bit palette based      ", "                         ",
+   F6, 1, 640, 200, 2},
+  {"1-bit palette based      ", "                         ",
+   F7, 1, 640, 350, 2},
+  {"1-bit palette based      ", "                         ",
+   F8, 1, 640, 480, 2},
+  {"4-bit palette based      ", "                         ",
+   F9, 4, 320, 200, 16},
+  {"8-bit palette based      ", "                         ",
+   F10, 8, 320, 400, 256},
+  {"8-bit palette based      ", "                         ",
+   SF1, 8, 360, 480, 256},
+  {"4-bit palette based      ", "                         ",
+   SF2, 4, 800, 600, 16},
+  {"4-bit palette based      ", "                         ",
+   SF3, 4, 1024, 768, 16},
+  {"Best Match to HW         ", "                         ",
+   SF4, 0, 640, 400, 0},
+  {"Best Match to HW         ", "                         ",
+   SF5, 0, 640, 480, 0},
+  {"Best Match to HW         ", "                         ",
+   SF6, 0, 800, 600, 0},
+  {"Best Match to HW         ", "                         ",
+   SF7, 0, 1024, 768, 0},
+  {"Best Match to HW         ", "                         ",
+   SF8, 0, 1280, 1024, 0},
+  {"unused  mode             ", "                         ",
+   0, 0, 0, 0, 0},
+};
 
 void nullwrite (int a, int b, U32 c)
 {
@@ -74,8 +120,7 @@ void setnullvideo (void)
 */
 void setvideotext (void)
 {
-  dotmode = 1;
-  setvideomode (dotmode);
+  setvideomode (3);  /* dotmode = 3 for text, but don't change screen */
 }
 
 void loaddac (void)
@@ -89,7 +134,8 @@ void loaddac (void)
 ;       This function sets the (alphanumeric or graphic) video mode
 ;       of the monitor.   Called with the proper value of dotmode.
 ;       No returned values, as there is no particular standard to
-;       adhere to in this case.  Dotmode is 1 for text and 2 for graphics.
+;       adhere to in this case.  Dotmode is 3 for text and
+;       0,8,16,24,32 for graphics.
 
 */
 void setvideomode (int dotmode)
@@ -100,18 +146,32 @@ void setvideomode (int dotmode)
     }
   switch (dotmode)
     {
-    case 1:   /* text */
+    case 3:   /* text */
 // FIXME (jonathan#1#): Add code to setup text screen.
+//      ResizeScreen(2);
       starttext();
       setfortext();
       break;
-    case 2:   /* video window */
+    case 0:   /* video window */
+    case 8:
+    case 15:   /* shouldn't be used */
+    case 16:
+    case 24:
+    case 32:
       dotwrite = writevideo;
       dotread = readvideo;
       lineread = readvideoline;
       linewrite = writevideoline;
+      ResizeScreen(1);
       startvideo ();
       setforgraphics ();
+      break;
+    case 11:
+      startdisk ();
+      dotwrite = writedisk;
+      dotread = readdisk;
+      lineread = normalineread;
+      linewrite = normaline;
       break;
     default:
       printf ("Bad video mode %d\n", dotmode);
@@ -119,10 +179,9 @@ void setvideomode (int dotmode)
     }
 
   loaddac ();
-  andcolor = colors - 1;
+  andcolor = videoentry.colors - 1;
   boxcount = 0;
 }
-
 
 /*
 ; **************** Function getcolor(xdot, ydot) *******************

@@ -106,7 +106,6 @@ void FPUcplxlog(_CMPLX *x, _CMPLX *z)
   if (xx == 0.0 && xy == 0.0)
     {
       z->x = z->y = 0.0;
-      overflow = 1;
       return;
     }
   mod = xx*xx + xy*xy;

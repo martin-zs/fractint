@@ -7,10 +7,12 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Release">
-				<Option output=".\HC" prefix_auto="1" extension_auto="1" />
+				<Option output="..\HC" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="..\..\dos_help" />
 				<Option object_output=".\" />
 				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option parameters="/c" />
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-nobuiltin" />

@@ -89,7 +89,7 @@ int keypressed(void)
   return ch;
 }
 
-// NOTE (jonathan#1#): Next does not do what is described here.  There is not delay.
+// NOTE (jonathan#1#): Next does not do what is described here.  There is no delay.
 /* Wait for a key.
  * This should be used instead of:
  * while (!keypressed()) {}

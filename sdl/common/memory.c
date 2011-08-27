@@ -257,6 +257,20 @@ static int CheckBounds (long start, long length, U16 handle)
   return (0);
 }
 
+long fr_farfree(void)
+{
+   long j,j2;
+   BYTE *fartempptr;
+   j = 0;
+   j2 = 0x80000L;
+   while ((j2 >>= 1) != 0)
+      if ((fartempptr = (BYTE *)malloc(j+j2)) != NULL) {
+         free((void *)fartempptr);
+         j += j2;
+         }
+   return(j);
+}
+
 void DisplayMemory (void)
 {
   long tmpfar;

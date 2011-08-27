@@ -35,6 +35,9 @@ int getprecbf(int);
 static void put_float(int,double,int);
 static void put_bf(int slash,bf_t r, int prec);
 static void put_filename(char *keyword,char *fname);
+static int check_modekey(int curkey,int choice);
+static int entcompare(VOIDCONSTPTR p1,VOIDCONSTPTR p2);
+static void update_fractint_cfg(void);
 static void strip_zeros(char *buf);
 
 /* fullscreen_choice options */
@@ -74,7 +77,7 @@ void make_batch_file()
 {
 #define MAXPROMPTS 18
   int colorsonly = 0;
-  static char hdg[]={"Save Current Parameters"};
+  static char hdg[]= {"Save Current Parameters"};
   /** added for pieces feature **/
   double pdelx = 0.0;
   double pdely = 0.0;
@@ -171,7 +174,7 @@ void make_batch_file()
     }
   strcpy(inpcommandfile, CommandFile);
   strcpy(inpcommandname, CommandName);
-  for (i=0;i<4;i++)
+  for (i=0; i<4; i++)
     {
       expand_comments(CommandComment[i], par_comment[i]);
       strcpy(inpcomment[i], CommandComment[i]);
@@ -251,7 +254,7 @@ prompt_user:
       if (has_ext(CommandFile) == NULL)
         strcat(CommandFile, ".par");   /* default extension .par */
       strcpy(CommandName, inpcommandname);
-      for (i=0;i<4;i++)
+      for (i=0; i<4; i++)
         strncpy(CommandComment[i], inpcomment[i], MAXCMT);
       if ((gotrealdac) || (istruecolor && !truemode) || fake_lut)
         if (paramvalues[maxcolorindex].uval.ival > 0 &&
@@ -435,10 +438,10 @@ skip_UI:
               /* guarantee that there are no blank comments above the last
                  non-blank par_comment */
               int i, last;
-              for (last=-1,i=0;i<4;i++)
+              for (last=-1,i=0; i<4; i++)
                 if (*par_comment[i])
                   last=i;
-              for (i=0;i<last;i++)
+              for (i=0; i<last; i++)
                 if (*CommandComment[i]=='\0')
                   strcpy(CommandComment[i],";");
             }
@@ -451,7 +454,7 @@ skip_UI:
               memset(buf, ' ', 23);
               buf[23] = 0;
               buf[21] = ';';
-              for (k=1;k<4;k++)
+              for (k=1; k<4; k++)
                 if (CommandComment[k][0])
                   fprintf(parmfile, "%s%s\n", buf, CommandComment[k]);
               if (debugflag != 0 && colorsonly == 0)
@@ -504,10 +507,10 @@ skip_UI:
 }
 
 static struct write_batch_data   /* buffer for parms to break lines nicely */
-  {
-    int len;
-    char *buf;
-  } *wbdata;
+{
+  int len;
+  char *buf;
+} *wbdata;
 
 void write_batch_parms(char *colorinf, int colorsonly, int maxcolor, int ii, int jj)
 {
@@ -862,7 +865,7 @@ void write_batch_parms(char *colorinf, int colorsonly, int maxcolor, int ii, int
       if (forcesymmetry != 999)
         {
           static FCODE msg[] =
-            {"Regenerate before <b> to get correct symmetry"};
+          {"Regenerate before <b> to get correct symmetry"};
           if (forcesymmetry == 1000 && ii == 1 && jj == 1)
             stopmsg(0,msg);
           put_parm( " %s=",s_symmetry);
@@ -1002,33 +1005,6 @@ void write_batch_parms(char *colorinf, int colorsonly, int maxcolor, int ii, int
       if (basehertz != 440)
         put_parm(s_seqd,s_hertz,basehertz);
 
-      if (soundflag != 9)
-        {
-          if ((soundflag&7) == 0)
-            put_parm(s_seqs,s_sound,s_off);
-          else if ((soundflag&7) == 1)
-            put_parm(s_seqs,s_sound,s_beep);
-          else if ((soundflag&7) == 2)
-            put_parm(s_seqs,s_sound,s_x);
-          else if ((soundflag&7) == 3)
-            put_parm(s_seqs,s_sound,s_y);
-          else if ((soundflag&7) == 4)
-            put_parm(s_seqs,s_sound,s_z);
-#if 0
-          if ((soundflag&7) && (soundflag&7) <=4)
-            {
-              if (soundflag&8)
-                put_parm("/pc");
-              if (soundflag&16)
-                put_parm("/fm");
-              if (soundflag&32)
-                put_parm("/midi");
-              if (soundflag&64)
-                put_parm("/quant");
-            }
-#endif
-        }
-
 #if 0
       if (fm_vol != 63)
         put_parm(s_seqd,s_volume,fm_vol);
@@ -1065,14 +1041,49 @@ void write_batch_parms(char *colorinf, int colorsonly, int maxcolor, int ii, int
 
       if (soundflag&64)  /* quantize turned on */
         {
-          for (i=0;i<=11;i++) if (scale_map[i] != i+1) i=15;
-          if (i>12)
-            put_parm(s_seqd12,s_scalemap,scale_map[0],scale_map[1],scale_map[2],scale_map[3]
-                     ,scale_map[4],scale_map[5],scale_map[6],scale_map[7],scale_map[8]
-                     ,scale_map[9],scale_map[10],scale_map[11]);
+          for (i=0; i<=11; i++) if (scale_map[i] != i+1) i=15;
+      if(i>12){
+         put_parm(" %s=",s_scalemap);
+         for(i=0;i<=10;i++){
+            if (scale_map[i] == -1)
+               put_parm("%s/", s_pause);
+            else
+               put_parm("%d/", scale_map[i]);
+         }
+         if (scale_map[11] == -1)
+            put_parm("%s", s_pause);
+         else
+            put_parm("%d", scale_map[11]);
+      }
         }
-
 #endif
+
+      if (soundflag != 9)
+        {
+          if ((soundflag&7) == 0)
+            put_parm(s_seqs,s_sound,s_off);
+          else if ((soundflag&7) == 1)
+            put_parm(s_seqs,s_sound,s_beep);
+          else if ((soundflag&7) == 2)
+            put_parm(s_seqs,s_sound,s_x);
+          else if ((soundflag&7) == 3)
+            put_parm(s_seqs,s_sound,s_y);
+          else if ((soundflag&7) == 4)
+            put_parm(s_seqs,s_sound,s_z);
+#if 0
+          if ((soundflag&7) && (soundflag&7) <=4)
+            {
+              if (soundflag&8)
+                put_parm("/pc");
+              if (soundflag&16)
+                put_parm("/fm");
+              if (soundflag&32)
+                put_parm("/midi");
+              if (soundflag&64)
+                put_parm("/quant");
+            }
+#endif
+        }
 
       if (nobof > 0)
         put_parm(s_seqs,s_nobof,s_yes);
@@ -1181,14 +1192,13 @@ docolors:
                           delta = (int)dacbox[scanc][j] - (int)dacbox[scanc-k-1][j];
                           if (k == scanc - curc)
                             diff1[k][j] = diff2[k][j] = delta;
-                          else
-                            if (delta != diff1[k][j] && delta != diff2[k][j])
-                              {
-                                diffmag = abs(delta - diff1[k][j]);
-                                if (diff1[k][j] != diff2[k][j] || diffmag != 1)
-                                  break;
-                                diff2[k][j] = delta;
-                              }
+                          else if (delta != diff1[k][j] && delta != diff2[k][j])
+                            {
+                              diffmag = abs(delta - diff1[k][j]);
+                              if (diff1[k][j] != diff2[k][j] || diffmag != 1)
+                                break;
+                              diff2[k][j] = delta;
+                            }
                         }
                       if (j < 3) break; /* must've exited from inner loop above */
                     }
@@ -1261,7 +1271,7 @@ va_dcl
   parm = va_arg(args,char *);
 #endif
   if (*parm == ' '             /* starting a new parm */
-      && wbdata->len == 0)       /* skip leading space */
+  && wbdata->len == 0)       /* skip leading space */
     ++parm;
   bufptr = wbdata->buf + wbdata->len;
   vsprintf(bufptr,parm,args);
@@ -1512,18 +1522,389 @@ static void put_bf(int slash,bf_t r, int prec)
   put_parm(buf);
 }
 
-long fr_farfree(void)
+#if 0
+int edit_text_colors()
 {
-   long j,j2;
-   BYTE *fartempptr;
-   j = 0;
-   j2 = 0x80000L;
-   while ((j2 >>= 1) != 0)
-      if ((fartempptr = (BYTE *)malloc(j+j2)) != NULL) {
-         free((void *)fartempptr);
-         j += j2;
-         }
-   return(j);
+  int save_debugflag,save_lookatmouse;
+  int row,col,bkgrd;
+  int rowf,colf,rowt,colt;
+  char *vidmem;
+  char *savescreen;
+  char *farp1;
+  char *farp2;
+  int i,j,k;
+  save_debugflag = debugflag;
+  save_lookatmouse = lookatmouse;
+  debugflag = 0;   /* don't get called recursively */
+  lookatmouse = 2; /* text mouse sensitivity */
+  row = col = bkgrd = rowt = rowf = colt = colf = 0;
+  vidmem = MK_FP(0xB800,0);
+  for(;;)
+    {
+      if (row < 0)  row = 0;
+      if (row > 24) row = 24;
+      if (col < 0)  col = 0;
+      if (col > 79) col = 79;
+      movecursor(row,col);
+      i = getakey();
+      if (i >= 'a' && i <= 'z') i -= 32; /* uppercase */
+      switch (i)
+        {
+        case 27: /* esc */
+          debugflag = save_debugflag;
+          lookatmouse = save_lookatmouse;
+          movecursor(25,80);
+          return 0;
+        case '/':
+          farp1 = savescreen = (char *)malloc(4000L);
+          farp2 = vidmem;
+          for (i = 0; i < 4000; ++i)   /* save and blank */
+            {
+              *(farp1++) = *farp2;
+              *(farp2++) = 0;
+            }
+          for (i = 0; i < 8; ++i)       /* 8 bkgrd attrs */
+            for (j = 0; j < 16; ++j)   /* 16 fgrd attrs */
+              {
+                k = i*16 + j;
+                farp1 = vidmem + i*320 + j*10;
+                *(farp1++) = ' ';
+                *(farp1++) = (char)k;
+                *(farp1++) = (char)(i+'0');
+                *(farp1++) = (char)k;
+                *(farp1++) = (char)((j < 10) ? j+'0' : j+'A'-10);
+                *(farp1++) = (char)k;
+                *(farp1++) = ' ';
+                *(farp1++) = (char)k;
+              }
+          getakey();
+          farp1 = vidmem;
+          farp2 = savescreen;
+          for (i = 0; i < 4000; ++i) /* restore */
+            *(farp1++) = *(farp2++);
+          free(savescreen);
+          break;
+        case ',':
+          rowf = row;
+          colf = col;
+          break;
+        case '.':
+          rowt = row;
+          colt = col;
+          break;
+        case ' ': /* next color is background */
+          bkgrd = 1;
+          break;
+        case 1075: /* cursor left  */
+          --col;
+          break;
+        case 1077: /* cursor right */
+          ++col;
+          break;
+        case 1072: /* cursor up    */
+          --row;
+          break;
+        case 1080: /* cursor down  */
+          ++row;
+          break;
+        case 13:   /* enter */
+          *(vidmem + row*160 + col*2) = (char)getakey();
+          break;
+        default:
+          if (i >= '0' && i <= '9')      i -= '0';
+          else if (i >= 'A' && i <= 'F') i -= 'A'-10;
+          else break;
+          for (j = rowf; j <= rowt; ++j)
+            for (k = colf; k <= colt; ++k)
+              {
+                farp1 = vidmem + j*160 + k*2 + 1;
+                if (bkgrd) *farp1 = (char)((*farp1 & 15) + i * 16);
+                else       *farp1 = (char)((*farp1 & 0xf0) + i);
+              }
+          bkgrd = 0;
+        }
+    }
+}
+#endif
+
+static int *entsptr;
+static int modes_changed;
+
+int select_video_mode(int curmode)
+{
+  static FCODE o_hdg2[]= {"key...name.......................xdot..ydot.colr.comment.................."};
+  static FCODE o_hdg1[]= {"Select Video Mode"};
+  char hdg2[sizeof(o_hdg2)];
+  char hdg1[sizeof(o_hdg1)];
+
+  int entnums[MAXVIDEOMODES];
+  int attributes[MAXVIDEOMODES];
+  int i,k,ret;
+  int j;
+  int oldtabmode,oldhelpmode;
+
+  load_fractint_cfg(0);        /* load fractint.cfg to extraseg */
+
+  strcpy(hdg1,o_hdg1);
+  strcpy(hdg2,o_hdg2);
+
+  for (i = 0; i < vidtbllen; ++i)   /* init tables */
+    {
+      entnums[i] = i;
+      attributes[i] = 1;
+    }
+  entsptr = entnums;           /* for indirectly called subroutines */
+
+  qsort(entnums,vidtbllen,sizeof(entnums[0]),entcompare); /* sort modes */
+
+  /* pick default mode */
+  if (curmode < 0)
+    {
+      /* set up a reasonable default (we hope) */
+      videoentry.xdots = 800;
+      videoentry.ydots = 600;
+      videoentry.dotmode = 8;  /* 256 color */
+      videoentry.colors = 256;
+    }
+  else
+    memcpy((char *)&videoentry,(char *)&videotable[curmode],
+               sizeof(videoentry));
+
+  for (i = 0; i < vidtbllen; ++i)   /* find default mode */
+    {
+      if ( videoentry.dotmode   == vidtbl[entnums[i]].dotmode
+           && videoentry.colors == vidtbl[entnums[i]].colors
+           && (curmode < 0
+               || memcmp((char *)&videoentry,(char *)&vidtbl[entnums[i]],
+                             sizeof(videoentry)) == 0))
+        break;
+    }
+  if (i >= vidtbllen) /* no match, default to first entry */
+    i = 0;
+
+  oldtabmode = tabmode;
+  oldhelpmode = helpmode;
+  modes_changed = 0;
+  tabmode = 0;
+  helpmode = HELPVIDSEL;
+  i = fullscreen_choice(CHOICEHELP,hdg1,hdg2,NULL,vidtbllen,NULL,attributes,
+                        1,16,74,i,format_vid_table,NULL,NULL,check_modekey);
+  tabmode = oldtabmode;
+  helpmode = oldhelpmode;
+  if (i == -1)
+    {
+      static FCODE msg[]= {"Save new function key assignments or cancel changes?"};
+      if (modes_changed /* update fractint.cfg for new key assignments */
+          && badconfig == 0
+          && stopmsg(22,msg) == 0)
+        update_fractint_cfg();
+      return(-1);
+    }
+  if (i < 0)   /* picked by function key */
+    i = -1 - i;
+  else         /* picked by Enter key */
+    i = entnums[i];
+
+  memcpy((char *)&videoentry,(char *)&vidtbl[i],
+             sizeof(videoentry));  /* the selected entry now in videoentry */
+
+#if 1
+  /* copy fractint.cfg table to resident table, note selected entry */
+  j = k = 0;
+  memset((char *)videotable,0,sizeof(*vidtbl)*MAXVIDEOTABLE);
+  for (i = 0; i < vidtbllen; ++i)
+    {
+      if (vidtbl[i].keynum > 0)
+        {
+          memcpy((char *)&videotable[j],(char *)&vidtbl[i],
+                     sizeof(*vidtbl));
+          if (memcmp((char *)&videoentry,(char *)&vidtbl[i],
+                         sizeof(videoentry)) == 0)
+            k = vidtbl[i].keynum;
+          if (++j >= MAXVIDEOTABLE-1)
+            break;
+        }
+    }
+#else
+  k = vidtbl[0].keynum;
+#endif
+  if ((ret = k) == 0)   /* selected entry not a copied (assigned to key) one */
+    {
+      memcpy((char *)&videotable[MAXVIDEOTABLE-1],
+                 (char *)&videoentry,sizeof(*vidtbl));
+      ret = 1400; /* special value for check_vidmode_key */
+    }
+
+  if (modes_changed /* update fractint.cfg for new key assignments */
+      && badconfig == 0)
+    update_fractint_cfg();
+
+  return(ret);
+}
+
+void format_vid_table(int choice,char *buf)
+{
+  char local_buf[81];
+  char kname[5];
+
+  memcpy((char *)&videoentry,(char *)&vidtbl[entsptr[choice]],
+             sizeof(videoentry));
+  vidmode_keyname(videoentry.keynum,kname);
+  sprintf(buf,"%-5s %-25s %5d %5d ",  /* 44 chars */
+          kname, videoentry.name, videoentry.xdots, videoentry.ydots);
+  if(videoentry.dotmode < 12) /* disk video or palette based */
+    sprintf(local_buf,"%s%3d",  /* 47 chars */
+            buf, videoentry.colors);
+  else
+    sprintf(local_buf,"%s%3s",  /* 47 chars */
+            buf, (videoentry.dotmode == 32)?" 4g":
+            (videoentry.dotmode == 24)?"16m":
+            (videoentry.dotmode == 16)?"64k":
+            (videoentry.dotmode == 15)?"32k":"???");
+  sprintf(buf,"%s %-25s",  /* 74 chars */
+          local_buf, videoentry.comment);
+}
+
+#if 1
+static int check_modekey(int curkey,int choice)
+{
+  int i,j,k,ret;
+  if ((i = check_vidmode_key(1,curkey)) >= 0)
+    return(-1-i);
+  i = entsptr[choice];
+  ret = 0;
+  if ( (curkey == '-' || curkey == '+')
+       && (vidtbl[i].keynum == 0 || vidtbl[i].keynum >= 1084))
+    {
+      static FCODE msg[]= {"Missing or bad FRACTINT.CFG file. Can't reassign keys."};
+      if (badconfig)
+        stopmsg(0,msg);
+      else
+        {
+          if (curkey == '-')                     /* deassign key? */
+            {
+              if (vidtbl[i].keynum >= 1084)
+                {
+                  vidtbl[i].keynum = 0;
+                  modes_changed = 1;
+                }
+            }
+          else                                   /* assign key? */
+            {
+              j = getakeynohelp();
+              if (j >= 1084 && j <= 1113)
+                {
+                  for (k = 0; k < vidtbllen; ++k)
+                    {
+                      if (vidtbl[k].keynum == j)
+                        {
+                          vidtbl[k].keynum = 0;
+                          ret = -1; /* force redisplay */
+                        }
+                    }
+                  vidtbl[i].keynum = j;
+                  modes_changed = 1;
+                }
+            }
+        }
+    }
+  return(ret);
+}
+#endif
+
+static int entcompare(VOIDCONSTPTR p1,VOIDCONSTPTR p2)
+{
+  int i,j;
+  if ((i = vidtbl[*((int *)p1)].keynum) == 0) i = 9999;
+  if ((j = vidtbl[*((int *)p2)].keynum) == 0) j = 9999;
+  if (i < j || (i == j && *((int *)p1) < *((int *)p2)))
+    return(-1);
+  return(1);
+}
+
+static void update_fractint_cfg()
+{
+#if 1
+  char cfgname[100],outname[100],buf[121],kname[5];
+  FILE *cfgfile,*outfile;
+  int *cfglinenums;
+  int i,j,linenum,nextlinenum,nextmode;
+  struct videoinfo vident;
+
+  findpath("fractint.cfg",cfgname);
+
+  if (access(cfgname,6))
+    {
+      sprintf(buf,s_cantwrite,cfgname);
+      stopmsg(0,buf);
+      return;
+    }
+  strcpy(outname,cfgname);
+  i = strlen(outname);
+  while (--i >= 0 && outname[i] != SLASHC)
+    outname[i] = 0;
+  strcat(outname,"fractint.tmp");
+  if ((outfile = fopen(outname,"w")) == NULL)
+    {
+      sprintf(buf,s_cantcreate,outname);
+      stopmsg(0,buf);
+      return;
+    }
+  cfgfile = fopen(cfgname,"r");
+
+  cfglinenums = (int *)(&vidtbl[MAXVIDEOMODES]);
+  linenum = nextmode = 0;
+  nextlinenum = cfglinenums[0];
+  while (fgets(buf,120,cfgfile))
+    {
+      char colorsbuf[10];
+      ++linenum;
+      if (linenum == nextlinenum)   /* replace this line */
+        {
+          memcpy((char *)&vident,(char *)&vidtbl[nextmode],
+                     sizeof(videoentry));
+          vidmode_keyname(vident.keynum,kname);
+          strcpy(buf,vident.name);
+          i = strlen(buf);
+          while (i && buf[i-1] == ' ') /* strip trailing spaces to compress */
+            --i;
+          j = i + 5;
+          while (j < 32)                 /* tab to column 33 */
+            {
+              buf[i++] = '\t';
+              j += 8;
+            }
+          buf[i] = 0;
+          if(vident.dotmode < 12)  /* disk video and palette based */
+            sprintf(colorsbuf,"%3d",vident.colors);
+          else
+            sprintf(colorsbuf,"%3s",
+                    (vident.dotmode == 32)?" 4g":
+                    (vident.dotmode == 24)?"16m":
+                    (vident.dotmode == 16)?"64k":
+                    (vident.dotmode == 15)?"32k":"???");
+          fprintf(outfile,"%-4s,%s,%4d,%5d,%5d,%s,%s\n",
+                  kname,
+                  buf,
+                  vident.dotmode,
+                  vident.xdots,
+                  vident.ydots,
+                  colorsbuf,
+                  vident.comment);
+          if (++nextmode >= vidtbllen)
+            nextlinenum = 32767;
+          else
+            nextlinenum = cfglinenums[nextmode];
+        }
+      else
+        fputs(buf,outfile);
+    }
+
+  fclose(cfgfile);
+  fclose(outfile);
+  unlink(cfgname);         /* success assumed on these lines       */
+  rename(outname,cfgname); /* since we checked earlier with access */
+#endif
 }
 
 /* make_mig() takes a collection of individual GIF images (all
@@ -2057,7 +2438,7 @@ void parse_comments(char *value)
 {
   int i;
   char *next,save;
-  for (i=0;i<4;i++)
+  for (i=0; i<4; i++)
     {
       save = '\0';
       if (*value == 0)
@@ -2083,6 +2464,6 @@ void parse_comments(char *value)
 void init_comments()
 {
   int i;
-  for (i=0;i<4;i++)
+  for (i=0; i<4; i++)
     par_comment[i][0] = '\0';
 }

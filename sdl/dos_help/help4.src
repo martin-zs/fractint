@@ -200,8 +200,8 @@
   volume=nn                Volume adjustment for FM synth card, but NOT the
                            PC speaker.
   attenuate=none|low|mid|high  Attenuation of high pitched notes.
-  scalemap=nn/nn/nn/...    Combined with quantization this allows selecting
-                           notes on the musical scale.
+  scalemap=nn|p/nn|p/nn|p/... Combined with quantization this allows selecting
+                           notes on the musical scale or using a pause.
 ~OnLineFF
 {File Parameters}
   filename=.suffix          Sets the default file extension for the <r> command

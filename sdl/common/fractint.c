@@ -155,7 +155,7 @@ char    brwscheckparms,brwschecktype;
 char    browsemask[MAX_NAME];
 int     scale_map[12] = {1,2,3,4,5,6,7,8,9,10,11,12}; /*RB, array for mapping notes to a (user defined) scale */
 
-int     adapter = 0; // TODO (jonathan#1#): Set to zero for now. Delete later. JCO 02/20/2010
+int     adapter = -1; /* index into videotable array */
 
 #define RESTART           1
 #define IMAGESTART        2
@@ -189,6 +189,7 @@ int main(int argc, char **argv)
 {
 
   int     resumeflag;
+  int     kbdchar;                     /* keyboard key-hit value       */
   int     kbdmore;                     /* continuation variable        */
   char    stacked = 0;                 /* flag to indicate screen stacked */
 
@@ -198,10 +199,8 @@ int main(int argc, char **argv)
   atexit(goodbye); /* Cleanup all the memory allocations */
 
   InitMemory();
+  load_videotable(1); /* load fractint.cfg, no message yet if bad */
   init_help();
-
-  /* Initialize the SDL library */
-  SetupSDL();
 
 restart:   /* insert key re-starts here */
   autobrowse     = FALSE;
@@ -240,13 +239,16 @@ restart:   /* insert key re-starts here */
 
   cmdfiles(argc,argv);         /* process the command-line */
 
+  /* Initialize the SDL library */
+  SetupSDL();
+
   dopause(0);                  /* pause for error msg if not batch */
   init_msg(0,"",NULL,0);  /* this causes getakey if init_msg called on runup */
   if (debugflag==450 && initbatch==1)  /* abort if savename already exists */
     check_samename();
   memcpy(olddacbox,dacbox,256*3);      /* save in case colors= present */
 
-// FIXME (jonathan#1#): Remove disk video code.  JCO 02/20/2010
+  adapter_detect();                    /* check what video is really present */
   diskisactive = 0;                    /* disk-video is inactive */
   diskvideo = 0;                       /* disk driver is not in use */
 
@@ -254,7 +256,10 @@ restart:   /* insert key re-starts here */
 // NOTE (jonathan#1#): Following shows up a lot, is it really necessary??? JCO
   savedac = 0;                         /* don't save the VGA DAC */
 
-  max_colors = 256;                    /* the Windows version is lower */
+  if (badconfig < 0)                   /* fractint.cfg bad, no msg yet */
+    bad_fractint_cfg_msg();
+
+  max_colors = videoentry.colors;                    /* the Windows version is lower */
   max_kbdcount = 80;                   /* check the keyboard this often */
 
   if (showfile && initmode < 0)
@@ -363,6 +368,102 @@ imagestart:                             /* calc/display a new image */
     lookatmouse = -PAGE_UP;           /* just mouse left button, == pgup */
 
   cyclelimit = initcyclelimit;         /* default cycle limit   */
+
+  while (adapter < 0)                  /* cycle through instructions */
+    {
+      if (initbatch)                            /* batch, nothing to do */
+        {
+          initbatch = 4;                 /* exit with error condition set */
+          goodbye();
+        }
+      kbdchar = main_menu(0);
+      if (kbdchar == INSERT) goto restart;      /* restart pgm on Insert Key */
+      if (kbdchar == DELETE)                    /* select video mode list */
+        kbdchar = select_video_mode(-1);
+      if ((adapter = check_vidmode_key(0,kbdchar)) >= 0)
+        break;                                 /* got a video mode now */
+#if 1
+      if ('A' <= kbdchar && kbdchar <= 'Z')
+        kbdchar = tolower(kbdchar);
+#endif
+
+      if (kbdchar == '@' || kbdchar == '2')      /* execute commands */
+        {
+          if ((get_commands() & 4) == 0)
+            goto imagestart;
+          kbdchar = '3';                         /* 3d=y so fall thru '3' code */
+        }
+      if (kbdchar == 'r' || kbdchar == '3' || kbdchar == '#')
+        {
+          display3d = 0;
+          if (kbdchar == '3' || kbdchar == '#' || kbdchar == F3)
+            display3d = 1;
+          if(colorpreloaded)
+            memcpy(olddacbox,dacbox,256*3);     /* save in case colors= present */
+          setvideotext(); /* switch to text mode */
+          showfile = -1;
+          goto restorestart;
+        }
+      if (kbdchar == 't')                       /* set fractal type */
+        {
+          julibrot = 0;
+          get_fracttype();
+          goto imagestart;
+        }
+      if (kbdchar == 'x')                       /* generic toggle switch */
+        {
+          get_toggles();
+          goto imagestart;
+        }
+      if (kbdchar == 'y')                       /* generic toggle switch */
+        {
+          get_toggles2();
+          goto imagestart;
+        }
+      if (kbdchar == 'z')                       /* type specific parms */
+        {
+          get_fract_params(1);
+          goto imagestart;
+        }
+      if (kbdchar == 'v')                       /* view parameters */
+        {
+          get_view_params();
+          goto imagestart;
+        }
+      if (kbdchar == 2)                         /* ctrl B = browse parms*/
+        {
+          get_browse_params();
+          goto imagestart;
+        }
+// FIXME (jonathan#1#): Need next for sound parameters
+#if 0
+      if (kbdchar == 6)                         /* ctrl f = sound parms*/
+        {
+          get_sound_params();
+          goto imagestart;
+        }
+#endif
+      if (kbdchar == 'f')                       /* floating pt toggle */
+        {
+          if (usr_floatflag == 0)
+            usr_floatflag = 1;
+          else
+            usr_floatflag = 0;
+          goto imagestart;
+        }
+      if (kbdchar == 'i')                       /* set 3d fractal parms */
+        {
+          get_fract3d_params(); /* get the parameters */
+          goto imagestart;
+        }
+      if (kbdchar == 'g')
+        {
+          get_cmd_string(); /* get command string */
+          goto imagestart;
+        }
+      /* buzzer(2); */                          /* unrecognized key */
+    }
+
   zoomoff = 1;                 /* zooming is enabled */
   helpmode = HELPMAIN;         /* now use this help mode */
   resumeflag = 0;  /* allows taking goto inside big_while_loop() */
@@ -473,11 +574,11 @@ va_dcl
           break;
         }
       fprintf(fp,"%s type=%s resolution = %dx%d maxiter=%ld",
-              timestring,
-              curfractalspecific->name,
-              xdots,
-              ydots,
-              maxit);
+      timestring,
+      curfractalspecific->name,
+      xdots,
+      ydots,
+      maxit);
       fprintf(fp," time= %ld.%02ld secs\n",timer_interval/100,timer_interval%100);
       if (fp != NULL)
         fclose(fp);

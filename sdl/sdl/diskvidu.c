@@ -139,7 +139,7 @@ void enddisk()
   fp = NULL;
 }
 
-int readdisk(int col, int row)
+BYTE readdisk(int col, int row)
 {
   char buf[41];
   if (--timetodisplay < 0)    /* time to display status? */
@@ -174,7 +174,7 @@ void targa_readdisk(unsigned int col, unsigned int row,
   *red   = readdisk(col+1,row);
 }
 
-void writedisk(int col, int row, int color)
+void writedisk(int col, int row, U32 color)
 {
   char buf[41];
   if (--timetodisplay < 0)    /* time to display status? */

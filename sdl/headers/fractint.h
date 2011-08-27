@@ -27,33 +27,20 @@ typedef BYTE BOOLEAN;
 #define DEFAULTASPECT ((float)0.75)/* Assumed overall screen dimensions, y/x  */
 #define DEFAULTASPECTDRIFT ((float)0.02) /* drift of < 2% is forced to 0% */
 
-struct videoinfo {              /* All we need to know about a Video Adapter */
-        char    name[26];       /* Adapter name (IBM EGA, etc)          */
+struct videoinfo {              /* All we need to know about a Video Mode */
+        char    name[26];       /* Mode description                     */
         char    comment[26];    /* Comments (UNTESTED, etc)             */
         int     keynum;         /* key number used to invoked this mode */
                                 /* 2-10 = F2-10, 11-40 = S,C,A{F1-F10}  */
-        int     videomodeax;    /* begin with INT 10H, AX=(this)        */
-        int     videomodebx;    /*              ...and BX=(this)        */
-        int     videomodecx;    /*              ...and CX=(this)        */
-        int     videomodedx;    /*              ...and DX=(this)        */
-                                /* NOTE:  IF AX==BX==CX==0, SEE BELOW   */
-        int     dotmode;        /* video access method used by asm code */
-                                /*      1 == BIOS 10H, AH=12,13 (SLOW)  */
-                                /*      2 == access like EGA/VGA        */
-                                /*      3 == access like MCGA           */
-                                /*      4 == Tseng-like  SuperVGA*256   */
-                                /*      5 == P'dise-like SuperVGA*256   */
-                                /*      6 == Vega-like   SuperVGA*256   */
-                                /*      7 == "Tweaked" IBM-VGA ...*256  */
-                                /*      8 == "Tweaked" SuperVGA ...*256 */
-                                /*      9 == Targa Format               */
-                                /*      10 = Hercules                   */
+        int     dotmode;        /* video access method                  */
+                                /*      1 == 1-bit palette based        */
+                                /*      2 == 2-bit palette based        */
+                                /*      4 == 4-bit palette based        */
+                                /*      8 == 8-bit palette based        */
                                 /*      11 = "disk video" (no screen)   */
-                                /*      12 = 8514/A                     */
-                                /*      13 = CGA 320x200x4, 640x200x2   */
-                                /*      14 = Tandy 1000                 */
-                                /*      15 = TRIDENT  SuperVGA*256      */
-                                /*      16 = Chips&Tech SuperVGA*256    */
+                                /*      16 = 16-bit True Color          */
+                                /*      24 = 24-bit True Color          */
+                                /*      32 = 32-bit True Color          */
         int     xdots;          /* number of dots across the screen     */
         int     ydots;          /* number of dots down the screen       */
         int     colors;         /* number of colors available           */
@@ -400,6 +387,9 @@ struct orbits_info      /* for saving orbits data in a GIF file */
    char dummy; /* need an even number of bytes */
    short future[74];      /* total of 200 bytes */
 };
+
+#define MAXVIDEOMODES 60       /* maximum entries in fractint.cfg        */
+#define MAXVIDEOTABLE 50        /* size of the resident video modes table */
 
 #define AUTOINVERT -123456.789
 

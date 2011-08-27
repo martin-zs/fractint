@@ -16,6 +16,8 @@ SDL_Surface *backtext = NULL;
 TTF_Font *font = NULL;
 SDL_Color cols[256];
 SDL_Color text_cols[16];
+int SDL_video_flags = SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_RESIZABLE;
+//int SDL_video_flags = SDL_SWSURFACE|SDL_RESIZABLE;
 
 SDL_Color XlateText[] =
 {
@@ -98,15 +100,17 @@ void CleanupSDL(void)
 
 }
 
-int ResizeScreen(int mode)
+void ResizeScreen(int mode)
 {
   /* mode = 0 for initial startup */
-  /* mode = 1 to resize the window */
+  /* mode = 1 to resize the graphics window */
+  /* mode = 2 to resize the text window */
 
   Uint32 rmask, gmask, bmask, amask;
   int bpp; /* bits per pixel for graphics mode */
-  int result = 0;
+  int sxdots, sydots, dotmode;
   int fontsize;
+  SDL_Event resize_event;
 
   /*
    * Initialize the display in a 800x600 best available bit mode,
@@ -117,36 +121,89 @@ int ResizeScreen(int mode)
    */
   if (mode == 0)
     {
-// FIXME (jonathan#1#): Allow this to be set in sstools.ini
-// See \win\profile.c for ideas
-      xdots = 800;
-      ydots = 600;
+      if (initmode <= 0)   /* make sure we have something reasonable */
+        {
+          memcpy((char *)&videoentry,(char *)&videotable[14],
+                 sizeof(videoentry));  /* SF6 800x600 now in videoentry */
+        }
+      else
+        {
+          adapter = initmode;
+          memcpy((char *)&videoentry,(char *)&videotable[adapter],
+                 sizeof(videoentry));  /* the selected entry now in videoentry */
+        }
     }
-//  screen = SDL_SetVideoMode(xdots, ydots, 0,
-//                          SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_RESIZABLE);
-  screen = SDL_SetVideoMode(xdots, ydots, 8,
-                            SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_RESIZABLE);
+  else if (mode == 1)  /*  graphics window  */
+    {
+      if (resize_flag == 0)  /* not called from event Queue */
+        {
+          bpp = SDL_VideoModeOK(videotable[adapter].xdots,
+                                videotable[adapter].ydots,
+                                videotable[adapter].dotmode, SDL_video_flags);
+          if (bpp != videotable[adapter].dotmode)
+            {
+              videotable[adapter].dotmode = bpp;
+            }
+          resize_flag = 1;
+          resize_event.type = SDL_VIDEORESIZE;
+          resize_event.resize.w = videotable[adapter].xdots;
+          resize_event.resize.h = videotable[adapter].ydots;
+          memcpy((char *)&videoentry,(char *)&videotable[adapter],
+                 sizeof(videoentry));  /* the selected entry now in videoentry */
+// FIXME (jonathan#1#): This next does not work as expected.  Works if dotmode is changed, but not otherwise.
+          SDL_PushEvent(&resize_event);
+          SDL_PumpEvents();
+          SDL_PeepEvents(&resize_event,1,SDL_GETEVENT,SDL_VIDEORESIZE);
+        }
+      else
+        memcpy((char *)&videotable[adapter],(char *)&videoentry,
+               sizeof(videoentry));
+      SDL_FreeSurface(backscrn);
+    }
+  else  /*  mode == 2  text window  */
+    {
+      sxdots = 800;
+      sydots = 600;
+      dotmode = 0;
+      resize_event.type = SDL_VIDEORESIZE;
+      resize_event.resize.w = sxdots;
+      resize_event.resize.h = sydots;
+      SDL_PushEvent(&resize_event);
+      SDL_PumpEvents();
+      SDL_PeepEvents(&resize_event,1,SDL_GETEVENT,SDL_VIDEORESIZE);
+      SDL_FreeSurface(backtext);
+      TTF_CloseFont(font);
+    }
+
+  sxdots = videoentry.xdots;
+  sydots = videoentry.ydots;
+  dotmode = videoentry.dotmode;
+
+  screen = SDL_SetVideoMode(sxdots, sydots, dotmode, SDL_video_flags);
   if (screen == NULL )
     {
-      screen = SDL_SetVideoMode(xdots, ydots, 16,
+      screen = SDL_SetVideoMode(sxdots, sydots, dotmode,
                                 SDL_SWSURFACE|SDL_ANYFORMAT|SDL_RESIZABLE);
     }
   if ( screen == NULL )
     {
-      fprintf(stderr, "Couldn't set %dx%dx16 video mode: %s\n", xdots, ydots,
-              SDL_GetError());
+      fprintf(stderr, "Couldn't set %dx%dx%dx video mode: %s\n", sxdots, sydots,
+              dotmode, SDL_GetError());
       exit(1);
     }
-  bpp=screen->format->BitsPerPixel;
+  SDL_video_flags = screen->flags;
+  bpp = screen->format->BitsPerPixel;
+  if (dotmode == 0)
+    videoentry.dotmode = bpp;
 
 #if 1
   {
     char msg[40];
 
 #ifndef XFRACT
-    sprintf(msg, "Fractint at %dx%dx%d", xdots, ydots, bpp);
+    sprintf(msg, "Fractint at %dx%dx%d", sxdots, sydots, bpp);
 #else
-    sprintf(msg, "Xfractint at %dx%dx%d", xdots, ydots, bpp);
+    sprintf(msg, "Xfractint at %dx%dx%d", sxdots, sydots, bpp);
 #endif /* XFRACT */
     SDL_WM_SetCaption( msg, NULL );
   }
@@ -159,7 +216,7 @@ int ResizeScreen(int mode)
 #endif /* 1 */
 
 #if DEBUG
-  fprintf(stderr, "Set %dx%d at %d bits-per-pixel mode\n", xdots, ydots, bpp);
+  fprintf(stderr, "Set %dx%d at %d bits-per-pixel mode\n", sxdots, sydots, bpp);
 #endif
 
   rmask = screen->format->Rmask;
@@ -167,16 +224,9 @@ int ResizeScreen(int mode)
   bmask = screen->format->Bmask;
   amask = screen->format->Amask;
 
-  if (mode == 1)
-    {
-      resize_flag = 1;
-      SDL_FreeSurface(backscrn);
-      TTF_CloseFont(font);
-    }
-
-  backscrn = SDL_CreateRGBSurface(SDL_HWSURFACE|SDL_SWSURFACE, xdots, ydots, bpp,
+  backscrn = SDL_CreateRGBSurface(SDL_HWSURFACE|SDL_SWSURFACE, sxdots, sydots, bpp,
                                   rmask, gmask, bmask, amask);
-  backtext = SDL_CreateRGBSurface(SDL_HWSURFACE|SDL_SWSURFACE, xdots, ydots, bpp,
+  backtext = SDL_CreateRGBSurface(SDL_HWSURFACE|SDL_SWSURFACE, sxdots, sydots, bpp,
                                   rmask, gmask, bmask, amask);
 #if DEBUG
   if (backscrn == NULL )
@@ -185,10 +235,11 @@ int ResizeScreen(int mode)
     fprintf(stderr, "No backtext\n");
 #endif
 
+// FIXME (jonathan#1#): screen_handle is not currently being used
   if (screen_handle != 0) /* this won't work after a resize, free the memory */
     MemoryRelease(screen_handle);
 
-  fontsize = (int)(ydots / 32) + 1; /* arbitrary font size, not too big */
+  fontsize = (int)(sydots / 34) + 1; /* arbitrary font size, not too big */
   font = TTF_OpenFont("crystal.ttf", fontsize);
   if ( font == NULL )
     {
@@ -199,7 +250,7 @@ int ResizeScreen(int mode)
   /* get text height and width in pixels */
   TTF_SizeUTF8(font,"H",&txt_wt,&txt_ht);
 
-  return(result);
+  return;
 }
 
 void SetupSDL(void)
@@ -233,15 +284,36 @@ void SetupSDL(void)
 
 }
 
+/*
+; adapter_detect:
+;       This routine performs a few quick checks on the type of
+;       video adapter installed.
+;       It sets variable dotmode.
+*/
+int done_detect = 0;
+
+void adapter_detect(void)
+{
+  if (done_detect)
+    return;
+  done_detect = 1;
+  xdots = screen->w;
+  ydots = screen->h;
+  sxdots  = xdots;
+  sydots  = ydots;
+  dotmode = screen->format->BitsPerPixel;
+}
+
 void startvideo(void)
 {
   int Bpp = screen->format->BytesPerPixel;
+  int bitspp = screen->format->BitsPerPixel;
 
   if (Bpp == 1) /* 8-bits per pixel => uses a palette */
     {
       gotrealdac = 1;
       istruecolor = 0;
-      colors = 256;
+      colors = videoentry.colors;
     }
   else /* truecolor modes */
     {
@@ -521,7 +593,7 @@ void writevideoline(int y, int x, int lastx, BYTE *pixels)
   int i;
 
   width = lastx-x+1;
-  for (i=0;i<width;i++)
+  for (i=0; i<width; i++)
     {
       writevideo(x+i, y, (U32)pixels[i]);
     }
@@ -545,7 +617,7 @@ void readvideoline(int y, int x, int lastx, BYTE *pixels)
 {
   int i,width;
   width = lastx-x+1;
-  for (i=0;i<width;i++)
+  for (i=0; i<width; i++)
     {
       pixels[i] = (BYTE)readvideo(x+i,y);
     }
@@ -569,7 +641,7 @@ void readvideoline(int y, int x, int lastx, BYTE *pixels)
 void readvideopalette(void)
 {
   int i;
-  for (i=0;i<colors;i++)
+  for (i=0; i<colors; i++)
     {
       dacbox[i][0] = cols[i].r >> 2;
       dacbox[i][1] = cols[i].g >> 2;
@@ -607,12 +679,25 @@ void writevideopalette(void)
   SDL_SetColors(backscrn, cols, 0, 256);
 }
 
+void savevideopalette(void)
+{
+  memcpy(olddacbox, dacbox, 256*3);
+}
+
+void restorevideopalette(void)
+{
+  memcpy(dacbox, olddacbox, 256*3);
+}
+
 /* start of text processing routines */
 
 void setclear (void)
 {
   /* clears the screen to the text background */
   int r, c;
+
+  /*  Fill the screen with black  */
+  SDL_FillRect( screen, &screen->clip_rect, SDL_MapRGB( screen->format, 0, 0, 0 ) );
 
   for (r = 0; r < TEXT_HEIGHT; r++)
     {
@@ -665,12 +750,12 @@ void outtext(int row, int col, int max_c)
   text_rect.w = max_c * txt_wt; /* output this many columns */
   text_rect.h = 1 * txt_ht;     /* output one row at a time */
 
-  for (i = 0;i <= TEXT_WIDTH;i++) /* clear the text buffer */
+  for (i = 0; i <= TEXT_WIDTH; i++) /* clear the text buffer */
     buf[i] = 0;
 
   /* put text into text buffer */
   j = 0;
-  for (i = col;i < max_c;i++)
+  for (i = col; i < max_c; i++)
     {
       buf[j++] = text_screen[row][i];
     }
@@ -1279,8 +1364,9 @@ int get_key_event(int block)
           switch (event.type)
             {
             case SDL_VIDEORESIZE:
-              xdots = sxdots = event.resize.w;
-              ydots = sydots = event.resize.h;
+              videoentry.xdots = event.resize.w & 0xFFFC;  /* divisible by 4 */
+              /*  Maintain aspect ratio of image  */
+              videoentry.ydots = finalaspectratio * videoentry.xdots;
               discardscreen(); /* dump text screen if in use */
               ResizeScreen(1);
               keypressed = ENTER;
@@ -1332,8 +1418,10 @@ int get_key_event(int block)
           switch (event.type)
             {
             case SDL_VIDEORESIZE:
-              xdots = sxdots = event.resize.w;
-              ydots = sydots = event.resize.h;
+              resize_flag = 1;
+              videoentry.xdots = event.resize.w & 0xFFFC;  /* divisible by 4 */
+              /*  Maintain aspect ratio of image  */
+              videoentry.ydots = finalaspectratio * videoentry.xdots;
               discardscreen(); /* dump text screen if in use */
               ResizeScreen(1);
               keypressed = ENTER;

@@ -34,7 +34,7 @@ static void julman()
 
 /* routines in this module      */
 
-int main_menu_switch(int*,int*,int*,char*,int);
+int main_menu_switch(int*,int*,int*,char*);
 int evolver_menu_switch(int*,int*,int*,char*);
 int big_while_loop(int *kbdmore, char *stacked, int resumeflag);
 static void move_zoombox(int);
@@ -53,9 +53,8 @@ void (*outln_cleanup) (void);
 int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
 {
   int     frommandel;                  /* if julia entered from mandel */
-// FIXME (jonathan#1#): Next is not needed.  JCO 02/20/2010
-  int     axmode=0; /* video mode (BIOS ##)    */
 
+  static int saved_dotmode = 0;
   double  ftemp;                       /* fp temp                      */
   int     i=0;                         /* temporary loop counters      */
   int     kbdchar;
@@ -69,17 +68,24 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
     {
       if (calc_status != 2 || showfile == 0)
         {
-// FIXME (jonathan#1#): Don't need next.  JCO 02/20/2010
-//          dotmode = videoentry.dotmode;     /* assembler dot read/write */
-// FIXME (jonathan#1#): Next should come from sstools.ini or command line. JCO 02/20/2010
-//          xdots   = videoentry.xdots;       /* # dots across the screen */
-//          ydots   = videoentry.ydots;       /* # dots down the screen   */
-//          colors  = videoentry.colors;      /* # colors available */
+// FIXME (jonathan#1#): Seems like a lot of overhead for each loop through.
+          memcpy((char *)&videoentry,(char *)&videotable[adapter],
+                    sizeof(videoentry));
+          dotmode = videoentry.dotmode; /* assembler dot read/write */
+          if (dotmode < 8)
+            dotmode = 8;
+          xdots   = videoentry.xdots;       /* # dots across the screen */
+          ydots   = videoentry.ydots;       /* # dots down the screen   */
+          colors  = videoentry.colors;      /* # colors available */
 
           sxdots  = xdots;
           sydots  = ydots;
           sxoffs = syoffs = 0;
           rotate_hi = (rotate_hi < colors) ? rotate_hi : colors - 1;
+
+         diskvideo = 0;                 /* set diskvideo flag */
+         if (dotmode == 11)             /* default assumption is disk */
+            diskvideo = 2;
 
           memcpy(olddacbox,dacbox,256*3); /* save the DAC */
 
@@ -89,11 +95,12 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
               overlay3d = 0;
             }
 
-          else
+          else if (saved_dotmode != dotmode)
             {
-              setvideomode(2); /* switch video modes */
+              setvideomode(dotmode); /* switch video modes */
               xdots = sxdots;
               ydots = sydots;
+              saved_dotmode = dotmode;
             }
 
           diskisactive = 0;              /* flag for disk-video routines */
@@ -485,7 +492,8 @@ resumeloop:                             /* return here on failed overlays */
                       stackscreen();
                       kbdchar = main_menu(1);
                       if (kbdchar == '\\' || kbdchar == CTL_BACKSLASH ||
-                          kbdchar == 'h' || kbdchar == 8)
+                          kbdchar == 'h' || kbdchar == 8 ||
+                          check_vidmode_key(0,kbdchar) >= 0)
                         discardscreen();
                       else if (kbdchar == 'x' || kbdchar == 'y' ||
                                kbdchar == 'z' || kbdchar == 'g' ||
@@ -540,7 +548,7 @@ resumeloop:                             /* return here on failed overlays */
           if (evolving)
             mms_value = evolver_menu_switch(&kbdchar,&frommandel,kbdmore,stacked);
           else
-            mms_value = main_menu_switch(&kbdchar,&frommandel,kbdmore,stacked,axmode);
+            mms_value = main_menu_switch(&kbdchar,&frommandel,kbdmore,stacked);
           if (quick_calc && (mms_value == IMAGESTART ||
                              mms_value == RESTORESTART ||
                              mms_value == RESTART))
@@ -570,9 +578,9 @@ resumeloop:                             /* return here on failed overlays */
   /*  return(0); */
 }
 
-int main_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stacked, int axmode)
+int main_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stacked)
 {
-  int i;
+  int i, k;
   static double  jxxmin, jxxmax, jyymin, jyymax; /* "Julia mode" entry point */
   static double  jxx3rd, jyy3rd;
   long old_maxit;
@@ -1352,7 +1360,6 @@ do_3d_transform:
       break;
 
     case DELETE:         /* select video mode from list */
-#if 0
       {
         stackscreen();
         *kbdchar = select_video_mode(adapter);
@@ -1362,8 +1369,16 @@ do_3d_transform:
           unstackscreen();
         /* fall through */
       }
-#endif
     default:                     /* other (maybe a valid Fn key) */
+      if ((k = check_vidmode_key(0, *kbdchar)) >= 0)
+      {
+         adapter = k;
+         if (videotable[adapter].colors != colors)
+            savedac = 0;
+         calc_status = 0;
+         *kbdmore = 0;
+         return(CONTINUE);
+      }
       break;
     }                            /* end of the big switch */
   return(0);
@@ -1371,7 +1386,7 @@ do_3d_transform:
 
 int evolver_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stacked)
 {
-  int i;
+  int i, k;
 
   switch (*kbdchar)
     {
@@ -1864,16 +1879,23 @@ int evolver_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stack
       break;
 
     case DELETE:         /* select video mode from list */
-#if 0
       stackscreen();
       *kbdchar = select_video_mode(adapter);
       if (check_vidmode_key(0, *kbdchar) >= 0)  /* picked a new mode? */
         discardscreen();
       else
         unstackscreen();
-#endif
       /* fall through */
     default:             /* other (maybe valid Fn key */
+      if ((k = check_vidmode_key(0, *kbdchar)) >= 0)
+      {
+         adapter = k;
+         if (videotable[adapter].colors != colors)
+            savedac = 0;
+         calc_status = 0;
+         *kbdmore = 0;
+         return(CONTINUE);
+      }
       break;
     }                            /* end of the big evolver switch */
   return(0);

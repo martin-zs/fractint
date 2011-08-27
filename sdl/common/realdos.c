@@ -14,6 +14,7 @@
 #include "fractype.h"
 #include "helpdefs.h"
 
+BYTE *extraseg2 = NULL; /* only used for the video table */
 int menu_checkkey(int curkey,int choice);
 
 /* uncomment following for production version */
@@ -1054,6 +1055,9 @@ top:
     }
   LOADPROMPTSCHOICES(nextleft+=2,"      NEW IMAGE             ");
   attributes[nextleft] = 256+MENU_HDG;
+  choicekey[nextleft+=2] = DELETE;
+  attributes[nextleft] = MENU_ITEM;
+  LOADPROMPTSCHOICES(nextleft,"select video mode...  <del> ");
   choicekey[nextleft+=2] = 't';
   attributes[nextleft] = MENU_ITEM;
   LOADPROMPTSCHOICES(nextleft,"select fractal type    <t>  ");
@@ -1561,7 +1565,7 @@ int thinking(int options,char *msg)
 
 void clear_screen(int dummy)  /* a stub for a windows only subroutine */
 {
-  dummy=0; /* quite the warning */
+  dummy=0; /* quiet the warning */
 }
 
 
@@ -1578,4 +1582,272 @@ int restoregraphics()
 {
   restore_screen();
   return 0;
+}
+
+VIDEOINFO *vidtbl;  /* temporarily loaded fractint.cfg info */
+int vidtbllen;                 /* number of entries in above           */
+
+int showvidlength()
+{
+  int sz;
+  sz = (sizeof(VIDEOINFO)+sizeof(int))*MAXVIDEOMODES;
+  return(sz);
+}
+
+
+int load_fractint_cfg(int options)
+{
+  /* Reads fractint.cfg, loading videoinfo entries into extraseg. */
+  /* Sets vidtbl pointing to the loaded table, and returns the    */
+  /* number of entries (also sets vidtbllen to this).             */
+  /* Past vidtbl, cfglinenums are stored for update_fractint_cfg. */
+  /* If fractint.cfg is not found or invalid, issues a message    */
+  /* (first time the problem occurs only, and only if options is  */
+  /* zero) and uses the hard-coded table.                         */
+
+  FILE *cfgfile;
+  VIDEOINFO *vident;
+  int *cfglinenums;
+  int linenum;
+  long xdots, ydots;
+  int i, j, keynum, ax, bx, cx, dx, dotmode, colors;
+  int commas[6];
+  char tempstring[150];
+
+  if (extraseg2 == NULL)
+    extraseg2 = (BYTE*)malloc(20000);
+  else  /* already loaded, we're done */
+    return (vidtbllen);
+  vidtbl = (VIDEOINFO *)extraseg2;
+  cfglinenums = (int *)(&vidtbl[MAXVIDEOMODES]);
+
+  if (badconfig)  /* fractint.cfg already known to be missing or bad */
+    goto use_resident_table;
+
+  findpath("fractint.cfg",tempstring);
+  if (tempstring[0] == 0                            /* can't find the file */
+      || (cfgfile = fopen(tempstring,"r")) == NULL)   /* can't open it */
+    goto bad_fractint_cfg;
+
+  vidtbllen = 0;
+  linenum = 0;
+  vident = vidtbl;
+  while (vidtbllen < MAXVIDEOMODES
+         && fgets(tempstring, 120, cfgfile))
+    {
+      if(strchr(tempstring,'\n') == NULL)
+        /* finish reading the line */
+        while(fgetc(cfgfile) != '\n' && !feof(cfgfile));
+      ++linenum;
+      if (tempstring[0] == ';') continue;   /* comment line */
+      tempstring[120] = 0;
+      tempstring[strlen(tempstring)-1] = 0; /* zap trailing \n */
+      memset(commas,0,20);
+      i = j = -1;
+      for(;;)
+        {
+          if (tempstring[++i] < ' ')
+            {
+              if (tempstring[i] == 0) break;
+              tempstring[i] = ' '; /* convert tab (or whatever) to blank */
+            }
+          else if (tempstring[i] == ',' && ++j < 6)
+            {
+              commas[j] = i + 1;   /* remember start of next field */
+              tempstring[i] = 0;   /* make field a separate string */
+            }
+        }
+      keynum = check_vidmode_keyname(tempstring);
+      dotmode     = atoi(&tempstring[commas[1]]);
+      xdots       = atol(&tempstring[commas[2]]);
+      ydots       = atol(&tempstring[commas[3]]);
+      colors      = atoi(&tempstring[commas[4]]);
+      if(colors == 4 && strchr(strlwr(&tempstring[commas[4]]),'g'))
+        {
+          colors = 256; /* 32 bits */
+        }
+      else if(colors == 16 && strchr(&tempstring[commas[4]],'m'))
+        {
+          colors = 256; /* 24 bits */
+        }
+      else if(colors == 64 && strchr(&tempstring[commas[4]],'k'))
+        {
+          colors = 256; /* 16 bits */
+        }
+      else if(colors == 32 && strchr(&tempstring[commas[4]],'k'))
+        {
+          colors = 256; /* 15 bits */
+        }
+
+      if (j < 5 ||
+          keynum < 0 ||
+          dotmode < 0 || dotmode > 32 ||
+          xdots < MINPIXELS || xdots > MAXPIXELS ||
+          ydots < MINPIXELS || ydots > MAXPIXELS ||
+          (colors != 0 && colors != 2 && colors != 4 && colors != 16 &&
+           colors != 256)
+         )
+        goto bad_fractint_cfg;
+      cfglinenums[vidtbllen] = linenum; /* for update_fractint_cfg */
+      memcpy(vident->name,   (char *)&tempstring[commas[0]],25);
+      memcpy(vident->comment,(char *)&tempstring[commas[5]],25);
+      vident->name[25] = vident->comment[25] = 0;
+      vident->keynum      = keynum;
+      vident->dotmode     = dotmode;
+      vident->xdots       = (short)xdots;
+      vident->ydots       = (short)ydots;
+      vident->colors      = colors;
+      ++vident;
+      ++vidtbllen;
+    }
+  fclose(cfgfile);
+  return (vidtbllen);
+
+bad_fractint_cfg:
+  badconfig = -1; /* bad, no message issued yet */
+  if (options == 0)
+    bad_fractint_cfg_msg();
+
+use_resident_table:
+  vidtbllen = 0;
+  vident = vidtbl;
+  for (i = 0; i < MAXVIDEOTABLE; ++i)
+    {
+      if (videotable[i].xdots)
+        {
+          memcpy((char *)vident,(char *)&videotable[i],
+                 sizeof(*vident));
+          ++vident;
+          ++vidtbllen;
+        }
+    }
+  return (vidtbllen);
+
+}
+
+void bad_fractint_cfg_msg()
+{
+  static char badcfgmsg[]= {"\
+File FRACTINT.CFG is missing or invalid.\n\
+See Hardware Support and Video Modes in the full documentation for help.\n\
+I will continue with only the built-in video modes available."
+                           };
+  stopmsg(0,badcfgmsg);
+  badconfig = 1; /* bad, message issued */
+}
+
+void load_videotable(int options)
+{
+  /* Loads fractint.cfg and copies the video modes which are */
+  /* assigned to function keys into videotable.              */
+  int keyents,i;
+  load_fractint_cfg(options); /* load fractint.cfg to extraseg */
+  keyents = 0;
+  memset((char *)videotable,0,sizeof(*vidtbl)*MAXVIDEOTABLE);
+  for (i = 0; i < vidtbllen; ++i)
+    {
+      if (vidtbl[i].keynum > 0)
+        {
+          memcpy((char *)&videotable[keyents],(char *)&vidtbl[i],
+                 sizeof(*vidtbl));
+          if (++keyents >= MAXVIDEOTABLE)
+            break;
+        }
+    }
+}
+
+int check_vidmode_key(int option,int k)
+{
+  int i;
+  /* returns videotable entry number if the passed keystroke is a  */
+  /* function key currently assigned to a video mode, -1 otherwise */
+  if (k == 1400)              /* special value from select_vid_mode  */
+    return(MAXVIDEOTABLE-1); /* for last entry with no key assigned */
+  if (k != 0)
+    {
+      if (option == 0)   /* check resident video mode table */
+        {
+          for (i = 0; i < MAXVIDEOTABLE; ++i)
+            {
+              if (videotable[i].keynum == k)
+                return(i);
+            }
+        }
+      else   /* check full vidtbl */
+        {
+          for (i = 0; i < vidtbllen; ++i)
+            {
+              if (vidtbl[i].keynum == k)
+                return(i);
+            }
+        }
+    }
+  return(-1);
+}
+
+int check_vidmode_keyname(char *kname)
+{
+  /* returns key number for the passed keyname, 0 if not a keyname */
+  int i,keyset;
+  keyset = 1058;
+  if (*kname == 'S' || *kname == 's')
+    {
+      keyset = 1083;
+      ++kname;
+    }
+  else if (*kname == 'C' || *kname == 'c')
+    {
+      keyset = 1093;
+      ++kname;
+    }
+  else if (*kname == 'A' || *kname == 'a')
+    {
+      keyset = 1103;
+      ++kname;
+    }
+  if (*kname != 'F' && *kname != 'f')
+    return(0);
+  if (*++kname < '1' || *kname > '9')
+    return(0);
+  i = *kname - '0';
+  if (*++kname != 0 && *kname != ' ')
+    {
+      if (*kname != '0' || i != 1)
+        return(0);
+      i = 10;
+      ++kname;
+    }
+  while (*kname)
+    if (*(kname++) != ' ')
+      return(0);
+  if ((i += keyset) < 2)
+    i = 0;
+  return(i);
+}
+
+void vidmode_keyname(int k,char *buf)
+{
+  /* set buffer to name of passed key number */
+  *buf = 0;
+  if (k > 0)
+    {
+      if (k > 1103)
+        {
+          *(buf++) = 'A';
+          k -= 1103;
+        }
+      else if (k > 1093)
+        {
+          *(buf++) = 'C';
+          k -= 1093;
+        }
+      else if (k > 1083)
+        {
+          *(buf++) = 'S';
+          k -= 1083;
+        }
+      else
+        k -= 1058;
+      sprintf(buf,"F%d",k);
+    }
 }
