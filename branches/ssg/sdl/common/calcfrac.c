@@ -816,6 +816,7 @@ int calcfract(void)
     froth_cleanup();
   if ((soundflag&7)>1) /* close sound write file */
     close_snd();
+  mute();
   if (truecolor)
     enddisk();
   return((calc_status == 4) ? 0 : -1);

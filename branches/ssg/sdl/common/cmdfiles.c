@@ -44,9 +44,9 @@ char    tempdir[FILE_MAX_DIR] = {""}; /* name of temporary directory */
 char    workdir[FILE_MAX_DIR] = {""}; /* name of directory for misc files */
 char    orgfrmdir[FILE_MAX_DIR] = {""};/*name of directory for orgfrm files*/
 char    gifmask[MAX_NAME] = {""};
-char    PrintName[FILE_MAX_PATH]={"fract001.ps"}; /* Name for print-to-file */
-char    savename[FILE_MAX_PATH]={"fract001"};  /* save files using this name */
-char    autoname[FILE_MAX_PATH]={"auto.key"}; /* record auto keystrokes here */
+char    PrintName[FILE_MAX_PATH]= {"fract001.ps"}; /* Name for print-to-file */
+char    savename[FILE_MAX_PATH]= {"fract001"}; /* save files using this name */
+char    autoname[FILE_MAX_PATH]= {"auto.key"}; /* record auto keystrokes here */
 int     potflag=0;              /* continuous potential enabled? */
 int     pot16bit;               /* store 16 bit continuous potential values */
 int     gif87a_flag;            /* 1 if GIF87a format, 0 otherwise */
@@ -322,6 +322,7 @@ char s_overwrite[] =        "overwrite";
 char s_params[] =           "params";
 char s_parmfile[] =         "parmfile";
 char s_passes[] =           "passes";
+char s_pause[] =            "pause";
 char s_periodicity[] =      "periodicity";
 char s_perspective[] =      "perspective";
 char s_pi[] =               "pi";
@@ -463,8 +464,6 @@ int getpower10(LDBL x)
   p = atoi(string+5);
   return p;
 }
-
-
 
 int cmdfiles(int argc,char **argv)
 {
@@ -637,7 +636,7 @@ static void initvars_restart()          /* <ins> key init */
   LName[0] = 0;
   strcpy(CommandFile,s_fractintpar);
   CommandName[0] = 0;
-  for (i=0;i<4; i++)
+  for (i=0; i<4; i++)
     CommandComment[i][0] = 0;
   strcpy(IFSFileName,s_fractintifs);
   IFSName[0] = 0;
@@ -770,7 +769,7 @@ static void initvars_fractal()          /* init vars affecting calculation */
   fm_release = 5;                      /* short release   */
   fm_wavetype = 0;                     /* sin wave */
   polyphony = 0;                       /* no polyphony    */
-  for (i=0;i<=11;i++) scale_map[i]=i+1;   /* straight mapping of notes in octave */
+  for (i=0; i<=11; i++) scale_map[i]=i+1; /* straight mapping of notes in octave */
 #endif
 }
 
@@ -823,7 +822,7 @@ static int cmdfile(FILE *handle,int mode)
   if (mode == 2 || mode == 3)
     {
       while ((i = getc(handle)) != '{' && i != EOF) { }
-      for (i=0;i<4; i++)
+      for (i=0; i<4; i++)
         CommandComment[i][0] = 0;
     }
   linebuf[0] = 0;
@@ -834,7 +833,7 @@ static int cmdfile(FILE *handle,int mode)
       changeflag |= i;
     }
   fclose(handle);
-  initmode = 0;                /* Skip credits if @file is used. */
+
   if (changeflag&1)
     {
       backwards_v18();
@@ -877,7 +876,7 @@ static int next_command(char *cmdbuf,int maxlen,
                     {
                       if ((int)strlen(lineptr) >= MAXCMT)
                         *(lineptr+MAXCMT-1) = 0;
-                      for (i=0;i<4; i++)
+                      for (i=0; i<4; i++)
                         if (CommandComment[i][0] == 0)
                           {
                             strcpy(CommandComment[i],lineptr);
@@ -1217,6 +1216,25 @@ int cmdarg(char *curarg,int mode) /* process a single argument */
         init_msg(0,variable,value,mode);
       else
         extract_filename(browsename,readname);
+      return 3;
+    }
+
+  if (strcmp(variable,s_video) == 0)           /* video=? */
+    {
+      if (active_system == 0)
+        {
+          if ((k = check_vidmode_keyname(value)) == 0) goto badarg;
+          initmode = -1;
+          for (i = 0; i < MAXVIDEOTABLE; ++i)
+            {
+              if (videotable[i].keynum == k)
+                {
+                  initmode = i;
+                  break;
+                }
+            }
+          if (initmode == -1) goto badarg;
+        }
       return 3;
     }
 
@@ -1689,7 +1707,7 @@ int cmdarg(char *curarg,int mode) /* process a single argument */
     {
       int i,j;
       j = -1;
-      for (i=0;i<4;i++)
+      for (i=0; i<4; i++)
         if (strcmp(value,juli3Doptions[i])==0)
           j = i;
       if (j < 0)
@@ -2223,11 +2241,13 @@ int cmdarg(char *curarg,int mode) /* process a single argument */
   if (strcmp(variable,s_scalemap) == 0)        /* Scalemap=?,?,?,?,?,?,?,?,?,?,? */
     {
       int counter;
-      if (totparms != intparms) goto badarg;
-      for (counter=0;counter <=11;counter++)
-        if ((totparms > counter) && (intval[counter] > 0)
-            && (intval[counter] < 13))
+      for (counter=0; counter <=11; counter++)
+         if (totparms > counter) {
+            if (charval[counter] == 'p')
+               scale_map[counter] = -1;
+            else if ((intval[counter] >= 0) && (intval[counter] < 13))
           scale_map[counter] = intval[counter];
+         }
 #endif
       return(0);
     }
@@ -2697,7 +2717,7 @@ int cmdarg(char *curarg,int mode) /* process a single argument */
   if (strcmp(variable,s_background) == 0)       /* background=?/? */
     {
       if (totparms != 3 || intparms != 3) goto badarg;
-      for (i=0;i<3;i++)
+      for (i=0; i<3; i++)
         if (intval[i] & ~0xff)
           goto badarg;
       back_color[0] = (BYTE)intval[0];
@@ -2768,7 +2788,7 @@ static void parse_textcolors(char *value)
                  = C_STOP_INFO = BLACK*16+L_WHITE; */
       txtcolor[0] = txtcolor[2] = txtcolor[5] = txtcolor[11] = txtcolor[16]
                                   = txtcolor[17] = txtcolor[22] = txtcolor[24]
-                                                                  = txtcolor[25] = BLACK*16+L_WHITE;
+                                      = txtcolor[25] = BLACK*16+L_WHITE;
     }
   else
     {
@@ -2887,13 +2907,13 @@ badcolor:
 
 static void argerror(char *badarg)      /* oops. couldn't decode this */
 {
-  static FCODE argerrmsg1[]={"\
+  static FCODE argerrmsg1[]= {"\
                              Oops. I couldn't understand the argument:\n  "
-                            };
-  static FCODE argerrmsg2[]={"\n\n\
+                             };
+  static FCODE argerrmsg2[]= {"\n\n\
                              (see the Startup Help screens or documentation for a complete\n\
                              argument list with descriptions)"
-                            };
+                             };
   char msg[300];
   if ((int)strlen(badarg) > 70) badarg[70] = 0;
   if (active_system == 0 /* DOS */
@@ -2985,7 +3005,7 @@ int get_max_curarg_len(char *floatvalstr[], int totparms)
 {
   int i,tmp,max_str;
   max_str = 0;
-  for (i=0;i<totparms;i++)
+  for (i=0; i<totparms; i++)
     if ((tmp=get_curarg_len(floatvalstr[i])) > max_str)
       max_str = tmp;
   return(max_str);
@@ -3000,9 +3020,9 @@ int get_max_curarg_len(char *floatvalstr[], int totparms)
 int init_msg(int flags,char *cmdstr,char *badfilename,int mode)
 {
   char *modestr[4] =
-    {s_commandline,s_sstoolsini,s_at_cmd,s_at_cmd};
+  {s_commandline,s_sstoolsini,s_at_cmd,s_at_cmd};
   static FCODE diags[] =
-    {"Fractint found the following problems when parsing commands: "};
+  {"Fractint found the following problems when parsing commands: "};
   char msg[256];
   char cmd[80];
   static int row = 1;

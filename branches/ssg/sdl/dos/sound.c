@@ -362,7 +362,10 @@ int soundon(int freq)
       freq=(int)(exp(((double)note/12.0)*log(2.0))*8.176);
          /* pitch quantize note for FM and speaker */
 
-   if (soundflag & 16) { /* fm flag set */
+   if (scale_map[chrome] == -1)
+      freq = 0;
+
+   if ((soundflag & 16) && (freq != 0)) { /* fm flag set */
       double temp_freq = (double)freq * (double)1048576;
       block = 0;
       mult = 1;
@@ -392,7 +395,8 @@ int soundon(int freq)
      initsndvars();
    }
 
-   if (soundflag & 8) snd(freq); /* pc spkr flag set */
+   if ((soundflag & 8) && (freq != 0))
+      snd(freq); /* pc spkr flag set */
    return(1);
 }
 
@@ -635,52 +639,100 @@ get_map_restart:
    ptr = (char far *)MK_FP(extraseg,0);
 
    LOADCHOICES("Scale map C (1)");
-   uvalues[k].type = 'i';
-   uvalues[k].uval.ival = scale_map[0];
+   uvalues[k].type = 's';
+   if (scale_map[0] == -1) {
+      strcpy(uvalues[k].uval.sval,s_pause);
+   } else {
+      sprintf(uvalues[k].uval.sval,"%d",scale_map[0]);
+   }
 
    LOADCHOICES("Scale map C#(2)");
-   uvalues[k].type = 'i';
-   uvalues[k].uval.ival = scale_map[1];
+   uvalues[k].type = 's';
+   if (scale_map[1] == -1) {
+      strcpy(uvalues[k].uval.sval,s_pause);
+   } else {
+      sprintf(uvalues[k].uval.sval,"%d",scale_map[1]);
+   }
 
    LOADCHOICES("Scale map D (3)");
-   uvalues[k].type = 'i';
-   uvalues[k].uval.ival = scale_map[2];
+   uvalues[k].type = 's';
+   if (scale_map[2] == -1) {
+      strcpy(uvalues[k].uval.sval,s_pause);
+   } else {
+      sprintf(uvalues[k].uval.sval,"%d",scale_map[2]);
+   }
 
    LOADCHOICES("Scale map D#(4)");
-   uvalues[k].type = 'i';
-   uvalues[k].uval.ival = scale_map[3];
+   uvalues[k].type = 's';
+   if (scale_map[3] == -1) {
+      strcpy(uvalues[k].uval.sval,s_pause);
+   } else {
+      sprintf(uvalues[k].uval.sval,"%d",scale_map[3]);
+   }
 
    LOADCHOICES("Scale map E (5)");
-   uvalues[k].type = 'i';
-   uvalues[k].uval.ival = scale_map[4];
+   uvalues[k].type = 's';
+   if (scale_map[4] == -1) {
+      strcpy(uvalues[k].uval.sval,s_pause);
+   } else {
+      sprintf(uvalues[k].uval.sval,"%d",scale_map[4]);
+   }
 
    LOADCHOICES("Scale map F (6)");
-   uvalues[k].type = 'i';
-   uvalues[k].uval.ival = scale_map[5];
+   uvalues[k].type = 's';
+   if (scale_map[5] == -1) {
+      strcpy(uvalues[k].uval.sval,s_pause);
+   } else {
+      sprintf(uvalues[k].uval.sval,"%d",scale_map[5]);
+   }
 
    LOADCHOICES("Scale map F#(7)");
-   uvalues[k].type = 'i';
-   uvalues[k].uval.ival = scale_map[6];
+   uvalues[k].type = 's';
+   if (scale_map[6] == -1) {
+      strcpy(uvalues[k].uval.sval,s_pause);
+   } else {
+      sprintf(uvalues[k].uval.sval,"%d",scale_map[6]);
+   }
 
    LOADCHOICES("Scale map G (8)");
-   uvalues[k].type = 'i';
-   uvalues[k].uval.ival = scale_map[7];
+   uvalues[k].type = 's';
+   if (scale_map[7] == -1) {
+      strcpy(uvalues[k].uval.sval,s_pause);
+   } else {
+      sprintf(uvalues[k].uval.sval,"%d",scale_map[7]);
+   }
 
    LOADCHOICES("Scale map G#(9)");
-   uvalues[k].type = 'i';
-   uvalues[k].uval.ival = scale_map[8];
+   uvalues[k].type = 's';
+   if (scale_map[8] == -1) {
+      strcpy(uvalues[k].uval.sval,s_pause);
+   } else {
+      sprintf(uvalues[k].uval.sval,"%d",scale_map[8]);
+   }
 
    LOADCHOICES("Scale map A (10)");
-   uvalues[k].type = 'i';
-   uvalues[k].uval.ival = scale_map[9];
+   uvalues[k].type = 's';
+   if (scale_map[9] == -1) {
+      strcpy(uvalues[k].uval.sval,s_pause);
+   } else {
+      sprintf(uvalues[k].uval.sval,"%d",scale_map[9]);
+   }
 
    LOADCHOICES("Scale map A#(11)");
-   uvalues[k].type = 'i';
-   uvalues[k].uval.ival = scale_map[10];
+   uvalues[k].type = 's';
+   if (scale_map[10] == -1) {
+      strcpy(uvalues[k].uval.sval,s_pause);
+   } else {
+      sprintf(uvalues[k].uval.sval,"%d",scale_map[10]);
+   }
 
    LOADCHOICES("Scale map B (12)");
-   uvalues[k].type = 'i';
-   uvalues[k].uval.ival = scale_map[11];
+   uvalues[k].type = 's';
+   if (scale_map[11] == -1) {
+      strcpy(uvalues[k].uval.sval,s_pause);
+   } else {
+      sprintf(uvalues[k].uval.sval,"%d",scale_map[11]);
+   }
 
    LOADCHOICES("");
    uvalues[k].type = '*';
@@ -700,7 +752,10 @@ get_map_restart:
    k = -1;
 
    for(j=0;j<=11;j++) {
-      scale_map[j] = abs(uvalues[++k].uval.ival);
+      if(strncmp(strlwr(uvalues[++k].uval.sval),s_pause,1) == 0)
+         scale_map[j] = -1;
+      else
+         scale_map[j] = abs(atoi(uvalues[k].uval.sval));
       if (scale_map[j] > 12)
          scale_map[j] = 12;
    }
