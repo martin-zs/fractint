@@ -35,7 +35,9 @@ int    resume_len;               /* length of resume info */
 static int    resume_offset;            /* offset in resume info gets */
 int    taborhelp;    /* kludge for sound and tab or help key press */
 
-#define FUDGEFACTOR     29      /* fudge all values up by 2**this */
+// FIXME (jonathan#1#): Next allows mandel to work with StandardFractal().
+//#define FUDGEFACTOR     29      /* fudge all values up by 2**this */
+#define FUDGEFACTOR     28      /* fudge all values up by 2**this */
 #define FUDGEFACTOR2    24      /* (or maybe this)                */
 
 void set_grid_pointers()
