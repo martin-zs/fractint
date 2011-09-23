@@ -15,9 +15,9 @@ SDL_Surface *backscrn = NULL;
 SDL_Surface *backtext = NULL;
 TTF_Font *font = NULL;
 SDL_Color cols[256];
-SDL_Color text_cols[16];
 int SDL_video_flags = SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_RESIZABLE;
 //int SDL_video_flags = SDL_SWSURFACE|SDL_RESIZABLE;
+SDL_Cursor *mousecurser;
 
 SDL_Color XlateText[] =
 {
@@ -89,6 +89,7 @@ void CleanupSDL(void)
    */
   SDL_FreeSurface(backscrn);
   SDL_FreeSurface(backtext);
+  SDL_FreeCursor(mousecurser);
 // NOTE (jonathan#1#): May not need this once png support is added.
 //  IMG_Quit();
 
@@ -98,6 +99,84 @@ void CleanupSDL(void)
 
   SDL_Quit( );
 
+}
+
+/* XPM */
+static const char *arrow[] = {
+  /* width height num_colors chars_per_pixel */
+  "    32    32        3            1",
+  /* colors */
+  "X c #000000",
+  ". c #ffffff",
+  "  c None",
+  /* pixels */
+  "X                               ",
+  "XX                              ",
+  "X.X                             ",
+  "X..X                            ",
+  "X...X                           ",
+  "X....X                          ",
+  "X.....X                         ",
+  "X......X                        ",
+  "X.......X                       ",
+  "X........X                      ",
+  "X.....XXXXX                     ",
+  "X..X..X                         ",
+  "X.X X..X                        ",
+  "XX  X..X                        ",
+  "X    X..X                       ",
+  "     X..X                       ",
+  "      X..X                      ",
+  "      X..X                      ",
+  "       XX                       ",
+  "                                ",
+  "                                ",
+  "                                ",
+  "                                ",
+  "                                ",
+  "                                ",
+  "                                ",
+  "                                ",
+  "                                ",
+  "                                ",
+  "                                ",
+  "                                ",
+  "                                ",
+  "0,0"
+};
+
+static SDL_Cursor *init_system_cursor(const char *image[])
+{
+  int i, row, col;
+  Uint8 data[4*32];
+  Uint8 mask[4*32];
+  int hot_x, hot_y;
+
+  i = -1;
+  for ( row=0; row<32; ++row ) {
+    for ( col=0; col<32; ++col ) {
+      if ( col % 8 ) {
+        data[i] <<= 1;
+        mask[i] <<= 1;
+      } else {
+        ++i;
+        data[i] = mask[i] = 0;
+      }
+      switch (image[4+row][col]) {
+        case 'X':
+          data[i] |= 0x01;
+          mask[i] |= 0x01;
+          break;
+        case '.':
+          mask[i] |= 0x01;
+          break;
+        case ' ':
+          break;
+      }
+    }
+  }
+  sscanf(image[4+row], "%d,%d", &hot_x, &hot_y);
+  return SDL_CreateCursor(data, mask, 32, 32, hot_x, hot_y);
 }
 
 void ResizeScreen(int mode)
@@ -234,6 +313,8 @@ void ResizeScreen(int mode)
   if (backtext == NULL )
     fprintf(stderr, "No backtext\n");
 #endif
+
+  mousecurser = init_system_cursor(arrow);
 
 // FIXME (jonathan#1#): screen_handle is not currently being used
   if (screen_handle != 0) /* this won't work after a resize, free the memory */
@@ -714,15 +795,20 @@ void starttext(void)
 {
   /* Setup text palette */
   int i;
-
-  for (i = 0; i < 16; i++)
-    {
-      text_cols[i].r = XlateText[i].r;
-      text_cols[i].g = XlateText[i].g;
-      text_cols[i].b = XlateText[i].b;
-    }
-  SDL_SetColors(screen, text_cols, 0, 16);
-  SDL_SetColors(backtext, text_cols, 0, 16);
+// FIXME (jonathan#1#): This still doesn't work
+  if (screen->format->BitsPerPixel == 8)
+  {
+    savevideopalette();
+    for (i = 0; i < 16; i++)
+      {
+        dacbox[i][0] = XlateText[i].r;
+        dacbox[i][1] = XlateText[i].g;
+        dacbox[i][2] = XlateText[i].b;
+      }
+    spindac(0,1);
+    SDL_SetColors(screen, XlateText, 0, 16);
+    SDL_SetColors(backtext, XlateText, 0, 16);
+  }
 }
 
 void outtext(int row, int col, int max_c)
@@ -1251,10 +1337,8 @@ static int translate_key(SDL_KeyboardEvent *key)
 // NOTE (jonathan#1#): 1 if testing mouse support, 0 if not.
 #if 0
 
-void check_mouse(void)
+void check_mouse(SDL_Event mevent)
 {
-
-  SDL_Event mevent;
   static int lastx,lasty;
   static int dx,dy;
   int bandx0, bandy0, bandx1, bandy1;
@@ -1262,16 +1346,19 @@ void check_mouse(void)
   int banding = 0;
 
   if (screenctr) /* don't do it, we're on a text screen */
-    break;
+    return;
+/*
   if (lookatmouse == 3 || zoomoff == 0)
     {
-      lastx = event.button.x;
-      lasty = event.button.y;
-      break;
+      lastx = mevent.button.x;
+      lasty = mevent.button.y;
+      return;
     }
-  bandx1 = bandx0 = event.button.x;
-  bandy1 = bandy0 = event.button.y;
+  bandx1 = bandx0 = mevent.button.x;
+  bandy1 = bandy0 = mevent.button.y;
+*/
 
+if (mevent.button.button == SDL_BUTTON_LEFT)
   while (!done)
     {
       SDL_PeepEvents(&mevent, 1, SDL_GETEVENT,
@@ -1281,65 +1368,18 @@ void check_mouse(void)
         case SDL_MOUSEMOTION:
           /* loop until mouse stops */
           while (SDL_PeepEvents(&mevent, 1, SDL_GETEVENT,
-                                SDL_MOUSEMOTION | SDL_MOUSEBUTTONUP)) {}
+                                SDL_MOUSEMOTION | SDL_MOUSEBUTTONUP)) {
 
-          if (banding)
-            {
-              drawbox (1);
-//    XDrawRectangle(Xdp,Xw,Xgc,MIN(bandx0,bandx1),
-//        MIN(bandy0,bandy1), ABS(bandx1-bandx0),
-//        ABS(bandy1-bandy0));
-            }
-          bandx1 = mevent.motion.x;
-          bandy1 = mevent.motion.y;
-          if (ABS(bandx1-bandx0)*finalaspectratio >
-              ABS(bandy1-bandy0))
-            {
-              bandy1 = SIGN(bandy1-bandy0)*ABS(bandx1-bandx0)*
-                       finalaspectratio + bandy0;
-            }
-          else
-            {
-              bandx1 = SIGN(bandx1-bandx0)*ABS(bandy1-bandy0)/
-                       finalaspectratio + bandx0;
-            }
-          if (!banding)
-            {
-              /* Don't start rubber-banding until the mouse
-                 gets moved.  Otherwise a click messes up the
-                 window */
-              if (ABS(bandx1-bandx0)>10 ||
-                  ABS(bandy1-bandy0)>10)
-                {
-                  banding = 1;
-                  XSetForeground(Xdp, Xgc, colors-1);
-                  XSetFunction(Xdp, Xgc, GXxor);
-                }
-            }
-          if (banding)
-            {
-              XDrawRectangle(Xdp,Xw,Xgc,MIN(bandx0,bandx1),
-                             MIN(bandy0,bandy1), ABS(bandx1-bandx0),
-                             ABS(bandy1-bandy0));
-            }
-          XFlush(Xdp);
-
-//                      if (mevent.button.button == SDL_BUTTON_LEFT)
-//                        {
-//                          /* Get the mouse offsets */
-//                          dx += (mevent.button.x - lastx) / MOUSE_SCALE;
-//                          dy += (mevent.button.y - lasty) / MOUSE_SCALE;
-//                          lastx = mevent.button.x;
-//                          lasty = mevent.button.y;
-//                          break;
-//                        }
-//                      if (mevent.button.button == SDL_BUTTON_RIGHT)
-//                        {
-//
-//                        }
-
-
-
+                      if (mevent.button.button == SDL_BUTTON_LEFT)
+                        {
+                          /* Get the mouse offsets */
+                          dx += (mevent.button.x - lastx) / MOUSE_SCALE;
+                          dy += (mevent.button.y - lasty) / MOUSE_SCALE;
+                          lastx = mevent.button.x;
+                          lasty = mevent.button.y;
+                          break;
+                        }
+                                }
           break;
         case SDL_MOUSEBUTTONUP:
           done = 1;
@@ -1372,7 +1412,7 @@ int get_key_event(int block)
               keypressed = ENTER;
               break;
             case SDL_MOUSEBUTTONDOWN:
-              check_mouse();
+              check_mouse(event);
               break;
 
             case SDL_KEYDOWN:

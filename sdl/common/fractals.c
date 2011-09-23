@@ -541,6 +541,13 @@ Barnsley2FPFractal(void)
   return(floatbailout());
 }
 
+long calcmand_c(void)
+{
+  lnew.x  = ltempsqrx - ltempsqry + longparm->x;
+  lnew.y = multiply(lold.x, lold.y, bitshiftless1) + longparm->y;
+  return(longbailout());
+}
+
 int
 JuliaFractal(void)
 {

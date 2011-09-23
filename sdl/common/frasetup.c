@@ -22,9 +22,8 @@ MandelSetup(void)           /* Mandelbrot Routine */
       && useinitorbit != 1 && using_jiim == 0 && bailoutest == Mod
       && (orbitsave&2) == 0)
 // FIXME (jonathan#1#): Need C code for calcmand.
-//    calctype = calcmand; /* the normal case - use CALCMAND */
     {
-      calctype = StandardFractal;
+      calctype = calcmand; /* the normal case - use CALCMAND */
       longparm = &linit;
     }
   else
@@ -46,9 +45,8 @@ JuliaSetup(void)            /* Julia Routine */
       && !finattract && using_jiim == 0 && bailoutest == Mod
       && (orbitsave&2) == 0)
 // FIXME (jonathan#1#): Need C code for calcmand.
-//    calctype = calcmand; /* the normal case - use CALCMAND */
     {
-      calctype = StandardFractal;
+      calctype = calcmand; /* the normal case - use CALCMAND */
       longparm = &lparm;
       get_julia_attractor (0.0, 0.0);   /* another attractor? */
     }
