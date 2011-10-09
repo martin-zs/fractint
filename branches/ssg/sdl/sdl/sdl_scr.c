@@ -102,7 +102,8 @@ void CleanupSDL(void)
 }
 
 /* XPM */
-static const char *arrow[] = {
+static const char *arrow[] =
+{
   /* width height num_colors chars_per_pixel */
   "    32    32        3            1",
   /* colors */
@@ -153,28 +154,34 @@ static SDL_Cursor *init_system_cursor(const char *image[])
   int hot_x, hot_y;
 
   i = -1;
-  for ( row=0; row<32; ++row ) {
-    for ( col=0; col<32; ++col ) {
-      if ( col % 8 ) {
-        data[i] <<= 1;
-        mask[i] <<= 1;
-      } else {
-        ++i;
-        data[i] = mask[i] = 0;
-      }
-      switch (image[4+row][col]) {
-        case 'X':
-          data[i] |= 0x01;
-          mask[i] |= 0x01;
-          break;
-        case '.':
-          mask[i] |= 0x01;
-          break;
-        case ' ':
-          break;
-      }
+  for ( row=0; row<32; ++row )
+    {
+      for ( col=0; col<32; ++col )
+        {
+          if ( col % 8 )
+            {
+              data[i] <<= 1;
+              mask[i] <<= 1;
+            }
+          else
+            {
+              ++i;
+              data[i] = mask[i] = 0;
+            }
+          switch (image[4+row][col])
+            {
+            case 'X':
+              data[i] |= 0x01;
+              mask[i] |= 0x01;
+              break;
+            case '.':
+              mask[i] |= 0x01;
+              break;
+            case ' ':
+              break;
+            }
+        }
     }
-  }
   sscanf(image[4+row], "%d,%d", &hot_x, &hot_y);
   return SDL_CreateCursor(data, mask, 32, 32, hot_x, hot_y);
 }
@@ -232,7 +239,7 @@ void ResizeScreen(int mode)
 // FIXME (jonathan#1#): This next does not work as expected.  Works if dotmode is changed, but not otherwise.
           SDL_PushEvent(&resize_event);
           SDL_PumpEvents();
-          SDL_PeepEvents(&resize_event,1,SDL_GETEVENT,SDL_VIDEORESIZE);
+          SDL_PeepEvents(&resize_event,1,SDL_GETEVENT,SDL_VIDEORESIZEMASK);
         }
       else
         memcpy((char *)&videotable[adapter],(char *)&videoentry,
@@ -249,7 +256,7 @@ void ResizeScreen(int mode)
       resize_event.resize.h = sydots;
       SDL_PushEvent(&resize_event);
       SDL_PumpEvents();
-      SDL_PeepEvents(&resize_event,1,SDL_GETEVENT,SDL_VIDEORESIZE);
+      SDL_PeepEvents(&resize_event,1,SDL_GETEVENT,SDL_VIDEORESIZEMASK);
       SDL_FreeSurface(backtext);
       TTF_CloseFont(font);
     }
@@ -797,18 +804,18 @@ void starttext(void)
   int i;
 // FIXME (jonathan#1#): This still doesn't work
   if (screen->format->BitsPerPixel == 8)
-  {
-    savevideopalette();
-    for (i = 0; i < 16; i++)
-      {
-        dacbox[i][0] = XlateText[i].r;
-        dacbox[i][1] = XlateText[i].g;
-        dacbox[i][2] = XlateText[i].b;
-      }
-    spindac(0,1);
-    SDL_SetColors(screen, XlateText, 0, 16);
-    SDL_SetColors(backtext, XlateText, 0, 16);
-  }
+    {
+      savevideopalette();
+      for (i = 0; i < 16; i++)
+        {
+          dacbox[i][0] = XlateText[i].r;
+          dacbox[i][1] = XlateText[i].g;
+          dacbox[i][2] = XlateText[i].b;
+        }
+      spindac(0,1);
+      SDL_SetColors(screen, XlateText, 0, 16);
+      SDL_SetColors(backtext, XlateText, 0, 16);
+    }
 }
 
 void outtext(int row, int col, int max_c)
@@ -1334,59 +1341,75 @@ static int translate_key(SDL_KeyboardEvent *key)
     return 0;
 }
 
-// NOTE (jonathan#1#): 1 if testing mouse support, 0 if not.
-#if 0
+int left_mouse_button_down = 0;
+int right_mouse_button_down = 0;
+int button_held = 0;
 
 void check_mouse(SDL_Event mevent)
 {
-  static int lastx,lasty;
+  static int lastx = 0;
+  static int lasty = 0;
   static int dx,dy;
   int bandx0, bandy0, bandx1, bandy1;
   int done = 0;
-  int banding = 0;
+  static int banding = 0;
 
   if (screenctr) /* don't do it, we're on a text screen */
     return;
-/*
+
   if (lookatmouse == 3 || zoomoff == 0)
     {
       lastx = mevent.button.x;
       lasty = mevent.button.y;
       return;
     }
-  bandx1 = bandx0 = mevent.button.x;
-  bandy1 = bandy0 = mevent.button.y;
-*/
 
-if (mevent.button.button == SDL_BUTTON_LEFT)
-  while (!done)
+  if (left_mouse_button_down && !button_held)
     {
-      SDL_PeepEvents(&mevent, 1, SDL_GETEVENT,
-                     SDL_MOUSEMOTION | SDL_MOUSEBUTTONDOWN |SDL_MOUSEBUTTONUP);
-      switch (mevent.type)
+      if (zoomoff == 1)  /* zooming is allowed */
         {
-        case SDL_MOUSEMOTION:
-          /* loop until mouse stops */
-          while (SDL_PeepEvents(&mevent, 1, SDL_GETEVENT,
-                                SDL_MOUSEMOTION | SDL_MOUSEBUTTONUP)) {
-
-                      if (mevent.button.button == SDL_BUTTON_LEFT)
-                        {
-                          /* Get the mouse offsets */
-                          dx += (mevent.button.x - lastx) / MOUSE_SCALE;
-                          dy += (mevent.button.y - lasty) / MOUSE_SCALE;
-                          lastx = mevent.button.x;
-                          lasty = mevent.button.y;
-                          break;
-                        }
-                                }
-          break;
-        case SDL_MOUSEBUTTONUP:
-          done = 1;
-          break;
+          if (zwidth == 0)  /* haven't started zooming yet */
+            {
+              /* start zoombox */
+              button_held = 1;
+              banding = 0;
+              lastx = mevent.button.x;
+              lasty = mevent.button.y;
+// FIXME (jonathan#1#): Does next work?
+              find_special_colors();
+              boxcolor = color_bright;
+            }
         }
     }
 
+  if (left_mouse_button_down && button_held && !banding)
+    {
+       bandx1 = mevent.button.x;
+       bandy1 = mevent.button.y;
+       if (abs(bandx1 - lastx) > 2 || abs(bandy1 - lasty) > 2)
+        {
+          banding = 1;
+        }
+    }
+
+  if(left_mouse_button_down && button_held && banding)
+    {
+      /* Get the mouse offset */
+      dx = abs(mevent.button.x - lastx) / MOUSE_SCALE;
+
+      /* (zbx,zby) is upper left corner of zoom box */
+      /* zwidth & zdepth are deltas to lower right corner */
+      zbx = (lastx - sxoffs) / dxsize;
+      zby = (lasty - syoffs) / dysize;
+      zwidth = dx / dxsize;
+      zdepth = dx * finalaspectratio / dysize; /* maintain aspect ratio here */
+
+      chgboxi(zbx,zby);
+      drawbox(1);
+    }
+
+  if (right_mouse_button_down)
+    (*plot)(mevent.button.x, mevent.button.y, 4);
 
 }
 
@@ -1411,60 +1434,23 @@ int get_key_event(int block)
               ResizeScreen(1);
               keypressed = ENTER;
               break;
-            case SDL_MOUSEBUTTONDOWN:
+            case SDL_MOUSEMOTION:
               check_mouse(event);
               break;
-
-            case SDL_KEYDOWN:
-              keypressed = translate_key(&event.key);
+            case SDL_MOUSEBUTTONDOWN:
+              if (event.button.button == SDL_BUTTON_LEFT)
+                left_mouse_button_down = 1;
+              if (event.button.button == SDL_BUTTON_RIGHT)
+                right_mouse_button_down = 1;
               break;
-            case SDL_KEYUP:
-              key_released(&event.key);
-              break;
-            case SDL_QUIT:
-              exit(0);
-              break;
-            default:
-              break;
-            }
-        }
-// FIXME (jonathan#1#): Need to adjust this for bf math.
-      /* time_to_update() should work outside of while loop, but doesn't */
-      if (time_to_update()) /* set to 200 milli seconds, below */
-        {
-          SDL_Flip(screen);
-        }
-    }
-  while (block && !keypressed);
-  if (time_to_update()) /* set to 200 milli seconds, below */
-    {
-      SDL_Flip(screen);
-    }
-  return (keypressed);
-}
-#else
-
-int get_key_event(int block)
-{
-  SDL_Event event;
-  int keypressed = 0;
-
-  do
-    {
-      /* look for an event */
-      if ( SDL_PollEvent ( &event ) )
-        {
-          /* an event was found */
-          switch (event.type)
-            {
-            case SDL_VIDEORESIZE:
-              resize_flag = 1;
-              videoentry.xdots = event.resize.w & 0xFFFC;  /* divisible by 4 */
-              /*  Maintain aspect ratio of image  */
-              videoentry.ydots = finalaspectratio * videoentry.xdots;
-              discardscreen(); /* dump text screen if in use */
-              ResizeScreen(1);
-              keypressed = ENTER;
+            case SDL_MOUSEBUTTONUP:
+              if (event.button.button == SDL_BUTTON_LEFT) {
+                left_mouse_button_down = 0;
+                button_held = 0;
+                keypressed = ENTER;
+              }
+              if (event.button.button == SDL_BUTTON_RIGHT)
+                right_mouse_button_down = 0;
               break;
             case SDL_KEYDOWN:
               keypressed = translate_key(&event.key);
@@ -1493,7 +1479,6 @@ int get_key_event(int block)
     }
   return (keypressed);
 }
-#endif
 
 /*
 ; ***************** Function delay(int delaytime) ************************
