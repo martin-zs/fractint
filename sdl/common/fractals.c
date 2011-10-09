@@ -130,16 +130,6 @@ int (*longbailout)(void);
 int (*bignumbailout)(void);
 int (*bigfltbailout)(void);
 
-#if 0
-int fpMODbailout(void)
-{
-  if ( ( magnitude = ( tempsqrx=sqr(new.x) )
-                     + ( tempsqry=sqr(new.y) ) ) >= rqlim ) return(1);
-  old = new;
-  return(0);
-}
-#endif
-
 int lMODbailout(void)
 {
   ltempsqrx = lsqr(lnew.x);
@@ -152,6 +142,15 @@ int lMODbailout(void)
   return(0);
 }
 
+#if 0
+int fpMODbailout(void)
+{
+  if ( ( magnitude = ( tempsqrx=sqr(new.x) )
+                     + ( tempsqry=sqr(new.y) ) ) >= rqlim ) return(1);
+  old = new;
+  return(0);
+}
+#else
 int fpMODbailout(void)
 {
   tempsqrx=sqr(new.x);
@@ -161,6 +160,7 @@ int fpMODbailout(void)
   old = new;
   return(0);
 }
+#endif
 
 int lREALbailout(void)
 {
