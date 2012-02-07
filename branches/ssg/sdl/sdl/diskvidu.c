@@ -89,7 +89,7 @@ int common_startdisk(long newrowsize, long newcolsize, int colors)
     enddisk();
   if (dotmode == 11)   /* otherwise, real screen also in use, don't hit it */
     {
-      char buf[20];
+      char buf[50];
       helptitle();
       setattr(1,0,C_DVID_BKGRD,24*80);	/* init rest to background */
       for (i = 0; i < BOXDEPTH; ++i)
@@ -107,7 +107,17 @@ int common_startdisk(long newrowsize, long newcolsize, int colors)
           putstring(-1,-1,C_DVID_LO,buf);
         }
       putstring(BOXROW+6,BOXCOL+4,C_DVID_LO,"Save name: ");
-      sprintf(buf,"%s",savename);
+      if (strlen(savename) > 49) /* keep from overflowing buf is savename too long */
+        {
+          char drive[FILE_MAX_DRIVE];
+          char dir[FILE_MAX_DIR];
+          char fname[FILE_MAX_FNAME];
+          char ext[FILE_MAX_EXT];
+          splitpath(savename,drive,dir,fname,ext);
+          sprintf(buf,"%s",fname);
+        }
+      else
+        sprintf(buf,"%s",savename);
       putstring(-1,-1,C_DVID_LO,buf);
       putstring(BOXROW+8,BOXCOL+4,C_DVID_LO,"Status:");
       dvid_status(0,"clearing the 'screen'");
