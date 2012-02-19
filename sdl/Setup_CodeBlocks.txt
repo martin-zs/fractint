@@ -4,7 +4,7 @@ Download from:
  http://www.codeblocks.org/downloads/5
 
 For Windows 2000 / XP / Vista:
- codeblocks-8.02mingw-setup.exe
+ codeblocks-10.05mingw-setup.exe
 
 Run this file to install.  I picked the default installation.
 
@@ -45,36 +45,67 @@ Download from:
 
 
 
-Project options:
+Windows Project options:
 
 Include directories:
 
-C:\SDL-1.2.14\include\SDL
+  C:\SDL-1.2.14\include\SDL
 
 Library directories:
 
-C:\SDL-1.2.14\lib
+  C:\SDL-1.2.14\lib
 
 
 linker options
--lmingw32 -lSDLmain -lSDL
--lSDL_image.dll
--lSDL_ttf.dll
+  -lmingw32
+  -lSDLmain
+  -lSDL
+  -lSDL_image.dll
+  -lSDL_ttf.dll
 
+These should all be set if you open the fractint.workspace in Code::Blocks
 
 Linux:
 The following packages (and their dependencies) are needed:
-codeblocks
-codeblocks-contrib
-libsdl1.2-dev
-libsdl1.2debian-alsa
-libsdl-image1.2
-libsdl-image1.2-dev, but need to update SDL_image.h to patch 10
-libsdl-ttf2.0-0
-libsdl-ttf2.0-dev
+  codeblocks
+  codeblocks-contrib
+  libsdl1.2-dev
+  libsdl1.2debian
+  libsdl1.2debian-alsa
+  libsdl-image1.2
+  libsdl-image1.2-dev
+  libsdl-ttf2.0-0
+  libsdl-ttf2.0-dev
 
-download SDL-1.2.14-1.x86_64.rpm or SDL-1.2.14-1.i586.rpm
-  if necessary, repackage to debien (I used alien)
+Kubuntu 11.10 has these packages.
+If your distribution doesn't, download SDL-1.2.14-1.x86_64.rpm
+or SDL-1.2.14-1.i586.rpm
+  if necessary, repackage to debian (I used alien)
+
+Linux Project options:
+
+Compiler settings:
+
+  Other options:
+    -fno-builtin
+
+  #defines
+    XFRACT
+
+Search directories:
+
+  headers
+  /usr/include/SDL
+
+Link libraries:
+
+  SDLmain
+  SDL_image
+  SDL_ttf
+
+These should all be set if you open the xfractint.workspace in Code::Blocks
+
+
 
 For help with SDL, start with:
  http://gpwiki.org/index.php/SDL:Tutorials:Setup

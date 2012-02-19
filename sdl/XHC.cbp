@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="XHC" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="hc" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="hc" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-DXFRACT" />
+			<Add directory="headers" />
+		</Compiler>
+		<ExtraCommands>
+			<Add after="cd dos_help; ../hc /c; mv fractint.hlp ..;mv helpdefs.h ../headers" />
+			<Mode after="always" />
+		</ExtraCommands>
+		<Unit filename="dos_help/hc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="dos_help/help.src" />
+		<Unit filename="dos_help/help2.src" />
+		<Unit filename="dos_help/help3.src" />
+		<Unit filename="dos_help/help4.src" />
+		<Unit filename="dos_help/help5.src" />
+		<Unit filename="dos_help/unix.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="headers/helpcom.h" />
+		<Unit filename="headers/port.h" />
+		<Unit filename="headers/unix.h" />
+		<Extensions>
+			<envvars />
+			<code_completion />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
