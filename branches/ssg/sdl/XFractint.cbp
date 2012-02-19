@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="XFractint" />
+		<Option platforms="Unix;" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Option show_notes="0">
+			<notes>
+				<![CDATA[Integer mandel not coded.
+Need font with arrow symbols
+Remove printer functions.
+ ==> 8-bit mode color cycling locks up.
+bf/bn math works, but can't zoom.  Inside options broken.
+Need to fix text colors.
+Need to work on key combinations: control-anykey.
+Resize with a text screen visible doesn't regenerate image.
+Fix file access.]]>
+			</notes>
+		</Option>
+		<Build>
+			<Target title="default">
+				<Option platforms="Unix;" />
+				<Option output="XFractint" prefix_auto="1" extension_auto="1" />
+				<Option external_deps="fractint.hlp;" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+			</Target>
+			<Target title="debug">
+				<Option platforms="Unix;" />
+				<Option output="XFractint" prefix_auto="1" extension_auto="1" />
+				<Option external_deps="fractint.hlp;" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-Winit-self" />
+					<Add option="-Wmissing-declarations" />
+					<Add option="-Wswitch-default" />
+					<Add option="-pedantic" />
+					<Add option="-Wextra" />
+					<Add option="-Wall" />
+					<Add option="-g" />
+					<Add option="-DDEBUG" />
+				</Compiler>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-fno-builtin" />
+			<Add option="`sdl-config --cflags`" />
+			<Add option="-DXFRACT" />
+			<Add directory="headers" />
+			<Add directory="/usr/include/SDL" />
+		</Compiler>
+		<Linker>
+			<Add library="/usr/lib/libSDLmain.a" />
+			<Add library="/usr/lib/libSDL_ttf.so" />
+			<Add library="/usr/lib/libSDL.so" />
+		</Linker>
+		<Unit filename="common/3d.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/ant.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/bigflt.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/biginit.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/bignum.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/bignumc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/calcfrac.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/cmdfiles.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/decoder.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/editpal.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/encoder.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/evolve.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/fracsubr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/fractalb.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/fractalp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/fractals.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/fractint.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/framain2.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/frasetup.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/gifview.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/hcmplx.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/help.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/history.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/intro.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/jb.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/jiim.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/line3d.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/loadfile.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/loadmap.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/lorenz.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/lsys.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/lsysf.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/math_c.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/memory.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/miscfrac.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/miscovl.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/miscres.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/parser.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/parserfp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/plot3d.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/prompts1.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/prompts2.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/realdos.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/rotate.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/slideshw.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/soi.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/soi1.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/stereo.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/testpt.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/zoom.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="dos_help/help.src">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="dos_help/help2.src">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="dos_help/help3.src">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="dos_help/help4.src">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="dos_help/help5.src">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="headers/HELPDEFS.H" />
+		<Unit filename="headers/big.h">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="headers/biginit.h">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="headers/cmplx.h">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="headers/externs.h">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="headers/fractint.h">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="headers/fractype.h">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="headers/helpcom.h">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="headers/lsys.h">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="headers/port.h">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="headers/prototyp.h">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="headers/unix.h">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="sdl/calcmand.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="sdl/calmanfp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="sdl/diskvidu.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="sdl/faccess.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="sdl/fpu087.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="sdl/general.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="sdl/sdl_scr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="sdl/video.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="sstools.ini">
+			<Option target="default" />
+		</Unit>
+		<Extensions>
+			<code_completion />
+			<debugger />
+			<envvars />
+			<wxsmith version="1">
+				<gui name="wxWidgets" src="" main="" init_handlers="necessary" language="CPP" />
+			</wxsmith>
+			<lib_finder>
+				<lib name="sdl" />
+			</lib_finder>
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
