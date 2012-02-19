@@ -39,6 +39,7 @@ char s_random[] = "random";
 char s_spread[] = "spread";
 char s_xplusy[] = "x+y";
 char s_xminusy[] = "x-y";
+char buf[3200];
 
 struct phistory_info      /* for saving evolution data of center image */
   {
@@ -392,7 +393,7 @@ int get_the_rest(void)
   GENEBASE gene[NUMGENES];
 
   strcpy(hdg,o_hdg);
-  ptr = (char *)malloc(16000);
+  ptr = buf;
 
   MoveFromMemory((BYTE *)&gene, (U16)sizeof(gene), 1L, 0L, gene_handle);
 
@@ -462,7 +463,6 @@ choose_vars_restart:
         gene[num].mutate = (char)(rand() % 6);
       goto choose_vars_restart;
     case -1:
-      free(ptr);
       return(-1);
     default:
       break;
@@ -481,7 +481,6 @@ choose_vars_restart:
     gene[NUMGENES - 1].mutate = (char)(uvalues[++k].uval.ch.val);
 
   MoveToMemory((BYTE *)&gene, (U16)sizeof(gene), 1L, 0L, gene_handle);
-  free(ptr);
   return(1); /* if you were here, you want to regenerate */
 }
 
@@ -500,7 +499,7 @@ int get_variations(void)
   int chngd = -1;
 
   strcpy(hdg,o_hdg);
-  ptr = (char *)malloc(16000);
+  ptr = buf;
 
   MoveFromMemory((BYTE *)&gene, (U16)sizeof(gene), 1L, 0L, gene_handle);
 
@@ -594,7 +593,6 @@ choose_vars_restart:
       MoveFromMemory((BYTE *)&gene, (U16)sizeof(gene), 1L, 0L, gene_handle);
       goto choose_vars_restart;
     case -1:
-      free(ptr);
       return(chngd);
     default:
       break;
@@ -611,7 +609,6 @@ choose_vars_restart:
     }
 
   MoveToMemory((BYTE *)&gene, (U16)sizeof(gene), 1L, 0L, gene_handle);
-  free(ptr);
   return(1); /* if you were here, you want to regenerate */
 }
 
@@ -661,7 +658,7 @@ int get_evolve_Parms(void)
 get_evol_restart:
 
   strcpy(hdg,o_hdg);
-  ptr = (char *)malloc(16000);
+  ptr = buf;
   if ((evolving & RANDWALK)||(evolving & RANDPARAM))
     {
       /* adjust field param to make some sense when changing from random modes*/
@@ -746,8 +743,6 @@ get_evol_restart:
       opx           = old_opx;
       opy           = old_opy;
       fiddlefactor  = old_fiddlefactor;
-
-      free(ptr);
       return(-1);
     }
 
@@ -790,7 +785,6 @@ get_evol_restart:
 
   if (!evolving && i != F6)  /* don't need any of the other parameters JCO 12JUL2002 */
     {
-      free(ptr);
       return(1);              /* the following code can set evolving even if it's off */
     }
 
@@ -853,7 +847,6 @@ get_evol_restart:
       fiddle_reduction = 1.0;
       goto get_evol_restart;
     }
-  free(ptr);
   return(i);
 }
 

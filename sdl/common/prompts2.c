@@ -41,6 +41,7 @@ struct DIR_SEARCH DTA;          /* Allocate DTA and define structure */
 #define GETPARM    3
 
 char commandmask[MAX_NAME] = {"*.par"};
+char buf[3200];
 
 /* --------------------------------------------------------------------- */
 /*
@@ -92,7 +93,7 @@ int get_toggles()
                        };
 
   strcpy(hdg,o_hdg);
-  ptr = (char *)malloc(16000);
+  ptr = buf;
 
   k = -1;
 
@@ -238,7 +239,6 @@ int get_toggles()
   helpmode = oldhelpmode;
   if (i < 0)
     {
-      free(ptr);
       return(-1);
     }
 
@@ -360,7 +360,6 @@ int get_toggles()
   closeprox = uvalues[k].uval.dval;
   if (closeprox != old_closeprox) j++;
 
-  free(ptr);
   /* if (j >= 1) j = 1; need to know how many prompts changed for quick_calc JCO 6/23/2001 */
 
   return(j);
@@ -389,7 +388,7 @@ int get_toggles2()
   long old_usr_distest;
 
   strcpy(hdg,o_hdg);
-  ptr = (char *)malloc(16000);
+  ptr = buf;
 
   /* fill up the choices (and previous values) arrays */
   k = -1;
@@ -451,7 +450,6 @@ int get_toggles2()
   helpmode = oldhelpmode;
   if (i < 0)
     {
-      free(ptr);
       return(-1);
     }
 
@@ -516,7 +514,6 @@ int get_toggles2()
       rotate_lo = old_rotate_lo;
       rotate_hi = old_rotate_hi;
     }
-  free(ptr);
 
   return(j);
 }
@@ -551,7 +548,7 @@ int passes_options(void)
   strcpy(hdg,o_hdg);
   strcat(hdg,pressf2);
   strcat(hdg,pressf6);
-  ptr = (char *)malloc(16000);
+  ptr = buf;
   ret = 0;
 
 pass_option_restart:
@@ -591,7 +588,6 @@ pass_option_restart:
   helpmode = oldhelpmode;
   if (i < 0)
     {
-      free(ptr);
       return(-1);
     }
 
@@ -656,7 +652,6 @@ pass_option_restart:
       if (j) ret = 1;
       goto pass_option_restart;
     }
-  free(ptr);
 
   return(j + ret);
 }
@@ -687,7 +682,7 @@ int get_view_params()
   int old_viewwindow,old_viewxdots,old_viewydots,old_sxdots,old_sydots;
 
   strcpy(hdg,o_hdg);
-  ptr = (char *)malloc(16000);
+  ptr = buf;
 
   old_viewwindow    = viewwindow;
   old_viewreduction = viewreduction;
@@ -743,7 +738,6 @@ get_view_restart:
   helpmode = oldhelpmode;     /* re-enable HELP */
   if (i < 0)
     {
-      free(ptr);
       return(-1);
     }
 
@@ -792,8 +786,6 @@ get_view_restart:
                 || viewxdots != old_viewxdots
                 || (viewydots != old_viewydots && viewxdots) ) ) )
     i = 1;
-
-  free(ptr);
 
   return(i);
 }
@@ -1078,7 +1070,7 @@ int get_a_number(double *x, double *y)
 
   stackscreen();
   strcpy(hdg,o_hdg);
-  ptr = (char *)malloc(16000);
+  ptr = buf;
 
   /* fill up the previous values arrays */
   k = -1;
@@ -1095,7 +1087,6 @@ int get_a_number(double *x, double *y)
   if (i < 0)
     {
       unstackscreen();
-      free(ptr);
       return(-1);
     }
 
@@ -1106,7 +1097,6 @@ int get_a_number(double *x, double *y)
   *y = uvalues[++k].uval.dval;
 
   unstackscreen();
-  free(ptr);
   return(i);
 }
 
@@ -1137,9 +1127,11 @@ extern bn_t bnroot;
 
 void goodbye(void)                  /* we done.  Bail out */
 {
+  int ret = 0;
+#if DEBUG
   char goodbyemessage[40];
-  int ret;
   static FCODE gbm[]={"   Thank You for using "FRACTINT};
+#endif
   if (resume_info != 0)
     end_resume();
   if (evolve_handle != 0)
@@ -1163,21 +1155,22 @@ void goodbye(void)                  /* we done.  Bail out */
   enddisk();
   free_bf_vars();
   ExitCheck();
+#if DEBUG
   strcpy(goodbyemessage, gbm);
   if (*s_makepar != 0)
     setvideotext();
   if (*s_makepar != 0)
     {
-      printf("\n\n\n%s\n",goodbyemessage); /* printf takes far pointer */
+      stopmsg(17,goodbyemessage);
     }
   if (*s_makepar != 0)
     {
       movecursor(6,0);
     }
+#endif
   stopslideshow();
   end_help();
   CleanupSDL();
-  ret = 0;
   if (initbatch == 3) /* exit with error code for batch file */
     ret = 2;
   else if (initbatch == 4)
@@ -1630,7 +1623,7 @@ int get_corners()
   strcpy(xprompt,o_xprompt);
   strcpy(yprompt,o_yprompt);
   strcpy(zprompt,o_zprompt);
-  ptr = (char *)malloc(16000);
+  ptr = buf;
   oldhelpmode = helpmode;
   ousemag = usemag;
   oxxmin = xxmin;
@@ -1730,7 +1723,6 @@ gc_loop:
       yymax = oyymax;
       xx3rd = oxx3rd;
       yy3rd = oyy3rd;
-      free(ptr);
       return(-1);
     }
 
@@ -1820,12 +1812,10 @@ gc_loop:
       yymax = oyymax;
       xx3rd = oxx3rd;
       yy3rd = oyy3rd;
-      free(ptr);
       return 0;
     }
   else
     {
-    free(ptr);
     return(1);
     }
 }
@@ -1855,7 +1845,7 @@ static int get_screen_corners(void)
   strcpy(xprompt,o_xprompt);
   strcpy(yprompt,o_yprompt);
   strcpy(zprompt,o_zprompt);
-  ptr = (char *)malloc(16000);
+  ptr = buf;
   oldhelpmode = helpmode;
   ousemag = usemag;
 
@@ -1966,7 +1956,6 @@ gsc_loop:
       yymax = svyymax;
       xx3rd = svxx3rd;
       yy3rd = svyy3rd;
-      free(ptr);
       return(-1);
     }
 
@@ -2068,7 +2057,6 @@ gsc_loop:
       yymax = svyymax;
       xx3rd = svxx3rd;
       yy3rd = svyy3rd;
-      free(ptr);
       return 0;
     }
   else
@@ -2082,7 +2070,6 @@ gsc_loop:
       yymax = svyymax;
       xx3rd = svxx3rd;
       yy3rd = svyy3rd;
-      free(ptr);
       return(1);
     }
 }
@@ -2106,7 +2093,7 @@ int get_browse_params()
   char old_browsemask[MAX_NAME];
 
   strcpy(hdg,o_hdg);
-  ptr = (char *)malloc(16000);
+  ptr = buf;
   old_autobrowse     = autobrowse;
   old_brwschecktype  = brwschecktype;
   old_brwscheckparms = brwscheckparms;
@@ -2162,7 +2149,6 @@ get_brws_restart:
   helpmode = oldhelpmode;     /* re-enable HELP */
   if (i < 0)
     {
-      free(ptr);
       return(0);
     }
 
@@ -2217,7 +2203,6 @@ get_brws_restart:
       i = 0;
     }
 
-  free(ptr);
   return(i);
 }
 
