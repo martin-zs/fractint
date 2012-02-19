@@ -87,6 +87,7 @@ void CleanupSDL(void)
    * mode and restore the previous video settings,
    * etc.  Called by goodbye() routine.
    */
+
   SDL_FreeSurface(backscrn);
   SDL_FreeSurface(backtext);
   SDL_FreeCursor(mousecurser);
@@ -97,8 +98,8 @@ void CleanupSDL(void)
   font = NULL;
   TTF_Quit();
 
-  SDL_Quit( );
-
+  SDL_Quit();
+  delay(250);
 }
 
 /* XPM */
@@ -223,6 +224,7 @@ void ResizeScreen(int mode)
     {
       if (resize_flag == 0)  /* not called from event Queue */
         {
+#if 0
           bpp = SDL_VideoModeOK(videotable[adapter].xdots,
                                 videotable[adapter].ydots,
                                 videotable[adapter].dotmode, SDL_video_flags);
@@ -230,6 +232,7 @@ void ResizeScreen(int mode)
             {
               videotable[adapter].dotmode = bpp;
             }
+#endif
           resize_flag = 1;
           resize_event.type = SDL_VIDEORESIZE;
           resize_event.resize.w = videotable[adapter].xdots;
@@ -395,7 +398,6 @@ void adapter_detect(void)
 void startvideo(void)
 {
   int Bpp = screen->format->BytesPerPixel;
-  int bitspp = screen->format->BitsPerPixel;
 
   if (Bpp == 1) /* 8-bits per pixel => uses a palette */
     {
@@ -948,7 +950,7 @@ void putstring (int row, int col, int attr, CHAR *msg)
   int r, c, s_c;
   int max_c = 0;
 #if DEBUG
-  fprintf(stderr, "printstring, %s\n", msg);
+  fprintf(stderr, "putstring, %s\n", msg);
 #endif
 
   if (row != -1)
@@ -1280,6 +1282,8 @@ static int translate_key(SDL_KeyboardEvent *key)
           return ALT_6;
         case SDLK_7:
           return ALT_7;
+        default:
+          break;
         }
     }
   /* No modifier key down */
@@ -1465,15 +1469,14 @@ int get_key_event(int block)
               break;
             }
         }
-// FIXME (jonathan#1#): Need to adjust this for bf math.
       /* time_to_update() should work outside of while loop, but doesn't */
-      if (time_to_update()) /* set to 200 milli seconds, below */
+      if (time_to_update())
         {
           SDL_Flip(screen);
         }
     }
   while (block && !keypressed);
-  if (time_to_update()) /* set to 200 milli seconds, below */
+  if (time_to_update())
     {
       SDL_Flip(screen);
     }
@@ -1517,8 +1520,10 @@ static U32 next_time = 0;
 
 int time_to_update(void)
 {
+// FIXME (jonathan#1#): Need to adjust this for bf math.
   /* return a 1 every 200 milliseconds if calculating */
-  /* return a 1 every 20 milliseconds if not calculating */
+  /* return a 1 every 20  milliseconds if not calculating */
+  /* return a 1 every 1   millisecond if mouse button down */
   U32 now;
 
   if (calc_status == 1) /* calculating */
@@ -1532,7 +1537,9 @@ int time_to_update(void)
       else
         return (0);
     }
-  else /* not calculating */
+  else if (left_mouse_button_down || right_mouse_button_down)
+    delay (1);
+  else /* not calculating or mousing*/
     delay (20);
   return(1);
 }

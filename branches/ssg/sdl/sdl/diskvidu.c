@@ -84,6 +84,7 @@ int common_startdisk(long newrowsize, long newcolsize, int colors)
 {
   int i;
   long memorysize;
+  char *savenameptr;
 
   if (diskflag)
     enddisk();
@@ -107,17 +108,12 @@ int common_startdisk(long newrowsize, long newcolsize, int colors)
           putstring(-1,-1,C_DVID_LO,buf);
         }
       putstring(BOXROW+6,BOXCOL+4,C_DVID_LO,"Save name: ");
-      if (strlen(savename) > 49) /* keep from overflowing buf is savename too long */
-        {
-          char drive[FILE_MAX_DRIVE];
-          char dir[FILE_MAX_DIR];
-          char fname[FILE_MAX_FNAME];
-          char ext[FILE_MAX_EXT];
-          splitpath(savename,drive,dir,fname,ext);
-          sprintf(buf,"%s",fname);
-        }
+      savenameptr = strrchr(savename, SLASHC); /* check for full path */
+      if(savenameptr == NULL)
+         savenameptr = savename;
       else
-        sprintf(buf,"%s",savename);
+         savenameptr++; /* point past slash */
+      sprintf(buf,"%s",savenameptr);
       putstring(-1,-1,C_DVID_LO,buf);
       putstring(BOXROW+8,BOXCOL+4,C_DVID_LO,"Status:");
       dvid_status(0,"clearing the 'screen'");

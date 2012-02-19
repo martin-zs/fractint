@@ -36,11 +36,13 @@ int inside_help = 0;
 
 extern int slides;  /* 1 for playback */
 
+# if 0
 void fpe_handler(int signum)
 {
   signal(SIGFPE, fpe_handler);
   overflow = 1;
 }
+#endif
 
 /*
 ; ****************** Function getakey() *****************************
@@ -472,7 +474,7 @@ void decode_fractal_info(struct fractal_info *info, int dir)
   getDouble(&info->math_tol[0],&bufPtr,dir);
   getDouble(&info->math_tol[1],&bufPtr,dir);
 
-  for (i=0;i<(sizeof(info->future)/sizeof(short));i++)
+  for (i=0;i<(int)(sizeof(info->future)/sizeof(short));i++)
     {
       getInt(&info->future[i],&bufPtr,dir);
     }
@@ -798,7 +800,7 @@ void decode_evolver_info(struct evolution_info *info, int dir)
     }
   getInt(&info->ecount,&bufPtr,dir);
 
-  for (i=0;i<(sizeof(info->future)/sizeof(short));i++)
+  for (i=0;i<(int)(sizeof(info->future)/sizeof(short));i++)
     {
       getInt(&info->future[i],&bufPtr,dir);
     }
@@ -845,7 +847,7 @@ void decode_orbits_info(struct orbits_info *info, int dir)
   getChar(&info->drawmode,&bufPtr,dir);
   getChar(&info->dummy,&bufPtr,dir);
 
-  for (i=0;i<(sizeof(info->future)/sizeof(short));i++)
+  for (i=0;i<(int)(sizeof(info->future)/sizeof(short));i++)
     {
       getInt(&info->future[i],&bufPtr,dir);
     }
