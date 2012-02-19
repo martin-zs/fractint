@@ -703,12 +703,6 @@ extern void get_calculation_time(char *, long);
 
 /*  parser -- C file prototypes */
 
-// FIXME (jonathan#1#): Move this structure to a header file.
-struct fls { /* function, load, store pointers  CAE fp */
-   void (*function)(void);
-   union Arg *operand;
-};
-
 extern unsigned int SkipWhiteSpace(char *);
 extern unsigned long NewRandNum(void );
 extern void lRandom(void );
