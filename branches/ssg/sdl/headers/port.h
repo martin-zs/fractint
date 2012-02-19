@@ -16,7 +16,6 @@
 #include <math.h>
 #include <float.h>
 
-// TODO (jonathan#1#): Do we need STDC defined??? 02/11/2010
 #if (defined(__STDC__) || defined(__cplusplus)) && !defined(STDC)
 #  define STDC
 #endif

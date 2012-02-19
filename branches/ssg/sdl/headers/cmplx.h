@@ -94,6 +94,11 @@ extern void (*dtrig1)(void);
 extern void (*dtrig2)(void);
 extern void (*dtrig3)(void);
 
+struct fls { /* function, load, store pointers  CAE fp */
+   void (*function)(void);
+   union Arg *operand;
+};
+
 /* -------------------------------------------------------------------- */
 /*   The following #defines allow the complex transcendental functions  */
 /*   in parser.c to be used here thus avoiding duplicated code.         */
