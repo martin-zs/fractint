@@ -54,8 +54,8 @@ _LCMPLX lcoefficient,lold,lnew,lparm, linit,ltmp,ltmp2,lparm2;
 long ltempsqrx,ltempsqry;
 int maxcolor;
 int root, degree,basin;
-double floatmin,floatmax;
-double roverd, d1overd, threshold;
+LDBL floatmin,floatmax;
+LDBL roverd, d1overd, threshold;
 _CMPLX tmp2;
 _CMPLX coefficient;
 _CMPLX  staticroots[16]; /* roots array for degree 16 or less */
@@ -66,7 +66,7 @@ int     bitshiftless1;                  /* bit shift less 1 */
 _CMPLX temp, BaseLog;
 _CMPLX cdegree = { 3.0, 0.0 }, croot   = { 1.0, 0.0 };
 
-double TWOPI = PI*2.0;
+LDBL TWOPI = PI*2.0;
 int c_exp;
 
 
@@ -79,17 +79,17 @@ _LCMPLX *longparm; /* used here and in jb.c */
 /*              These variables are external for speed's sake only      */
 /* -------------------------------------------------------------------- */
 
-double sinx,cosx;
-double siny,cosy;
-double tmpexp;
-double tempsqrx,tempsqry;
+LDBL sinx,cosx;
+LDBL siny,cosy;
+LDBL tmpexp;
+LDBL tempsqrx,tempsqry;
 
-double foldxinitx,foldyinity,foldxinity,foldyinitx;
+LDBL foldxinitx,foldyinity,foldxinity,foldyinitx;
 long oldxinitx,oldyinity,oldxinity,oldyinitx;
 long longtmp;
 
 /* These are for quaternions */
-double qc,qci,qcj,qck;
+LDBL qc,qci,qcj,qck;
 
 /* temporary variables for trig use */
 long lcosx, lsinx;
@@ -267,11 +267,11 @@ int lMANHbailout(void)
 
 int fpMANHbailout(void)
 {
-  double manhmag;
+  LDBL manhmag;
   tempsqrx=sqr(new.x);
   tempsqry=sqr(new.y);
   magnitude = tempsqrx + tempsqry;
-  manhmag = fabs(new.x) + fabs(new.y);
+  manhmag = fabsl(new.x) + fabsl(new.y);
   if ((manhmag * manhmag) >= rqlim) return(1);
   old = new;
   return(0);
@@ -294,7 +294,7 @@ int lMANRbailout(void)
 
 int fpMANRbailout(void)
 {
-  double manrmag;
+  LDBL manrmag;
   tempsqrx=sqr(new.x);
   tempsqry=sqr(new.y);
   magnitude = tempsqrx + tempsqry;
@@ -305,7 +305,7 @@ int fpMANRbailout(void)
 }
 
 #define FLOATTRIGBAILOUT()  \
-   if (fabs(old.y) >= rqlim2) return(1);
+   if (fabsl(old.y) >= rqlim2) return(1);
 
 #define LONGTRIGBAILOUT()  \
    if(labs(lold.y) >= llimit2) { return(1);}
@@ -315,10 +315,10 @@ int fpMANRbailout(void)
         { return(1);}
 
 #define FLOATXYTRIGBAILOUT()  \
-   if (fabs(old.x) >= rqlim2 || fabs(old.y) >= rqlim2) return(1);
+   if (fabsl(old.x) >= rqlim2 || fabsl(old.y) >= rqlim2) return(1);
 
 #define FLOATHTRIGBAILOUT()  \
-   if (fabs(old.x) >= rqlim2) return(1);
+   if (fabsl(old.x) >= rqlim2) return(1);
 
 #define LONGHTRIGBAILOUT()  \
    if(labs(lold.x) >= llimit2) { return(1);}
@@ -327,12 +327,12 @@ int fpMANRbailout(void)
       if(labs((X)) > l16triglim) { return(1);}
 
 #define OLD_FLOATEXPBAILOUT()  \
-   if (fabs(old.y) >= 1.0e8) return(1);\
-   if (fabs(old.x) >= 6.4e2) return(1);
+   if (fabsl(old.y) >= 1.0e8) return(1);\
+   if (fabsl(old.x) >= 6.4e2) return(1);
 
 #define FLOATEXPBAILOUT()  \
-   if (fabs(old.y) >= 1.0e3) return(1);\
-   if (fabs(old.x) >= 8) return(1);
+   if (fabsl(old.y) >= 1.0e3) return(1);\
+   if (fabsl(old.x) >= 8) return(1);
 
 #define LONGEXPBAILOUT()  \
    if (labs(lold.y) >= (1000L<<bitshift)) return(1);\
@@ -372,7 +372,7 @@ static int Halleybailout(void)
 /* -------------------------------------------------------------------- */
 /*              Fractal (once per iteration) routines                   */
 /* -------------------------------------------------------------------- */
-static double t2;
+static LDBL t2;
 
 /* Distance of complex z from unit circle */
 #define DIST1(z) (((z).x-1.0)*((z).x-1.0)+((z).y)*((z).y))
@@ -647,7 +647,7 @@ LambdaexponentFractal(void)
   FPUsincos  (&old.y,&siny,&cosy);
 
   if (old.x >= rqlim && cosy >= 0.0) return(1);
-  tmpexp = exp(old.x);
+  tmpexp = expl(old.x);
   tmp.x = tmpexp*cosy;
   tmp.y = tmpexp*siny;
 
@@ -686,8 +686,8 @@ FloatTrigPlusExponentFractal(void)
   /* another Scientific American biomorph type */
   /* z(n+1) = e**z(n) + trig(z(n)) + C */
 
-  if (fabs(old.x) >= 6.4e2) return(1); /* DOMAIN errors */
-  tmpexp = exp(old.x);
+  if (fabsl(old.x) >= 6.4e2) return(1); /* DOMAIN errors */
+  tmpexp = expl(old.x);
   FPUsincos  (&old.y,&siny,&cosy);
   CMPLXtrig0(old,new);
 
@@ -766,12 +766,12 @@ UnityFractal(void)
 int
 UnityfpFractal(void)
 {
-  double XXOne;
+  LDBL XXOne;
   /* brought to you by Mark Peterson - you won't find this in any fractal
      books unless they saw it here first - Mark invented it! */
 
   XXOne = sqr(old.x) + sqr(old.y);
-  if ((XXOne > 2.0) || (fabs(XXOne - 1.0) < ddelmin))
+  if ((XXOne > 2.0) || (fabsl(XXOne - 1.0) < ddelmin))
     return(1);
   old.y = (2.0 - XXOne)* old.x;
   old.x = (2.0 - XXOne)* old.y;
@@ -839,10 +839,10 @@ longCmplxZpowerFractal(void)
 {
   _CMPLX x, y;
 
-  x.x = (double)lold.x / fudge;
-  x.y = (double)lold.y / fudge;
-  y.x = (double)lparm2.x / fudge;
-  y.y = (double)lparm2.y / fudge;
+  x.x = (LDBL)lold.x / fudge;
+  x.y = (LDBL)lold.y / fudge;
+  y.x = (LDBL)lparm2.x / fudge;
+  y.y = (LDBL)lparm2.y / fudge;
   x = ComplexPower(x, y);
   if (fabs(x.x) < fgLimit && fabs(x.y) < fgLimit)
     {
@@ -1054,7 +1054,7 @@ PopcornFractal(void)
   tempsqrx = sqr(new.x);
   tempsqry = sqr(new.y);
   if ((magnitude = tempsqrx + tempsqry) >= rqlim
-      || fabs(new.x) > rqlim2 || fabs(new.y) > rqlim2 )
+      || fabsl(new.x) > rqlim2 || fabsl(new.y) > rqlim2 )
     return(1);
   old = new;
   return(0);
@@ -1169,7 +1169,7 @@ PopcornFractalFn(void)
   tempsqrx = sqr(new.x);
   tempsqry = sqr(new.y);
   if ((magnitude = tempsqrx + tempsqry) >= rqlim
-      || fabs(new.x) > rqlim2 || fabs(new.y) > rqlim2 )
+      || fabsl(new.x) > rqlim2 || fabsl(new.y) > rqlim2 )
     return(1);
   old = new;
   return(0);
@@ -1915,7 +1915,7 @@ Magnet1Fractal(void)    /*    Z = ((Z**2 + C - 1)/(2Z + C - 2))**2    */
 {
   /*  In "Beauty of Fractals", code by Kev Allen. */
   _CMPLX top, bot, tmp;
-  double div;
+  LDBL div;
 
   top.x = tempsqrx - tempsqry + floatparm->x - 1; /* top = Z**2+C-1 */
   top.y = old.x * old.y;
@@ -1942,7 +1942,7 @@ Magnet2Fractal(void)  /* Z = ((Z**3 + 3(C-1)Z + (C-1)(C-2)  ) /      */
 {
   /*   In "Beauty of Fractals", code by Kev Allen.  */
   _CMPLX top, bot, tmp;
-  double div;
+  LDBL div;
 
   top.x = old.x * (tempsqrx-tempsqry-tempsqry-tempsqry + T_Cm1.x)
           - old.y * T_Cm1.y + T_Cm1Cm2.x;
@@ -2141,7 +2141,7 @@ void invertz2(_CMPLX *z)
   z->y -= f_ycenter;  /* Normalize values to center of circle */
 
   tempsqrx = sqr(z->x) + sqr(z->y);  /* Get old radius */
-  if (fabs(tempsqrx) > FLT_MIN)
+  if (fabsl(tempsqrx) > LDBL_MIN)
     tempsqrx = f_radius / tempsqrx;
   else
     tempsqrx = FLT_MAX;   /* a big number, but not TOO big */
@@ -2745,7 +2745,7 @@ int mandphoenix_per_pixel(void)
 int
 QuaternionFPFractal(void)
 {
-  double a0,a1,a2,a3,n0,n1,n2,n3;
+  LDBL a0,a1,a2,a3,n0,n1,n2,n3;
   a0 = old.x;
   a1 = old.y;
   a2 = floatparm->x;
@@ -2802,7 +2802,7 @@ HyperComplexFPFractal(void)
 int
 VLfpFractal(void) /* Beauty of Fractals pp. 125 - 127 */
 {
-  double a, b, ab, half, u, w, xy;
+  LDBL a, b, ab, half, u, w, xy;
 
   half = param[0] / 2.0;
   xy = old.x * old.y;
@@ -2820,7 +2820,7 @@ int
 EscherfpFractal(void) /* Science of Fractal Images pp. 185, 187 */
 {
   _CMPLX oldtest, newtest, testsqr;
-  double testsize = 0.0;
+  LDBL testsize = 0.0;
   long testiter = 0;
 
   new.x = tempsqrx - tempsqry; /* standard Julia with C == (0.0, 0.0i) */
@@ -2970,7 +2970,7 @@ MandelbrotMix4fpFractal(void) /* from formula by Jim Muth */
 #undef K
 #undef L
 
-double b_const;
+LDBL b_const;
 
 int DivideBrot5Setup(void)
 {
@@ -3060,7 +3060,7 @@ int ComplexNewton(void)
 int ComplexBasin(void)
 {
   _CMPLX cd1;
-  double mod;
+  LDBL mod;
 
   /* new = ((cdegree-1) * old**cdegree) + croot
            ----------------------------------
@@ -3076,13 +3076,13 @@ int ComplexBasin(void)
   tmp.y = new.y - croot.y;
   if ((sqr(tmp.x) + sqr(tmp.y)) < threshold)
     {
-      if (fabs(old.y) < .01)
+      if (fabsl(old.y) < .01)
         old.y = 0.0;
       FPUcplxlog(&old, &temp);
       FPUcplxmul(&temp, &cdegree, &tmp);
       mod = tmp.y/TWOPI;
       coloriter = (long)mod;
-      if (fabs(mod - coloriter) > 0.5)
+      if (fabsl(mod - coloriter) > 0.5)
         {
           if (mod < 0.0)
             coloriter--;

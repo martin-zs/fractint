@@ -15,8 +15,8 @@ void FPUcplxexp(_CMPLX *x, _CMPLX *z)
   e2x = expl(x->x);
   if (isnan(e2x) || isinf(e2x))
     e2x = 1.0;
-  z->x = (double)(e2x * cosl(y));
-  z->y = (double)(e2x * sinl(y));
+  z->x = (LDBL)(e2x * cosl(y));
+  z->y = (LDBL)(e2x * sinl(y));
 }
 
 _CMPLX ComplexPower(_CMPLX xx, _CMPLX yy)
@@ -43,7 +43,7 @@ _CMPLX ComplexPower(_CMPLX xx, _CMPLX yy)
 /* Raise complex number (base) to the (exp) power, storing the result
 ** in complex (result).
 */
-static double xt, yt, t2;
+static LDBL xt, yt, t2;
 
 void cpower(_CMPLX *base, int exp, _CMPLX *result)
 {
@@ -152,8 +152,8 @@ complex_mult(_CMPLX arg1,_CMPLX arg2,_CMPLX *pz)
 int
 complex_div(_CMPLX numerator,_CMPLX denominator,_CMPLX *pout)
 {
-  double mod;
-  if ((mod = modulus(denominator)) < FLT_MIN)
+  LDBL mod;
+  if ((mod = modulus(denominator)) < LDBL_MIN)
     return(1);
   conjugate(&denominator);
   complex_mult(numerator,denominator,pout);
@@ -272,18 +272,18 @@ void Arctanhz(_CMPLX z,_CMPLX *rz)
   if ( z.x == 0.0)
     {
       rz->x = 0;
-      rz->y = atan( z.y);
+      rz->y = atanl( z.y);
       return;
     }
   else
     {
-      if ( fabs(z.x) == 1.0 && z.y == 0.0)
+      if ( fabsl(z.x) == 1.0 && z.y == 0.0)
         {
           return;
         }
-      else if ( fabs( z.x) < 1.0 && z.y == 0.0)
+      else if ( fabsl( z.x) < 1.0 && z.y == 0.0)
         {
-          rz->x = log((1+z.x)/(1-z.x))/2;
+          rz->x = logl((1+z.x)/(1-z.x))/2;
           rz->y = 0;
           return;
         }
@@ -310,7 +310,7 @@ void Arctanz(_CMPLX z,_CMPLX *rz)
     rz->x = rz->y = 0;
   else if ( z.x != 0.0 && z.y == 0.0)
     {
-      rz->x = atan( z.x);
+      rz->x = atanl( z.x);
       rz->y = 0;
     }
   else if ( z.x == 0.0 && z.y != 0.0)
@@ -410,18 +410,18 @@ LCMPLX ComplexSqrtLong(long x, long y)
   return result;
 }
 
-_CMPLX ComplexSqrtFloat(double x, double y)
+_CMPLX ComplexSqrtFloat(LDBL x, LDBL y)
 {
-  double mag;
-  double theta;
+  LDBL mag;
+  LDBL theta;
   _CMPLX  result;
 
   if (x == 0.0 && y == 0.0)
     result.x = result.y = 0.0;
   else
     {
-      mag   = sqrt(sqrt(x*x + y*y));
-      theta = atan2(y, x) / 2;
+      mag   = sqrtl(sqrtl(x*x + y*y));
+      theta = atan2l(y, x) / 2;
       FPUsincos(&theta, &result.y, &result.x);
       result.x *= mag;
       result.y *= mag;

@@ -53,9 +53,9 @@ Fix file access.]]>
 			<Add directory="/usr/include/SDL" />
 		</Compiler>
 		<Linker>
-			<Add library="/usr/lib/libSDLmain.a" />
-			<Add library="/usr/lib/libSDL_ttf.so" />
-			<Add library="/usr/lib/libSDL.so" />
+			<Add library="/usr/lib/x86_64-linux-gnu/libSDLmain.a" />
+			<Add library="/usr/lib/x86_64-linux-gnu/libSDL_ttf.so" />
+			<Add library="/usr/lib/x86_64-linux-gnu/libSDL.so" />
 		</Linker>
 		<Unit filename="common/3d.c">
 			<Option compilerVar="CC" />

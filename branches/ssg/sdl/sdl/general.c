@@ -17,7 +17,7 @@
 #include "port.h"
 #include "prototyp.h"
 
-int boxx[2304], boxy[1024];
+int boxx[8192], boxy[8192];
 int boxvalues[512];
 char tstack[4096];
 BYTE dacbox[256][3];
