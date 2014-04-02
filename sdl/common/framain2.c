@@ -48,13 +48,13 @@ static void cmp_line_cleanup(void);
 U16 evolve_handle = 0;
 char old_stdcalcmode;
 static char *savezoom;
+int saved_dotmode = 0;
 void (*outln_cleanup) (void);
 
 int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
 {
   int     frommandel;                  /* if julia entered from mandel */
 
-  static int saved_dotmode = 0;
   double  ftemp;                       /* fp temp                      */
   int     i=0;                         /* temporary loop counters      */
   int     kbdchar;

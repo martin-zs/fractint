@@ -435,6 +435,7 @@ extern LDBL                  rqlim;
 extern int                   rseed;
 extern long                  savebase;
 extern _CMPLX                SaveC;
+extern int                   saved_dotmode;
 extern int                   savedac;
 extern char                  savename[];
 extern long                  saveticks;
