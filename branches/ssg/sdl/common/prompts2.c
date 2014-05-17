@@ -264,6 +264,10 @@ int get_toggles()
       usr_floatflag = (char)uvalues[k].uval.ch.val;
       j++;
     }
+   if (usr_stdcalcmode == 'o') { /* Need to force floating point for passes=o */
+      usr_floatflag = 1;
+      j++;
+      }
 
   ++k;
   maxit = uvalues[k].uval.Lval;

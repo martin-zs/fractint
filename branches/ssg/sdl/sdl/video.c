@@ -163,7 +163,6 @@ void setvideomode (int dotmode)
       lineread = readvideoline;
       linewrite = writevideoline;
       ResizeScreen(1);
-      startvideo ();
       setforgraphics ();
       break;
     case 11:
