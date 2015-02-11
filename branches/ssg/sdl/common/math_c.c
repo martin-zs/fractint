@@ -9,35 +9,51 @@
 
 void FPUcplxexp(_CMPLX *x, _CMPLX *z)
 {
-  LDBL e2x, y;
+    LDBL e2x, y;
 
-  y = x->y;
-  e2x = expl(x->x);
-  if (isnan(e2x) || isinf(e2x))
-    e2x = 1.0;
-  z->x = (LDBL)(e2x * cosl(y));
-  z->y = (LDBL)(e2x * sinl(y));
+    y = x->y;
+    e2x = expl(x->x);
+    if (isnan(e2x) || isinf(e2x))
+        e2x = 1.0;
+    z->x = (LDBL)(e2x * cosl(y));
+    z->y = (LDBL)(e2x * sinl(y));
 }
 
 _CMPLX ComplexPower(_CMPLX xx, _CMPLX yy)
 {
-  _CMPLX z, cLog, t;
+    _CMPLX z, cLog, t;
 
-  /* fixes power bug - if any complaints, backwards compatibility hook
-     goes here TIW 3/95 */
-  if (ldcheck == 0)
-    if (xx.x == 0.0 && xx.y == 0.0)
-      {
-        z.x = z.y = 0.0;
-        return(z);
-      }
+    /* fixes power bug - if any complaints, backwards compatibility hook
+       goes here TIW 3/95 */
+    if (ldcheck == 0)
+        if (xx.x == 0.0 && xx.y == 0.0)
+        {
+            z.x = z.y = 0.0;
+            return(z);
+        }
 
-  FPUcplxlog(&xx, &cLog);
-  FPUcplxmul(&cLog, &yy, &t);
+    if(yy.y == 0.0)   /* yy is real */
+    {
+        if(yy.x == 0.0)   /* x^0 = (1.0, 0.0) */
+        {
+            z.x = 1.0;
+            z.y = 0.0;
+            return(z);
+        }
+        if(yy.x == 1.0)   /* x^1 = x */
+        {
+            z.x = xx.x;
+            z.y = xx.y;
+            return(z);
+        }
+    }
 
-  FPUcplxexp(&t, &z);
+    FPUcplxlog(&xx, &cLog);
+    FPUcplxmul(&cLog, &yy, &t);
 
-  return(z);
+    FPUcplxexp(&t, &z);
+
+    return(z);
 }
 
 /* Raise complex number (base) to the (exp) power, storing the result
@@ -47,41 +63,41 @@ static LDBL xt, yt, t2;
 
 void cpower(_CMPLX *base, int exp, _CMPLX *result)
 {
-  if (exp<0)
+    if (exp<0)
     {
-      cpower(base,-exp,result);
-      CMPLXrecip(*result,*result);
-      return;
+        cpower(base,-exp,result);
+        CMPLXrecip(*result,*result);
+        return;
     }
 
-  xt = base->x;
-  yt = base->y;
+    xt = base->x;
+    yt = base->y;
 
-  if (exp & 1)
+    if (exp & 1)
     {
-      result->x = xt;
-      result->y = yt;
+        result->x = xt;
+        result->y = yt;
     }
-  else
+    else
     {
-      result->x = 1.0;
-      result->y = 0.0;
+        result->x = 1.0;
+        result->y = 0.0;
     }
 
-  exp >>= 1;
-  while (exp)
+    exp >>= 1;
+    while (exp)
     {
-      t2 = xt * xt - yt * yt;
-      yt = 2 * xt * yt;
-      xt = t2;
+        t2 = xt * xt - yt * yt;
+        yt = 2 * xt * yt;
+        xt = t2;
 
-      if (exp & 1)
+        if (exp & 1)
         {
-          t2 = xt * result->x - yt * result->y;
-          result->y = result->y * xt + yt * result->x;
-          result->x = t2;
+            t2 = xt * result->x - yt * result->y;
+            result->y = result->y * xt + yt * result->x;
+            result->x = t2;
         }
-      exp >>= 1;
+        exp >>= 1;
     }
 }
 
@@ -90,108 +106,109 @@ static long lxt, lyt, lt2;
 int
 lcpower(_LCMPLX *base, int exp, _LCMPLX *result, int bitshift)
 {
-  static long maxarg;
-  maxarg = 64L<<bitshift;
+    static long maxarg;
+    maxarg = 64L<<bitshift;
 
-  if (exp<0)
+    if (exp<0)
     {
-      overflow = lcpower(base,-exp,result,bitshift);
-      LCMPLXrecip(*result,*result);
-      return(overflow);
-    }
-
-  overflow = 0;
-  lxt = base->x;
-  lyt = base->y;
-
-  if (exp & 1)
-    {
-      result->x = lxt;
-      result->y = lyt;
-    }
-  else
-    {
-      result->x = 1L<<bitshift;
-      result->y = 0L;
-    }
-
-  exp >>= 1;
-  while (exp)
-    {
-      /*
-      if(labs(lxt) >= maxarg || labs(lyt) >= maxarg)
-         return(-1);
-      */
-      lt2 = multiply(lxt, lxt, bitshift) - multiply(lyt,lyt,bitshift);
-      lyt = multiply(lxt,lyt,bitshiftless1);
-      if (overflow)
+        overflow = lcpower(base,-exp,result,bitshift);
+        LCMPLXrecip(*result,*result);
         return(overflow);
-      lxt = lt2;
-
-      if (exp & 1)
-        {
-          lt2 = multiply(lxt,result->x, bitshift) - multiply(lyt,result->y,bitshift);
-          result->y = multiply(result->y,lxt,bitshift) + multiply(lyt,result->x,bitshift);
-          result->x = lt2;
-        }
-      exp >>= 1;
     }
-  if (result->x == 0 && result->y == 0)
-    overflow = 1;
-  return(overflow);
+
+    overflow = 0;
+    lxt = base->x;
+    lyt = base->y;
+
+    if (exp & 1)
+    {
+        result->x = lxt;
+        result->y = lyt;
+    }
+    else
+    {
+        result->x = 1L<<bitshift;
+        result->y = 0L;
+    }
+
+    exp >>= 1;
+    while (exp)
+    {
+        /*
+        if(labs(lxt) >= maxarg || labs(lyt) >= maxarg)
+           return(-1);
+        */
+        lt2 = multiply(lxt, lxt, bitshift) - multiply(lyt,lyt,bitshift);
+        lyt = multiply(lxt,lyt,bitshiftless1);
+        if (overflow)
+            return(overflow);
+        lxt = lt2;
+
+        if (exp & 1)
+        {
+            lt2 = multiply(lxt,result->x, bitshift) - multiply(lyt,result->y,bitshift);
+            result->y = multiply(result->y,lxt,bitshift) + multiply(lyt,result->x,bitshift);
+            result->x = lt2;
+        }
+        exp >>= 1;
+    }
+    if (result->x == 0 && result->y == 0)
+        overflow = 1;
+    return(overflow);
 }
 
+#if 0
 int
 complex_mult(_CMPLX arg1,_CMPLX arg2,_CMPLX *pz)
 {
-  pz->x = arg1.x*arg2.x - arg1.y*arg2.y;
-  pz->y = arg1.x*arg2.y+arg1.y*arg2.x;
-  return(0);
+    pz->x = arg1.x*arg2.x - arg1.y*arg2.y;
+    pz->y = arg1.x*arg2.y+arg1.y*arg2.x;
+    return(0);
 }
 
 int
 complex_div(_CMPLX numerator,_CMPLX denominator,_CMPLX *pout)
 {
-  LDBL mod;
-  if ((mod = modulus(denominator)) < LDBL_MIN)
-    return(1);
-  conjugate(&denominator);
-  complex_mult(numerator,denominator,pout);
-  pout->x = pout->x/mod;
-  pout->y = pout->y/mod;
-  return(0);
+    LDBL mod;
+    if ((mod = modulus(denominator)) < LDBL_MIN)
+        return(1);
+    conjugate(&denominator);
+    complex_mult(numerator,denominator,pout);
+    pout->x = pout->x/mod;
+    pout->y = pout->y/mod;
+    return(0);
 }
 
-#if 0
+
 int
 z_to_the_z(_CMPLX *z, _CMPLX *out)
 {
-  static _CMPLX tmp1,tmp2;
-  /* raises complex z to the z power */
-  int errno_xxx;
-  errno_xxx = 0;
+    static _CMPLX tmp1,tmp2;
+    /* raises complex z to the z power */
+    int errno_xxx;
+    errno_xxx = 0;
 
-  if (fabs(z->x) < DBL_EPSILON) return(-1);
+    if (fabs(z->x) < DBL_EPSILON) return(-1);
 
-  /* log(x + iy) = 1/2(log(x*x + y*y) + i(arc_tan(y/x)) */
-  tmp1.x = .5*log(sqr(z->x)+sqr(z->y));
+    /* log(x + iy) = 1/2(log(x*x + y*y) + i(arc_tan(y/x)) */
+    tmp1.x = .5*log(sqr(z->x)+sqr(z->y));
 
-  /* the fabs in next line added to prevent discontinuity in image */
-  tmp1.y = atan(fabs(z->y/z->x));
+    /* the fabs in next line added to prevent discontinuity in image */
+    tmp1.y = atan(fabs(z->y/z->x));
 
-  /* log(z)*z */
-  tmp2.x = tmp1.x * z->x - tmp1.y * z->y;
-  tmp2.y = tmp1.x * z->y + tmp1.y * z->x;
+    /* log(z)*z */
+    tmp2.x = tmp1.x * z->x - tmp1.y * z->y;
+    tmp2.y = tmp1.x * z->y + tmp1.y * z->x;
 
-  /* z*z = e**(log(z)*z) */
-  /* e**(x + iy) =  e**x * (cos(y) + isin(y)) */
+    /* z*z = e**(log(z)*z) */
+    /* e**(x + iy) =  e**x * (cos(y) + isin(y)) */
 
-  tmpexp = exp(tmp2.x);
+    tmpexp = exp(tmp2.x);
 
-  FPUsincos(&tmp2.y,&siny,&cosy);
-  out->x = tmpexp*cosy;
-  out->y = tmpexp*siny;
-  return(errno_xxx);
+    FPUsincos(&tmp2.y,&siny,&cosy);
+    out->x = tmpexp*cosy;
+    out->y = tmpexp*siny;
+    return(errno_xxx);
 }
 #endif
 
@@ -206,98 +223,98 @@ z_to_the_z(_CMPLX *z, _CMPLX *out)
 /* rz=Arcsin(z)=-i*Log{i*z+sqrt(1-z*z)} */
 void Arcsinz(_CMPLX z,_CMPLX *rz)
 {
-  _CMPLX tempz1,tempz2;
+    _CMPLX tempz1,tempz2;
 
-  FPUcplxmul( &z, &z, &tempz1);
-  tempz1.x = 1 - tempz1.x;
-  tempz1.y = -tempz1.y;  /* tempz1 = 1 - tempz1 */
-  Sqrtz( tempz1, &tempz1);
+    FPUcplxmul( &z, &z, &tempz1);
+    tempz1.x = 1.0 - tempz1.x;
+    tempz1.y = -tempz1.y;  /* tempz1 = 1 - tempz1 */
+    Sqrtz( tempz1, &tempz1);
 
-  tempz2.x = -z.y;
-  tempz2.y = z.x;                /* tempz2 = i*z  */
-  tempz1.x += tempz2.x;
-  tempz1.y += tempz2.y;    /* tempz1 += tempz2 */
-  FPUcplxlog( &tempz1, &tempz1);
-  rz->x = tempz1.y;
-  rz->y = -tempz1.x;           /* rz = (-i)*tempz1 */
+    tempz2.x = -z.y;
+    tempz2.y = z.x;                /* tempz2 = i*z  */
+    tempz1.x += tempz2.x;
+    tempz1.y += tempz2.y;    /* tempz1 += tempz2 */
+    FPUcplxlog( &tempz1, &tempz1);
+    rz->x = tempz1.y;
+    rz->y = -tempz1.x;           /* rz = (-i)*tempz1 */
 }   /* end. Arcsinz */
 
 
 /* rz=Arccos(z)=-i*Log{z+sqrt(z*z-1)} */
 void Arccosz(_CMPLX z,_CMPLX *rz)
 {
-  _CMPLX temp;
+    _CMPLX temp;
 
-  FPUcplxmul( &z, &z, &temp);
-  temp.x -= 1;                                 /* temp = temp - 1 */
-  Sqrtz( temp, &temp);
+    FPUcplxmul( &z, &z, &temp);
+    temp.x -= 1.0;                                 /* temp = temp - 1 */
+    Sqrtz( temp, &temp);
 
-  temp.x += z.x;
-  temp.y += z.y;                /* temp = z + temp */
+    temp.x += z.x;
+    temp.y += z.y;                /* temp = z + temp */
 
-  FPUcplxlog( &temp, &temp);
-  rz->x = temp.y;
-  rz->y = -temp.x;              /* rz = (-i)*tempz1 */
+    FPUcplxlog( &temp, &temp);
+    rz->x = temp.y;
+    rz->y = -temp.x;              /* rz = (-i)*tempz1 */
 }   /* end. Arccosz */
 
 void Arcsinhz(_CMPLX z,_CMPLX *rz)
 {
-  _CMPLX temp;
+    _CMPLX temp;
 
-  FPUcplxmul( &z, &z, &temp);
-  temp.x += 1;                                 /* temp = temp + 1 */
-  Sqrtz( temp, &temp);
-  temp.x += z.x;
-  temp.y += z.y;                /* temp = z + temp */
-  FPUcplxlog( &temp, rz);
+    FPUcplxmul( &z, &z, &temp);
+    temp.x += 1.0;                                 /* temp = temp + 1 */
+    Sqrtz( temp, &temp);
+    temp.x += z.x;
+    temp.y += z.y;                /* temp = z + temp */
+    FPUcplxlog( &temp, rz);
 }  /* end. Arcsinhz */
 
 /* rz=Arccosh(z)=Log(z+sqrt(z*z-1)} */
 void Arccoshz(_CMPLX z,_CMPLX *rz)
 {
-  _CMPLX tempz;
-  FPUcplxmul( &z, &z, &tempz);
-  tempz.x -= 1;                              /* tempz = tempz - 1 */
-  Sqrtz( tempz, &tempz);
-  tempz.x = z.x + tempz.x;
-  tempz.y = z.y + tempz.y;  /* tempz = z + tempz */
-  FPUcplxlog( &tempz, rz);
+    _CMPLX tempz;
+    FPUcplxmul( &z, &z, &tempz);
+    tempz.x -= 1.0;                              /* tempz = tempz - 1 */
+    Sqrtz( tempz, &tempz);
+    tempz.x = z.x + tempz.x;
+    tempz.y = z.y + tempz.y;  /* tempz = z + tempz */
+    FPUcplxlog( &tempz, rz);
 }   /* end. Arccoshz */
 
 /* rz=Arctanh(z)=1/2*Log{(1+z)/(1-z)} */
 void Arctanhz(_CMPLX z,_CMPLX *rz)
 {
-  _CMPLX temp0,temp1,temp2;
+    _CMPLX temp0,temp1,temp2;
 
-  if ( z.x == 0.0)
+    if ( z.x == 0.0)
     {
-      rz->x = 0;
-      rz->y = atanl( z.y);
-      return;
+        rz->x = 0.0;
+        rz->y = atanl( z.y);
+        return;
     }
-  else
+    else
     {
-      if ( fabsl(z.x) == 1.0 && z.y == 0.0)
+        if ( fabsl(z.x) == 1.0 && z.y == 0.0)
         {
-          return;
+            return;
         }
-      else if ( fabsl( z.x) < 1.0 && z.y == 0.0)
+        else if ( fabsl( z.x) < 1.0 && z.y == 0.0)
         {
-          rz->x = logl((1+z.x)/(1-z.x))/2;
-          rz->y = 0;
-          return;
+            rz->x = logl((1+z.x)/(1-z.x))/2.0;
+            rz->y = 0.0;
+            return;
         }
-      else
+        else
         {
-          temp0.x = 1 + z.x;
-          temp0.y = z.y;             /* temp0 = 1 + z */
-          temp1.x = 1 - z.x;
-          temp1.y = -z.y;            /* temp1 = 1 - z */
-          FPUcplxdiv( &temp0, &temp1, &temp2);
-          FPUcplxlog( &temp2, &temp2);
-          rz->x = .5*temp2.x;
-          rz->y = .5*temp2.y;       /* rz = .5*temp2 */
-          return;
+            temp0.x = 1.0 + z.x;
+            temp0.y = z.y;             /* temp0 = 1 + z */
+            temp1.x = 1.0 - z.x;
+            temp1.y = -z.y;            /* temp1 = 1 - z */
+            FPUcplxdiv( &temp0, &temp1, &temp2);
+            FPUcplxlog( &temp2, &temp2);
+            rz->x = .5*temp2.x;
+            rz->y = .5*temp2.y;       /* rz = .5*temp2 */
+            return;
         }
     }
 }   /* end. Arctanhz */
@@ -305,36 +322,36 @@ void Arctanhz(_CMPLX z,_CMPLX *rz)
 /* rz=Arctan(z)=i/2*Log{(1-i*z)/(1+i*z)} */
 void Arctanz(_CMPLX z,_CMPLX *rz)
 {
-  _CMPLX temp0,temp1,temp2,temp3;
-  if ( z.x == 0.0 && z.y == 0.0)
-    rz->x = rz->y = 0;
-  else if ( z.x != 0.0 && z.y == 0.0)
+    _CMPLX temp0,temp1,temp2,temp3;
+    if ( z.x == 0.0 && z.y == 0.0)
+        rz->x = rz->y = 0.0;
+    else if ( z.x != 0.0 && z.y == 0.0)
     {
-      rz->x = atanl( z.x);
-      rz->y = 0;
+        rz->x = atanl( z.x);
+        rz->y = 0.0;
     }
-  else if ( z.x == 0.0 && z.y != 0.0)
+    else if ( z.x == 0.0 && z.y != 0.0)
     {
-      temp0.x = z.y;
-      temp0.y = 0.0;
-      Arctanhz( temp0, &temp0);
-      rz->x = -temp0.y;
-      rz->y = temp0.x;              /* i*temp0 */
+        temp0.x = z.y;
+        temp0.y = 0.0;
+        Arctanhz( temp0, &temp0);
+        rz->x = -temp0.y;
+        rz->y = temp0.x;              /* i*temp0 */
     }
-  else if ( z.x != 0.0 && z.y != 0.0)
+    else if ( z.x != 0.0 && z.y != 0.0)
     {
 
-      temp0.x = -z.y;
-      temp0.y = z.x;                  /* i*z */
-      temp1.x = 1 - temp0.x;
-      temp1.y = -temp0.y;      /* temp1 = 1 - temp0 */
-      temp2.x = 1 + temp0.x;
-      temp2.y = temp0.y;       /* temp2 = 1 + temp0 */
+        temp0.x = -z.y;
+        temp0.y = z.x;                  /* i*z */
+        temp1.x = 1.0 - temp0.x;
+        temp1.y = -temp0.y;      /* temp1 = 1 - temp0 */
+        temp2.x = 1 + temp0.x;
+        temp2.y = temp0.y;       /* temp2 = 1 + temp0 */
 
-      FPUcplxdiv( &temp1, &temp2, &temp3);
-      FPUcplxlog( &temp3, &temp3);
-      rz->x = -temp3.y*.5;
-      rz->y = .5*temp3.x;           /* .5*i*temp0 */
+        FPUcplxdiv( &temp1, &temp2, &temp3);
+        FPUcplxlog( &temp3, &temp3);
+        rz->x = -temp3.y*.5;
+        rz->y = .5*temp3.x;           /* .5*i*temp0 */
     }
 }   /* end. Arctanz */
 
@@ -342,91 +359,96 @@ void Arctanz(_CMPLX z,_CMPLX *rz)
 #ifdef LONGSQRT
 long lsqrt(long f)
 {
-  int N;
-  unsigned long y0, z;
-  static long a=0, b=0, c=0;                  /* constant factors */
+    int N;
+    unsigned long y0, z;
+    static long a=0, b=0, c=0;                  /* constant factors */
 
-  if (f == 0)
-    return f;
-  if (f <  0)
-    return 0;
+    if (f == 0)
+        return f;
+    if (f <  0)
+        return 0;
 
-  if (a==0)                                   /* one-time compute consts */
+    if (a==0)                                   /* one-time compute consts */
     {
-      a = (long)(fudge * .41731);
-      b = (long)(fudge * .59016);
-      c = (long)(fudge * .7071067811);
+        a = (long)(fudge * .41731);
+        b = (long)(fudge * .59016);
+        c = (long)(fudge * .7071067811);
     }
 
-  N  = 0;
-  while (f & 0xff000000L)                     /* shift arg f into the */
+    N  = 0;
+    while (f & 0xff000000L)                     /* shift arg f into the */
     {
-      /* range: 0.5 <= f < 1  */
-      N++;
-      f /= 2;
+        /* range: 0.5 <= f < 1  */
+        N++;
+        f /= 2;
     }
-  while (!(f & 0xff800000L))
+    while (!(f & 0xff800000L))
     {
-      N--;
-      f *= 2;
+        N--;
+        f *= 2;
     }
 
-  y0 = a + multiply(b, f,  bitshift);         /* Newton's approximation */
+    y0 = a + multiply(b, f,  bitshift);         /* Newton's approximation */
 
-  z  = y0 + divide (f, y0, bitshift);
-  y0 = (z>>2) + divide(f, z,  bitshift);
+    z  = y0 + divide (f, y0, bitshift);
+    y0 = (z>>2) + divide(f, z,  bitshift);
 
-  if (N % 2)
+    if (N % 2)
     {
-      N++;
-      y0 = multiply(c,y0, bitshift);
+        N++;
+        y0 = multiply(c,y0, bitshift);
     }
-  N /= 2;
+    N /= 2;
 // NOTE (jonathan#1#): Aren't both return's the same????
-  if (N >= 0)
-    return y0 <<  N;                        /* correct for shift above */
-  else
-    return y0 >> -N;
+    if (N >= 0)
+        return y0 <<  N;                        /* correct for shift above */
+    else
+        return y0 >> -N;
 }
 #endif
 LCMPLX ComplexSqrtLong(long x, long y)
 {
-  double    mag, theta;
-  long      maglong, thetalong;
-  LCMPLX    result;
+    double    mag, theta;
+    long      maglong, thetalong;
+    LCMPLX    result;
 
 #ifndef LONGSQRT
-  mag       = sqrt(sqrt(((double) multiply(x,x,bitshift))/fudge +
-                        ((double) multiply(y,y,bitshift))/ fudge));
-  maglong   = (long)(mag * fudge);
+    mag       = sqrt(sqrt(((double) multiply(x,x,bitshift))/fudge +
+                          ((double) multiply(y,y,bitshift))/ fudge));
+    maglong   = (long)(mag * fudge);
 #else
-  maglong   = lsqrt(lsqrt(multiply(x,x,bitshift)+multiply(y,y,bitshift)));
+    maglong   = lsqrt(lsqrt(multiply(x,x,bitshift)+multiply(y,y,bitshift)));
 #endif
-  theta     = atan2((double) y/fudge, (double) x/fudge)/2;
-  thetalong = (long)(theta * SinCosFudge);
-  SinCos086(thetalong, &result.y, &result.x);
-  result.x  = multiply(result.x << (bitshift - 16), maglong, bitshift);
-  result.y  = multiply(result.y << (bitshift - 16), maglong, bitshift);
-  return result;
+    theta     = atan2((double) y/fudge, (double) x/fudge)/2;
+    thetalong = (long)(theta * SinCosFudge);
+    SinCos086(thetalong, &result.y, &result.x);
+    result.x  = multiply(result.x << (bitshift - 16), maglong, bitshift);
+    result.y  = multiply(result.y << (bitshift - 16), maglong, bitshift);
+    return result;
 }
 
 _CMPLX ComplexSqrtFloat(LDBL x, LDBL y)
 {
-  LDBL mag;
-  LDBL theta;
-  _CMPLX  result;
+    LDBL mag;
+    LDBL theta;
+    _CMPLX  result;
 
-  if (x == 0.0 && y == 0.0)
-    result.x = result.y = 0.0;
-  else
+    if (x == 0.0 && y == 0.0)
+        result.x = result.y = 0.0;
+    else if (y == 0.0)   /* number is real */
     {
-      mag   = sqrtl(sqrtl(x*x + y*y));
-      theta = atan2l(y, x) / 2;
-      FPUsincos(&theta, &result.y, &result.x);
-      result.x *= mag;
-      result.y *= mag;
+        result.x = sqrtl(x);
+        result.y = 0.0;
     }
-  return result;
+    else
+    {
+        mag   = sqrtl(sqrtl(x*x + y*y));
+        theta = atan2l(y, x) / 2.0;
+        FPUsincos(&theta, &result.y, &result.x);
+        result.x *= mag;
+        result.y *= mag;
+    }
+    return result;
 }
 
 
@@ -447,146 +469,146 @@ static unsigned long lf;
 
 void SetupLogTable(void)
 {
-  float l, f, c, m;
-  unsigned long prev, limit, sptop;
-  unsigned n;
+    float l, f, c, m;
+    unsigned long prev, limit, sptop;
+    unsigned n;
 
-  if (save_release > 1920 || Log_Fly_Calc == 1)   /* set up on-the-fly variables */
+    if (save_release > 1920 || Log_Fly_Calc == 1)   /* set up on-the-fly variables */
     {
-      if (LogFlag > 0)   /* new log function */
+        if (LogFlag > 0)   /* new log function */
         {
-          lf = (LogFlag > 1) ? LogFlag : 0;
-          if (lf >= (unsigned long)MaxLTSize)
+            lf = (LogFlag > 1) ? LogFlag : 0;
+            if (lf >= (unsigned long)MaxLTSize)
+                lf = MaxLTSize - 1;
+            mlf = (colors - (lf?2:1)) / log(MaxLTSize - lf);
+        }
+        else if (LogFlag == -1)   /* old log function */
+        {
+            mlf = (colors - 1) / log(MaxLTSize);
+        }
+        else if (LogFlag <= -2)   /* sqrt function */
+        {
+            if ((lf = 0 - LogFlag) >= (unsigned long)MaxLTSize)
+                lf = MaxLTSize - 1;
+            mlf = (colors - 2) / sqrt(MaxLTSize - lf);
+        }
+    }
+
+    if (Log_Calc)
+        return; /* LogTable not defined, bail out now */
+
+    if (save_release > 1920 && !Log_Calc)
+    {
+        Log_Calc = 1;   /* turn it on */
+        for (prev = 0; prev <= (unsigned long)MaxLTSize; prev++)
+            LogTable[prev] = (BYTE)logtablecalc((long)prev);
+        Log_Calc = 0;   /* turn it off, again */
+        return;
+    }
+
+    if (LogFlag > -2)
+    {
+        lf = (LogFlag > 1) ? LogFlag : 0;
+        if (lf >= (unsigned long)MaxLTSize)
             lf = MaxLTSize - 1;
-          mlf = (colors - (lf?2:1)) / log(MaxLTSize - lf);
-        }
-      else if (LogFlag == -1)   /* old log function */
+        Fg2Float((long)(MaxLTSize-lf), 0, m);
+        fLog14(m, m);
+        Fg2Float((long)(colors-(lf?2:1)), 0, c);
+        fDiv(m, c, m);
+        for (prev = 1; prev <= lf; prev++)
+            LogTable[prev] = 1;
+        for (n = (lf?2:1); n < (unsigned int)colors; n++)
         {
-          mlf = (colors - 1) / log(MaxLTSize);
+            Fg2Float((long)n, 0, f);
+            fMul16(f, m, f);
+            fExp14(f, l);
+            limit = (unsigned long)Float2Fg(l, 0) + lf;
+            if (limit > (unsigned long)MaxLTSize || n == (unsigned int)(colors-1))
+                limit = MaxLTSize;
+            while (prev <= limit)
+                LogTable[prev++] = (BYTE)n;
         }
-      else if (LogFlag <= -2)   /* sqrt function */
-        {
-          if ((lf = 0 - LogFlag) >= (unsigned long)MaxLTSize)
+    }
+    else
+    {
+        if ((lf = 0 - LogFlag) >= (unsigned long)MaxLTSize)
             lf = MaxLTSize - 1;
-          mlf = (colors - 2) / sqrt(MaxLTSize - lf);
-        }
-    }
-
-  if (Log_Calc)
-    return; /* LogTable not defined, bail out now */
-
-  if (save_release > 1920 && !Log_Calc)
-    {
-      Log_Calc = 1;   /* turn it on */
-      for (prev = 0; prev <= (unsigned long)MaxLTSize; prev++)
-        LogTable[prev] = (BYTE)logtablecalc((long)prev);
-      Log_Calc = 0;   /* turn it off, again */
-      return;
-    }
-
-  if (LogFlag > -2)
-    {
-      lf = (LogFlag > 1) ? LogFlag : 0;
-      if (lf >= (unsigned long)MaxLTSize)
-        lf = MaxLTSize - 1;
-      Fg2Float((long)(MaxLTSize-lf), 0, m);
-      fLog14(m, m);
-      Fg2Float((long)(colors-(lf?2:1)), 0, c);
-      fDiv(m, c, m);
-      for (prev = 1; prev <= lf; prev++)
-        LogTable[prev] = 1;
-      for (n = (lf?2:1); n < (unsigned int)colors; n++)
+        Fg2Float((long)(MaxLTSize-lf), 0, m);
+        fSqrt14(m, m);
+        Fg2Float((long)(colors-2), 0, c);
+        fDiv(m, c, m);
+        for (prev = 1; prev <= lf; prev++)
+            LogTable[prev] = 1;
+        for (n = 2; n < (unsigned int)colors; n++)
         {
-          Fg2Float((long)n, 0, f);
-          fMul16(f, m, f);
-          fExp14(f, l);
-          limit = (unsigned long)Float2Fg(l, 0) + lf;
-          if (limit > (unsigned long)MaxLTSize || n == (unsigned int)(colors-1))
-            limit = MaxLTSize;
-          while (prev <= limit)
-            LogTable[prev++] = (BYTE)n;
+            Fg2Float((long)n, 0, f);
+            fMul16(f, m, f);
+            fMul16(f, f, l);
+            limit = (unsigned long)(Float2Fg(l, 0) + lf);
+            if (limit > (unsigned long)MaxLTSize || n == (unsigned int)(colors-1))
+                limit = MaxLTSize;
+            while (prev <= limit)
+                LogTable[prev++] = (BYTE)n;
         }
     }
-  else
-    {
-      if ((lf = 0 - LogFlag) >= (unsigned long)MaxLTSize)
-        lf = MaxLTSize - 1;
-      Fg2Float((long)(MaxLTSize-lf), 0, m);
-      fSqrt14(m, m);
-      Fg2Float((long)(colors-2), 0, c);
-      fDiv(m, c, m);
-      for (prev = 1; prev <= lf; prev++)
-        LogTable[prev] = 1;
-      for (n = 2; n < (unsigned int)colors; n++)
-        {
-          Fg2Float((long)n, 0, f);
-          fMul16(f, m, f);
-          fMul16(f, f, l);
-          limit = (unsigned long)(Float2Fg(l, 0) + lf);
-          if (limit > (unsigned long)MaxLTSize || n == (unsigned int)(colors-1))
-            limit = MaxLTSize;
-          while (prev <= limit)
-            LogTable[prev++] = (BYTE)n;
-        }
-    }
-  LogTable[0] = 0;
-  if (LogFlag != -1)
-    for (sptop = 1; sptop < (unsigned long)MaxLTSize; sptop++) /* spread top to incl unused colors */
-      if (LogTable[sptop] > LogTable[sptop-1])
-        LogTable[sptop] = (BYTE)(LogTable[sptop-1]+1);
+    LogTable[0] = 0;
+    if (LogFlag != -1)
+        for (sptop = 1; sptop < (unsigned long)MaxLTSize; sptop++) /* spread top to incl unused colors */
+            if (LogTable[sptop] > LogTable[sptop-1])
+                LogTable[sptop] = (BYTE)(LogTable[sptop-1]+1);
 }
 
 long logtablecalc(long citer)
 {
-  long ret = 0;
+    long ret = 0;
 
-  if (LogFlag == 0 && !rangeslen) /* Oops, how did we get here? */
-    return(citer);
-  if (LogTable && !Log_Calc)
-    return(LogTable[(long)min(citer, MaxLTSize)]);
+    if (LogFlag == 0 && !rangeslen) /* Oops, how did we get here? */
+        return(citer);
+    if (LogTable && !Log_Calc)
+        return(LogTable[(long)min(citer, MaxLTSize)]);
 
-  if (LogFlag > 0)   /* new log function */
+    if (LogFlag > 0)   /* new log function */
     {
-      if ((unsigned long)citer <= lf + 1)
-        ret = 1;
-      else if ((citer - lf) / log(citer - lf) <= mlf)
+        if ((unsigned long)citer <= lf + 1)
+            ret = 1;
+        else if ((citer - lf) / log(citer - lf) <= mlf)
         {
-          if (save_release < 2002)
-            ret = (long)(citer - lf + (lf?1:0));
-          else
-            ret = (long)(citer - lf);
+            if (save_release < 2002)
+                ret = (long)(citer - lf + (lf?1:0));
+            else
+                ret = (long)(citer - lf);
         }
-      else
-        ret = (long)(mlf * log(citer - lf)) + 1;
+        else
+            ret = (long)(mlf * log(citer - lf)) + 1;
     }
-  else if (LogFlag == -1)   /* old log function */
+    else if (LogFlag == -1)   /* old log function */
     {
-      if (citer == 0)
-        ret = 1;
-      else
-        ret = (long)(mlf * log(citer)) + 1;
+        if (citer == 0)
+            ret = 1;
+        else
+            ret = (long)(mlf * log(citer)) + 1;
     }
-  else if (LogFlag <= -2)   /* sqrt function */
+    else if (LogFlag <= -2)   /* sqrt function */
     {
-      if ((unsigned long)citer <= lf)
-        ret = 1;
-      else if ((unsigned long)(citer - lf) <= (unsigned long)(mlf * mlf))
-        ret = (long)(citer - lf + 1);
-      else
-        ret = (long)(mlf * sqrt(citer - lf)) + 1;
+        if ((unsigned long)citer <= lf)
+            ret = 1;
+        else if ((unsigned long)(citer - lf) <= (unsigned long)(mlf * mlf))
+            ret = (long)(citer - lf + 1);
+        else
+            ret = (long)(mlf * sqrt(citer - lf)) + 1;
     }
-  return (ret);
+    return (ret);
 }
 
 long ExpFloat14(long xx)
 {
-  static float fLogTwo = (float)0.6931472;
-  int f;
-  long Ans;
+    static float fLogTwo = (float)0.6931472;
+    int f;
+    long Ans;
 
-  f = 23 - (int)RegFloat2Fg(RegDivFloat(xx, *(long*)&fLogTwo), 0);
-  Ans = ExpFudged(RegFloat2Fg(xx, 16), f);
-  return(RegFg2Float(Ans, (char)f));
+    f = 23 - (int)RegFloat2Fg(RegDivFloat(xx, *(long*)&fLogTwo), 0);
+    Ans = ExpFudged(RegFloat2Fg(xx, 16), f);
+    return(RegFg2Float(Ans, (char)f));
 }
 
 /*
@@ -611,49 +633,49 @@ long ExpFloat14(long xx)
 /* Real component, grid lookup version - requires dx0/dx1 arrays */
 static double dxpixel_grid(void)
 {
-  return(dx0[col]+dx1[row]);
+    return(dx0[col]+dx1[row]);
 }
 
 /* Real component, calculation version - does not require arrays */
 static double dxpixel_calc(void)
 {
-  return((double)(xxmin + col*delxx + row*delxx2));
+    return((double)(xxmin + col*delxx + row*delxx2));
 }
 
 /* Imaginary component, grid lookup version - requires dy0/dy1 arrays */
 static double dypixel_grid(void)
 {
-  return(dy0[row]+dy1[col]);
+    return(dy0[row]+dy1[col]);
 }
 
 /* Imaginary component, calculation version - does not require arrays */
 static double dypixel_calc(void)
 {
-  return((double)(yymax - row*delyy - col*delyy2));
+    return((double)(yymax - row*delyy - col*delyy2));
 }
 
 /* Real component, grid lookup version - requires lx0/lx1 arrays */
 static long lxpixel_grid(void)
 {
-  return(lx0[col]+lx1[row]);
+    return(lx0[col]+lx1[row]);
 }
 
 /* Real component, calculation version - does not require arrays */
 static long lxpixel_calc(void)
 {
-  return(xmin + col*delx + row*delx2);
+    return(xmin + col*delx + row*delx2);
 }
 
 /* Imaginary component, grid lookup version - requires ly0/ly1 arrays */
 static long lypixel_grid(void)
 {
-  return(ly0[row]+ly1[col]);
+    return(ly0[row]+ly1[col]);
 }
 
 /* Imaginary component, calculation version - does not require arrays */
 static long lypixel_calc(void)
 {
-  return(ymax - row*dely - col*dely2);
+    return(ymax - row*dely - col*dely2);
 }
 
 double (*dxpixel)(void) = dxpixel_calc;
@@ -663,19 +685,19 @@ long   (*lypixel)(void) = lypixel_calc;
 
 void set_pixel_calc_functions(void)
 {
-  if (use_grid)
+    if (use_grid)
     {
-      dxpixel = dxpixel_grid;
-      dypixel = dypixel_grid;
-      lxpixel = lxpixel_grid;
-      lypixel = lypixel_grid;
+        dxpixel = dxpixel_grid;
+        dypixel = dypixel_grid;
+        lxpixel = lxpixel_grid;
+        lypixel = lypixel_grid;
     }
-  else
+    else
     {
-      dxpixel = dxpixel_calc;
-      dypixel = dypixel_calc;
-      lxpixel = lxpixel_calc;
-      lypixel = lypixel_calc;
+        dxpixel = dxpixel_calc;
+        dypixel = dypixel_calc;
+        lxpixel = lxpixel_calc;
+        lypixel = lypixel_calc;
     }
 }
 
@@ -698,13 +720,13 @@ void set_pixel_calc_functions(void)
  */
 long multiply(long x, long y, int n)
 {
-  register long l;
-  l = ((float)x)* ((float)y)/(float)(1<<n);
-  if (l==0x7fffffff)
+    register long l;
+    l = ((float)x)* ((float)y)/(float)(1<<n);
+    if (l==0x7fffffff)
     {
-      overflow = 1;
+        overflow = 1;
     }
-  return l;
+    return l;
 }
 
 /*
@@ -716,7 +738,7 @@ long multiply(long x, long y, int n)
 */
 long divide(long x, long y, int n)
 {
-  return (long) ( ((float)x)/ ((float)y)*(float)(1<<n));
+    return (long) ( ((float)x)/ ((float)y)*(float)(1<<n));
 }
 
 /*
@@ -732,22 +754,22 @@ long divide(long x, long y, int n)
  */
 int GausianNumber(int Probability, int Range)
 {
-  int n, r;
-  long Accum = 0, p;
+    int n, r;
+    long Accum = 0, p;
 
-  p = divide((long)Probability << 16, (long)Range << 16, 16);
-  p = multiply(p, con, 16);
-  p = multiply((long)Distribution << 16, p, 16);
-  if (!(rand15() % (Distribution - (int)(p >> 16) + 1)))
+    p = divide((long)Probability << 16, (long)Range << 16, 16);
+    p = multiply(p, con, 16);
+    p = multiply((long)Distribution << 16, p, 16);
+    if (!(rand15() % (Distribution - (int)(p >> 16) + 1)))
     {
-      for (n = 0; n < Slope; n++)
-        Accum += rand15();
-      Accum /= Slope;
-      r = (int)(multiply((long)Range << 15, Accum, 15) >> 14);
-      r = r - Range;
-      if (r < 0)
-        r = -r;
-      return(Range - r + Offset);
+        for (n = 0; n < Slope; n++)
+            Accum += rand15();
+        Accum /= Slope;
+        r = (int)(multiply((long)Range << 15, Accum, 15) >> 14);
+        r = r - Range;
+        if (r < 0)
+            r = -r;
+        return(Range - r + Offset);
     }
-  return(Offset);
+    return(Offset);
 }

@@ -387,7 +387,8 @@ int NewtonFractal2(void)
       start = 0;
     }
   cpower(&old, degree-1, &tmp);
-  complex_mult(tmp, old, &new);
+  FPUcplxmul(&tmp, &old, &new);
+//  complex_mult(tmp, old, &new);
 
   if (DIST1(new) < threshold)
     {
