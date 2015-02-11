@@ -471,7 +471,8 @@ void Jiim(int which)         /* called by fractint */
   int count = 0;            /* coloring julia */
   static int mode = 0;      /* point, circle, ... */
   int       oldlookatmouse = lookatmouse;
-  double cr, ci, r;
+  double cr, ci;
+  LDBL r;
   int xfactor, yfactor;             /* aspect ratio          */
 
   int xoff, yoff;                   /* center of the window  */
@@ -1015,12 +1016,12 @@ void Jiim(int which)         /* called by fractint */
                 color = 1;
 
               /*       r = sqrt(old.x*old.x + old.y*old.y); calculated above */
-              r = sqrt(r);
-              new.x = sqrt(fabs((r + old.x)/2));
+              r = sqrtl(r);
+              new.x = sqrtl(fabsl((r + old.x)/2));
               if (old.y < 0)
                 new.x = -new.x;
 
-              new.y = sqrt(fabs((r - old.x)/2));
+              new.y = sqrt(fabsl((r - old.x)/2));
 
 
               switch (SecretExperimentalMode)

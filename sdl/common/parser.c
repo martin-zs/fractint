@@ -461,7 +461,7 @@ void dStkLodSqr2()
   Arg1->d.y = Load[LodPtr]->d.x * Load[LodPtr]->d.y * 2.0;
   Arg1->d.x = LastSqr.d.x - LastSqr.d.y;
   LastSqr.d.x += LastSqr.d.y;
-  LastSqr.d.y = 0;
+  LastSqr.d.y = 0.0;
   LodPtr++;
 }
 
@@ -518,7 +518,7 @@ void dStkSqr(void)
   Arg1->d.y = Arg1->d.x * Arg1->d.y * 2.0;
   Arg1->d.x = LastSqr.d.x - LastSqr.d.y;
   LastSqr.d.x += LastSqr.d.y;
-  LastSqr.d.y = 0;
+  LastSqr.d.y = 0.0;
 }
 
 void lStkSqr(void)
@@ -882,8 +882,8 @@ void (*StkSin)(void) = dStkSin;
 void dStkTan(void)
 {
   LDBL sinx, cosx, sinhy, coshy, denom;
-  Arg1->d.x *= 2;
-  Arg1->d.y *= 2;
+  Arg1->d.x *= 2.0;
+  Arg1->d.y *= 2.0;
   FPUsincos(&Arg1->d.x, &sinx, &cosx);
   FPUsinhcosh(&Arg1->d.y, &sinhy, &coshy);
   denom = cosx + coshy;
@@ -912,8 +912,8 @@ void (*StkTan)(void) = dStkTan;
 void dStkTanh(void)
 {
   LDBL siny, cosy, sinhx, coshx, denom;
-  Arg1->d.x *= 2;
-  Arg1->d.y *= 2;
+  Arg1->d.x *= 2.0;
+  Arg1->d.y *= 2.0;
   FPUsincos(&Arg1->d.y, &siny, &cosy);
   FPUsinhcosh(&Arg1->d.x, &sinhx, &coshx);
   denom = coshx + cosy;
@@ -942,8 +942,8 @@ void (*StkTanh)(void) = dStkTanh;
 void dStkCoTan(void)
 {
   LDBL sinx, cosx, sinhy, coshy, denom;
-  Arg1->d.x *= 2;
-  Arg1->d.y *= 2;
+  Arg1->d.x *= 2.0;
+  Arg1->d.y *= 2.0;
   FPUsincos(&Arg1->d.x, &sinx, &cosx);
   FPUsinhcosh(&Arg1->d.y, &sinhy, &coshy);
   denom = coshy - cosx;
@@ -972,8 +972,8 @@ void (*StkCoTan)(void) = dStkCoTan;
 void dStkCoTanh(void)
 {
   LDBL siny, cosy, sinhx, coshx, denom;
-  Arg1->d.x *= 2;
-  Arg1->d.y *= 2;
+  Arg1->d.x *= 2.0;
+  Arg1->d.y *= 2.0;
   FPUsincos(&Arg1->d.y, &siny, &cosy);
   FPUsinhcosh(&Arg1->d.x, &sinhx, &coshx);
   denom = coshx - cosy;
@@ -1970,7 +1970,7 @@ static int ParseStr(char *Str, int pass)
       v[vsp].len = strlen(Constants[vsp]);
     }
   cvtcentermag(&Xctr, &Yctr, &Magnification, &Xmagfactor, &Rotation, &Skew);
-  const_pi = atanl(1.0) * 4;
+  const_pi = atanl(1.0) * 4.0;
   const_e  = expl(1.0);
   v[7].a.d.x = v[7].a.d.y = 0.0;
   v[11].a.d.x = (LDBL)xdots;
