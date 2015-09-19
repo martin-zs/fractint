@@ -206,9 +206,6 @@ restart:
                 }
             }
         }
-#ifdef NCURSES
-      putstring(5, 0, 0, "Saving done\n");
-#endif
     }
   else                         /* disk-video */
     dvid_status(1, "");

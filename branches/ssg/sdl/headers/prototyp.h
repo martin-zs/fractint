@@ -1029,6 +1029,7 @@ extern int soundon(int);
 extern void soundoff(void);
 extern void mute(void);
 extern long readticker(void);
+extern int  checkautosave(void);
 extern long stackavail(void);
 #ifdef XFRACT
 extern void decode_fractal_info(struct fractal_info *, int);

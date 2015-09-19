@@ -1469,6 +1469,7 @@ int get_key_event(int block)
               break;
             }
         }
+      if (checkautosave()) keypressed = 9999; /* time to save, exit */
       /* time_to_update() should work outside of while loop, but doesn't */
       if (time_to_update())
         {

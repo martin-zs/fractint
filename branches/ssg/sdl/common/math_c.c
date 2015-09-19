@@ -106,8 +106,10 @@ static long lxt, lyt, lt2;
 int
 lcpower(_LCMPLX *base, int exp, _LCMPLX *result, int bitshift)
 {
+    /*
     static long maxarg;
     maxarg = 64L<<bitshift;
+    */
 
     if (exp<0)
     {
@@ -399,7 +401,7 @@ long lsqrt(long f)
         y0 = multiply(c,y0, bitshift);
     }
     N /= 2;
-// NOTE (jonathan#1#): Aren't both return's the same????
+/* NOTE (jonathan#1#): Aren't both return's the same???? */
     if (N >= 0)
         return y0 <<  N;                        /* correct for shift above */
     else

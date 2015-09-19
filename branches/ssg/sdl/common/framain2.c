@@ -300,7 +300,7 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
             {
               savebase = readticker(); /* calc's start time */
               saveticks = abs(initsavetime);
-              saveticks *= 1092; /* bios ticks/minute */
+              saveticks *= 1000 * 60; /* timer ticks/minute, CLK_TKS = 1000 */
               if ((saveticks & 65535L) == 0)
                 ++saveticks; /* make low word nonzero */
               finishrow = -1;
