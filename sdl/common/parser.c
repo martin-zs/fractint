@@ -324,16 +324,16 @@ static char *ParseErrs(int which)
 
 static void lStkFunct(void (*fct)(void))   /* call lStk via dStk */
 {
-  LDBL y;
+  double y;
   /*
      intermediate variable needed for safety because of
      different size of double and long in Arg union
   */
-  y = (LDBL)Arg1->l.y / fg;
-  Arg1->d.x = (LDBL)Arg1->l.x / fg;
+  y = (double)Arg1->l.y / fg;
+  Arg1->d.x = (double)Arg1->l.x / fg;
   Arg1->d.y = y;
   (*fct)();
-  if (fabsl(Arg1->d.x) < fgLimit && fabsl(Arg1->d.y) < fgLimit)
+  if (fabs(Arg1->d.x) < fgLimit && fabs(Arg1->d.y) < fgLimit)
     {
       Arg1->l.x = (long)(Arg1->d.x * fg);
       Arg1->l.y = (long)(Arg1->d.y * fg);
@@ -345,12 +345,12 @@ static void lStkFunct(void (*fct)(void))   /* call lStk via dStk */
 /* call lStk via dStk */
 
 #define lStkFunct(fct) {\
-   LDBL y;\
-   y = (LDBL)Arg1->l.y / fg;\
-   Arg1->d.x = (LDBL)Arg1->l.x / fg;\
+   double y;\
+   y = (double)Arg1->l.y / fg;\
+   Arg1->d.x = (double)Arg1->l.x / fg;\
    Arg1->d.y = y;\
    (*fct)();\
-   if(fabsl(Arg1->d.x) < fgLimit && fabsl(Arg1->d.y) < fgLimit) {\
+   if(fabs(Arg1->d.x) < fgLimit && fabs(Arg1->d.y) < fgLimit) {\
       Arg1->l.x = (long)(Arg1->d.x * fg);\
       Arg1->l.y = (long)(Arg1->d.y * fg);\
    }\
@@ -435,7 +435,7 @@ void dStkSRand(void)
 void (*StkSRand)(void) = dStkSRand;
 
 
-void dStkLodDup()
+void dStkLodDup(void)
 {
   Arg1+=2;
   Arg2+=2;
@@ -443,7 +443,7 @@ void dStkLodDup()
   LodPtr+=2;
 }
 
-void dStkLodSqr()
+void dStkLodSqr(void)
 {
   Arg1++;
   Arg2++;
@@ -1366,6 +1366,7 @@ void lStkAND(void)
 }
 
 void (*StkAND)(void) = dStkAND;
+
 void dStkLog(void)
 {
   FPUcplxlog(&Arg1->d, &Arg1->d);
@@ -1825,6 +1826,8 @@ struct SYMETRY
   {"",              0}
 };
 
+static BYTE big_formula = 0;
+
 static int ParseStr(char *Str, int pass)
 {
   struct ConstArg *c;
@@ -1836,7 +1839,7 @@ static int ParseStr(char *Str, int pass)
   SetRandom = Randomized = 0;
   uses_jump = 0;
   jump_index = 0;
-  if (pass == 0)
+  if (big_formula == 0)
     o = (struct PEND_OP *)
         ((char *)typespecific_workarea + total_formula_mem-sizeof(struct PEND_OP) * Max_Ops);
   else
@@ -2245,6 +2248,12 @@ static int ParseStr(char *Str, int pass)
             }
           break;
         }
+     if (pass == 0 && posp >= Max_Ops)
+     {
+       if (big_formula == 1)
+         free(o);
+       return(1);
+     }
     }
   o[posp].f = (void(*)(void))0;
   o[posp++].p = 16;
@@ -2260,7 +2269,7 @@ static int ParseStr(char *Str, int pass)
           LastOp--;
         }
     }
-  if (pass > 0)
+  if (big_formula == 1)
     free(o);
   return(0);
 }
@@ -3558,6 +3567,7 @@ void init_misc()
         */
 
 long total_formula_mem;
+
 static void parser_allocate(void)
 {
   /* CAE fp changed below for v18 */
@@ -3567,14 +3577,17 @@ static void parser_allocate(void)
 
   long f_size,Store_size,Load_size,v_size, p_size;
   int pass, is_bad_form=0;
-  int big_formula = 0;
-  double big_formula_factor = 1.0;
 
-  if (strlen(FormStr) > 4000) /* Emperically determined and quite arbitrary */
-    {
-      big_formula = 1;
-      big_formula_factor = (double)strlen(FormStr) / 4000;
-    }
+  big_formula = 0;
+
+  if(number_of_ops > 1500) {
+     big_formula = 1;
+     Max_Ops = number_of_ops;
+  }
+  else
+    Max_Ops = 1500; /* this value uses up about 64K memory */
+
+  Max_Args = (unsigned)(Max_Ops/2.5);
 
   /* TW Jan 1 1996 Made two passes to determine actual values of
      Max_Ops and Max_Args. Now use the end of extraseg if possible, so
@@ -3583,11 +3596,6 @@ static void parser_allocate(void)
   for (pass = 0; pass < 2; pass++)
     {
       free_workarea();
-      if (pass == 0)
-        {
-          Max_Ops = 2300; /* this value uses up about 64K memory */
-          Max_Args = (unsigned)(Max_Ops/2.5);
-        }
       f_size = sizeof(void(* *)(void)) * Max_Ops;
       Store_size = sizeof(union Arg *) * MAX_STORES;
       Load_size = sizeof(union Arg *) * MAX_LOADS;
@@ -3596,16 +3604,18 @@ static void parser_allocate(void)
       total_formula_mem = f_size+Load_size+Store_size+v_size+p_size /*+ jump_size*/
                           + sizeof(struct PEND_OP) * Max_Ops;
 
-      if (pass == 0 || is_bad_form)
+      if ((pass == 0 || is_bad_form) && big_formula == 0)
         {
-          if (big_formula)
-             typespecific_workarea = (char *)malloc((long)(total_formula_mem * big_formula_factor));
-          else
-             typespecific_workarea = (char *)malloc(1L<<16);
+        typespecific_workarea = (char *)malloc(1L<<16);
         }
-      else if (is_bad_form == 0)
+      else if((1L<<16 > (total_formula_mem)) && big_formula == 0)
         {
-        typespecific_workarea = (char *)malloc((long)(total_formula_mem));
+        typespecific_workarea = (char *)malloc(1L<<16);
+        }
+      else if (is_bad_form == 0 || big_formula == 1)
+        {
+        typespecific_workarea =
+           (char *)malloc((long)(f_size+Load_size+Store_size+v_size+p_size));
         }
       f = (void(* *)(void))typespecific_workarea;
       Store = (union Arg * *)(f + Max_Ops);
@@ -3638,7 +3648,7 @@ void free_workarea()
   v = (struct ConstArg *)0;
   f = (void( * *)(void))0;      /* CAE fp */
   pfls = (struct fls * )0;   /* CAE fp */
-/*  total_formula_mem = 0; Leave this set to last value */
+/*  total_formula_mem = 0; Leave this set so value can display on secret TAB screen */
 }
 
 
@@ -4838,6 +4848,10 @@ int frm_prescan (FILE * open_file)
      display_const_lists();
   */
   count_lists();
+
+  /* sprintf(debugmsg, "Ops in formula per prescan() is %u.\n", number_of_ops);
+     stopmsg(0, debugmsg);
+  */
 
   /* sprintf(debugmsg, "Chars in formula per prescan() is %u.\n", chars_in_formula);
      stopmsg(0, debugmsg);

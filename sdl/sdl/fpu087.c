@@ -45,6 +45,11 @@ void FPUcplxmul(_CMPLX *x, _CMPLX *y, _CMPLX *z)
         tx = (LDBL)x->x * (LDBL)y->x;
         ty = (LDBL)x->y * (LDBL)y->x;
     }
+    else if (x->y == 0.0)   /* x is real */
+    {
+        tx = (LDBL)x->x * (LDBL)y->x;
+        ty = (LDBL)x->x * (LDBL)y->y;
+    }
     else
     {
         tx = (LDBL)x->x * (LDBL)y->x - (LDBL)x->y * (LDBL)y->y;
@@ -153,7 +158,7 @@ void FPUcplxlog(_CMPLX *x, _CMPLX *z)
 void SinCos086(long x, long *sinx, long *cosx)
 {
     double a;
-    a = x/(double)(1<<16);
+    a = (double)x/(double)(1<<16);
     *sinx = (long) (sin(a)*(double)(1<<16));
     *cosx = (long) (cos(a)*(double)(1<<16));
 }
@@ -161,7 +166,7 @@ void SinCos086(long x, long *sinx, long *cosx)
 void SinhCosh086(long x, long *sinx, long *cosx)
 {
     double a;
-    a = x/(double)(1<<16);
+    a = (double)x/(double)(1<<16);
     *sinx = (long) (sinh(a)*(double)(1<<16));
     *cosx = (long) (cosh(a)*(double)(1<<16));
 }
