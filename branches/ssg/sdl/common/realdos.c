@@ -277,7 +277,7 @@ void blankrows(int row,int rows,int attr)
 void helptitle(void)
 {
   char msg[MSGLEN],buf[MSGLEN];
-  setclear(); /* clear the screen */
+  setclear();
   *msg=0;
   sprintf(buf,"FRACTINT Version %d.%01d",release/100,(release%100)/10);
   strcat(msg,buf);

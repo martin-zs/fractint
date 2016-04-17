@@ -10,33 +10,60 @@
 #include "prototyp.h"
 
 /* SDL global variables */
-SDL_Surface *screen = NULL;
+SDL_Surface *mainscrn = NULL;
 SDL_Surface *backscrn = NULL;
 SDL_Surface *backtext = NULL;
+SDL_Window *sdlWindow = NULL;
+SDL_Renderer *sdlRenderer = NULL;
+SDL_Texture *sdlTexture = NULL;
+
+Uint32 sdlPixelfmt;
+int rowbytes;
+SDL_PixelFormat *sdlPixelFormat;
+
 TTF_Font *font = NULL;
 SDL_Color cols[256];
-int SDL_video_flags = SDL_HWSURFACE|SDL_DOUBLEBUF|SDL_RESIZABLE;
-//int SDL_video_flags = SDL_SWSURFACE|SDL_RESIZABLE;
+int SDL_video_flags = SDL_WINDOW_RESIZABLE;
 SDL_Cursor *mousecurser;
 
 SDL_Color XlateText[] =
 {
-  {  0,  0,  0,  0}, /* black */
-  {  0,  0,205,  0}, /* Blue */
-  {  0,205,  0,  0}, /* Green */
-  {  0,205,205,  0}, /* Cyan */
-  {205,  0,  0,  0}, /* Red */
-  {205,  0,205,  0}, /* Magenta */
-  {205,205,  0,  0}, /* Brown */
-  {205,205,205,  0}, /* White */
-  {100,100,100,  0}, /* Gray */
-  {  0,  0,255,  0}, /* L_Blue */
-  {  0,255,  0,  0}, /* L_Green */
-  {  0,255,255,  0}, /* L_Cyan */
-  {255,  0,  0,  0}, /* L_Red */
-  {255,  0,255,  0}, /* L_Magenta */
-  {255,255,  0,  0}, /* Yellow */
-  {255,255,255,  0}  /* L_White */
+/* Currently SDL gets this backwards */
+#if BYTE_ORDER != BIG_ENDIAN
+  {  0,  0,  0,255}, /* black */
+  {205,  0,  0,255}, /* Blue */
+  {  0,205,  0,255}, /* Green */
+  {205,205,  0,255}, /* Cyan */
+  {  0,  0,205,255}, /* Red */
+  {205,  0,205,255}, /* Magenta */
+  {  0,205,205,255}, /* Brown */
+  {205,205,205,255}, /* White */
+  {100,100,100,255}, /* Gray */
+  {255,  0,  0,255}, /* L_Blue */
+  {  0,255,  0,255}, /* L_Green */
+  {255,255,  0,255}, /* L_Cyan */
+  {255,  0,  0,255}, /* L_Red */
+  {255,  0,255,255}, /* L_Magenta */
+  {  0,255,255,255}, /* Yellow */
+  {255,255,255,255}  /* L_White */
+#else
+  {  0,  0,  0,255}, /* black */
+  {  0,  0,205,255}, /* Blue */
+  {  0,205,  0,255}, /* Green */
+  {  0,205,205,255}, /* Cyan */
+  {205,  0,  0,255}, /* Red */
+  {205,  0,205,255}, /* Magenta */
+  {205,205,  0,255}, /* Brown */
+  {205,205,205,255}, /* White */
+  {100,100,100,255}, /* Gray */
+  {  0,  0,255,255}, /* L_Blue */
+  {  0,255,  0,255}, /* L_Green */
+  {  0,255,255,255}, /* L_Cyan */
+  {255,  0,  0,255}, /* L_Red */
+  {255,  0,255,255}, /* L_Magenta */
+  {255,255,  0,255}, /* Yellow */
+  {255,255,255,255}  /* L_White */
+#endif
 };
 
 static int mousefkey[4][4] /* [button][dir] */ =
@@ -47,8 +74,8 @@ static int mousefkey[4][4] /* [button][dir] */ =
   {CTL_END,CTL_HOME,CTL_PAGE_DOWN,CTL_PAGE_UP}
 };
 
-U16 screen_handle = 0;
 int resize_flag = 0;
+int updatewindow = 0;
 int screenctr = 0;
 int txt_ht;  /* text letter height = 2^txt_ht pixels */
 int txt_wt;  /* text letter width = 2^txt_wt pixels */
@@ -61,7 +88,8 @@ int  stack_text_attr[TEXT_HEIGHT][TEXT_WIDTH];
 void puttruecolor_SDL(SDL_Surface*, int, int, Uint8, Uint8, Uint8);
 void outtext(int, int, int);
 
-void Slock(void)
+
+void Slock(SDL_Surface *screen)
 {
   if ( SDL_MUSTLOCK(screen) )
     {
@@ -72,7 +100,7 @@ void Slock(void)
     }
 }
 
-void Sulock(void)
+void Sulock(SDL_Surface *screen)
 {
   if ( SDL_MUSTLOCK(screen) )
     {
@@ -88,6 +116,9 @@ void CleanupSDL(void)
    * etc.  Called by goodbye() routine.
    */
 
+  SDL_DestroyRenderer(sdlRenderer);
+  SDL_DestroyTexture(sdlTexture);
+  SDL_FreeSurface(mainscrn);
   SDL_FreeSurface(backscrn);
   SDL_FreeSurface(backtext);
   SDL_FreeCursor(mousecurser);
@@ -101,7 +132,7 @@ void CleanupSDL(void)
   SDL_Quit();
   delay(250);
 }
-
+#if 0
 /* XPM */
 static const char *arrow[] =
 {
@@ -179,6 +210,7 @@ static SDL_Cursor *init_system_cursor(const char *image[])
               mask[i] |= 0x01;
               break;
             case ' ':
+            default:
               break;
             }
         }
@@ -186,14 +218,18 @@ static SDL_Cursor *init_system_cursor(const char *image[])
   sscanf(image[4+row], "%d,%d", &hot_x, &hot_y);
   return SDL_CreateCursor(data, mask, 32, 32, hot_x, hot_y);
 }
+#endif
 
 void ResizeScreen(int mode)
 {
   /* mode = 0 for initial startup */
   /* mode = 1 to resize the graphics window */
-  /* mode = 2 to resize the text window */
+  /* mode = 2 to resize the text window */ /* NOT USED */
+
+/* this code creates duplicate windows if called more than once */
 
   Uint32 rmask, gmask, bmask, amask;
+  char msg[40];
   int bpp; /* bits per pixel for graphics mode */
   int sxdots, sydots, dotmode;
   int fontsize;
@@ -222,6 +258,11 @@ void ResizeScreen(int mode)
     }
   else if (mode == 1)  /*  graphics window  */
     {
+    /* initialize screen to black */
+      SDL_FillRect(mainscrn, NULL, map_to_pixel(0));
+      SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
+      SDL_RenderClear(sdlRenderer);
+      SDL_RenderPresent(sdlRenderer);
       if (resize_flag == 0)  /* not called from event Queue */
         {
 #if 0
@@ -234,112 +275,155 @@ void ResizeScreen(int mode)
             }
 #endif
           resize_flag = 1;
-          resize_event.type = SDL_VIDEORESIZE;
-          resize_event.resize.w = videotable[adapter].xdots;
-          resize_event.resize.h = videotable[adapter].ydots;
+          SDL_SetWindowSize(sdlWindow, videotable[adapter].xdots, videotable[adapter].ydots);
+          SDL_SetWindowPosition(sdlWindow, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
           memcpy((char *)&videoentry,(char *)&videotable[adapter],
                  sizeof(videoentry));  /* the selected entry now in videoentry */
-// FIXME (jonathan#1#): This next does not work as expected.  Works if dotmode is changed, but not otherwise.
-          SDL_PushEvent(&resize_event);
-          SDL_PumpEvents();
-          SDL_PeepEvents(&resize_event,1,SDL_GETEVENT,SDL_VIDEORESIZEMASK);
         }
       else
         memcpy((char *)&videotable[adapter],(char *)&videoentry,
                sizeof(videoentry));
+    /* need to free the screens & texture here */
+      SDL_DestroyRenderer(sdlRenderer);
+      SDL_DestroyTexture(sdlTexture);
+      SDL_FreeSurface(mainscrn);
       SDL_FreeSurface(backscrn);
+      SDL_FreeSurface(backtext);
     }
   else  /*  mode == 2  text window  */
     {
       sxdots = 800;
       sydots = 600;
       dotmode = 0;
-      resize_event.type = SDL_VIDEORESIZE;
-      resize_event.resize.w = sxdots;
-      resize_event.resize.h = sydots;
+      resize_event.type = SDL_WINDOWEVENT;
+      resize_event.window.event = SDL_WINDOWEVENT_RESIZED;
+      resize_event.window.data1 = sxdots;
+      resize_event.window.data2 = sydots;
       SDL_PushEvent(&resize_event);
       SDL_PumpEvents();
-      SDL_PeepEvents(&resize_event,1,SDL_GETEVENT,SDL_VIDEORESIZEMASK);
-      SDL_FreeSurface(backtext);
+      SDL_PeepEvents(&resize_event,1,SDL_GETEVENT,SDL_FIRSTEVENT,SDL_LASTEVENT);
       TTF_CloseFont(font);
     }
 
   sxdots = videoentry.xdots;
   sydots = videoentry.ydots;
   dotmode = videoentry.dotmode;
+  colors = videoentry.colors;
 
-  screen = SDL_SetVideoMode(sxdots, sydots, dotmode, SDL_video_flags);
-  if (screen == NULL )
+  if ( sdlWindow == NULL ) /* Don't create one if we already have one */
+     sdlWindow = SDL_CreateWindow(0, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, sxdots, sydots, SDL_video_flags);
+  if ( sdlWindow == NULL ) /* Oops it didn't work, try something different */
+      sdlWindow = SDL_CreateWindow(0, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 0, 0, SDL_video_flags);
+
+  if ( sdlWindow == NULL ) /* No luck, bail out */
     {
-      screen = SDL_SetVideoMode(sxdots, sydots, dotmode,
-                                SDL_SWSURFACE|SDL_ANYFORMAT|SDL_RESIZABLE);
-    }
-  if ( screen == NULL )
-    {
-      fprintf(stderr, "Couldn't set %dx%dx%dx video mode: %s\n", sxdots, sydots,
-              dotmode, SDL_GetError());
+      SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Window creation fail : %s\n",SDL_GetError());
       exit(1);
     }
-  SDL_video_flags = screen->flags;
-  bpp = screen->format->BitsPerPixel;
+
+  if ( sdlRenderer != NULL ) /* Don't create two with same name */
+      SDL_DestroyRenderer(sdlRenderer);
+  sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, 0);
+  if ( sdlRenderer == NULL )
+    {
+      SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Render creation for surface fail : %s\n",SDL_GetError());
+      exit(1);
+    }
+
+  SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");  /* make the scaled rendering look smoother */
+  SDL_RenderSetLogicalSize(sdlRenderer, sxdots, sydots);
+
+  /* initialize screen to black */
+  SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
+  SDL_RenderClear(sdlRenderer);
+  SDL_RenderPresent(sdlRenderer);
+
+  sdlPixelfmt = SDL_GetWindowPixelFormat(sdlWindow);
+  bpp = SDL_BYTESPERPIXEL(sdlPixelfmt) * 8;
+  rowbytes = SDL_BYTESPERPIXEL(sdlPixelfmt) * sxdots;
   if (dotmode == 0)
     videoentry.dotmode = bpp;
 
 #if 1
-  {
-    char msg[40];
-
 #ifndef XFRACT
-    sprintf(msg, "Fractint at %dx%dx%d", sxdots, sydots, bpp);
+  sprintf(msg, "Fractint at %dx%dx%d", sxdots, sydots, bpp);
 #else
-    sprintf(msg, "Xfractint at %dx%dx%d", sxdots, sydots, bpp);
+  sprintf(msg, "Xfractint at %dx%dx%d", sxdots, sydots, bpp);
 #endif /* XFRACT */
-    SDL_WM_SetCaption( msg, NULL );
-  }
 #else
 #ifndef XFRACT
-  SDL_WM_SetCaption( "Fractint", NULL );
+  sprintf(msg, "Fractint");
 #else
-  SDL_WM_SetCaption( "Xfractint", NULL );
+  sprintf(msg, "Xfractint");
 #endif /* XFRACT */
 #endif /* 1 */
 
+  SDL_SetWindowTitle(sdlWindow, msg);
+
+  if ( sdlTexture != NULL ) /* Don't create two with same name */
+      SDL_DestroyTexture(sdlTexture);
+  sdlTexture = SDL_CreateTexture(sdlRenderer, sdlPixelfmt, SDL_TEXTUREACCESS_STREAMING, sxdots, sydots);
+
 #if DEBUG
   fprintf(stderr, "Set %dx%d at %d bits-per-pixel mode\n", sxdots, sydots, bpp);
+  if (sdlTexture == NULL )
+      SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+                         "Creation Error",
+                         "No sdlTexture.",
+                         NULL);
 #endif
 
-  rmask = screen->format->Rmask;
-  gmask = screen->format->Gmask;
-  bmask = screen->format->Bmask;
-  amask = screen->format->Amask;
+#if BYTE_ORDER == BIG_ENDIAN
+    rmask = 0xff000000;
+    gmask = 0x00ff0000;
+    bmask = 0x0000ff00;
+    amask = 0x000000ff;
 
-  backscrn = SDL_CreateRGBSurface(SDL_HWSURFACE|SDL_SWSURFACE, sxdots, sydots, bpp,
-                                  rmask, gmask, bmask, amask);
-  backtext = SDL_CreateRGBSurface(SDL_HWSURFACE|SDL_SWSURFACE, sxdots, sydots, bpp,
-                                  rmask, gmask, bmask, amask);
+#else
+    rmask = 0x000000ff;
+    gmask = 0x0000ff00;
+    bmask = 0x00ff0000;
+    amask = 0xff000000;
+#endif
+
+  mainscrn = SDL_CreateRGBSurface(0, sxdots, sydots, bpp, rmask, gmask, bmask, amask);
+  backscrn = SDL_CreateRGBSurface(0, sxdots, sydots, bpp, rmask, gmask, bmask, amask);
+  backtext = SDL_CreateRGBSurface(0, sxdots, sydots, bpp, rmask, gmask, bmask, amask);
+
 #if DEBUG
+  if (mainscrn == NULL )
+      SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+                         "Creation Error",
+                         "No mainscrn.",
+                         NULL);
   if (backscrn == NULL )
-    fprintf(stderr, "No backscrn\n");
+      SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+                         "Creation Error",
+                         "No backscrn.",
+                         NULL);
   if (backtext == NULL )
-    fprintf(stderr, "No backtext\n");
+      SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+                         "Creation Error",
+                         "No backtext.",
+                         NULL);
 #endif
 
-  mousecurser = init_system_cursor(arrow);
-
-// FIXME (jonathan#1#): screen_handle is not currently being used
-  if (screen_handle != 0) /* this won't work after a resize, free the memory */
-    MemoryRelease(screen_handle);
+  sdlPixelFormat = mainscrn->format;
+  mousecurser = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
 
   fontsize = (int)(sydots / 34) + 1; /* arbitrary font size, not too big */
   font = TTF_OpenFont("crystal.ttf", fontsize);
   if ( font == NULL )
     {
-      fprintf(stderr, "Couldn't set font: %s\n", SDL_GetError());
+      SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+                         "Missing file",
+                         "Couldn't set font.",
+                         NULL);
       exit(1);
     }
 
   /* get text height and width in pixels */
-  TTF_SizeUTF8(font,"H",&txt_wt,&txt_ht);
+  TTF_SizeText(font,"H",&txt_wt,&txt_ht);
 
   return;
 }
@@ -350,15 +434,21 @@ void SetupSDL(void)
 
   if ( SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_TIMER) < 0 )
     {
-      fprintf(stderr, "Unable to init SDL: %s\n", SDL_GetError());
+      SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+                         "Initiation Error",
+                         "Unable to init SDL.",
+                         NULL);
       exit(1);
     }
 
-  SDL_WM_SetIcon(SDL_LoadBMP("Fractint.bmp"), NULL);
+//  SDL_WM_SetIcon(SDL_LoadBMP("Fractint.bmp"), NULL);
 
   if (TTF_Init() < 0)
     {
-      fprintf(stderr, "Unable to init TTF: %s\n", SDL_GetError());
+      SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+                         "Initiation Error",
+                         "Unable to init TTF.",
+                         NULL);
       exit(1);
     }
 
@@ -371,7 +461,7 @@ void SetupSDL(void)
 //      exit(1);
 //    }
 
-  SDL_EnableKeyRepeat(500,30);
+//  SDL_EnableKeyRepeat(500,30);
 
 }
 
@@ -385,19 +475,47 @@ int done_detect = 0;
 
 void adapter_detect(void)
 {
+  int wdth;
+  int hgth;
+  int i, j, display_mode_count;
+  static int display_in_use = 0;
+  SDL_DisplayMode mode;
+
   if (done_detect)
     return;
-  done_detect = 1;
-  xdots = screen->w;
-  ydots = screen->h;
+
+  display_mode_count = SDL_GetNumDisplayModes(display_in_use);
+
+  memset((char *)vidtbl,0,sizeof(*vidtbl)*display_mode_count);
+
+  i = 0;
+  j = 0;
+  do {
+      if (SDL_GetDisplayMode(display_in_use, i, &mode) != 0)
+          SDL_Log("SDL_GetDisplayMode failed: %s", SDL_GetError());
+      if (mode.refresh_rate == 60) {
+        strncpy(vidtbl[j].name, SDL_GetPixelFormatName(mode.format), 25);
+        vidtbl[j].dotmode = SDL_BITSPERPIXEL(mode.format);
+        vidtbl[j].xdots = mode.w;
+        vidtbl[j].ydots = mode.h;
+        vidtbl[j].colors = 256; /* this will need to be fixed */
+        j++;
+      }
+      i++;
+  } while (i < display_mode_count);
+
+  SDL_GetWindowSize(sdlWindow, &wdth, &hgth);
+  xdots = wdth;
+  ydots = hgth;
   sxdots  = xdots;
   sydots  = ydots;
-  dotmode = screen->format->BitsPerPixel;
+  done_detect = 1;
+  dotmode = SDL_BYTESPERPIXEL(sdlPixelfmt) * 8;
 }
 
 void startvideo(void)
 {
-  int Bpp = screen->format->BytesPerPixel;
+  int Bpp = SDL_BYTESPERPIXEL(sdlPixelfmt);
 
   if (Bpp == 1) /* 8-bits per pixel => uses a palette */
     {
@@ -413,9 +531,16 @@ void startvideo(void)
       colors = 256;
     }
 
-  /* initialize screen and backscrn surfaces to inside color */
-  SDL_FillRect(screen, NULL, map_to_pixel(inside));
+/* initialize mainscrn, backscrn, and backtext surfaces to inside color */
+  SDL_FillRect(mainscrn, NULL, map_to_pixel(inside));
   SDL_FillRect(backscrn, NULL, map_to_pixel(inside));
+  SDL_FillRect(backtext, NULL, map_to_pixel(inside));
+
+  /* initialize window to black */
+  SDL_SetRenderDrawBlendMode(sdlRenderer, SDL_BLENDMODE_NONE);
+  SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
+  SDL_RenderClear(sdlRenderer);
+  SDL_RenderPresent(sdlRenderer);
 }
 
 U32 map_to_pixel(BYTE color)
@@ -424,21 +549,18 @@ U32 map_to_pixel(BYTE color)
   BYTE red, green, blue;
 
   dac_to_rgb(color, &red, &green, &blue);
-  return(SDL_MapRGB(screen->format, red, green, blue));
+  return((U32)SDL_MapRGB(sdlPixelFormat, red, green, blue));
 }
 
 /*
  * Return the pixel value at (x, y)
- * NOTE: The surface must be locked before calling this!
- * Try reading from backscrn, which should match screen
  */
 BYTE readvideo(int x, int y)
 {
-  int Bpp = screen->format->BytesPerPixel;
+int Bpp = SDL_BYTESPERPIXEL(sdlPixelfmt);
   /* Here p is the address to the pixel we want to retrieve */
-  Uint8 *p = (Uint8 *)screen->pixels + y * screen->pitch + x * Bpp;
-// FIXME (jonathan#1#): Read data from buffer?
-  Slock();
+  Uint8 *p = (Uint8 *)mainscrn->pixels + y * mainscrn->pitch + x * Bpp;
+  Slock(mainscrn);
   switch (Bpp)
     {
     case 1:
@@ -448,155 +570,79 @@ BYTE readvideo(int x, int y)
       return *(Uint16 *)p;
 
     case 3:
-      if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
+      if (BYTE_ORDER == BIG_ENDIAN)
         return p[0] << 16 | p[1] << 8 | p[2];
       else
         return p[0] | p[1] << 8 | p[2] << 16;
 
     case 4:
-      return *(U32 *)p;
+      return (BYTE)SDL_MapRGB(sdlPixelFormat, p[0], p[1], p[2]);
 
     default:
       return 0;       /* shouldn't happen, but avoids warnings */
     }
-  Sulock();
-}
-
-/*
- * Return the pixel value at (x, y)
- * NOTE: The surface must be locked before calling this!
- */
-Uint32 getpixel(SDL_Surface *surface, int x, int y)
-{
-  int bpp = surface->format->BytesPerPixel;
-  /* Here p is the address to the pixel we want to retrieve */
-  Uint8 *p = (Uint8 *)surface->pixels + y * surface->pitch + x * bpp;
-
-  switch (bpp)
-    {
-    case 1:
-      return *p;
-
-    case 2:
-      return *(Uint16 *)p;
-
-    case 3:
-      if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
-        return p[0] << 16 | p[1] << 8 | p[2];
-      else
-        return p[0] | p[1] << 8 | p[2] << 16;
-
-    case 4:
-      return *(Uint32 *)p;
-
-    default:
-      return 0;       /* shouldn't happen, but avoids warnings */
-    }
+  Sulock(mainscrn);
 }
 
 void gettruecolor_SDL(SDL_Surface *screen, int x, int y, Uint8 *red, Uint8 *green, Uint8 *blue)
 {
   /* Extracting color components from a 32-bit color value */
-  SDL_PixelFormat *fmt;
-  Uint32 pixel;
+  Uint32 *pixel;
 
-  fmt = screen->format;
-  Slock();
-  pixel = getpixel(screen, x, y);
-  Sulock();
+  Slock(screen);
+  pixel = (Uint32 *)screen->pixels + y*screen->pitch/4 + x;
+  Sulock(screen);
 
-  SDL_GetRGB(pixel, fmt, (Uint8 *)red, (Uint8 *)green, (Uint8 *)blue);
+  SDL_GetRGB(*pixel, sdlPixelFormat, (Uint8 *)red, (Uint8 *)green, (Uint8 *)blue);
 }
 
 void gettruecolor(int x, int y, BYTE *R, BYTE *G, BYTE *B)
 {
-  gettruecolor_SDL(screen, x, y, (Uint8 *)R, (Uint8 *)G, (Uint8 *)B);
-}
-
-
-/*
- * Set the pixel at (x, y) to the given value
- * NOTE: The surface must be locked before calling this!
- */
-void writevideo(int x, int y, U32 pixel)
-{
-  int Bpp = screen->format->BytesPerPixel;
-  /* Here p is the address to the pixel we want to set */
-  Uint8 *p = (Uint8 *)screen->pixels + y * screen->pitch + x * Bpp;
-// FIXME (jonathan#1#): write data to buffer also?
-  Slock();
-  switch (Bpp)
-    {
-    case 1:
-      *p = pixel;
-      break;
-
-    case 2:
-      *(Uint16 *)p = pixel;
-      break;
-
-    case 3:
-      if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
-        {
-          p[0] = (pixel >> 16) & 0xff;
-          p[1] = (pixel >> 8) & 0xff;
-          p[2] = pixel & 0xff;
-        }
-      else
-        {
-          p[0] = pixel & 0xff;
-          p[1] = (pixel >> 8) & 0xff;
-          p[2] = (pixel >> 16) & 0xff;
-        }
-      break;
-
-    case 4:
-      *(U32 *)p = pixel;
-      break;
-    }
-  Sulock();
+  gettruecolor_SDL(mainscrn, x, y, (Uint8 *)R, (Uint8 *)G, (Uint8 *)B);
 }
 
 void puttruecolor_SDL(SDL_Surface *screen, int x, int y, Uint8 R, Uint8 G, Uint8 B)
 {
-  Uint32 color = SDL_MapRGB(screen->format, R, G, B);
+  /* Currently, SDL gets this backwards */
+  Uint32 color = SDL_MapRGB(screen->format, B, G, R);
 
-  Slock();
+  Slock(screen);
   switch (screen->format->BytesPerPixel)
     {
-    case 1: // Assuming 8-bpp
+    case 1: /* Assuming 8-bpp */
     {
       Uint8 *bufp;
       bufp = (Uint8 *)screen->pixels + y*screen->pitch + x;
       *bufp = color;
     }
     break;
-    case 2: // Probably 15-bpp or 16-bpp
+    case 2: /* Probably 15-bpp or 16-bpp */
     {
       Uint16 *bufp;
-      bufp = (Uint16 *)screen->pixels + y*screen->pitch/2 + x;
+      bufp = (Uint16 *)screen->pixels + y*screen->pitch*2 + x;
       *bufp = color;
     }
     break;
-    case 3: // Slow 24-bpp mode, usually not used
+    case 3: /* Slow 24-bpp mode, usually not used !!! Probably doesn't work !!! look at pitch */
     {
       Uint8 *bufp;
       bufp = (Uint8 *)screen->pixels + y*screen->pitch + x * 3;
-      if (SDL_BYTEORDER == SDL_LIL_ENDIAN)
-        {
-          bufp[0] = color;
-          bufp[1] = color >> 8;
-          bufp[2] = color >> 16;
-        }
-      else
+      if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
         {
           bufp[2] = color;
           bufp[1] = color >> 8;
           bufp[0] = color >> 16;
         }
+      else
+        {
+          bufp[0] = color;
+          bufp[1] = color >> 8;
+          bufp[2] = color >> 16;
+        }
     }
     break;
-    case 4: // Probably 32-bpp
+    default:
+    case 4: /* Probably 32-bpp */
     {
       Uint32 *bufp;
       bufp = (Uint32 *)screen->pixels + y*screen->pitch/4 + x;
@@ -604,62 +650,29 @@ void puttruecolor_SDL(SDL_Surface *screen, int x, int y, Uint8 R, Uint8 G, Uint8
     }
     break;
     }
-  Sulock();
+  Sulock(screen);
+  if (show_orbit) /* Do it slow, one pixel at a time */
+  {
+     SDL_UpdateTexture( sdlTexture, NULL, mainscrn->pixels, rowbytes );
+     SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
+     SDL_RenderPresent(sdlRenderer);
+  }
 }
 
 void puttruecolor(int x, int y, BYTE R, BYTE G, BYTE B)
 {
-  puttruecolor_SDL(screen, x, y, (Uint8)R, (Uint8)G, (Uint8)B);
+  puttruecolor_SDL(mainscrn, x, y, (Uint8)R, (Uint8)G, (Uint8)B);
 }
 
-void save_screen(void)
+/*
+ * Set the pixel at (x, y) to the given value
+ */
+void writevideo(int x, int y, U32 pixel)
 {
-  SDL_Rect  src, dest;
+  BYTE red, green, blue;
 
-  src.x = 0;
-  src.y = 0;
-  src.w = xdots;
-  src.h = ydots;
-  dest = src;
-  SDL_BlitSurface( screen, &src, backscrn, &dest ); /* save screen */
-}
-
-void save_text(void)
-{
-  SDL_Rect  src, dest;
-
-  src.x = 0;
-  src.y = 0;
-  src.w = xdots;
-  src.h = ydots;
-  dest = src;
-  SDL_BlitSurface( screen, &src, backtext, &dest ); /* save text screen */
-}
-
-void restore_screen(void)
-{
-  SDL_Rect  src, dest;
-
-  src.x = 0;
-  src.y = 0;
-  src.w = xdots;
-  src.h = ydots;
-  dest = src;
-  SDL_BlitSurface( backscrn, &src, screen, &dest );
-  SDL_Flip(screen);
-}
-
-void restore_text(void)
-{
-  SDL_Rect  src, dest;
-
-  src.x = 0;
-  src.y = 0;
-  src.w = xdots;
-  src.h = ydots;
-  dest = src;
-  SDL_BlitSurface( backtext, &src, screen, &dest );
-  SDL_Flip(screen);
+  dac_to_rgb((BYTE)(pixel & andcolor), &red, &green, &blue);
+  puttruecolor(x, y, red, green, blue);
 }
 
 /*
@@ -730,6 +743,7 @@ void readvideoline(int y, int x, int lastx, BYTE *pixels)
  */
 void readvideopalette(void)
 {
+#if 0
   int i;
   for (i=0; i<colors; i++)
     {
@@ -737,6 +751,7 @@ void readvideopalette(void)
       dacbox[i][1] = cols[i].g >> 2;
       dacbox[i][2] = cols[i].b >> 2;
     }
+#endif
 }
 
 /*
@@ -760,13 +775,22 @@ void writevideopalette(void)
 
   for (i = 0; i < colors; i++)
     {
-      cols[i].r = dacbox[i][0] << 2;
-      cols[i].g = dacbox[i][1] << 2;
-      cols[i].b = dacbox[i][2] << 2;
+      if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
+        {
+          cols[i].r = dacbox[i][0] << 2;
+          cols[i].g = dacbox[i][1] << 2;
+          cols[i].b = dacbox[i][2] << 2;
+        }
+      else
+        {
+          cols[i].r = dacbox[i][2] << 2;
+          cols[i].g = dacbox[i][1] << 2;
+          cols[i].b = dacbox[i][0] << 2;
+        }
     }
   /* Set palette */
-  SDL_SetColors(screen, cols, 0, 256);
-  SDL_SetColors(backscrn, cols, 0, 256);
+  SDL_SetPaletteColors(mainscrn->format->palette, cols, 0, 256);
+  SDL_SetPaletteColors(backscrn->format->palette, cols, 0, 256);
 }
 
 void savevideopalette(void)
@@ -787,7 +811,9 @@ void setclear (void)
   int r, c;
 
   /*  Fill the screen with black  */
-  SDL_FillRect( screen, &screen->clip_rect, SDL_MapRGB( screen->format, 0, 0, 0 ) );
+//  Slock(mainscrn);
+//  SDL_FillRect( mainscrn, NULL, SDL_MapRGB( mainscrn->format, 0, 0, 0 ) );
+//  Sulock(mainscrn);
 
   for (r = 0; r < TEXT_HEIGHT; r++)
     {
@@ -805,18 +831,27 @@ void starttext(void)
   /* Setup text palette */
   int i;
 // FIXME (jonathan#1#): This still doesn't work
-  if (screen->format->BitsPerPixel == 8)
+  if (mainscrn->format->BitsPerPixel == 8)
     {
       savevideopalette();
       for (i = 0; i < 16; i++)
         {
-          dacbox[i][0] = XlateText[i].r;
-          dacbox[i][1] = XlateText[i].g;
-          dacbox[i][2] = XlateText[i].b;
+        if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
+          {
+            dacbox[i][2] = XlateText[i].r;
+            dacbox[i][1] = XlateText[i].g;
+            dacbox[i][0] = XlateText[i].b;
+          }
+        else
+          {
+            dacbox[i][0] = XlateText[i].r;
+            dacbox[i][1] = XlateText[i].g;
+            dacbox[i][2] = XlateText[i].b;
+          }
         }
       spindac(0,1);
-      SDL_SetColors(screen, XlateText, 0, 16);
-      SDL_SetColors(backtext, XlateText, 0, 16);
+      SDL_SetPaletteColors(mainscrn->format->palette, XlateText, 0, 16);
+      SDL_SetPaletteColors(backtext->format->palette, XlateText, 0, 16);
     }
 }
 
@@ -827,7 +862,7 @@ void outtext(int row, int col, int max_c)
   /* and puts it on the screen */
 
   SDL_Color color, bgcolor;
-  SDL_Surface *text_surface;
+  SDL_Surface *text_surface = NULL;
   SDL_Rect text_rect;
 
   int i, j;
@@ -835,9 +870,17 @@ void outtext(int row, int col, int max_c)
   int foregnd = attr & 15;
   int backgnd = (attr >> 4) & 15;
   char buf[TEXT_WIDTH+1]; /* room for text and null terminator */
-#if DEBUG
+#if 0
   fprintf(stderr, "outtext, %d, %d, %d\n", row, col, max_c);
   fprintf(stderr, "  attributes, %d, %d, %d\n", attr, foregnd, backgnd);
+{
+      char errortxt[40];
+      sprintf(errortxt, "outtext, %d, %d, %d\nattributes, %d, %d, %d", row, col, max_c, attr, foregnd, backgnd);
+      SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+                         "OutText",
+                         errortxt,
+                         NULL);
+}
 #endif
 
   text_rect.x = col * txt_wt;   /* starting column */
@@ -861,17 +904,41 @@ void outtext(int row, int col, int max_c)
   if (!(text_surface = TTF_RenderText_Shaded(font,buf,color,bgcolor)))
     {
       /* Handle error here */
-#if DEBUG
-      fprintf(stderr, "outtext could not render %s\n", buf);
+#if 0
+      char errortxt[40];
+      sprintf(errortxt, "outtext error: %s.", SDL_GetError());
+      SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+                         "Text Error",
+                         errortxt,
+                         NULL);
 #endif
     }
   else
     {
-      SDL_BlitSurface(text_surface,NULL,screen,&text_rect);
+      SDL_BlitSurface(text_surface, NULL, mainscrn, &text_rect);
       SDL_FreeSurface(text_surface);
-      /* Update just the rectangle of text */
-      SDL_UpdateRect(screen, text_rect.x, text_rect.y, text_rect.w, text_rect.h);
     }
+}
+
+void save_screen(void)
+{
+  SDL_BlitSurface( mainscrn, NULL, backscrn, NULL ); /* save mainscrn */
+}
+
+void restore_screen(void)
+{
+  SDL_BlitSurface( backscrn, NULL, mainscrn, NULL );
+}
+
+void save_text(void)
+{
+  SDL_BlitSurface( mainscrn, NULL, backtext, NULL ); /* save text screen */
+  setclear();
+}
+
+void restore_text(void)
+{
+  SDL_BlitSurface( backtext, NULL, mainscrn, NULL );
 }
 
 /*
@@ -949,8 +1016,16 @@ void putstring (int row, int col, int attr, CHAR *msg)
 {
   int r, c, s_c;
   int max_c = 0;
-#if DEBUG
+#if 0
   fprintf(stderr, "putstring, %s\n", msg);
+/* {
+      char errortxt[80];
+      sprintf(errortxt, "%s", msg);
+      SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+                         "PutString",
+                         errortxt,
+                         NULL);
+} */
 #endif
 
   if (row != -1)
@@ -1072,38 +1147,25 @@ void scrollup (int top, int bot)
   /* bottom line is added by intro() */
 }
 
-static int got_mod_key = 0;
-
-static void key_released(SDL_KeyboardEvent *key)
-{
-#if DEBUG
-  fprintf(stderr, "  key_released(%i): ''%c'' with mod %i\n",
-          key->keysym.sym, key->keysym.sym, got_mod_key);
-#endif
-
-  if (key->keysym.sym >= 300)
-    got_mod_key = 0;
-}
-
 static int translate_key(SDL_KeyboardEvent *key)
 {
   int tmp = key->keysym.sym & 0x7f; /* 0 - 127 */
 
-#if DEBUG
+#if 0
   fprintf(stderr, "translate_key(%i): ''%c'' with mod %i\n",
           key->keysym.sym, key->keysym.sym, got_mod_key);
+{
+      char errortxt[80];
+      sprintf(errortxt, "translate_key(%i): ''%c'' with mod %i", key->keysym.sym, key->keysym.sym, key->keysym.mod);
+      SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+                         "TranslateKey",
+                         errortxt,
+                         NULL);
+}
 #endif
 
-  /* Key state modifier keys and Miscellaneous function keys */
-  /* See SDL_keysym.h */
-  if (key->keysym.sym >= 300)
-    {
-      got_mod_key = key->keysym.sym;
-      return 0;
-    }
-
   /* This is the SDL key mapping */
-  if (got_mod_key == SDLK_RCTRL || got_mod_key == SDLK_LCTRL) /* Control key down */
+  if (key->keysym.mod & KMOD_CTRL) /* Control key down */
     {
       switch (key->keysym.sym)
         {
@@ -1165,7 +1227,7 @@ static int translate_key(SDL_KeyboardEvent *key)
             return (tmp - 'a' + 1);
         }
     }
-  else if (got_mod_key == SDLK_RSHIFT || got_mod_key == SDLK_LSHIFT) /* Shift key down */
+  else if (key->keysym.mod & KMOD_SHIFT) /* Shift key down */
     {
       switch (key->keysym.sym)
         {
@@ -1238,7 +1300,7 @@ static int translate_key(SDL_KeyboardEvent *key)
             return (tmp - ('a' - 'A'));
         }
     }
-  else if (got_mod_key == SDLK_RALT || got_mod_key == SDLK_LALT) /* Alt key down */
+  else if (key->keysym.mod & KMOD_ALT) /* Alt key down */
     {
       switch (key->keysym.sym)
         {
@@ -1430,13 +1492,24 @@ int get_key_event(int block)
           /* an event was found */
           switch (event.type)
             {
-            case SDL_VIDEORESIZE:
-              videoentry.xdots = event.resize.w & 0xFFFC;  /* divisible by 4 */
+            case SDL_WINDOWEVENT_RESIZED:
+              videoentry.xdots = event.window.data1 & 0xFFFC;  /* divisible by 4 */
               /*  Maintain aspect ratio of image  */
               videoentry.ydots = finalaspectratio * videoentry.xdots;
               discardscreen(); /* dump text screen if in use */
+              resize_flag = 1;
               ResizeScreen(1);
               keypressed = ENTER;
+              break;
+            case SDL_WINDOWEVENT_EXPOSED:
+            case SDL_WINDOWEVENT_MAXIMIZED:
+            case SDL_WINDOWEVENT_RESTORED:
+            case SDL_WINDOWEVENT_SHOWN:
+              updatewindow = 1;
+              break;
+            case SDL_WINDOWEVENT_HIDDEN:
+            case SDL_WINDOWEVENT_MINIMIZED:
+              updatewindow = 0;
               break;
             case SDL_MOUSEMOTION:
               check_mouse(event);
@@ -1459,9 +1532,6 @@ int get_key_event(int block)
             case SDL_KEYDOWN:
               keypressed = translate_key(&event.key);
               break;
-            case SDL_KEYUP:
-              key_released(&event.key);
-              break;
             case SDL_QUIT:
               exit(0);
               break;
@@ -1470,16 +1540,19 @@ int get_key_event(int block)
             }
         }
       if (checkautosave()) keypressed = 9999; /* time to save, exit */
-      /* time_to_update() should work outside of while loop, but doesn't */
-      if (time_to_update())
-        {
-          SDL_Flip(screen);
-        }
-    }
-  while (block && !keypressed);
-  if (time_to_update())
+  if (time_to_update() || updatewindow)
     {
-      SDL_Flip(screen);
+      SDL_UpdateTexture( sdlTexture, NULL, mainscrn->pixels, rowbytes );
+      SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
+      SDL_RenderPresent(sdlRenderer);
+    }
+   }
+  while (block && !keypressed);
+  if (time_to_update() || updatewindow)
+    {
+      SDL_UpdateTexture( sdlTexture, NULL, mainscrn->pixels, rowbytes );
+      SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
+      SDL_RenderPresent(sdlRenderer);
     }
   return (keypressed);
 }
@@ -1515,7 +1588,8 @@ long clock_ticks(void)
 }
 
 
-#define TICK_INTERVAL    200
+#define TICK_INTERVAL    50
+#define TICK_INTERVAL2   2
 
 static U32 next_time = 0;
 
@@ -1527,9 +1601,9 @@ int time_to_update(void)
   /* return a 1 every 1   millisecond if mouse button down */
   U32 now;
 
+  now = SDL_GetTicks();
   if (calc_status == 1) /* calculating */
     {
-      now = SDL_GetTicks();
       if (next_time <= now)
         {
           next_time = SDL_GetTicks() + TICK_INTERVAL;
@@ -1538,9 +1612,14 @@ int time_to_update(void)
       else
         return (0);
     }
-  else if (left_mouse_button_down || right_mouse_button_down)
-    delay (1);
-  else /* not calculating or mousing*/
-    delay (20);
-  return(1);
+  else
+    {
+      if (next_time <= now)
+        {
+          next_time = SDL_GetTicks() + TICK_INTERVAL2;
+          return (1);
+        }
+      else
+        return (0);
+    }
 }

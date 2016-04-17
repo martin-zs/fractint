@@ -119,8 +119,7 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
                 }
               colorstate = 0;
             }
-// NOTE (jonathan#1#): viewwindow is used by evolver
-          if (viewwindow)
+          if (viewwindow) /* viewwindow is used by evolver */
             {
               ftemp = finalaspectratio
                       * ((double)sydots / (double)sxdots / screenaspect);

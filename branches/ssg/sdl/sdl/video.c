@@ -204,11 +204,7 @@ int getcolor (int xdot, int ydot)
 */
 void putcolor_a (int xdot, int ydot, int color)
 {
-  if (istruecolor)
-    dotwrite (xdot + sxoffs, ydot + syoffs, map_to_pixel((BYTE) color));
-  else
-    dotwrite (xdot + sxoffs, ydot + syoffs, (U32)color /* & andcolor */);
-  /* assume andcolor is taken care of prior to this point */
+    dotwrite (xdot + sxoffs, ydot + syoffs, (U32)color);
 }
 
 /*
@@ -316,6 +312,7 @@ void spindac (int dir, int inc)
 */
 void setfortext (void)
 {
+  stackscreen();
   setclear();
 }
 
@@ -327,7 +324,7 @@ void setforgraphics (void)
 
 void dac_to_rgb(BYTE color, BYTE *red, BYTE *green, BYTE *blue)
 {
-  /* returns the rgb values corresponding to the color entry in dacbox */
+  /* truemode=0 returns the rgb values corresponding to the color entry in dacbox */
 
   switch (truemode)
     {

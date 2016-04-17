@@ -47,15 +47,15 @@ Fix file access.]]>
 		</Build>
 		<Compiler>
 			<Add option="-fno-builtin" />
-			<Add option="`sdl-config --cflags`" />
+			<Add option="`sdl2-config --cflags --libs`" />
 			<Add option="-DXFRACT" />
 			<Add directory="headers" />
-			<Add directory="/usr/include/SDL" />
+			<Add directory="/usr/include/SDL2" />
 		</Compiler>
 		<Linker>
-			<Add library="/usr/lib/x86_64-linux-gnu/libSDLmain.a" />
-			<Add library="/usr/lib/x86_64-linux-gnu/libSDL_ttf.so" />
-			<Add library="/usr/lib/x86_64-linux-gnu/libSDL.so" />
+			<Add library="/usr/lib/x86_64-linux-gnu/libSDL2main.a" />
+			<Add library="/usr/lib/x86_64-linux-gnu/libSDL2_ttf.so" />
+			<Add library="/usr/lib/x86_64-linux-gnu/libSDL2.so" />
 		</Linker>
 		<Unit filename="common/3d.c">
 			<Option compilerVar="CC" />
