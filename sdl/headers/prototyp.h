@@ -1048,8 +1048,6 @@ extern int strnicmp(char *, char *, int);
 
 /*  sdl_src -- C file prototypes */
 
-extern void Slock(void);
-extern void Sulock(void);
 extern void CleanupSDL(void);
 extern void ResizeScreen(int);
 extern void SetupSDL(void);

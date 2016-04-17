@@ -444,7 +444,6 @@ extern int                   save_release;
 extern int                   save_system;
 extern int                   scale_map[];
 extern float                 screenaspect;
-extern U16                   screen_handle;
 extern char                  scrnfile[];
 extern struct SearchPath     searchfor;
 extern int                   set_orbit_corners;

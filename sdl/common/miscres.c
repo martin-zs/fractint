@@ -974,6 +974,7 @@ top:
     {
       switch (got_status)
         {
+        default:
         case 0:
           sprintf(msg,"%d Pass Mode",totpasses);
           putstring(s_row,2,C_GENERAL_HI,msg);
@@ -1184,7 +1185,7 @@ top:
   sprintf(msg,"%ld (%ld)",coloriter,maxit);
   putstring(-1,-1,C_GENERAL_HI,msg);
   putstring(-1,-1,C_GENERAL_MED,seffective_bailout);
-  sprintf(msg,"%f",rqlim);
+  sprintf(msg,"%Lf",rqlim);
   putstring(-1,-1,C_GENERAL_HI,msg);
 
   if (fractype == PLASMA || fractype == ANT || fractype == CELLULAR)
@@ -1649,7 +1650,7 @@ int file_gets(char *buf,int maxlen,FILE *infile)
 }
 
 int matherr_ct = 0;
-// NOTE (jonathan#1#): May want to implement next at a later date.
+/* NOTE (jonathan#1#): May want to implement next at a later date. */
 #if 0
 int _matherr( struct exception *except )
 {
