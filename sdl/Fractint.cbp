@@ -47,235 +47,238 @@ Fix stackscreen/unstackscreen - see area under <TAB>.]]>
 			</Target>
 		</Build>
 		<Compiler>
-			<Add directory="C:\SDL-1.2.14\include\SDL" />
-			<Add directory="C:\svn\SDL\headers" />
+			<Add directory="C:/SDL/SDL2-2.0.4/x86_64-w64-mingw32/include/SDL2" />
+			<Add directory="C:/SDL/SDL2_ttf-2.0.14/x86_64-w64-mingw32/include/SDL2" />
+			<Add directory="headers" />
 		</Compiler>
 		<Linker>
-			<Add option="SDL_image.dll" />
-			<Add option="SDL_ttf.dll" />
+			<Add option="SDL2_ttf.dll" />
+			<Add library="SDL2main" />
+			<Add library="SDL2" />
 			<Add library="mingw32" />
-			<Add library="SDLmain" />
-			<Add library="SDL" />
-			<Add directory="C:\SDL-1.2.14\lib" />
+			<Add directory="C:/SDL/SDL2-2.0.4/lib/x86" />
+			<Add directory="C:/SDL/SDL2-2.0.4/x86_64-w64-mingw32/lib" />
+			<Add directory="C:/SDL/SDL2_ttf-2.0.14/x86_64-w64-mingw32/bin" />
 		</Linker>
-		<Unit filename="common\3d.c">
+		<Unit filename="common/3d.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\ant.c">
+		<Unit filename="common/ant.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\bigflt.c">
+		<Unit filename="common/bigflt.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\biginit.c">
+		<Unit filename="common/biginit.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\bignum.c">
+		<Unit filename="common/bignum.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\bignumc.c">
+		<Unit filename="common/bignumc.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\calcfrac.c">
+		<Unit filename="common/calcfrac.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\cmdfiles.c">
+		<Unit filename="common/cmdfiles.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\decoder.c">
+		<Unit filename="common/decoder.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\editpal.c">
+		<Unit filename="common/editpal.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\encoder.c">
+		<Unit filename="common/encoder.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\evolve.c">
+		<Unit filename="common/evolve.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\fracsubr.c">
+		<Unit filename="common/fracsubr.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\fractalb.c">
+		<Unit filename="common/fractalb.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\fractalp.c">
+		<Unit filename="common/fractalp.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\fractals.c">
+		<Unit filename="common/fractals.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\fractint.c">
+		<Unit filename="common/fractint.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\framain2.c">
+		<Unit filename="common/framain2.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\frasetup.c">
+		<Unit filename="common/frasetup.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\gifview.c">
+		<Unit filename="common/gifview.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\hcmplx.c">
+		<Unit filename="common/hcmplx.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\help.c">
+		<Unit filename="common/help.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\history.c">
+		<Unit filename="common/history.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\intro.c">
+		<Unit filename="common/intro.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\jb.c">
+		<Unit filename="common/jb.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\jiim.c">
+		<Unit filename="common/jiim.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\line3d.c">
+		<Unit filename="common/line3d.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\loadfile.c">
+		<Unit filename="common/loadfile.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\loadmap.c">
+		<Unit filename="common/loadmap.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\lorenz.c">
+		<Unit filename="common/lorenz.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\lsys.c">
+		<Unit filename="common/lsys.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\lsysf.c">
+		<Unit filename="common/lsysf.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\math_c.c">
+		<Unit filename="common/math_c.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\memory.c">
+		<Unit filename="common/memory.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\miscfrac.c">
+		<Unit filename="common/miscfrac.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\miscovl.c">
+		<Unit filename="common/miscovl.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\miscres.c">
+		<Unit filename="common/miscres.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\parser.c">
+		<Unit filename="common/parser.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\parserfp.c">
+		<Unit filename="common/parserfp.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\plot3d.c">
+		<Unit filename="common/plot3d.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\prompts1.c">
+		<Unit filename="common/prompts1.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\prompts2.c">
+		<Unit filename="common/prompts2.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\realdos.c">
+		<Unit filename="common/realdos.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\rotate.c">
+		<Unit filename="common/rotate.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\slideshw.c">
+		<Unit filename="common/slideshw.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\soi.c">
+		<Unit filename="common/soi.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\soi1.c">
+		<Unit filename="common/soi1.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\stereo.c">
+		<Unit filename="common/stereo.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\testpt.c">
+		<Unit filename="common/testpt.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="common\zoom.c">
+		<Unit filename="common/zoom.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="dos_help\help.src" />
-		<Unit filename="dos_help\help2.src" />
-		<Unit filename="dos_help\help3.src" />
-		<Unit filename="dos_help\help4.src" />
-		<Unit filename="dos_help\help5.src" />
+		<Unit filename="dos_help/help.src" />
+		<Unit filename="dos_help/help2.src" />
+		<Unit filename="dos_help/help3.src" />
+		<Unit filename="dos_help/help4.src" />
+		<Unit filename="dos_help/help5.src" />
 		<Unit filename="fractint.cfg" />
-		<Unit filename="headers\HELPDEFS.H" />
-		<Unit filename="headers\big.h">
+		<Unit filename="headers/HELPDEFS.H" />
+		<Unit filename="headers/big.h">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="headers\biginit.h">
+		<Unit filename="headers/biginit.h">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="headers\cmplx.h">
+		<Unit filename="headers/cmplx.h">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="headers\externs.h">
+		<Unit filename="headers/externs.h">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="headers\fractint.h">
+		<Unit filename="headers/fractint.h">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="headers\fractype.h">
+		<Unit filename="headers/fractype.h">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="headers\helpcom.h">
+		<Unit filename="headers/helpcom.h">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="headers\lsys.h">
+		<Unit filename="headers/lsys.h">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="headers\port.h">
+		<Unit filename="headers/port.h">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="headers\prototyp.h">
+		<Unit filename="headers/prototyp.h">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="headers\unix.h">
+		<Unit filename="headers/unix.h">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="sdl\calcmand.c">
+		<Unit filename="sdl/calcmand.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="sdl\calmanfp.c">
+		<Unit filename="sdl/calmanfp.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="sdl\diskvidu.c">
+		<Unit filename="sdl/diskvidu.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="sdl\faccess.c">
+		<Unit filename="sdl/faccess.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="sdl\fpu087.c">
+		<Unit filename="sdl/fpu087.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="sdl\general.c">
+		<Unit filename="sdl/general.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="sdl\sdl_scr.c">
+		<Unit filename="sdl/sdl_scr.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="sdl\video.c">
+		<Unit filename="sdl/video.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="sstools.ini" />
 		<Extensions>
 			<code_completion />
 			<debugger />
+			<envvars />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>
