@@ -1610,7 +1610,7 @@ int load_fractint_cfg(int options)
   int *cfglinenums;
   int linenum;
   long xdots, ydots;
-  int i, j, keynum, ax, bx, cx, dx, dotmode, colors;
+  int i, j, keynum, dotmode, colors;
   int commas[6];
   char tempstring[150];
 
@@ -1709,6 +1709,7 @@ bad_fractint_cfg:
     bad_fractint_cfg_msg();
 
 use_resident_table:
+//  adapter_detect();
   vidtbllen = 0;
   vident = vidtbl;
   for (i = 0; i < MAXVIDEOTABLE; ++i)
@@ -1721,6 +1722,7 @@ use_resident_table:
           ++vidtbllen;
         }
     }
+//  update_fractint_cfg();
   return (vidtbllen);
 
 }

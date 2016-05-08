@@ -676,6 +676,7 @@ extern void parse_comments(char *value);
 extern void init_comments(void);
 extern void write_batch_parms(char *, int, int, int, int);
 extern void expand_comments(char *, char *);
+extern void update_fractint_cfg(void);
 
 /*  miscres -- C file prototypes */
 

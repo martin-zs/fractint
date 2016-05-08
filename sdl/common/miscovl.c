@@ -37,7 +37,6 @@ static void put_bf(int slash,bf_t r, int prec);
 static void put_filename(char *keyword,char *fname);
 static int check_modekey(int curkey,int choice);
 static int entcompare(VOIDCONSTPTR p1,VOIDCONSTPTR p2);
-static void update_fractint_cfg(void);
 static void strip_zeros(char *buf);
 
 /* fullscreen_choice options */
@@ -1822,7 +1821,7 @@ static int entcompare(VOIDCONSTPTR p1,VOIDCONSTPTR p2)
   return(1);
 }
 
-static void update_fractint_cfg()
+void update_fractint_cfg(void)
 {
 #if 1
   char cfgname[100],outname[100],buf[121],kname[5];

@@ -198,8 +198,20 @@ int main(int argc, char **argv)
 
   atexit(goodbye); /* Cleanup all the memory allocations */
 
+  /* Initialize the SDL library */
+  SetupSDL();
+
   InitMemory();
+
+  fract_dir1 = getenv("FRACTDIR");
+  if (fract_dir1 == NULL)
+    {
+      fract_dir1 = ".";
+    }
+  fract_dir2 = ".";
+
   load_videotable(1); /* load fractint.cfg, no message yet if bad */
+  adapter_detect();   /* check what video is really present */
   init_help();
 
 restart:   /* insert key re-starts here */
@@ -230,17 +242,7 @@ restart:   /* insert key re-starts here */
   showdot = -1; /* turn off showdot if entered with <g> command */
   calc_status = -1;                    /* no active fractal image */
 
-  fract_dir1 = getenv("FRACTDIR");
-  if (fract_dir1 == NULL)
-    {
-      fract_dir1 = ".";
-    }
-  fract_dir2 = ".";
-
   cmdfiles(argc,argv);         /* process the command-line */
-
-  /* Initialize the SDL library */
-  SetupSDL();
 
   dopause(0);                  /* pause for error msg if not batch */
   init_msg(0,"",NULL,0);  /* this causes getakey if init_msg called on runup */
@@ -248,7 +250,6 @@ restart:   /* insert key re-starts here */
     check_samename();
   memcpy(olddacbox,dacbox,256*3);      /* save in case colors= present */
 
-  adapter_detect();                    /* check what video is really present */
   diskisactive = 0;                    /* disk-video is inactive */
   diskvideo = 0;                       /* disk driver is not in use */
 
@@ -545,6 +546,7 @@ va_dcl
   timer_start = clock_ticks();
   switch (timertype)
     {
+    default:
     case 0:
       out = (*(int(*)(void))subrtn)();
       break;
@@ -566,6 +568,8 @@ va_dcl
       timestring[24] = 0; /*clobber newline in time string */
       switch (timertype)
         {
+        default:
+          break;
         case 1:
           fprintf(fp,"decode ");
           break;
