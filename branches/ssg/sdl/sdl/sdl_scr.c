@@ -24,11 +24,10 @@ SDL_PixelFormat *sdlPixelFormat;
 TTF_Font *font = NULL;
 SDL_Color cols[256];
 int SDL_video_flags = SDL_WINDOW_RESIZABLE;
-SDL_Cursor *mousecurser;
+SDL_Cursor *mousecurser = NULL;
 
 SDL_Color XlateText[] =
 {
-/* Currently SDL gets this backwards */
 #if BYTE_ORDER != BIG_ENDIAN
   {  0,  0,  0,255}, /* black */
   {205,  0,  0,255}, /* Blue */
@@ -75,6 +74,7 @@ static int mousefkey[4][4] /* [button][dir] */ =
 };
 
 int resize_flag = 0;
+int window_is_fullscreen = 0;
 int updatewindow = 0;
 int screenctr = 0;
 int txt_ht;  /* text letter height = 2^txt_ht pixels */
@@ -132,93 +132,6 @@ void CleanupSDL(void)
   SDL_Quit();
   delay(250);
 }
-#if 0
-/* XPM */
-static const char *arrow[] =
-{
-  /* width height num_colors chars_per_pixel */
-  "    32    32        3            1",
-  /* colors */
-  "X c #000000",
-  ". c #ffffff",
-  "  c None",
-  /* pixels */
-  "X                               ",
-  "XX                              ",
-  "X.X                             ",
-  "X..X                            ",
-  "X...X                           ",
-  "X....X                          ",
-  "X.....X                         ",
-  "X......X                        ",
-  "X.......X                       ",
-  "X........X                      ",
-  "X.....XXXXX                     ",
-  "X..X..X                         ",
-  "X.X X..X                        ",
-  "XX  X..X                        ",
-  "X    X..X                       ",
-  "     X..X                       ",
-  "      X..X                      ",
-  "      X..X                      ",
-  "       XX                       ",
-  "                                ",
-  "                                ",
-  "                                ",
-  "                                ",
-  "                                ",
-  "                                ",
-  "                                ",
-  "                                ",
-  "                                ",
-  "                                ",
-  "                                ",
-  "                                ",
-  "                                ",
-  "0,0"
-};
-
-static SDL_Cursor *init_system_cursor(const char *image[])
-{
-  int i, row, col;
-  Uint8 data[4*32];
-  Uint8 mask[4*32];
-  int hot_x, hot_y;
-
-  i = -1;
-  for ( row=0; row<32; ++row )
-    {
-      for ( col=0; col<32; ++col )
-        {
-          if ( col % 8 )
-            {
-              data[i] <<= 1;
-              mask[i] <<= 1;
-            }
-          else
-            {
-              ++i;
-              data[i] = mask[i] = 0;
-            }
-          switch (image[4+row][col])
-            {
-            case 'X':
-              data[i] |= 0x01;
-              mask[i] |= 0x01;
-              break;
-            case '.':
-              mask[i] |= 0x01;
-              break;
-            case ' ':
-            default:
-              break;
-            }
-        }
-    }
-  sscanf(image[4+row], "%d,%d", &hot_x, &hot_y);
-  return SDL_CreateCursor(data, mask, 32, 32, hot_x, hot_y);
-}
-#endif
 
 void ResizeScreen(int mode)
 {
@@ -246,7 +159,7 @@ void ResizeScreen(int mode)
     {
       if (initmode <= 0)   /* make sure we have something reasonable */
         {
-          memcpy((char *)&videoentry,(char *)&videotable[14],
+          memcpy((char *)&videoentry,(char *)&videotable[0],
                  sizeof(videoentry));  /* SF6 800x600 now in videoentry */
         }
       else
@@ -309,7 +222,19 @@ void ResizeScreen(int mode)
   sydots = videoentry.ydots;
   dotmode = videoentry.dotmode;
   colors = videoentry.colors;
-
+#if 0
+  if (sdlWindow && window_is_fullscreen)
+    {
+      SDL_DisplayMode target, closest;
+      target.w = sxdots;
+      target.h = sydots;
+      target.format = 0;
+      target.refresh_rate = 0;
+      target.driverdata = 0;
+      SDL_GetClosestDisplayMode(0, &target, &closest);
+      SDL_SetWindowDisplayMode (sdlWindow, (const)closest);
+    }
+#endif
   if ( sdlWindow == NULL ) /* Don't create one if we already have one */
      sdlWindow = SDL_CreateWindow(0, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, sxdots, sydots, SDL_video_flags);
   if ( sdlWindow == NULL ) /* Oops it didn't work, try something different */
@@ -373,18 +298,18 @@ void ResizeScreen(int mode)
                          NULL);
 #endif
 
-#if BYTE_ORDER == BIG_ENDIAN
+if (BYTE_ORDER == BIG_ENDIAN) {
     rmask = 0xff000000;
     gmask = 0x00ff0000;
     bmask = 0x0000ff00;
     amask = 0x000000ff;
-
-#else
+    }
+else {
     rmask = 0x000000ff;
     gmask = 0x0000ff00;
     bmask = 0x00ff0000;
     amask = 0xff000000;
-#endif
+    }
 
   mainscrn = SDL_CreateRGBSurface(0, sxdots, sydots, bpp, rmask, gmask, bmask, amask);
   backscrn = SDL_CreateRGBSurface(0, sxdots, sydots, bpp, rmask, gmask, bmask, amask);
@@ -408,9 +333,22 @@ void ResizeScreen(int mode)
                          NULL);
 #endif
 
-  sdlPixelFormat = mainscrn->format;
-  mousecurser = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+  SDL_FillRect(mainscrn, NULL, 0);
+  SDL_FillRect(backscrn, NULL, 0);
+  SDL_FillRect(backtext, NULL, 0);
 
+  sdlPixelFormat = mainscrn->format;
+  if (mousecurser == NULL)
+    {
+      mousecurser = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+      SDL_SetCursor(mousecurser);
+    }
+
+  if (font != NULL)
+    {
+      TTF_CloseFont(font);
+      font = NULL;
+    }
   fontsize = (int)(sydots / 34) + 1; /* arbitrary font size, not too big */
   font = TTF_OpenFont("crystal.ttf", fontsize);
   if ( font == NULL )
@@ -467,8 +405,8 @@ void SetupSDL(void)
 
 /*
 ; adapter_detect:
-;       This routine performs a few quick checks on the type of
-;       video adapter installed.
+;       This routine gets the video modes supported by SDL
+;       and puts the compatible ones in vidtbl.
 ;       It sets variable dotmode.
 */
 int done_detect = 0;
@@ -486,6 +424,9 @@ void adapter_detect(void)
 
   display_mode_count = SDL_GetNumDisplayModes(display_in_use);
 
+  if (display_mode_count > MAXVIDEOTABLE)
+    display_mode_count = MAXVIDEOTABLE;
+
   memset((char *)vidtbl,0,sizeof(*vidtbl)*display_mode_count);
 
   i = 0;
@@ -499,10 +440,32 @@ void adapter_detect(void)
         vidtbl[j].xdots = mode.w;
         vidtbl[j].ydots = mode.h;
         vidtbl[j].colors = 256; /* this will need to be fixed */
+        switch (mode.w)
+        {
+          case 640:
+            if (mode.h == 480)
+               vidtbl[j].keynum = check_vidmode_keyname("SF5");
+            break;
+          case 800:
+            if (mode.h == 600)
+              vidtbl[j].keynum = check_vidmode_keyname("SF6");
+            break;
+          case 1024:
+            if (mode.h == 768)
+              vidtbl[j].keynum = check_vidmode_keyname("SF7");
+            break;
+          case 1280:
+            if (mode.h == 1024)
+              vidtbl[j].keynum = check_vidmode_keyname("SF8");
+            break;
+          default:
+            break;
+        }
         j++;
       }
       i++;
   } while (i < display_mode_count);
+  vidtbllen = j;
 
   SDL_GetWindowSize(sdlWindow, &wdth, &hgth);
   xdots = wdth;
@@ -537,6 +500,8 @@ void startvideo(void)
   SDL_FillRect(backtext, NULL, map_to_pixel(inside));
 
   /* initialize window to black */
+  SDL_UpdateTexture( sdlTexture, NULL, mainscrn->pixels, rowbytes );
+  SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
   SDL_SetRenderDrawBlendMode(sdlRenderer, SDL_BLENDMODE_NONE);
   SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
   SDL_RenderClear(sdlRenderer);
@@ -1441,7 +1406,6 @@ void check_mouse(SDL_Event mevent)
               banding = 0;
               lastx = mevent.button.x;
               lasty = mevent.button.y;
-// FIXME (jonathan#1#): Does next work?
               find_special_colors();
               boxcolor = color_bright;
             }
@@ -1502,9 +1466,15 @@ int get_key_event(int block)
               keypressed = ENTER;
               break;
             case SDL_WINDOWEVENT_EXPOSED:
-            case SDL_WINDOWEVENT_MAXIMIZED:
-            case SDL_WINDOWEVENT_RESTORED:
             case SDL_WINDOWEVENT_SHOWN:
+              updatewindow = 1;
+              break;
+            case SDL_WINDOWEVENT_RESTORED:
+              window_is_fullscreen = 0;
+              updatewindow = 1;
+              break;
+            case SDL_WINDOWEVENT_MAXIMIZED:
+              window_is_fullscreen = 1;
               updatewindow = 1;
               break;
             case SDL_WINDOWEVENT_HIDDEN:
@@ -1589,16 +1559,16 @@ long clock_ticks(void)
 
 
 #define TICK_INTERVAL    50
-#define TICK_INTERVAL2   2
+#define TICK_INTERVAL2   100
 
 static U32 next_time = 0;
 
 int time_to_update(void)
 {
 // FIXME (jonathan#1#): Need to adjust this for bf math.
-  /* return a 1 every 200 milliseconds if calculating */
-  /* return a 1 every 20  milliseconds if not calculating */
-  /* return a 1 every 1   millisecond if mouse button down */
+  /* return a 1 every 50 milliseconds if calculating */
+  /* return a 1 every 100  milliseconds if not calculating */
+
   U32 now;
 
   now = SDL_GetTicks();
