@@ -48,7 +48,7 @@ static void cmp_line_cleanup(void);
 U16 evolve_handle = 0;
 char old_stdcalcmode;
 static char *savezoom;
-int saved_dotmode = 0;
+int saved_adapter_mode = 1;
 void (*outln_cleanup) (void);
 
 int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
@@ -95,12 +95,12 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
               overlay3d = 0;
             }
 
-          else if (saved_dotmode != dotmode)
+          else if (saved_adapter_mode != adapter)
             {
               setvideomode(dotmode); /* switch video modes */
               xdots = sxdots;
               ydots = sydots;
-              saved_dotmode = dotmode;
+              saved_adapter_mode = adapter;
             }
 
           diskisactive = 0;              /* flag for disk-video routines */
