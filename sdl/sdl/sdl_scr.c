@@ -28,24 +28,8 @@ SDL_Cursor *mousecurser = NULL;
 
 SDL_Color XlateText[] =
 {
-#if BYTE_ORDER != BIG_ENDIAN
-  {  0,  0,  0,255}, /* black */
-  {205,  0,  0,255}, /* Blue */
-  {  0,205,  0,255}, /* Green */
-  {205,205,  0,255}, /* Cyan */
-  {  0,  0,205,255}, /* Red */
-  {205,  0,205,255}, /* Magenta */
-  {  0,205,205,255}, /* Brown */
-  {205,205,205,255}, /* White */
-  {100,100,100,255}, /* Gray */
-  {255,  0,  0,255}, /* L_Blue */
-  {  0,255,  0,255}, /* L_Green */
-  {255,255,  0,255}, /* L_Cyan */
-  {255,  0,  0,255}, /* L_Red */
-  {255,  0,255,255}, /* L_Magenta */
-  {  0,255,255,255}, /* Yellow */
-  {255,255,255,255}  /* L_White */
-#else
+#if BYTE_ORDER == BIG_ENDIAN
+/* R, G, B, A */
   {  0,  0,  0,255}, /* black */
   {  0,  0,205,255}, /* Blue */
   {  0,205,  0,255}, /* Green */
@@ -62,6 +46,24 @@ SDL_Color XlateText[] =
   {255,  0,255,255}, /* L_Magenta */
   {255,255,  0,255}, /* Yellow */
   {255,255,255,255}  /* L_White */
+#else
+/* B, G, R, A */
+  {  0,  0,  0,255}, /* black */
+  {205,  0,  0,255}, /* Blue */
+  {  0,205,  0,255}, /* Green */
+  {205,205,  0,255}, /* Cyan */
+  {  0,  0,205,255}, /* Red */
+  {205,  0,205,255}, /* Magenta */
+  {  0,205,205,255}, /* Brown */
+  {205,205,205,255}, /* White */
+  {100,100,100,255}, /* Gray */
+  {255,  0,  0,255}, /* L_Blue */
+  {  0,255,  0,255}, /* L_Green */
+  {255,255,  0,255}, /* L_Cyan */
+  {255,  0,  0,255}, /* L_Red */
+  {255,  0,255,255}, /* L_Magenta */
+  {  0,255,255,255}, /* Yellow */
+  {255,255,255,255}  /* L_White */
 #endif
 };
 
@@ -75,7 +77,7 @@ static int mousefkey[4][4] /* [button][dir] */ =
 
 int resize_flag = 0;
 int window_is_fullscreen = 0;
-int updatewindow = 0;
+int updatewindow = 1;
 int screenctr = 0;
 int txt_ht;  /* text letter height = 2^txt_ht pixels */
 int txt_wt;  /* text letter width = 2^txt_wt pixels */
@@ -139,8 +141,6 @@ void ResizeScreen(int mode)
   /* mode = 1 to resize the graphics window */
   /* mode = 2 to resize the text window */ /* NOT USED */
 
-/* this code creates duplicate windows if called more than once */
-
   Uint32 rmask, gmask, bmask, amask;
   char msg[40];
   int bpp; /* bits per pixel for graphics mode */
@@ -168,6 +168,16 @@ void ResizeScreen(int mode)
           memcpy((char *)&videoentry,(char *)&videotable[adapter],
                  sizeof(videoentry));  /* the selected entry now in videoentry */
         }
+      if ( sdlWindow == NULL ) /* Don't create one if we already have one */
+         sdlWindow = SDL_CreateWindow(0, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 768, SDL_video_flags);
+      if ( sdlWindow == NULL ) /* Oops it didn't work, try something different */
+          sdlWindow = SDL_CreateWindow(0, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 0, 0, SDL_video_flags);
+
+      if ( sdlWindow == NULL ) /* No luck, bail out */
+        {
+          SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Window creation fail : %s\n",SDL_GetError());
+          exit(1);
+        }
     }
   else if (mode == 1)  /*  graphics window  */
     {
@@ -186,8 +196,8 @@ void ResizeScreen(int mode)
             {
               videotable[adapter].dotmode = bpp;
             }
-#endif
           resize_flag = 1;
+#endif
           SDL_SetWindowSize(sdlWindow, videotable[adapter].xdots, videotable[adapter].ydots);
           SDL_SetWindowPosition(sdlWindow, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
           memcpy((char *)&videoentry,(char *)&videotable[adapter],
@@ -198,10 +208,15 @@ void ResizeScreen(int mode)
                sizeof(videoentry));
     /* need to free the screens & texture here */
       SDL_DestroyRenderer(sdlRenderer);
+      sdlRenderer = NULL;
       SDL_DestroyTexture(sdlTexture);
+      sdlTexture = NULL;
       SDL_FreeSurface(mainscrn);
+      mainscrn = NULL;
       SDL_FreeSurface(backscrn);
+      backscrn = NULL;
       SDL_FreeSurface(backtext);
+      backtext = NULL;
     }
   else  /*  mode == 2  text window  */
     {
@@ -223,6 +238,15 @@ void ResizeScreen(int mode)
   dotmode = videoentry.dotmode;
   colors = videoentry.colors;
 #if 0
+  resize_event.type = SDL_WINDOWEVENT;
+  resize_event.window.event = SDL_WINDOWEVENT_RESIZED;
+  resize_event.window.data1 = sxdots;
+  resize_event.window.data2 = sydots;
+  SDL_PushEvent(&resize_event);
+  SDL_PumpEvents();
+  SDL_PeepEvents(&resize_event,1,SDL_GETEVENT,SDL_FIRSTEVENT,SDL_LASTEVENT);
+#endif
+#if 0
   if (sdlWindow && window_is_fullscreen)
     {
       SDL_DisplayMode target, closest;
@@ -235,16 +259,6 @@ void ResizeScreen(int mode)
       SDL_SetWindowDisplayMode (sdlWindow, (const)closest);
     }
 #endif
-  if ( sdlWindow == NULL ) /* Don't create one if we already have one */
-     sdlWindow = SDL_CreateWindow(0, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, sxdots, sydots, SDL_video_flags);
-  if ( sdlWindow == NULL ) /* Oops it didn't work, try something different */
-      sdlWindow = SDL_CreateWindow(0, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 0, 0, SDL_video_flags);
-
-  if ( sdlWindow == NULL ) /* No luck, bail out */
-    {
-      SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Window creation fail : %s\n",SDL_GetError());
-      exit(1);
-    }
 
   if ( sdlRenderer != NULL ) /* Don't create two with same name */
       SDL_DestroyRenderer(sdlRenderer);
@@ -269,7 +283,7 @@ void ResizeScreen(int mode)
   if (dotmode == 0)
     videoentry.dotmode = bpp;
 
-#if 1
+#if DEBUG
 #ifndef XFRACT
   sprintf(msg, "Fractint at %dx%dx%d", sxdots, sydots, bpp);
 #else
@@ -298,18 +312,17 @@ void ResizeScreen(int mode)
                          NULL);
 #endif
 
-if (BYTE_ORDER == BIG_ENDIAN) {
+#if BYTE_ORDER == BIG_ENDIAN
     rmask = 0xff000000;
     gmask = 0x00ff0000;
     bmask = 0x0000ff00;
     amask = 0x000000ff;
-    }
-else {
+#else
     rmask = 0x000000ff;
     gmask = 0x0000ff00;
     bmask = 0x00ff0000;
     amask = 0xff000000;
-    }
+#endif
 
   mainscrn = SDL_CreateRGBSurface(0, sxdots, sydots, bpp, rmask, gmask, bmask, amask);
   backscrn = SDL_CreateRGBSurface(0, sxdots, sydots, bpp, rmask, gmask, bmask, amask);
@@ -415,6 +428,7 @@ void adapter_detect(void)
 {
   int wdth;
   int hgth;
+  int desktop_w, desktop_h;
   int i, j, display_mode_count;
   static int display_in_use = 0;
   SDL_DisplayMode mode;
@@ -422,8 +436,11 @@ void adapter_detect(void)
   if (done_detect)
     return;
 
-  display_mode_count = SDL_GetNumDisplayModes(display_in_use);
+  SDL_GetDesktopDisplayMode(display_in_use, &mode);
+  desktop_w = mode.w;
+  desktop_h = mode.h;
 
+  display_mode_count = SDL_GetNumDisplayModes(display_in_use);
   if (display_mode_count > MAXVIDEOTABLE)
     display_mode_count = MAXVIDEOTABLE;
 
@@ -435,8 +452,12 @@ void adapter_detect(void)
       if (SDL_GetDisplayMode(display_in_use, i, &mode) != 0)
           SDL_Log("SDL_GetDisplayMode failed: %s", SDL_GetError());
       if (mode.refresh_rate == 60) {
-        strncpy(vidtbl[j].name, SDL_GetPixelFormatName(mode.format), 25);
+        if (mode.w == desktop_w && mode.h == desktop_h)
+           strncpy(vidtbl[j].comment, "Full Desktop Mode", 25);
+        else
+           strncpy(vidtbl[j].comment, SDL_GetPixelFormatName(mode.format), 25);
         vidtbl[j].dotmode = SDL_BITSPERPIXEL(mode.format);
+        sprintf(vidtbl[j].name, "%i-bit True-Color", vidtbl[j].dotmode);
         vidtbl[j].xdots = mode.w;
         vidtbl[j].ydots = mode.h;
         vidtbl[j].colors = 256; /* this will need to be fixed */
@@ -456,7 +477,7 @@ void adapter_detect(void)
             break;
           case 1280:
             if (mode.h == 1024)
-              vidtbl[j].keynum = check_vidmode_keyname("SF8");
+              vidtbl[j].keynum = check_vidmode_keyname("SF9");
             break;
           default:
             break;
@@ -1118,7 +1139,7 @@ static int translate_key(SDL_KeyboardEvent *key)
 
 #if 0
   fprintf(stderr, "translate_key(%i): ''%c'' with mod %i\n",
-          key->keysym.sym, key->keysym.sym, got_mod_key);
+          key->keysym.sym, key->keysym.sym, key->keysym.mod);
 {
       char errortxt[80];
       sprintf(errortxt, "translate_key(%i): ''%c'' with mod %i", key->keysym.sym, key->keysym.sym, key->keysym.mod);
@@ -1485,6 +1506,8 @@ int get_key_event(int block)
               check_mouse(event);
               break;
             case SDL_MOUSEBUTTONDOWN:
+              if (event.button.button == SDL_BUTTON_LEFT && left_mouse_button_down == 1)
+                button_held = 1;
               if (event.button.button == SDL_BUTTON_LEFT)
                 left_mouse_button_down = 1;
               if (event.button.button == SDL_BUTTON_RIGHT)
@@ -1492,9 +1515,10 @@ int get_key_event(int block)
               break;
             case SDL_MOUSEBUTTONUP:
               if (event.button.button == SDL_BUTTON_LEFT) {
+                if (left_mouse_button_down == 1)
+                   keypressed = ENTER;
                 left_mouse_button_down = 0;
                 button_held = 0;
-                keypressed = ENTER;
               }
               if (event.button.button == SDL_BUTTON_RIGHT)
                 right_mouse_button_down = 0;
@@ -1510,7 +1534,7 @@ int get_key_event(int block)
             }
         }
       if (checkautosave()) keypressed = 9999; /* time to save, exit */
-  if (time_to_update() || updatewindow)
+  if (time_to_update() && updatewindow)
     {
       SDL_UpdateTexture( sdlTexture, NULL, mainscrn->pixels, rowbytes );
       SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
@@ -1518,7 +1542,7 @@ int get_key_event(int block)
     }
    }
   while (block && !keypressed);
-  if (time_to_update() || updatewindow)
+  if (time_to_update() && updatewindow)
     {
       SDL_UpdateTexture( sdlTexture, NULL, mainscrn->pixels, rowbytes );
       SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
