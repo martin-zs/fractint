@@ -102,6 +102,10 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
               ydots = sydots;
               saved_adapter_mode = adapter;
             }
+          else /* clear the screen */
+            {
+              startvideo();
+            }
 
           diskisactive = 0;              /* flag for disk-video routines */
           if (savedac || colorpreloaded)

@@ -178,6 +178,8 @@ void ResizeScreen(int mode)
           SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Window creation fail : %s\n",SDL_GetError());
           exit(1);
         }
+
+    SDL_SetWindowIcon( sdlWindow, SDL_LoadBMP("Fractint.bmp") );
     }
   else if (mode == 1)  /*  graphics window  */
     {
@@ -284,17 +286,9 @@ void ResizeScreen(int mode)
     videoentry.dotmode = bpp;
 
 #if DEBUG
-#ifndef XFRACT
-  sprintf(msg, "Fractint at %dx%dx%d", sxdots, sydots, bpp);
+  sprintf(msg, "%s at %dx%dx%d", Fractint, sxdots, sydots, bpp);
 #else
-  sprintf(msg, "Xfractint at %dx%dx%d", sxdots, sydots, bpp);
-#endif /* XFRACT */
-#else
-#ifndef XFRACT
-  sprintf(msg, "Fractint");
-#else
-  sprintf(msg, "Xfractint");
-#endif /* XFRACT */
+  sprintf(msg, Fractint);
 #endif /* 1 */
 
   SDL_SetWindowTitle(sdlWindow, msg);
@@ -391,8 +385,6 @@ void SetupSDL(void)
                          NULL);
       exit(1);
     }
-
-//  SDL_WM_SetIcon(SDL_LoadBMP("Fractint.bmp"), NULL);
 
   if (TTF_Init() < 0)
     {
@@ -797,9 +789,7 @@ void setclear (void)
   int r, c;
 
   /*  Fill the screen with black  */
-//  Slock(mainscrn);
-//  SDL_FillRect( mainscrn, NULL, SDL_MapRGB( mainscrn->format, 0, 0, 0 ) );
-//  Sulock(mainscrn);
+  SDL_FillRect( mainscrn, NULL, SDL_MapRGB( mainscrn->format, 0, 0, 0 ) );
 
   for (r = 0; r < TEXT_HEIGHT; r++)
     {
@@ -987,6 +977,8 @@ void unstackscreen(void)
       restore_screen(); /* restore screen */
     }
   screenctr--;
+  if (screenctr < 0) /* shouldn't happen */
+    screenctr = 0;
 }
 
 void discardscreen(void)
@@ -1606,7 +1598,7 @@ int time_to_update(void)
       else
         return (0);
     }
-  else
+  else if (button_held)
     {
       if (next_time <= now)
         {
@@ -1615,5 +1607,10 @@ int time_to_update(void)
         }
       else
         return (0);
+    }
+  else
+    {
+    SDL_Delay(5);
+    return (1);
     }
 }

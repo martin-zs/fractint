@@ -290,6 +290,7 @@ void setfortext (void)
 
 void setforgraphics (void)
 {
+  unstackscreen();
   startvideo ();
   spindac (0, 1);
 }
