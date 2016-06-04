@@ -3,67 +3,60 @@ Setting up Code::Blocks to complile Fractint port to SDL
 Download from:
  http://www.codeblocks.org/downloads/5
 
-For Windows 2000 / XP / Vista:
- codeblocks-10.05mingw-setup.exe
+For Windows XP / Vista / 7 / 8.x /10:
+ codeblocks-16.01-setup.exe
 
 Run this file to install.  I picked the default installation.
 
-For SDL:
+For SDL (32-bit):
 Download from:
- http://www.libsdl.org/download-1.2.php
+ www.libsdl.org/download-2.0.php
 
- SDL-devel-1.2.14-mingw32.tar.gz (Mingw32)
-  Unpack to C drive.  Will create C:\SDL-1.2.14
+ SDL2-devel-2.0.4-mingw32.tar.gz (Mingw 32/64-bit)
+  Unpack to C:\SDL.  Will create C:\SDL\SDL-2.0.4.
+  The i686-w64-mingw32 subfolder contains the 32-bit files we need.
 
- SDL-1.2.14-win32.zip
+ SDL2-2.0.4-win32-x86.zip
   Contains SDL.dll, which must be in your working directory
-   (Will be included in fractint svn checkout)
-
-For SDL_image:
-Download from:
- http://www.libsdl.org/projects/SDL_image/
-
- SDL_image-1.2.10.zip
-  Unpack and copy SDL_image.h to:
-   C:\SDL-1.2.14\include\SDL
-
- SDL_image-1.2.10-win32.zip
-  Unpack and copy SDL_image.dll and libpng12-0.dll to your working directory
    (Will be included in fractint svn checkout)
 
 For SDL_ttf:
 Download from:
- http://www.libsdl.org/projects/SDL_ttf/
+ www.libsdl.org/projects/SDL_ttf/
 
- SDL_ttf-2.0.9-win32.zip
-  Unpack and copy SDL_ttf.dll to your working directory
+ SDL2_ttf-devel-2.0.14-mingw.tar.gz (MinGW 32/64-bit)
+  Unpack to c:\SDL.  Will create c:\SDL\SDL2_ttf-2.0.14
+  The i686-w64-mingw32 subfolder contains the 32-bit files we need.
+
+ SDL2_ttf-2.0.14-win32-x86.zip
+  Unpack and copy SDL2_ttf.dll to your working directory
    (Will be included in fractint svn checkout)
-
- SDL_ttf-2.0.9.zip
-  Unpack and copy SDL_ttf.h to:
-   C:\SDL-1.2.14\include\SDL
-
 
 
 Windows Project options:
 
-Include directories:
+Under Compiler settings
+  Other compiler options
+    -fno-builtin
 
-  C:\SDL-1.2.14\include\SDL
+Under Linker settings
+  Link libraries:
+    mingw32
+    SDL2main
+    SDL2
+    SDL2_ttf
 
-Library directories:
-
-  C:\SDL-1.2.14\lib
-
-
-linker options
-  -lmingw32
-  -lSDLmain
-  -lSDL
-  -lSDL_image.dll
-  -lSDL_ttf.dll
+Under Search directories
+  Compiler
+    C:\SDL\SDL2-2.0.4\i686-w64-mingw32\include\SDL2
+    C:\SDL\SDL2_ttf-2.0.14\i686-w64-mingw32\include\SDL2
+    headers
+  Linker
+    C:\SDL\SDL2-2.0.4\i686-w64-mingw32\lib
+    C:\SDL\SDL2_ttf-2.0.14\i686-w64-mingw32\lib
 
 These should all be set if you open the fractint.workspace in Code::Blocks
+
 
 Linux:
 The following packages (and their dependencies) are needed:
