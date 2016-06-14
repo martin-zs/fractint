@@ -60,13 +60,41 @@ void normalineread (int, int, int, BYTE *);
 */
 
 struct videoinfo videotable[MAXVIDEOTABLE] = {
-  {"Default 800x600          ", "                         ",
-   SF6, 8, 800, 600,256},
-  {"Default 1024x768         ", "                         ",
-   SF7, 8, 1024, 768,256},
-  {"Default 1280x1024        ", "                         ",
-   SF8, 8, 1280, 1024,256},
-   {"unused  mode             ", "                         ",
+  {"16 color mode            ", "                         ",
+   F2, 4, 640, 350, 16},
+  {"256 color mode           ", "                         ",
+   F3, 8, 320, 200, 256},
+  {"16 color mode            ", "                         ",
+   F4, 4, 640, 480, 16},
+  {"4 color mode             ", "                         ",
+   F5, 2, 320, 200, 4},
+  {"2 color mode             ", "                         ",
+   F6, 1, 640, 200, 2},
+  {"2 color mode             ", "                         ",
+   F7, 1, 640, 350, 2},
+  {"2 color mode             ", "                         ",
+   F8, 1, 640, 480, 2},
+  {"16 color mode            ", "                         ",
+   F9, 4, 320, 200, 16},
+  {"256 color mode           ", "                         ",
+   F10, 8, 320, 400, 256},
+  {"256 color mode           ", "                         ",
+   SF1, 8, 360, 480, 256},
+  {"16 color mode            ", "                         ",
+   SF2, 4, 800, 600, 16},
+  {"16 color mode            ", "                         ",
+   SF3, 4, 1024, 768, 16},
+  {"256 color mode           ", "                         ",
+   SF4, 8, 640, 400, 256},
+  {"256 color mode           ", "                         ",
+   SF5, 8, 640, 480, 256},
+  {"256 color mode           ", "                         ",
+   SF6, 8, 800, 600, 256},
+  {"256 color mode           ", "                         ",
+   SF7, 8, 1024, 768, 256},
+  {"256 color mode           ", "                         ",
+   SF8, 8, 1280, 1024, 256},
+  {"unused  mode             ", "                         ",
    0, 0, 0, 0, 0},
 };
 
@@ -119,8 +147,7 @@ void setvideomode (int dotmode)
   switch (dotmode)
     {
     case 3:   /* text */
-// FIXME (jonathan#1#): Add code to setup text screen.
-//      ResizeScreen(2);
+      ResizeScreen(2);
       starttext();
       setfortext();
       break;

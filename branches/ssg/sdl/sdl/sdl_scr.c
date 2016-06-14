@@ -139,39 +139,28 @@ void ResizeScreen(int mode)
 {
   /* mode = 0 for initial startup */
   /* mode = 1 to resize the graphics window */
-  /* mode = 2 to resize the text window */ /* NOT USED */
+  /* mode = 2 to resize the text window */
 
   Uint32 rmask, gmask, bmask, amask;
   char msg[40];
   int bpp; /* bits per pixel for graphics mode */
   int sxdots, sydots, dotmode;
   int fontsize;
-  SDL_Event resize_event;
 
   /*
-   * Initialize the display in a 800x600 best available bit mode,
-   * requesting a hardware surface and double buffering.
-   * Failing to initialize that then falls back to
-   * Initialize the display in a 800x600 16-bit mode,
-   * requesting a software surface
+   * Initialize the display to 1024x768,
    */
   if (mode == 0)
     {
       if (initmode <= 0)   /* make sure we have something reasonable */
-        {
-          memcpy((char *)&videoentry,(char *)&videotable[0],
-                 sizeof(videoentry));  /* SF6 800x600 now in videoentry */
-        }
+          adapter = check_vidmode_key(0, check_vidmode_keyname("SF7"));  /* Default to SF7 1024x768 */
       else
-        {
           adapter = initmode;
-          memcpy((char *)&videoentry,(char *)&videotable[adapter],
-                 sizeof(videoentry));  /* the selected entry now in videoentry */
-        }
+      memcpy((char *)&videoentry,(char *)&videotable[adapter],
+             sizeof(videoentry));  /* the selected entry now in videoentry */
       if ( sdlWindow == NULL ) /* Don't create one if we already have one */
-         sdlWindow = SDL_CreateWindow(0, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1024, 768, SDL_video_flags);
-      if ( sdlWindow == NULL ) /* Oops it didn't work, try something different */
-          sdlWindow = SDL_CreateWindow(0, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 0, 0, SDL_video_flags);
+         sdlWindow = SDL_CreateWindow(0, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                     videoentry.xdots, videoentry.ydots, SDL_video_flags);
 
       if ( sdlWindow == NULL ) /* No luck, bail out */
         {
@@ -190,24 +179,17 @@ void ResizeScreen(int mode)
       SDL_RenderPresent(sdlRenderer);
       if (resize_flag == 0)  /* not called from event Queue */
         {
-#if 0
-          bpp = SDL_VideoModeOK(videotable[adapter].xdots,
-                                videotable[adapter].ydots,
-                                videotable[adapter].dotmode, SDL_video_flags);
-          if (bpp != videotable[adapter].dotmode)
-            {
-              videotable[adapter].dotmode = bpp;
-            }
-          resize_flag = 1;
-#endif
           SDL_SetWindowSize(sdlWindow, videotable[adapter].xdots, videotable[adapter].ydots);
           SDL_SetWindowPosition(sdlWindow, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
           memcpy((char *)&videoentry,(char *)&videotable[adapter],
                  sizeof(videoentry));  /* the selected entry now in videoentry */
         }
-      else
-        memcpy((char *)&videotable[adapter],(char *)&videoentry,
+      else /* called from event Queue */
+        {
+          memcpy((char *)&videotable[adapter],(char *)&videoentry,
                sizeof(videoentry));
+          resize_flag = 0;
+        }
     /* need to free the screens & texture here */
       SDL_DestroyRenderer(sdlRenderer);
       sdlRenderer = NULL;
@@ -222,32 +204,31 @@ void ResizeScreen(int mode)
     }
   else  /*  mode == 2  text window  */
     {
-      sxdots = 800;
-      sydots = 600;
-      dotmode = 0;
-      resize_event.type = SDL_WINDOWEVENT;
-      resize_event.window.event = SDL_WINDOWEVENT_RESIZED;
-      resize_event.window.data1 = sxdots;
-      resize_event.window.data2 = sydots;
-      SDL_PushEvent(&resize_event);
-      SDL_PumpEvents();
-      SDL_PeepEvents(&resize_event,1,SDL_GETEVENT,SDL_FIRSTEVENT,SDL_LASTEVENT);
-      TTF_CloseFont(font);
+      if (initmode <= 0)   /* make sure we have something reasonable */
+          adapter = check_vidmode_key(0, check_vidmode_keyname("SF7"));  /* Default to SF7 1024x768 */
+      else
+         adapter = initmode;
+      memcpy((char *)&videoentry,(char *)&videotable[adapter],
+             sizeof(videoentry));  /* the selected entry now in videoentry */
+      SDL_SetWindowSize(sdlWindow, videoentry.xdots, videoentry.ydots);
+      SDL_SetWindowPosition(sdlWindow, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+    /* need to free the screens & texture here */
+      SDL_DestroyRenderer(sdlRenderer);
+      sdlRenderer = NULL;
+      SDL_DestroyTexture(sdlTexture);
+      sdlTexture = NULL;
+      SDL_FreeSurface(mainscrn);
+      mainscrn = NULL;
+      SDL_FreeSurface(backscrn);
+      backscrn = NULL;
+      SDL_FreeSurface(backtext);
+      backtext = NULL;
     }
 
   sxdots = videoentry.xdots;
   sydots = videoentry.ydots;
   dotmode = videoentry.dotmode;
   colors = videoentry.colors;
-#if 0
-  resize_event.type = SDL_WINDOWEVENT;
-  resize_event.window.event = SDL_WINDOWEVENT_RESIZED;
-  resize_event.window.data1 = sxdots;
-  resize_event.window.data2 = sydots;
-  SDL_PushEvent(&resize_event);
-  SDL_PumpEvents();
-  SDL_PeepEvents(&resize_event,1,SDL_GETEVENT,SDL_FIRSTEVENT,SDL_LASTEVENT);
-#endif
 #if 0
   if (sdlWindow && window_is_fullscreen)
     {
@@ -302,7 +283,7 @@ void ResizeScreen(int mode)
   if (sdlTexture == NULL )
       SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
                          "Creation Error",
-                         "No sdlTexture.",
+                         SDL_GetError(),
                          NULL);
 #endif
 
@@ -404,8 +385,6 @@ void SetupSDL(void)
 //      exit(1);
 //    }
 
-//  SDL_EnableKeyRepeat(500,30);
-
 }
 
 /*
@@ -443,7 +422,7 @@ void adapter_detect(void)
   do {
       if (SDL_GetDisplayMode(display_in_use, i, &mode) != 0)
           SDL_Log("SDL_GetDisplayMode failed: %s", SDL_GetError());
-      if (mode.refresh_rate == 60) {
+      if (mode.refresh_rate == 60 && mode.h >= 600) {
         if (mode.w == desktop_w && mode.h == desktop_h)
            strncpy(vidtbl[j].comment, "Full Desktop Mode", 25);
         else
@@ -456,6 +435,8 @@ void adapter_detect(void)
         switch (mode.w)
         {
           case 640:
+            if (mode.h == 400)
+               vidtbl[j].keynum = check_vidmode_keyname("SF4");
             if (mode.h == 480)
                vidtbl[j].keynum = check_vidmode_keyname("SF5");
             break;
@@ -806,7 +787,7 @@ void starttext(void)
 {
   /* Setup text palette */
   int i;
-// FIXME (jonathan#1#): This still doesn't work
+
   if (mainscrn->format->BitsPerPixel == 8)
     {
       savevideopalette();
