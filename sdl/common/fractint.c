@@ -370,6 +370,9 @@ imagestart:                             /* calc/display a new image */
 
   cyclelimit = initcyclelimit;         /* default cycle limit   */
 
+  adapter = initmode;                  /* set the video adapter up */
+  initmode = -1;                       /* (once)                   */
+
   while (adapter < 0)                  /* cycle through instructions */
     {
       if (initbatch)                            /* batch, nothing to do */
