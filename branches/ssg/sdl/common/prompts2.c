@@ -1157,7 +1157,7 @@ void goodbye(void)                  /* we done.  Bail out */
   enddisk();
   free_bf_vars();
   ExitCheck();
-#if DEBUG
+#if 0
   strcpy(goodbyemessage, gbm);
   if (*s_makepar != 0)
     setvideotext();

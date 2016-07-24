@@ -170,7 +170,7 @@ static int right_guess,bottom_guess;
 typedef int (*TPREFIX)[2][maxyblk][maxxblk];
 #define tprefix   (*((TPREFIX)prefix))
 
-/* size of next puts a limit of MAXPIXELS pixels across on solid guessing logic */
+/* size of next puts a limit of OLDMAXPIXELS pixels across on solid guessing logic */
 BYTE dstack[4096];              /* common temp, two put_line calls */
 unsigned int prefix[2][maxyblk][maxxblk]; /* common temp */
 
@@ -225,9 +225,9 @@ static int showdot_width = 0;
    methods are not used - in these cases a normal
    modulus test is used                              */
 
-double fmodtest(void)
+LDBL fmodtest(void)
 {
-  double result;
+  LDBL result;
   if (inside==FMODI && save_release <= 2000) /* for backwards compatibility */
     {
       if (magnitude == 0.0 || no_mag_calc == 0 || integerfractal)
@@ -2121,13 +2121,13 @@ int StandardFractal(void)       /* per pixel 1/2/b/g, called with row & col set 
             }
           else if (inside == FMODI)
             {
-              double mag;
+              LDBL mag;
               if (integerfractal)
                 {
                   new.x = ((LDBL)lnew.x) / fudge;
                   new.y = ((LDBL)lnew.y) / fudge;
                 }
-              mag = fmodtest();
+              mag = (LDBL)fmodtest();
               if (mag < closeprox)
                 memvalue = mag;
             }
@@ -2170,13 +2170,13 @@ int StandardFractal(void)       /* per pixel 1/2/b/g, called with row & col set 
             }
           else if (outside == FMOD)
             {
-              double mag;
+              LDBL mag;
               if (integerfractal)
                 {
                   new.x = ((LDBL)lnew.x) / fudge;
                   new.y = ((LDBL)lnew.y) / fudge;
                 }
-              mag = fmodtest();
+              mag = (LDBL)fmodtest();
               if (mag < closeprox)
                 memvalue = mag;
             }
@@ -2417,7 +2417,7 @@ int StandardFractal(void)       /* per pixel 1/2/b/g, called with row & col set 
 
   if (distest)
     {
-      LDBL dist,temp;
+      LDBL dist, temp;
       dist = sqr(new.x) + sqr(new.y);
       if (dist == 0 || overflow)
         dist = 0;

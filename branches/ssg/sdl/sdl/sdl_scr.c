@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <SDL.h>
-//#include <SDL_image.h>
 #include <SDL_ttf.h>
 
 #include "port.h"
@@ -20,11 +19,19 @@ SDL_Texture *sdlTexture = NULL;
 Uint32 sdlPixelfmt;
 int rowbytes;
 SDL_PixelFormat *sdlPixelFormat;
+static int display_in_use = 0;
 
 TTF_Font *font = NULL;
 SDL_Color cols[256];
 int SDL_video_flags = SDL_WINDOW_RESIZABLE;
+int SDL_renderer_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
 SDL_Cursor *mousecurser = NULL;
+
+struct dac_color_info {
+  int sizex;        /* This is the image width. */
+  int sizey;        /* This is the image height */
+  long *color_info; /* This is the iteration count for each pixel. */
+} Image_Data;
 
 SDL_Color XlateText[] =
 {
@@ -123,9 +130,10 @@ void CleanupSDL(void)
   SDL_FreeSurface(mainscrn);
   SDL_FreeSurface(backscrn);
   SDL_FreeSurface(backtext);
+
+  free(Image_Data.color_info);
+
   SDL_FreeCursor(mousecurser);
-// NOTE (jonathan#1#): May not need this once png support is added.
-//  IMG_Quit();
 
   TTF_CloseFont(font);
   font = NULL;
@@ -146,6 +154,8 @@ void ResizeScreen(int mode)
   int bpp; /* bits per pixel for graphics mode */
   int sxdots, sydots, dotmode;
   int fontsize;
+  int win_size_w;
+  int win_size_h;
 
   /*
    * Initialize the display to 1024x768,
@@ -159,7 +169,7 @@ void ResizeScreen(int mode)
       memcpy((char *)&videoentry,(char *)&videotable[adapter],
              sizeof(videoentry));  /* the selected entry now in videoentry */
       if ( sdlWindow == NULL ) /* Don't create one if we already have one */
-         sdlWindow = SDL_CreateWindow(0, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+         sdlWindow = SDL_CreateWindow(0, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                      videoentry.xdots, videoentry.ydots, SDL_video_flags);
 
       if ( sdlWindow == NULL ) /* No luck, bail out */
@@ -172,15 +182,10 @@ void ResizeScreen(int mode)
     }
   else if (mode == 1)  /*  graphics window  */
     {
-    /* initialize screen to black */
-      SDL_FillRect(mainscrn, NULL, map_to_pixel(0));
-      SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
-      SDL_RenderClear(sdlRenderer);
-      SDL_RenderPresent(sdlRenderer);
-      if (resize_flag == 0)  /* not called from event Queue */
+      if (resize_flag == 0)/*&& !window_is_fullscreen) */ /* not called from event Queue */
         {
           SDL_SetWindowSize(sdlWindow, videotable[adapter].xdots, videotable[adapter].ydots);
-          SDL_SetWindowPosition(sdlWindow, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+          SDL_SetWindowPosition(sdlWindow, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED);
           memcpy((char *)&videoentry,(char *)&videotable[adapter],
                  sizeof(videoentry));  /* the selected entry now in videoentry */
         }
@@ -201,6 +206,8 @@ void ResizeScreen(int mode)
       backscrn = NULL;
       SDL_FreeSurface(backtext);
       backtext = NULL;
+      free(Image_Data.color_info);
+
     }
   else  /*  mode == 2  text window  */
     {
@@ -210,51 +217,60 @@ void ResizeScreen(int mode)
          adapter = initmode;
       memcpy((char *)&videoentry,(char *)&videotable[adapter],
              sizeof(videoentry));  /* the selected entry now in videoentry */
-      SDL_SetWindowSize(sdlWindow, videoentry.xdots, videoentry.ydots);
-      SDL_SetWindowPosition(sdlWindow, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-    /* need to free the screens & texture here */
-      SDL_DestroyRenderer(sdlRenderer);
-      sdlRenderer = NULL;
-      SDL_DestroyTexture(sdlTexture);
-      sdlTexture = NULL;
-      SDL_FreeSurface(mainscrn);
-      mainscrn = NULL;
-      SDL_FreeSurface(backscrn);
-      backscrn = NULL;
-      SDL_FreeSurface(backtext);
-      backtext = NULL;
+      if (!window_is_fullscreen)
+      {
+         SDL_SetWindowSize(sdlWindow, videoentry.xdots, videoentry.ydots);
+         SDL_SetWindowPosition(sdlWindow, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED);
+      }
     }
 
   sxdots = videoentry.xdots;
   sydots = videoentry.ydots;
   dotmode = videoentry.dotmode;
   colors = videoentry.colors;
-#if 0
-  if (sdlWindow && window_is_fullscreen)
-    {
-      SDL_DisplayMode target, closest;
-      target.w = sxdots;
-      target.h = sydots;
-      target.format = 0;
-      target.refresh_rate = 0;
-      target.driverdata = 0;
-      SDL_GetClosestDisplayMode(0, &target, &closest);
-      SDL_SetWindowDisplayMode (sdlWindow, (const)closest);
-    }
-#endif
+  Image_Data.sizex = sxdots;
+  Image_Data.sizey = sydots;
+  Image_Data.color_info = (long *)malloc(sxdots * sydots * sizeof(long));
 
   if ( sdlRenderer != NULL ) /* Don't create two with same name */
       SDL_DestroyRenderer(sdlRenderer);
-  sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, 0);
+  sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_renderer_flags);
   if ( sdlRenderer == NULL )
     {
       SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Render creation for surface fail : %s\n",SDL_GetError());
       exit(1);
     }
 
+  SDL_GetRendererOutputSize(sdlRenderer, &win_size_w, &win_size_h);
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");  /* make the scaled rendering look smoother */
-  SDL_RenderSetLogicalSize(sdlRenderer, sxdots, sydots);
+  if ( window_is_fullscreen )
+    {
+    int x_scaled, y_scaled;
+    int scale_renderer = 1;
+    SDL_Rect* scaled_rect = NULL;
 
+    if ( win_size_w >= win_size_h )
+       scale_renderer = (int)(win_size_h / sydots);
+    else
+       scale_renderer = (int)(win_size_w / sxdots);
+    if ( scale_renderer < 1 )
+       scale_renderer = 1;
+
+    x_scaled = sxdots * scale_renderer;
+    y_scaled = sydots * scale_renderer;
+    SDL_RenderSetScale(sdlRenderer, (float)scale_renderer, (float)scale_renderer);
+    SDL_RenderSetLogicalSize(sdlRenderer, x_scaled, y_scaled);
+    scaled_rect->x = (int)(((double)win_size_w - x_scaled) / 2.0);
+    scaled_rect->y = (int)(((double)win_size_h - y_scaled) / 2.0);
+    scaled_rect->w = (int)(x_scaled);
+    scaled_rect->h = (int)(y_scaled);
+    SDL_RenderSetViewport(sdlRenderer, scaled_rect);
+    }
+  else
+    {
+    SDL_RenderSetLogicalSize(sdlRenderer, sxdots, sydots);
+    SDL_RenderSetViewport(sdlRenderer, NULL);
+    }
   /* initialize screen to black */
   SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
   SDL_RenderClear(sdlRenderer);
@@ -280,7 +296,7 @@ void ResizeScreen(int mode)
 
 #if DEBUG
   fprintf(stderr, "Set %dx%d at %d bits-per-pixel mode\n", sxdots, sydots, bpp);
-  if (sdlTexture == NULL )
+  if ( sdlTexture == NULL )
       SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
                          "Creation Error",
                          SDL_GetError(),
@@ -299,10 +315,12 @@ void ResizeScreen(int mode)
     amask = 0xff000000;
 #endif
 
-  mainscrn = SDL_CreateRGBSurface(0, sxdots, sydots, bpp, rmask, gmask, bmask, amask);
-  backscrn = SDL_CreateRGBSurface(0, sxdots, sydots, bpp, rmask, gmask, bmask, amask);
-  backtext = SDL_CreateRGBSurface(0, sxdots, sydots, bpp, rmask, gmask, bmask, amask);
-
+  if (mainscrn == NULL) /* assume all need to be created */
+  {
+    mainscrn = SDL_CreateRGBSurface(0, sxdots, sydots, bpp, rmask, gmask, bmask, amask);
+    backscrn = SDL_CreateRGBSurface(0, sxdots, sydots, bpp, rmask, gmask, bmask, amask);
+    backtext = SDL_CreateRGBSurface(0, sxdots, sydots, bpp, rmask, gmask, bmask, amask);
+  }
 #if DEBUG
   if (mainscrn == NULL )
       SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
@@ -401,7 +419,6 @@ void adapter_detect(void)
   int hgth;
   int desktop_w, desktop_h;
   int i, j, display_mode_count;
-  static int display_in_use = 0;
   SDL_DisplayMode mode;
 
   if (done_detect)
@@ -489,10 +506,11 @@ void startvideo(void)
     }
 
 /* initialize mainscrn, backscrn, and backtext surfaces to inside color */
-  SDL_FillRect(mainscrn, NULL, map_to_pixel(inside));
-  SDL_FillRect(backscrn, NULL, map_to_pixel(inside));
-  SDL_FillRect(backtext, NULL, map_to_pixel(inside));
+  SDL_FillRect(mainscrn, NULL, map_to_pixel(inside & andcolor));
+  SDL_FillRect(backscrn, NULL, map_to_pixel(inside & andcolor));
+  SDL_FillRect(backtext, NULL, map_to_pixel(inside & andcolor));
 
+  memset(Image_Data.color_info, 0, Image_Data.sizex * Image_Data.sizey * sizeof(long));
   /* initialize window to black */
   SDL_UpdateTexture( sdlTexture, NULL, mainscrn->pixels, rowbytes );
   SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
@@ -513,38 +531,22 @@ U32 map_to_pixel(BYTE color)
 
 /*
  * Return the pixel value at (x, y)
+ * This is the DAC index value.
+ * Need to change this to allow more colors.
  */
 BYTE readvideo(int x, int y)
 {
-int Bpp = SDL_BYTESPERPIXEL(sdlPixelfmt);
-  /* Here p is the address to the pixel we want to retrieve */
-  Uint8 *p = (Uint8 *)mainscrn->pixels + y * mainscrn->pitch + x * Bpp;
-  Slock(mainscrn);
-  switch (Bpp)
-    {
-    case 1:
-      return *p;
+  long *p;
 
-    case 2:
-      return *(Uint16 *)p;
+  p = (long *)Image_Data.color_info + Image_Data.sizex * y + x;
 
-    case 3:
-      if (BYTE_ORDER == BIG_ENDIAN)
-        return p[0] << 16 | p[1] << 8 | p[2];
-      else
-        return p[0] | p[1] << 8 | p[2] << 16;
-
-    case 4:
-      return (BYTE)SDL_MapRGB(sdlPixelFormat, p[0], p[1], p[2]);
-
-    default:
-      return 0;       /* shouldn't happen, but avoids warnings */
-    }
-  Sulock(mainscrn);
+  return ((BYTE) *p & andcolor);
 }
 
+#if 0
 void gettruecolor_SDL(SDL_Surface *screen, int x, int y, Uint8 *red, Uint8 *green, Uint8 *blue)
 {
+/* NOT USED */
   /* Extracting color components from a 32-bit color value */
   Uint32 *pixel;
 
@@ -554,17 +556,22 @@ void gettruecolor_SDL(SDL_Surface *screen, int x, int y, Uint8 *red, Uint8 *gree
 
   SDL_GetRGB(*pixel, sdlPixelFormat, (Uint8 *)red, (Uint8 *)green, (Uint8 *)blue);
 }
+#endif
 
 void gettruecolor(int x, int y, BYTE *R, BYTE *G, BYTE *B)
 {
-  gettruecolor_SDL(mainscrn, x, y, (Uint8 *)R, (Uint8 *)G, (Uint8 *)B);
+  dac_to_rgb(readvideo(x, y), R, G, B);
+
+/*  gettruecolor_SDL(mainscrn, x, y, (Uint8 *)R, (Uint8 *)G, (Uint8 *)B); */
 }
 
 void puttruecolor_SDL(SDL_Surface *screen, int x, int y, Uint8 R, Uint8 G, Uint8 B)
 {
-  /* Currently, SDL gets this backwards */
+#if BYTE_ORDER == BIG_ENDIAN
+  Uint32 color = SDL_MapRGB(screen->format, R, G, B);
+#else
   Uint32 color = SDL_MapRGB(screen->format, B, G, R);
-
+#endif
   Slock(screen);
   switch (screen->format->BytesPerPixel)
     {
@@ -586,18 +593,19 @@ void puttruecolor_SDL(SDL_Surface *screen, int x, int y, Uint8 R, Uint8 G, Uint8
     {
       Uint8 *bufp;
       bufp = (Uint8 *)screen->pixels + y*screen->pitch + x * 3;
-      if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
+#if BYTE_ORDER == BIG_ENDIAN
         {
           bufp[2] = color;
           bufp[1] = color >> 8;
           bufp[0] = color >> 16;
         }
-      else
+#else
         {
           bufp[0] = color;
           bufp[1] = color >> 8;
           bufp[2] = color >> 16;
         }
+#endif
     }
     break;
     default:
@@ -629,7 +637,10 @@ void puttruecolor(int x, int y, BYTE R, BYTE G, BYTE B)
 void writevideo(int x, int y, U32 pixel)
 {
   BYTE red, green, blue;
+  long *bufp;
 
+  bufp = (long *)Image_Data.color_info + Image_Data.sizex * y + x;
+  *bufp = pixel;
   dac_to_rgb((BYTE)(pixel & andcolor), &red, &green, &blue);
   puttruecolor(x, y, red, green, blue);
 }
@@ -734,18 +745,19 @@ void writevideopalette(void)
 
   for (i = 0; i < colors; i++)
     {
-      if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
-        {
-          cols[i].r = dacbox[i][0] << 2;
-          cols[i].g = dacbox[i][1] << 2;
-          cols[i].b = dacbox[i][2] << 2;
-        }
-      else
+#if BYTE_ORDER == BIG_ENDIAN
         {
           cols[i].r = dacbox[i][2] << 2;
           cols[i].g = dacbox[i][1] << 2;
           cols[i].b = dacbox[i][0] << 2;
         }
+#else
+        {
+          cols[i].r = dacbox[i][0] << 2;
+          cols[i].g = dacbox[i][1] << 2;
+          cols[i].b = dacbox[i][2] << 2;
+        }
+#endif
     }
   /* Set palette */
   SDL_SetPaletteColors(mainscrn->format->palette, cols, 0, 256);
@@ -1445,16 +1457,21 @@ int get_key_event(int block)
   do
     {
       /* look for an event */
-      if ( SDL_PollEvent ( &event ) )
+      while ( SDL_PollEvent( &event ) != 0 )
         {
           /* an event was found */
           switch (event.type)
             {
+             case (SDL_WINDOWEVENT):
+              {
+
+            switch (event.window.event) {
             case SDL_WINDOWEVENT_RESIZED:
               videoentry.xdots = event.window.data1 & 0xFFFC;  /* divisible by 4 */
               /*  Maintain aspect ratio of image  */
               videoentry.ydots = finalaspectratio * videoentry.xdots;
               discardscreen(); /* dump text screen if in use */
+              calc_status = 0;
               resize_flag = 1;
               ResizeScreen(1);
               keypressed = ENTER;
@@ -1475,6 +1492,11 @@ int get_key_event(int block)
             case SDL_WINDOWEVENT_MINIMIZED:
               updatewindow = 0;
               break;
+            default:
+              break;
+            }
+           }
+             break;
             case SDL_MOUSEMOTION:
               check_mouse(event);
               break;

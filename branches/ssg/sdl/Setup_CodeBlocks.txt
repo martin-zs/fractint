@@ -61,19 +61,12 @@ These should all be set if you open the fractint.workspace in Code::Blocks
 Linux:
 The following packages (and their dependencies) are needed:
   codeblocks
-  codeblocks-contrib
-  libsdl1.2-dev
-  libsdl1.2debian
-  libsdl1.2debian-alsa
-  libsdl-image1.2
-  libsdl-image1.2-dev
-  libsdl-ttf2.0-0
-  libsdl-ttf2.0-dev
+  libsdl2-dev
+  libsdl2-2.0-0
+  libsdl2-ttf2.0-0
+  libsdl2-ttf-dev
 
-Kubuntu 11.10 has these packages.
-If your distribution doesn't, download SDL-1.2.14-1.x86_64.rpm
-or SDL-1.2.14-1.i586.rpm
-  if necessary, repackage to debian (I used alien)
+Kubuntu 14.04 has these packages.
 
 Linux Project options:
 
@@ -81,6 +74,7 @@ Compiler settings:
 
   Other options:
     -fno-builtin
+    `sdl2-config --cflags --libs`
 
   #defines
     XFRACT
@@ -88,17 +82,18 @@ Compiler settings:
 Search directories:
 
   headers
-  /usr/include/SDL
+  /usr/include/SDL2
 
 Link libraries:
 
-  SDLmain
-  SDL_image
-  SDL_ttf
+  /usr/lib/x86_64-linux-gnu/libSDL2main.a
+  /usr/lib/x86_64-linux-gnu/libSDL2.so
+  /usr/lib/x86_64-linux-gnu/libSDL2_ttf.so
 
 These should all be set if you open the xfractint.workspace in Code::Blocks
 
 
 
 For help with SDL, start with:
- http://gpwiki.org/index.php/SDL:Tutorials:Setup
+http://wiki.libsdl.org/FrontPage
+
