@@ -13,8 +13,7 @@ Need font with arrow symbols
 Remove printer functions.
  ==> 8-bit mode color cycling locks up.
 bf/bn math works, but can't zoom.  Inside options broken.
-Need to fix text colors.
-Need to work on key combinations: control-anykey.
+Halley and Newton set <T> command back to Ant.
 Resize with a text screen visible doesn't regenerate image.
 Fix file access.]]>
 			</notes>
@@ -55,8 +54,8 @@ Fix file access.]]>
 		</Compiler>
 		<Linker>
 			<Add library="/usr/lib/x86_64-linux-gnu/libSDL2main.a" />
-			<Add library="/usr/lib/x86_64-linux-gnu/libSDL2_ttf.so" />
 			<Add library="/usr/lib/x86_64-linux-gnu/libSDL2.so" />
+			<Add library="/usr/lib/x86_64-linux-gnu/libSDL2_ttf.so" />
 		</Linker>
 		<Unit filename="common/3d.c">
 			<Option compilerVar="CC" />
