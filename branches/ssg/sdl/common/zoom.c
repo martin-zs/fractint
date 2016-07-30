@@ -67,9 +67,13 @@ void dispbox(void)
 void clearbox(void)
 {
   int i;
+  BYTE rgb[3];
+
   if (istruecolor)
+    for (i=0;i<boxcount;i++)
     {
-      dispbox();
+      gettruecolor(boxx[i]-sxoffs,boxy[i]-syoffs,&rgb[0],&rgb[1],&rgb[2]);
+      puttruecolor(boxx[i]-sxoffs,boxy[i]-syoffs,rgb[0],rgb[1],rgb[2]);
     }
   else
     {

@@ -156,6 +156,12 @@ void ResizeScreen(int mode)
   int fontsize;
   int win_size_w;
   int win_size_h;
+  int desktop_w, desktop_h;
+  SDL_DisplayMode DTmode;
+
+  SDL_GetDesktopDisplayMode(display_in_use, &DTmode);
+  desktop_w = DTmode.w;
+  desktop_h = DTmode.h;
 
   /*
    * Initialize the display to 1024x768,
@@ -184,6 +190,8 @@ void ResizeScreen(int mode)
     {
       if (resize_flag == 0)/*&& !window_is_fullscreen) */ /* not called from event Queue */
         {
+          if (videotable[adapter].xdots > desktop_w || videotable[adapter].ydots > desktop_h)
+             return;
           SDL_SetWindowSize(sdlWindow, videotable[adapter].xdots, videotable[adapter].ydots);
           SDL_SetWindowPosition(sdlWindow, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED);
           memcpy((char *)&videoentry,(char *)&videotable[adapter],
