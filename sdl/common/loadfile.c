@@ -72,6 +72,7 @@ int read_overlay()      /* read overlay/3D files, if reqr'd */
     {
       sprintf(msg,"Warning: %s has a bad fractal type; using 0",readname);
       fractype = 0;
+      stopmsg(0,msg);
     }
   curfractalspecific = &fractalspecific[fractype];
   xxmin        = read_info.xmin;
@@ -380,12 +381,9 @@ int read_overlay()      /* read overlay/3D files, if reqr'd */
       oldfloatflag = floatflag;
       display3d = loaded3d;      /* for <tab> display during next */
       floatflag = usr_floatflag; /* ditto */
-// FIXME (jonathan#1#): Next is broken
-#if 1
-      i = 0;
-#else
+
       i = get_video_mode(&read_info,&blk_3_info);
-#endif
+
       display3d = olddisplay3d;
       floatflag = oldfloatflag;
       if (i)
@@ -1070,6 +1068,12 @@ void set_function_parm_defaults(void)
       set_trig_array(1,s_sin);
       set_trig_array(2,s_sin);
       set_trig_array(3,s_sin);
+      break;
+    default:
+      set_trig_array(0,s_sin);
+      set_trig_array(1,s_sqr);
+      set_trig_array(2,s_sinh);
+      set_trig_array(3,s_cosh);
       break;
     }
 }

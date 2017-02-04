@@ -132,13 +132,11 @@ double wide number can then be ignored.
 /************************************************************************/
 
 #include <string.h>
+#include <malloc.h>
 /* see Fractint.c for a description of the "include"  hierarchy */
 #include "port.h"
 #include "prototyp.h"
 #include "big.h"
-#ifndef BIG_ANSI_C
-#include <malloc.h>
-#endif
 
 /*************************************************************************
 * The original bignumber code was written specifically for a Little Endian
@@ -235,7 +233,7 @@ void bn_hexdump(bn_t r)
 }
 
 /**********************************************************************/
-/* strtobn() - converts a string into a bignumer                       */
+/* strtobn() - converts a string into a bignumber                     */
 /*   r - pointer to a bignumber                                       */
 /*   s - string in the floating point format [-][digits].[digits]     */
 /*   note: the string may not be empty or have extra space and may    */
@@ -446,7 +444,8 @@ long bntoint(bn_t n)
 /*  Converts a double to a bignumber                                 */
 bn_t floattobn(bn_t r, LDBL f)
 {
-#ifndef USE_BIGNUM_C_CODE
+/* #ifndef USE_BIGNUM_C_CODE */
+#if 0
   /* Only use this when using the ASM code as the C version of  */
   /* floattobf() calls floattobn(), an infinite recursive loop. */
   floattobf(bftmp1, f);

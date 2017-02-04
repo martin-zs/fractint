@@ -268,7 +268,7 @@ void cvtcentermagbf(bf_t Xctr, bf_t Yctr, LDBL *Magnification, double *Xmagfacto
   LDBL a, b; /* bottom, left, diagonal */
   LDBL a2, b2, c2; /* squares of above */
   LDBL tmpx1, tmpx2, tmpy=0.0, tmpy1, tmpy2 ;
-  double tmpa; /* temporary x, y, angle */
+  LDBL tmpa; /* temporary x, y, angle */
   bf_t bfWidth, bfHeight;
   bf_t bftmpx, bftmpy;
   int saved;
@@ -295,7 +295,7 @@ void cvtcentermagbf(bf_t Xctr, bf_t Yctr, LDBL *Magnification, double *Xmagfacto
       /* *Yctr = (yymin + yymax)/2; */
       add_bf(Yctr, bfymin, bfymax);
       half_a_bf(Yctr);
-      *Magnification  = 2/Height;
+      *Magnification  = 2.0/Height;
       *Xmagfactor =  (double)(Height / (DEFAULTASPECT * Width));
       *Rotation = 0.0;
       *Skew = 0.0;
@@ -344,7 +344,7 @@ void cvtcentermagbf(bf_t Xctr, bf_t Yctr, LDBL *Magnification, double *Xmagfacto
       b2 = tmpx2*tmpx2 + tmpy2*tmpy2;
       b = sqrtl(b2);
 
-      tmpa = acos((double)((a2+b2-c2)/(2*a*b))); /* save tmpa for later use */
+      tmpa = acosl(((a2+b2-c2)/(2*a*b))); /* save tmpa for later use */
       *Skew = 90 - rad_to_deg(tmpa);
 
       /* these are the only two variables that must use big precision */
@@ -355,8 +355,8 @@ void cvtcentermagbf(bf_t Xctr, bf_t Yctr, LDBL *Magnification, double *Xmagfacto
       add_bf(Yctr, bfymin, bfymax);
       half_a_bf(Yctr);
 
-      Height = b * sin(tmpa);
-      *Magnification  = 2/Height; /* 1/(h/2) */
+      Height = b * sinl(tmpa);
+      *Magnification  = 2.0/Height; /* 1/(h/2) */
       *Xmagfactor = (double)(Height / (DEFAULTASPECT * a));
 
       /* if vector_a cross vector_b is negative */
@@ -384,7 +384,7 @@ void cvtcornersbf(bf_t Xctr, bf_t Yctr, LDBL Magnification, double Xmagfactor, d
   LDBL x, y;
   LDBL h, w; /* half height, width */
   LDBL xmin, ymin, xmax, ymax, x3rd, y3rd;
-  double tanskew, sinrot, cosrot;
+  LDBL tanskew, sinrot, cosrot;
   bf_t bfh, bfw;
   bf_t bftmp;
   int saved;
@@ -396,7 +396,7 @@ void cvtcornersbf(bf_t Xctr, bf_t Yctr, LDBL Magnification, double Xmagfactor, d
   if (Xmagfactor == 0.0)
     Xmagfactor = 1.0;
 
-  h = 1/Magnification;
+  h = 1.0/Magnification;
   floattobf(bfh, h);
   w = h / (DEFAULTASPECT * Xmagfactor);
   floattobf(bfw, w);
@@ -420,7 +420,7 @@ void cvtcornersbf(bf_t Xctr, bf_t Yctr, LDBL Magnification, double Xmagfactor, d
 
   bftmp = alloc_stack(bflength+2);
   /* in unrotated, untranslated coordinate system */
-  tanskew = tan(deg_to_rad(Skew));
+  tanskew = tanl(deg_to_rad(Skew));
   xmin = -w + h*tanskew;
   xmax =  w - h*tanskew;
   x3rd = -w - h*tanskew;
@@ -429,8 +429,8 @@ void cvtcornersbf(bf_t Xctr, bf_t Yctr, LDBL Magnification, double Xmagfactor, d
 
   /* rotate coord system and then translate it */
   Rotation = deg_to_rad(Rotation);
-  sinrot = sin(Rotation);
-  cosrot = cos(Rotation);
+  sinrot = sinl(Rotation);
+  cosrot = cosl(Rotation);
 
   /* top left */
   x =  xmin * cosrot + ymax *  sinrot;

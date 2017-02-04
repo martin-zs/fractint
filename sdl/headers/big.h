@@ -14,13 +14,13 @@
 /* huge pointers is not supported in assembly, only in C           */
 /* uncomment only ONE of these or declare on compiler command line */
 /* #define BIG_NEAR   */
-#if defined(_MSC_VER)
-#   define BIG_BASED
-#elif defined( __BORLANDC__)
-#   define BIG_FAR
-#endif
+/* #if defined(_MSC_VER) */
+/* #   define BIG_BASED */
+/* #elif defined( __BORLANDC__) */
+/* #   define BIG_FAR */
+/* #endif */
 /* #define BIG_HUGE   */  /* C code only */
-/* #define BIG_ANSI_C */  /* C code only */
+#define BIG_ANSI_C 1       /* C code only */
 /* In DOS, BIG_ANSI_C uses default pointer for model selected */
 
 
@@ -92,7 +92,7 @@ extern _segment bignum_seg;
 #endif
 
 #ifdef BIG_ANSI_C
-#define USE_BIGNUM_C_CODE
+#define USE_BIGNUM_C_CODE 1
 #define BIGDIST
 #define BIG_NULL            NULL
 #define BIG_SIZE_T          size_t
@@ -254,6 +254,7 @@ extern bn_t atan2_bn(bn_t r, bn_t ny, bn_t nx);
     /* misc */
 extern int is_bn_zero(bn_t n);
 extern bn_t floattobn(bn_t r, LDBL f);
+extern bf_t floattobf1(bf_t r, LDBL f);
 
 /************/
 /* bigflt.c */
@@ -352,6 +353,23 @@ extern _BFCMPLX *ComplexPower_bf(_BFCMPLX *t, _BFCMPLX *xx, _BFCMPLX *yy);
 extern _BNCMPLX *ComplexPower_bn(_BNCMPLX *t, _BNCMPLX *xx, _BNCMPLX *yy);
 extern _BNCMPLX *cmplxlog_bn(_BNCMPLX *t, _BNCMPLX *s);
 extern _BNCMPLX *cplxmul_bn( _BNCMPLX *t, _BNCMPLX *x, _BNCMPLX *y);
+
+#ifdef DEBUG
+/****************************/
+/* fractalb.c */
+extern void show_var_bn(char *s, bn_t n);
+extern void showcornersdbl(char *s);
+extern void showcorners(char *s);
+extern void showbfglobals(char *s);
+extern void showcornersbf(char *s);
+extern void showcornersbfs(char *s);
+extern void show_two_bf(char *s1,bf_t t1,char *s2, bf_t t2, int digits);
+extern void show_three_bf(char *s1,bf_t t1,char *s2, bf_t t2, char *s3, bf_t t3, int digits);
+extern void showaspect(char *s);
+extern void comparevalues(char *s, LDBL x, bn_t bnx);
+extern void comparevaluesbf(char *s, LDBL x, bf_t bfx);
+extern void show_var_bf(char *s, bf_t n);
+#endif
 
 #include "biginit.h" /* fractint only */
 

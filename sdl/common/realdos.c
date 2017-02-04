@@ -67,6 +67,7 @@ int stopmsg (int flags, char *msg)
       if (fp != NULL)
         fprintf(fp,"%s\n",msg);
       fclose(fp);
+      return(0);
     }
   if (active_system == 0 /* DOS */
       && first_init)       /* & cmdfiles hasn't finished 1st try */

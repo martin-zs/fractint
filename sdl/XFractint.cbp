@@ -12,7 +12,7 @@
 Need font with arrow symbols
 Remove printer functions.
  ==> 8-bit mode color cycling locks up.
-bf/bn math works, but can't zoom.  Inside options broken.
+bf/bn math doesn't work, can't zoom.  Inside options broken.
 Halley and Newton set <T> command back to Ant.
 Resize with a text screen visible doesn't regenerate image.
 Fix file access.]]>

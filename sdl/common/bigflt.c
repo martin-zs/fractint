@@ -4,13 +4,11 @@
 Wesley Loewer's Big Numbers.        (C) 1994-95, Wesley B. Loewer
 */
 
+#include <malloc.h>
 #include <string.h>
 /* see Fractint.c for a description of the "include"  hierarchy */
 #include "port.h"
 #include "big.h"
-#ifndef BIG_ANSI_C
-#include <malloc.h>
-#endif
 
 #define LOG10_256 2.4082399653118
 #define LOG_256   5.5451774444795

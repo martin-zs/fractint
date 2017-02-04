@@ -891,7 +891,7 @@ static int compress(int rowlimit)
   int tempkey;
   char accum_stack[256];
   accum = accum_stack;
-  htab = (long *)malloc(32000);
+  htab = (long *)malloc(64000);
 
   outcolor1 = 0;               /* use these colors to show progress */
   outcolor2 = 1;               /* (this has nothing to do with GIF) */

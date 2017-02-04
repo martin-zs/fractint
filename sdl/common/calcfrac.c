@@ -1948,7 +1948,8 @@ int StandardFractal(void)       /* per pixel 1/2/b/g, called with row & col set 
 
   if (inside <= BOF60 && inside >= BOF61)
     {
-      magnitude = lmagnitud = 0;
+      magnitude = 0.0;
+      lmagnitud = 0;
       min_orbit = 100000.0;
     }
   overflow = 0;                /* reset integer math overflow flag */
@@ -2381,10 +2382,15 @@ int StandardFractal(void)       /* per pixel 1/2/b/g, called with row & col set 
           new.x = ((LDBL)lnew.x) / fudge;
           new.y = ((LDBL)lnew.y) / fudge;
         }
-      else if (bf_math==1)
+      else if (bf_math==BIGNUM)
         {
           new.x = (LDBL)bntofloat(bnnew.x);
           new.y = (LDBL)bntofloat(bnnew.y);
+        }
+      else if (bf_math==BIGFLT)
+        {
+          new.x = (LDBL)bftofloat(bfnew.x);
+          new.y = (LDBL)bftofloat(bfnew.y);
         }
       /* Add 7 to overcome negative values on the MANDEL    */
       if (outside == REAL)               /* "real" */
@@ -3179,6 +3185,8 @@ static void step_col_row()
 {
   switch (going_to)
     {
+    default: /* shouldn't get/be here */
+      break;
     case North:
       col = trail_col;
       row = trail_row - 1;
@@ -3878,6 +3886,8 @@ xsym:
       ysym_split(yaxis_col,yaxis_between);
       switch (worksym & 3)
         {
+        default: /* no symmetry, shouldn't get/be here */
+          break;
         case 1: /* just xaxis symmetry */
           if (basin)
             plot = symplot2basin;

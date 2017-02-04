@@ -48,7 +48,7 @@ static void cmp_line_cleanup(void);
 U16 evolve_handle = 0;
 char old_stdcalcmode;
 static char *savezoom;
-int saved_adapter_mode = 1;
+int saved_adapter_mode = -2;
 void (*outln_cleanup) (void);
 
 int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
@@ -101,6 +101,7 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
               xdots = sxdots;
               ydots = sydots;
               saved_adapter_mode = adapter;
+              calc_status = -1;
             }
           else /* clear the screen */
             {
@@ -256,10 +257,11 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
         }
 
       zoomoff = 1;                      /* zooming is enabled */
-      if (curfractalspecific->flags&NOZOOM != 0)
+      if ((curfractalspecific->flags&NOZOOM) != 0)
         zoomoff = 0;                   /* for these cases disable zooming */
       if (!evolving)
         calcfracinit();
+
 // NOTE (jonathan#1#): May need next
 #if 0
       schedulealarm(1);
