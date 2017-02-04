@@ -168,6 +168,8 @@ void ResizeScreen(int mode)
    */
   if (mode == 0)
     {
+      SDL_Surface *WinIcon;
+
       if (initmode <= 0)   /* make sure we have something reasonable */
           adapter = check_vidmode_key(0, check_vidmode_keyname("SF7"));  /* Default to SF7 1024x768 */
       else
@@ -184,7 +186,9 @@ void ResizeScreen(int mode)
           exit(1);
         }
 
-    SDL_SetWindowIcon( sdlWindow, SDL_LoadBMP("Fractint.bmp") );
+      WinIcon = SDL_LoadBMP("Fractint.bmp");
+      SDL_SetWindowIcon( sdlWindow, WinIcon );
+      SDL_FreeSurface( WinIcon );
     }
   else if (mode == 1)  /*  graphics window  */
     {
@@ -219,10 +223,8 @@ void ResizeScreen(int mode)
     }
   else  /*  mode == 2  text window  */
     {
-      if (initmode <= 0)   /* make sure we have something reasonable */
+      if (adapter < 0)   /* make sure we have something reasonable */
           adapter = check_vidmode_key(0, check_vidmode_keyname("SF7"));  /* Default to SF7 1024x768 */
-      else
-         adapter = initmode;
       memcpy((char *)&videoentry,(char *)&videotable[adapter],
              sizeof(videoentry));  /* the selected entry now in videoentry */
       if (!window_is_fullscreen)

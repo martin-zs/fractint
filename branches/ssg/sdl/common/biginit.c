@@ -14,14 +14,12 @@ is in the allocations of memory for the big numbers.
 #include "fractype.h"
 
 /* globals */
-#ifdef BIG_BASED
-_segment bignum_seg;
-#endif
+BYTE *bnseg = NULL;
 int bnstep, bnlength, intlength, rlength, padding, shiftfactor, decimals;
 int bflength, rbflength, bfdecimals;
 
 /* used internally by bignum.c routines */
-bn_t bnroot=BIG_NULL;
+static bn_t bnroot=BIG_NULL;
 static bn_t stack_ptr; /* memory allocator base after global variables */
 bn_t bntmp1, bntmp2, bntmp3, bntmp4, bntmp5, bntmp6; /* rlength  */
 bn_t bntmpcpy1, bntmpcpy2;                           /* bnlength */
@@ -86,7 +84,7 @@ void calc_lengths(void)
 /* intended only to be called from init_bf_dec() or init_bf_length().   */
 /* initialize bignumber global variables                                */
 
-#define MAX_BF_MEM 0x100000
+#define MAX_BF_MEM 0x10000
 
 long maxptr = 0;
 long startstack = 0;
@@ -102,7 +100,9 @@ static void init_bf_2(void)
   calc_lengths();
 
   /* allocate all the memory at once */
-  bnroot = (bf_t)malloc((long)MAX_BF_MEM); /* arbitrarily a big number */
+  if (bnseg == NULL)
+    bnseg = (BYTE *) malloc (MAX_BF_MEM);
+  bnroot = (big_t)bnseg;
   /* at present time one call would suffice, but this logic allows
      multiple kinds of alternate math eg long double */
   if ((i = find_alternate_math(fractype, BIGNUM)) > -1)
@@ -247,7 +247,7 @@ static void init_bf_2(void)
   startstack = ptr;
 
   /* max stack offset from bnroot */
-  maxstack = (long)(MAX_BF_MEM+1)-(bflength+2)*22;
+  maxstack = (long)(MAX_BF_MEM)-(bflength+2)*22;
 
   /* sanity check */
   /* leave room for NUMVARS variables allocated from stack */
@@ -263,7 +263,7 @@ static void init_bf_2(void)
       goodbye();
     }
 
-  /* room for 6 corners + 6 save corners + 10 params at top of extraseg */
+  /* room for 6 corners + 6 save corners + 10 params at top of bnseg */
   /* this area is safe - use for variables that are used outside fractal*/
   /* generation - e.g. zoom box variables */
   ptr    = maxstack;
@@ -394,7 +394,9 @@ void free_bf_vars()
   bf_save_len = bf_math = 0;
   bnstep=bnlength=intlength=rlength=padding=shiftfactor=decimals=0;
   bflength=rbflength=bfdecimals=0;
-  free(bnroot);
+  maxptr = startstack = maxstack = 0;
+  free(bnseg);
+  bnseg = NULL;
 }
 
 /************************************************************************/

@@ -9,6 +9,7 @@ FRACTALS.C, i.e. which are non-fractal-specific fractal engine subroutines.
 #include <varargs.h>
 #endif
 
+#include <string.h>
 #include <sys/types.h>
 #include <time.h>
 /* see Fractint.c for a description of the "include"  hierarchy */
@@ -42,7 +43,7 @@ int    taborhelp;    /* kludge for sound and tab or help key press */
 
 void set_grid_pointers()
 {
-  extraseg = (BYTE*)malloc(65000);
+  extraseg = (BYTE*)malloc(0x10000);
   dx0 = (double *) extraseg;
   dy1 = (dx1 = (dy0 = dx0 + xdots) + ydots) + ydots;
   lx0 = (long *) dx0;
@@ -104,7 +105,6 @@ void fractal_floattobf(void)
   floattobf(bfymax,yymax);
   floattobf(bfx3rd,xx3rd);
   floattobf(bfy3rd,yy3rd);
-
   for (i = 0; i < MAXPARAMS; i++)
     if (typehasparm(fractype,i,NULL))
       floattobf(bfparms[i],param[i]);
@@ -116,7 +116,7 @@ void calcfracinit(void) /* initialize a *pile* of stuff for fractal calculation 
   int tries = 0;
   int i, gotprec;
   long xytemp;
-  double ftemp;
+  double ftemp = 0.0;
 
   coloriter = oldcoloriter = 0L;
   for (i=0;i<10;i++)
@@ -222,6 +222,8 @@ void calcfracinit(void) /* initialize a *pile* of stuff for fractal calculation 
       else
         usr_stdcalcmode = '1';
     }
+   if (usr_stdcalcmode == 'o')
+      floatflag = 1;
 
 init_restart:
 
@@ -332,7 +334,7 @@ init_restart:
     }
   /* We want this code if we're using the assembler calcmand */
   /* not needed any more??? JCO */
-#if 1
+#if 0
   if (fractype == MANDEL || fractype == JULIA)   /* adust shift bits if.. */
     {
       if (potflag == 0                            /* not using potential */
@@ -388,7 +390,7 @@ init_restart:
   /* skip if bf_math to avoid extraseg conflict with dx0 arrays */
   /* skip if ifs, ifs3d, or lsystem to avoid crash when mathtolerance */
   /* is set.  These types don't auto switch between float and integer math */
-  if (fractype != PLASMA && bf_math == 0
+  if (fractype != PLASMA /* && bf_math == 0 */
       && fractype != IFS && fractype != IFS3D && fractype != LSYSTEM)
     {
       if (integerfractal && !invert && use_grid)
@@ -543,6 +545,16 @@ expand_retry:
     }
   if (bf_math == 0)
     free_bf_vars();
+#if 0
+  else
+   {
+      /* zap all of bnseg except high area to flush out bugs */
+      /* in production version this code can be deleted */
+      char *extra;
+      extra = (char *) bnseg;
+      memset(extra,0,(unsigned int)(0x10000l-(bflength+2)*22U));
+   }
+#endif
 }
 
 

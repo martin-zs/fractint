@@ -50,7 +50,7 @@ void showcornersdbl(char *s)
 void showcorners(char *s)
 {
   int dec=20;
-  char msg[100],msg1[100],msg3[100];
+  char msg[100],msg1[100],msg3[600];
   bntostr(msg,dec,bnxmin);
   sprintf(msg1,"bnxmin=%s\nxxmin= %.20f\n\n",msg,xxmin);
   strcpy(msg3,s);
@@ -487,7 +487,6 @@ int MandelbnSetup()
   saved = save_stack();
   bntemp1 = alloc_stack(bnlength);
   bntemp2 = alloc_stack(bnlength);
-
   bftobn(bnxmin,bfxmin);
   bftobn(bnxmax,bfxmax);
   bftobn(bnymin,bfymin);

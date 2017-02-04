@@ -52,8 +52,10 @@
         typedef signed char    S8;
         typedef unsigned short U16;
         typedef short          S16;
-        typedef unsigned long  U32;
-        typedef long           S32;
+        typedef unsigned int   U32;
+        typedef int            S32;
+        typedef unsigned long long U64;
+        typedef long long      S64;
         typedef unsigned char  BYTE;
         typedef char           CHAR;
 
@@ -72,17 +74,13 @@ typedef int sigfunc(int);
 #ifndef BYTE_ORDER
 /* change for little endians that don't have this defined elsewhere (endian.h) */
 #define BYTE_ORDER LITTLE_ENDIAN
-// FIXME (jonathan#1#): How to make next work?
-#if 0
-#define BYTE_ORDER BIG_ENDIAN /* the usual case */
-#endif
 #endif /* ifndef BYTE_ORDER */
 
 #ifndef USE_BIGNUM_C_CODE
-#define USE_BIGNUM_C_CODE
+#define USE_BIGNUM_C_CODE 1
 #endif
 #ifndef BIG_ANSI_C
-#define BIG_ANSI_C
+#define BIG_ANSI_C 1
 #endif
 
 #ifndef XFRACT

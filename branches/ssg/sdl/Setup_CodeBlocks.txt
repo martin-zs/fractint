@@ -66,7 +66,7 @@ The following packages (and their dependencies) are needed:
   libsdl2-ttf2.0-0
   libsdl2-ttf-dev
 
-Kubuntu 14.04 has these packages.
+Ubuntu 14.04 has these packages, 16.04 does not.
 
 Linux Project options:
 
