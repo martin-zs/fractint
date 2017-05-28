@@ -1266,16 +1266,16 @@ int getafilename(char *hdg,char *template,char *flname)
   char ext[FILE_MAX_EXT];
   static int dosort = 1;
   int options = 8;
+  long sizeofchoices;
 
   rds = (stereomapname == flname)?1:0;
 
   /* create array for "choices" */
-// FIXME (jonathan#1#): This should be based on sizeof(something).
-#ifdef XFRACT
-  choices = (struct CHOICE **)malloc(32000);
-#else
-  choices = (struct CHOICE **)malloc(16000);
-#endif
+
+  sizeofchoices = (sizeof(struct CHOICE) + sizeof(attributes) + sizeof(instr)) *
+                  (MAXNUMFILES + 100);
+  choices = (struct CHOICE **)malloc(sizeofchoices);
+
   choices[0] = (struct CHOICE *)(choices + MAXNUMFILES+1);
   attributes = (int *)(choices[0] + MAXNUMFILES+1);
   instr = (char *)(attributes + MAXNUMFILES +1);
