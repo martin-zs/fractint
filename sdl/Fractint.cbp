@@ -12,7 +12,6 @@
 Need font with arrow symbols
 Remove printer functions.
  ==> 8-bit mode color cycling locks up.
-bf/bn math works, but can't zoom.  Inside options broken.
 Need to fix text colors.
 Need to work on key combinations: control-anykey.
 Resize with a text screen visible doesn't regenerate image.
@@ -87,6 +86,9 @@ Fix stackscreen/unstackscreen - see area under <TAB>.]]>
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="common/decoder.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="common/diskvid.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="common/editpal.c">
@@ -256,9 +258,6 @@ Fix stackscreen/unstackscreen - see area under <TAB>.]]>
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="sdl/calmanfp.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="sdl/diskvidu.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="sdl/faccess.c">

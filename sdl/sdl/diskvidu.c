@@ -143,6 +143,11 @@ void enddisk()
 {
   diskflag = rowsize = disk16bit = 0;
   fp = NULL;
+  if (dataPtr != NULL)
+    {
+      free(dataPtr);
+      dataPtr = NULL;
+    }
 }
 
 BYTE readdisk(int col, int row)

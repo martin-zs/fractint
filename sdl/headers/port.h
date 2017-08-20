@@ -13,8 +13,8 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 #include <float.h>
+#include <math.h>
 
 #if (defined(__STDC__) || defined(__cplusplus)) && !defined(STDC)
 #  define STDC
@@ -172,9 +172,11 @@ extern struct DIR_SEARCH DTA;   /* Disk Transfer Area */
 /*   scanf("%Lf", &longdoublevar);                            */
 /* to read in a long double, then uncomment this next line    */
 /* #define DO_NOT_USE_LONG_DOUBLE */
+/*
 #ifndef XFRACT
 #define DO_NOT_USE_LONG_DOUBLE
 #endif
+*/
 
 #ifndef DO_NOT_USE_LONG_DOUBLE
 #ifdef LDBL_DIG
@@ -194,7 +196,7 @@ extern struct DIR_SEARCH DTA;   /* Disk Transfer Area */
 #endif
 
 /* long double isn't supported */
-/* impliment LDBL as double */
+/* implement LDBL as double */
         typedef double          LDBL;
 
 #if !defined(LDBL_DIG)

@@ -39,39 +39,39 @@ static struct cache {   /* structure of each cache entry */
    unsigned int hashlink;          /* ptr to next cache entry with same hash */
    unsigned int dirty : 1;         /* changed since read? */
    unsigned int lru : 1;           /* recently used? */
-   } far *cache_end, far *cache_lru, far *cur_cache;
+   } *cache_end, *cache_lru, *cur_cache;
 
-struct cache far *cache_start = NULL;
+struct cache *cache_start = NULL;
 long high_offset;           /* highwater mark of writes */
 long seek_offset;           /* what we'll get next if we don't seek */
 long cur_offset;            /* offset of last block referenced */
 int cur_row;
 long cur_row_base;
-unsigned int far *hash_ptr = NULL;
+unsigned int *hash_ptr = NULL;
 int pixelshift;
 int headerlength;
 unsigned int rowsize = 0;   /* doubles as a disk video not ok flag */
 unsigned int colsize;       /* sydots, *2 when pot16bit */
 
-BYTE far *membuf;
+BYTE *membuf;
 U16 dv_handle = 0;
 long memoffset = 0;
 long oldmemoffset = 0;
-BYTE far *membufptr;
+BYTE *membufptr;
 
-static void _fastcall near findload_cache(long);
-static struct cache far * _fastcall near find_cache(long);
-static void near write_cache_lru(void);
-static void _fastcall near mem_putc(BYTE);
-static BYTE near mem_getc(void);
-static void _fastcall near mem_seek(long);
+static void findload_cache(long);
+static struct cache * find_cache(long);
+static void write_cache_lru(void);
+static void mem_putc(BYTE);
+static BYTE mem_getc(void);
+static void mem_seek(long);
 
 int startdisk()
 {
    if (!diskisactive)
       return(0);
    headerlength = disktarga = 0;
-   return (common_startdisk(sxdots,sydots,colors));
+   return (common_startdisk(sxdots<<1,sydots<<1,colors));
    }
 
 int pot_startdisk()
@@ -105,56 +105,45 @@ int targa_startdisk(FILE *targafp,int overhead)
    /*
    i = common_startdisk(sxdots*3,sydots,colors);
    */
-   i = common_startdisk(xdots*3,ydots,colors);
+   i = common_startdisk(sxdots*3,sydots,colors);
    high_offset = 100000000L; /* targa not necessarily init'd to zeros */
    return (i);
 }
 
-int _fastcall common_startdisk(long newrowsize, long newcolsize, int colors)
+int common_startdisk(long newrowsize, long newcolsize, int colors)
 {
    int i,freemem;
    long memorysize, offset;
-   unsigned int far *fwd_link = NULL;
-   struct cache far *ptr1 = NULL;
+   unsigned int *fwd_link = NULL;
+   struct cache *ptr1 = NULL;
    long longtmp;
    unsigned int cache_size;
-   BYTE far *tempfar = NULL;
+   BYTE *tempfar = NULL;
    if (diskflag)
       enddisk();
    if (dotmode == 11) { /* otherwise, real screen also in use, don't hit it */
       char buf[20];
-      static FCODE fmsg1[] = {"'Disk-Video' mode"};
-      static FCODE fmsg2[] = {"Screen resolution: "};
-      static FCODE fsname[] = {"Save name: "};
-      static FCODE stat[] = {"Status:"};
       helptitle();
       setattr(1,0,C_DVID_BKGRD,24*80);  /* init rest to background */
       for (i = 0; i < BOXDEPTH; ++i)
          setattr(BOXROW+i,BOXCOL,C_DVID_LO,BOXWIDTH);  /* init box */
-      putstring(BOXROW+2,BOXCOL+4,C_DVID_HI,fmsg1);
-      putstring(BOXROW+4,BOXCOL+4,C_DVID_LO,fmsg2);
+      putstring(BOXROW+2,BOXCOL+4,C_DVID_HI,"'Disk-Video' mode");
+      putstring(BOXROW+4,BOXCOL+4,C_DVID_LO,"Screen resolution: ");
       sprintf(buf,"%d x %d",sxdots,sydots);
       putstring(-1,-1,C_DVID_LO,buf);
       if (disktarga) {
-         static FCODE tarmsg[] = {"  24 bit Targa"};
-         putstring(-1,-1,C_DVID_LO,tarmsg);
+         putstring(-1,-1,C_DVID_LO,"  24 bit Targa");
          }
       else {
-         static FCODE clrmsg[] = {"  Colors: "};
-         putstring(-1,-1,C_DVID_LO,clrmsg);
+         putstring(-1,-1,C_DVID_LO,"  Colors: ");
          sprintf(buf,"%d",colors);
          putstring(-1,-1,C_DVID_LO,buf);
          }
-      putstring(BOXROW+6,BOXCOL+4,C_DVID_LO,fsname);
+      putstring(BOXROW+6,BOXCOL+4,C_DVID_LO,"Save name: ");
       sprintf(buf,"%s",savename);
       putstring(-1,-1,C_DVID_LO,buf);
-      putstring(BOXROW+10,BOXCOL+4,C_DVID_LO,stat);
-      {
-      static FCODE o_msg[] = {"clearing the 'screen'"};
-      char far msg[sizeof(o_msg)];
-      far_strcpy(msg,o_msg);
-      dvid_status(0,msg);
-      }
+      putstring(BOXROW+10,BOXCOL+4,C_DVID_LO,"Status: ");
+      dvid_status(0,"clearing the 'screen'");
       }
    cur_offset = seek_offset = high_offset = -1;
    cur_row    = -1;
@@ -181,22 +170,24 @@ int _fastcall common_startdisk(long newrowsize, long newcolsize, int colors)
    for (cache_size = CACHEMAX; cache_size >= CACHEMIN; --cache_size) {
       longtmp = ((int)cache_size < freemem) ? (long)cache_size << 11
                                        : (long)(cache_size+freemem) << 10;
-      if ((tempfar = farmemalloc(longtmp)) != NULL) {
-         farmemfree(tempfar);
+      if ((tempfar = malloc(longtmp)) != NULL) {
+         free(tempfar);
          break;
          }
       }
    if(debugflag==4200) cache_size = CACHEMIN;
    longtmp = (long)cache_size << 10;
-   cache_start = (struct cache far *)farmemalloc(longtmp);
+   if (cache_start == NULL)
+      cache_start = (struct cache *)malloc(longtmp);
    if (cache_size == 64)
       --longtmp; /* safety for next line */
    cache_end = (cache_lru = cache_start) + longtmp / sizeof(*cache_start);
-   hash_ptr  = (unsigned int far *)farmemalloc((long)(HASHSIZE<<1));
-   membuf = (BYTE far *)farmemalloc((long)BLOCKLEN);
+   if (hash_ptr == NULL)
+      hash_ptr  = (unsigned int *)malloc((long)(HASHSIZE<<1));
+   if (membuf == NULL)
+      membuf = (BYTE *)malloc((long)BLOCKLEN);
    if (cache_start == NULL || hash_ptr == NULL || membuf == NULL) {
-      static FCODE msg[]={"*** insufficient free memory for cache buffers ***"};
-      stopmsg(0,msg);
+      stopmsg(0,"*** insufficient free memory for cache buffers ***");
       return(-1);
       }
    if (dotmode == 11) {
@@ -215,7 +206,7 @@ int _fastcall common_startdisk(long newrowsize, long newcolsize, int colors)
          + (((unsigned short)(longtmp+=BLOCKLEN) >> BLOCKSHIFT) & (HASHSIZE-1));
       ptr1->offset = longtmp;
       ptr1->hashlink = *fwd_link;
-      *fwd_link = (char far *)ptr1 - (char far *)cache_start;
+      *fwd_link = (char *)ptr1 - (char *)cache_start;
       }
 
    memorysize = (long)(newcolsize) * newrowsize + headerlength;
@@ -229,7 +220,7 @@ int _fastcall common_startdisk(long newrowsize, long newcolsize, int colors)
 
    if (disktarga) {
    /* Retrieve the header information first */
-        BYTE far *tmpptr;
+        BYTE *tmpptr;
       tmpptr = membuf;
       fseek(fp, 0L,SEEK_SET);
       for (i = 0; i < headerlength; i++)
@@ -238,33 +229,24 @@ int _fastcall common_startdisk(long newrowsize, long newcolsize, int colors)
       dv_handle = MemoryAlloc((U16)BLOCKLEN, memorysize, DISK);
    }
    else
-      dv_handle = MemoryAlloc((U16)BLOCKLEN, memorysize, EXPANDED);
+      dv_handle = MemoryAlloc((U16)BLOCKLEN, memorysize, FARMEM);
    if (dv_handle == 0) {
-      static FCODE msg[]={"*** insufficient free memory/disk space ***"};
-      stopmsg(0,msg);
-      goodmode = 0;
+      stopmsg(0,"*** insufficient free memory/disk space ***");
       rowsize = 0;
       return(-1);
    }
 
    if (dotmode == 11)
      switch (MemoryType(dv_handle)) {
-         static FCODE fmsg1[] = {"Using no Memory, it's broke"};
-         static FCODE fmsg2[] = {"Using your Expanded Memory"};
-         static FCODE fmsg3[] = {"Using your Extended Memory"};
-         static FCODE fmsg4[] = {"Using your Disk Drive"};
        case NOWHERE:
        default:
-         putstring(BOXROW+2,BOXCOL+23,C_DVID_LO,fmsg1);
+         putstring(BOXROW+2,BOXCOL+23,C_DVID_LO,"Using no Memory, it's broke");
          break;
-       case EXPANDED:
-         putstring(BOXROW+2,BOXCOL+23,C_DVID_LO,fmsg2);
-         break;
-       case EXTENDED:
-         putstring(BOXROW+2,BOXCOL+23,C_DVID_LO,fmsg3);
+       case FARMEM:
+         putstring(BOXROW+2,BOXCOL+23,C_DVID_LO,"Using Your Computer Memory");
          break;
        case DISK:
-         putstring(BOXROW+2,BOXCOL+23,C_DVID_LO,fmsg4);
+         putstring(BOXROW+2,BOXCOL+23,C_DVID_LO,"Using your Disk Drive");
          break;
      }
 
@@ -272,13 +254,11 @@ int _fastcall common_startdisk(long newrowsize, long newcolsize, int colors)
 
    if (!disktarga)
       for (offset = 0; offset < memorysize; offset++) {
-           static FCODE cancel[] = {"Disk Video initialization interrupted:\n"};
          SetMemory(0, (U16)BLOCKLEN, 1L, offset, dv_handle);
          if (keypressed())           /* user interrupt */
-            if (stopmsg(2, cancel))  /* esc to cancel, else continue */
+            if (stopmsg(2, "Disk Video initialization interrupted:\n")) /* esc to cancel, else continue */
             {
                enddisk();
-               goodmode = 0;
                return -2;            /* -1 == failed, -2 == cancel   */
             }
       }
@@ -306,19 +286,20 @@ void enddisk()
       MemoryRelease(dv_handle);
       dv_handle = 0;
    }
-   if (hash_ptr != NULL)
-      farmemfree((void far *)hash_ptr);
-   if (cache_start != NULL)
-      farmemfree((void far *)cache_start);
-   if (membuf != NULL)
-      farmemfree((void far *)membuf);
+   if (hash_ptr)
+      free(hash_ptr);
+   if (cache_start)
+      free(cache_start);
+   if (membuf)
+      free(membuf);
    diskflag = rowsize = disk16bit = 0;
    hash_ptr    = NULL;
    cache_start = NULL;
+   membuf      = NULL;
    fp          = NULL;
 }
 
-int readdisk(unsigned int col, unsigned int row)
+BYTE readdisk(int col, int row)
 {
    int col_subscr;
    long offset;
@@ -326,7 +307,7 @@ int readdisk(unsigned int col, unsigned int row)
    if (--timetodisplay < 0) {  /* time to display status? */
       if (dotmode == 11) {
          sprintf(buf," reading line %4d",
-                (row >= (unsigned int)sydots) ? row-sydots : row); /* adjust when potfile */
+                (row >= sydots) ? row-sydots : row); /* adjust when potfile */
          dvid_status(0,buf);
          }
       if(bf_math)
@@ -334,7 +315,7 @@ int readdisk(unsigned int col, unsigned int row)
       else
          timetodisplay = 1000;  /* time-to-display-status counter */
       }
-   if (row != (unsigned int)cur_row) { /* try to avoid ghastly code generated for multiply */
+   if (row != cur_row) { /* try to avoid ghastly code generated for multiply */
       if (row >= colsize) /* while we're at it avoid this test if not needed  */
          return(0);
       cur_row_base = (long)(cur_row = row) * rowsize;
@@ -348,7 +329,7 @@ int readdisk(unsigned int col, unsigned int row)
    return (cur_cache->pixel[col_subscr]);
 }
 
-int FromMemDisk(long offset, int size, void far *dest)
+int FromMemDisk(long offset, int size, void *dest)
 {
    int col_subscr =  (int)(offset & (BLOCKLEN - 1));
 
@@ -358,7 +339,7 @@ int FromMemDisk(long offset, int size, void far *dest)
    if (cur_offset != (offset & (0L-BLOCKLEN))) /* same entry as last ref? */
       findload_cache (offset & (0L-BLOCKLEN));
 
-   far_memcpy(dest, (void far *) &cur_cache->pixel[col_subscr], size);
+   memcpy(dest, (void *) &cur_cache->pixel[col_subscr], size);
    cur_cache->dirty = 0;
    return 1;
 }
@@ -373,7 +354,7 @@ void targa_readdisk(unsigned int col, unsigned int row,
    *red   = (BYTE)readdisk(col+1,row);
 }
 
-void writedisk(unsigned int col, unsigned int row, unsigned int color)
+void writedisk(int col, int row, U32 color)
 {
    int col_subscr;
    long offset;
@@ -381,12 +362,12 @@ void writedisk(unsigned int col, unsigned int row, unsigned int color)
    if (--timetodisplay < 0) {  /* time to display status? */
       if (dotmode == 11) {
          sprintf(buf," writing line %4d",
-                (row >= (unsigned int)sydots) ? row-sydots : row); /* adjust when potfile */
+                (row >= sydots) ? row-sydots : row); /* adjust when potfile */
          dvid_status(0,buf);
          }
       timetodisplay = 1000;
       }
-   if (row != (unsigned int)cur_row)    { /* try to avoid ghastly code generated for multiply */
+   if (row != cur_row)    { /* try to avoid ghastly code generated for multiply */
       if (row >= colsize) /* while we're at it avoid this test if not needed  */
          return;
       cur_row_base = (long)(cur_row = row) * rowsize;
@@ -403,7 +384,7 @@ void writedisk(unsigned int col, unsigned int row, unsigned int color)
       }
 }
 
-int ToMemDisk(long offset, int size, void far *src)
+int ToMemDisk(long offset, int size, void *src)
 {
    int col_subscr =  (int)(offset & (BLOCKLEN - 1));
 
@@ -413,7 +394,7 @@ int ToMemDisk(long offset, int size, void far *src)
    if (cur_offset != (offset & (0L-BLOCKLEN))) /* same entry as last ref? */
       findload_cache (offset & (0L-BLOCKLEN));
 
-   far_memcpy((void far *) &cur_cache->pixel[col_subscr], src, size);
+   memcpy((void *) &cur_cache->pixel[col_subscr], src, size);
    cur_cache->dirty = 1;
    return 1;
 }
@@ -426,19 +407,19 @@ void targa_writedisk(unsigned int col, unsigned int row,
    writedisk(col+1, row,red);
 }
 
-static void _fastcall near findload_cache(long offset) /* used by read/write */
+static void findload_cache(long offset) /* used by read/write */
 {
-#ifndef XFRACT
+#if 1
    unsigned int tbloffset;
    int i,j;
-   unsigned int far *fwd_link;
-   BYTE far *pixelptr;
+   unsigned int *fwd_link;
+   BYTE *pixelptr;
    BYTE tmpchar;
    cur_offset = offset; /* note this for next reference */
    /* check if required entry is in cache - lookup by hash */
    tbloffset = hash_ptr[ ((unsigned short)offset >> BLOCKSHIFT) & (HASHSIZE-1) ];
    while (tbloffset != 0xffff) { /* follow the hash chain */
-      cur_cache = (struct cache far *)((char far *)cache_start + tbloffset);
+      cur_cache = (struct cache *)((char *)cache_start + tbloffset);
       if (cur_cache->offset == offset) { /* great, it is in the cache */
          cur_cache->lru = 1;
          return;
@@ -458,9 +439,9 @@ static void _fastcall near findload_cache(long offset) /* used by read/write */
    /* remove block at cache_lru from its hash chain */
    fwd_link = hash_ptr
             + (((unsigned short)cache_lru->offset >> BLOCKSHIFT) & (HASHSIZE-1));
-   tbloffset = (char far *)cache_lru - (char far *)cache_start;
+   tbloffset = (char *)cache_lru - (char *)cache_start;
    while (*fwd_link != tbloffset)
-      fwd_link = &((struct cache far *)((char far *)cache_start+*fwd_link))->hashlink;
+      fwd_link = &((struct cache *)((char *)cache_start+*fwd_link))->hashlink;
    *fwd_link = cache_lru->hashlink;
    /* load block */
    cache_lru->dirty  = 0;
@@ -507,20 +488,20 @@ static void _fastcall near findload_cache(long offset) /* used by read/write */
    /* add new block to its hash chain */
    fwd_link = hash_ptr + (((unsigned short)offset >> BLOCKSHIFT) & (HASHSIZE-1));
    cache_lru->hashlink = *fwd_link;
-   *fwd_link = (char far *)cache_lru - (char far *)cache_start;
+   *fwd_link = (char *)cache_lru - (char *)cache_start;
    cur_cache = cache_lru;
 #endif
    }
 
-static struct cache far * _fastcall near find_cache(long offset)
+static struct cache * find_cache(long offset)
 /* lookup for write_cache_lru */
 {
-#ifndef XFRACT
+#if 1
    unsigned int tbloffset;
-   struct cache far *ptr1;
+   struct cache *ptr1;
    tbloffset = hash_ptr[ ((unsigned short)offset >> BLOCKSHIFT) & (HASHSIZE-1) ];
    while (tbloffset != 0xffff) {
-      ptr1 = (struct cache far *)((char far *)cache_start + tbloffset);
+      ptr1 = (struct cache *)((char *)cache_start + tbloffset);
       if (ptr1->offset == offset)
          return (ptr1);
       tbloffset = ptr1->hashlink;
@@ -529,13 +510,13 @@ static struct cache far * _fastcall near find_cache(long offset)
 #endif
 }
 
-static void near write_cache_lru()
+static void write_cache_lru()
 {
    int i,j;
-   BYTE far *pixelptr;
+   BYTE *pixelptr;
    long offset;
    BYTE tmpchar = 0;
-   struct cache far *ptr1, far *ptr2;
+   struct cache *ptr1, *ptr2;
 #define WRITEGAP 4 /* 1 for no gaps */
    /* scan back to also write any preceding dirty blocks, skipping small gaps */
    ptr1 = cache_lru;
@@ -612,7 +593,7 @@ write_stuff:
    a mem_putc nor v.v. without a seek between them.
    */
 
-static void _fastcall near mem_seek(long offset)        /* mem seek */
+static void mem_seek(long offset)        /* mem seek */
 {
    offset += headerlength;
    memoffset = offset >> BLOCKSHIFT;
@@ -624,7 +605,7 @@ static void _fastcall near mem_seek(long offset)        /* mem seek */
    membufptr = membuf + (offset & (BLOCKLEN - 1));
    }
 
-static BYTE near mem_getc()                     /* memory get_char */
+static BYTE mem_getc()                     /* memory get_char */
 {
    if (membufptr - membuf >= BLOCKLEN) {
       MoveToMemory(membuf, (U16)BLOCKLEN, 1L, memoffset, dv_handle);
@@ -636,7 +617,7 @@ static BYTE near mem_getc()                     /* memory get_char */
    return (*(membufptr++));
    }
 
-static void _fastcall near mem_putc(BYTE c)     /* memory get_char */
+static void mem_putc(BYTE c)     /* memory get_char */
 {
    if (membufptr - membuf >= BLOCKLEN) {
       MoveToMemory(membuf, (U16)BLOCKLEN, 1L, memoffset, dv_handle);
@@ -649,12 +630,12 @@ static void _fastcall near mem_putc(BYTE c)     /* memory get_char */
    }
 
 
-void dvid_status(int line,char far *msg)
+void dvid_status(int line,char *msg)
 {
    char buf[41];
    int attrib;
    memset(buf,' ',40);
-   far_memcpy(buf,msg,far_strlen(msg));
+   memcpy(buf,msg,strlen(msg));
    buf[40] = 0;
    attrib = C_DVID_HI;
    if (line >= 100) {

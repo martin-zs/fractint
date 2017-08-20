@@ -17,16 +17,10 @@
 /* Memory allocation routines. */
 
 #if 1
-/* For extra seg memory: */
-#define EXTRA_RESERVE   4096L  /* amount of extra mem we will leave avail. */
 /* For far memory: */
 #define FAR_RESERVE   8192L    /* amount of far mem we will leave avail. */
-/* For expanded memory: */
-#define EXPWRITELEN 16384L /* max # bytes transferred to/from expanded mem at once */
-/* For extended memory: */
-#define XMMWRITELEN 8192L /* max # bytes transferred to/from extended mem at once */
 /* For disk memory: */
-#define DISKWRITELEN 2048L /* max # bytes transferred to/from disk mem at once */
+#define DISKWRITELEN 8192L /* max # bytes transferred to/from disk mem at once */
 
 BYTE *charbuf = NULL;
 int numEXThandles;
@@ -70,7 +64,6 @@ union mem
 union mem handletable[MAXHANDLES];
 
 /* Routines in this module */
-static int CheckDiskSpace(long howmuch);
 static int check_for_mem(int stored_at, long howmuch);
 static U16 next_handle(void);
 static int CheckBounds (long start, long length, U16 handle);
@@ -91,14 +84,6 @@ int MoveFromMemory(BYTE *buffer,U16 size,long count,long offset,U16 handle);
 int SetMemory(int value,U16 size,long count,long offset,U16 handle);
 
 /* Memory handling support routines */
-
-static int CheckDiskSpace(long howmuch)
-{
-  int EnoughSpace = FALSE;
-  /* FIXME (jonathan#1#): This will need to be fixed 02/13/2010 */
-  EnoughSpace = TRUE;
-  return(EnoughSpace);
-}
 
 static void WhichDiskError(int I_O)
 {
@@ -172,7 +157,7 @@ static int check_for_mem(int stored_at, long howmuch)
   int use_this_type;
 
   use_this_type = NOWHERE;
-  maxmem = (long)USHRT_MAX; /* limit EXTRA and FARMEM to 64K */
+  maxmem = (long)INT_MAX; /* limit FARMEM to 2147483547 */
 
   if (debugflag == 420)
     stored_at = DISK;
@@ -180,7 +165,7 @@ static int check_for_mem(int stored_at, long howmuch)
   switch (stored_at)
     {
     case FARMEM: /* check_for_mem */
-      if (maxmem > howmuch)
+      if (maxmem > (howmuch + FAR_RESERVE))
         {
           temp = (BYTE *)malloc(howmuch + FAR_RESERVE);
           if (temp != NULL)   /* minimum free space + requested amount */
@@ -338,10 +323,6 @@ U16 MemoryAlloc(U16 size, long count, int stored_at)
   toallocate = count * size;
   if (toallocate <= 0)     /* we failed, can't allocate > 2,147,483,647 */
     return((U16)success); /* or it wraps around to negative */
-
-  /* this is ugly, but keeps us from having to change every call to */
-  /* MemoryAlloc().  NOTE: FIX THIS JCO 02/13/2010 */
-  stored_at = FARMEM;
 
   /* check structure for requested memory type (add em up) to see if
      sufficient amount is available to grant request */
