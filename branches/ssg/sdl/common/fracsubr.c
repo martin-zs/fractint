@@ -43,7 +43,8 @@ int    taborhelp;    /* kludge for sound and tab or help key press */
 
 void set_grid_pointers()
 {
-  extraseg = (BYTE*)malloc(0x10000);
+  if (extraseg == NULL)
+    extraseg = (BYTE*)malloc(0x10000);
   dx0 = (double *) extraseg;
   dy1 = (dx1 = (dy0 = dx0 + xdots) + ydots) + ydots;
   lx0 = (long *) dx0;

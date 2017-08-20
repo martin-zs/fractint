@@ -88,6 +88,7 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
             diskvideo = 2;
 
           memcpy(olddacbox,dacbox,256*3); /* save the DAC */
+          diskisactive = 1;              /* flag for disk-video routines */
 
           if (overlay3d && !initbatch)
             {
@@ -122,6 +123,9 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
                   memcpy((char *)dacbox,mapdacbox,768);
                   spindac(0,1);
                 }
+            else if ((dotmode == 11 && colors == 256) || !colors) {
+               ValidateLuts("default"); /* read the default palette file */
+               }
               colorstate = 0;
             }
           if (viewwindow) /* viewwindow is used by evolver */
