@@ -134,7 +134,7 @@ restart:
   if (dotmode == 11)
     {
       /* disk-video */
-      char buf[61];
+      char buf[41];
       extract_filename(tmpmsg, openfile);
 
       sprintf(buf, "Saving %s", tmpmsg);

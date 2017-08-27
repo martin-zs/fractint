@@ -49,7 +49,6 @@ void set_grid_pointers()
   dy1 = (dx1 = (dy0 = dx0 + xdots) + ydots) + ydots;
   lx0 = (long *) dx0;
   ly1 = (lx1 = (ly0 = lx0 + xdots) + ydots) + ydots;
-  use_grid = 1;
   set_pixel_calc_functions();
 }
 

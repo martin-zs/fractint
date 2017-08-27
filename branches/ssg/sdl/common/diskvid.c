@@ -34,29 +34,29 @@ int disktarga;
 #define HASHSIZE 1024   /* power of 2, near CACHEMAX/(BLOCKLEN+8) */
 
 static struct cache {   /* structure of each cache entry */
-   long offset;                    /* pixel offset in image */
+   unsigned long offset;                    /* pixel offset in image */
    BYTE pixel[BLOCKLEN];  /* one pixel per byte (this *is* faster) */
    unsigned int hashlink;          /* ptr to next cache entry with same hash */
    unsigned int dirty : 1;         /* changed since read? */
    unsigned int lru : 1;           /* recently used? */
    } *cache_end, *cache_lru, *cur_cache;
 
-struct cache *cache_start = NULL;
-long high_offset;           /* highwater mark of writes */
-long seek_offset;           /* what we'll get next if we don't seek */
-long cur_offset;            /* offset of last block referenced */
+static struct cache *cache_start = NULL;
+unsigned long high_offset;           /* highwater mark of writes */
+unsigned long seek_offset;           /* what we'll get next if we don't seek */
+unsigned long cur_offset;            /* offset of last block referenced */
 int cur_row;
-long cur_row_base;
-unsigned int *hash_ptr = NULL;
+unsigned long cur_row_base;
+static unsigned int *hash_ptr = NULL;
 int pixelshift;
 int headerlength;
 unsigned int rowsize = 0;   /* doubles as a disk video not ok flag */
 unsigned int colsize;       /* sydots, *2 when pot16bit */
 
-BYTE *membuf;
+static BYTE *membuf;
 U16 dv_handle = 0;
-long memoffset = 0;
-long oldmemoffset = 0;
+unsigned long memoffset = 0;
+unsigned long oldmemoffset = 0;
 BYTE *membufptr;
 
 static void findload_cache(long);
@@ -71,7 +71,7 @@ int startdisk()
    if (!diskisactive)
       return(0);
    headerlength = disktarga = 0;
-   return (common_startdisk(sxdots<<1,sydots<<1,colors));
+   return (common_startdisk(sxdots,sydots,colors));
    }
 
 int pot_startdisk()
@@ -113,7 +113,7 @@ int targa_startdisk(FILE *targafp,int overhead)
 int common_startdisk(long newrowsize, long newcolsize, int colors)
 {
    int i,freemem;
-   long memorysize, offset;
+   unsigned long memorysize, offset;
    unsigned int *fwd_link = NULL;
    struct cache *ptr1 = NULL;
    long longtmp;
@@ -127,7 +127,7 @@ int common_startdisk(long newrowsize, long newcolsize, int colors)
       setattr(1,0,C_DVID_BKGRD,24*80);  /* init rest to background */
       for (i = 0; i < BOXDEPTH; ++i)
          setattr(BOXROW+i,BOXCOL,C_DVID_LO,BOXWIDTH);  /* init box */
-      putstring(BOXROW+2,BOXCOL+4,C_DVID_HI,"'Disk-Video' mode");
+      putstring(BOXROW+2,BOXCOL+4,C_DVID_HI,"'Disk-Video' mode: ");
       putstring(BOXROW+4,BOXCOL+4,C_DVID_LO,"Screen resolution: ");
       sprintf(buf,"%d x %d",sxdots,sydots);
       putstring(-1,-1,C_DVID_LO,buf);
@@ -146,6 +146,7 @@ int common_startdisk(long newrowsize, long newcolsize, int colors)
       dvid_status(0,"clearing the 'screen'");
       }
    cur_offset = seek_offset = high_offset = -1;
+   oldmemoffset = 0;
    cur_row    = -1;
    if (disktarga)
       pixelshift = 0;
@@ -162,6 +163,7 @@ int common_startdisk(long newrowsize, long newcolsize, int colors)
    else
       timetodisplay = 1000;  /* time-to-display-status counter */
 
+#if 0
    /* allocate cache: try for the max; leave FREEMEMk free if we can get
       that much or more; if we can't get that much leave 1/2 of whatever
       there is free; demand a certain minimum or nogo at all */
@@ -175,7 +177,10 @@ int common_startdisk(long newrowsize, long newcolsize, int colors)
          break;
          }
       }
-   if(debugflag==4200) cache_size = CACHEMIN;
+#endif
+   cache_size = CACHEMAX;
+   if (debugflag==4200)
+      cache_size = CACHEMIN;
    longtmp = (long)cache_size << 10;
    if (cache_start == NULL)
       cache_start = (struct cache *)malloc(longtmp);
@@ -183,7 +188,7 @@ int common_startdisk(long newrowsize, long newcolsize, int colors)
       --longtmp; /* safety for next line */
    cache_end = (cache_lru = cache_start) + longtmp / sizeof(*cache_start);
    if (hash_ptr == NULL)
-      hash_ptr  = (unsigned int *)malloc((long)(HASHSIZE<<1));
+      hash_ptr  = (unsigned int *)malloc((long)(HASHSIZE<<2));
    if (membuf == NULL)
       membuf = (BYTE *)malloc((long)BLOCKLEN);
    if (cache_start == NULL || hash_ptr == NULL || membuf == NULL) {
@@ -253,14 +258,14 @@ int common_startdisk(long newrowsize, long newcolsize, int colors)
    membufptr = membuf;
 
    if (!disktarga)
-      for (offset = 0; offset < memorysize; offset++) {
-         SetMemory(0, (U16)BLOCKLEN, 1L, offset, dv_handle);
-         if (keypressed())           /* user interrupt */
-            if (stopmsg(2, "Disk Video initialization interrupted:\n")) /* esc to cancel, else continue */
-            {
-               enddisk();
-               return -2;            /* -1 == failed, -2 == cancel   */
-            }
+      {
+      ClearMemory(dv_handle);
+      if (keypressed())           /* user interrupt */
+         if (stopmsg(2, "Disk Video initialization interrupted:\n")) /* esc to cancel, else continue */
+         {
+            enddisk();
+            return -2;            /* -1 == failed, -2 == cancel   */
+         }
       }
 
    if (disktarga) { /* Put header information in the file */
@@ -286,11 +291,11 @@ void enddisk()
       MemoryRelease(dv_handle);
       dv_handle = 0;
    }
-   if (hash_ptr)
+   if (hash_ptr != NULL)
       free(hash_ptr);
-   if (cache_start)
+   if (cache_start != NULL)
       free(cache_start);
-   if (membuf)
+   if (membuf != NULL)
       free(membuf);
    diskflag = rowsize = disk16bit = 0;
    hash_ptr    = NULL;

@@ -1355,7 +1355,7 @@ static int getprec(double a,double b,double c)
   return(digits);
 }
 
-/* This function calculates the precision needed to distiguish adjacent
+/* This function calculates the precision needed to distinguish adjacent
    pixels at Fractint's maximum resolution of MAXPIXELS by MAXPIXELS
    (if rez==MAXREZ) or at current resolution (if rez==CURRENTREZ)    */
 int getprecbf(int rezflag)
@@ -1418,7 +1418,7 @@ int getprecbf(int rezflag)
   return(max(digits,dec));
 }
 
-/* This function calculates the precision needed to distiguish adjacent
+/* This function calculates the precision needed to distinguish adjacent
    pixels at Fractint's maximum resolution of MAXPIXELS by MAXPIXELS
    (if rez==MAXREZ) or at current resolution (if rez==CURRENTREZ)    */
 int getprecdbl(int rezflag)

@@ -290,7 +290,6 @@ Version 20.5\
 Port to SDL 2.0
 
 Known issues:\
-Disk video mode will run once, then crash\
 No text cursor\
 No sound\
 Colors still limited to 256\

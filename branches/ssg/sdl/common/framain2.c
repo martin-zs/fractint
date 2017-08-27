@@ -436,10 +436,7 @@ done:
           saveticks = 0;                 /* turn off autosave timer */
           if (dotmode == 11 && i == 0) /* disk-video */
             {
-              static FCODE o_msg[] = {"Image has been completed"};
-              char msg[sizeof(o_msg)];
-              strcpy(msg,o_msg);
-              dvid_status(0,msg);
+              dvid_status(0,"Image has been completed");
             }
           diskisactive = 0;              /* flag for disk-video routines */
         }
