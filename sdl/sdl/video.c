@@ -141,7 +141,7 @@ void loaddac (void)
 */
 void setvideomode (int dotmode)
 {
-  if (diskflag)
+  if (diskflag && dotmode != 11)
     {
       enddisk ();
     }
@@ -166,6 +166,8 @@ void setvideomode (int dotmode)
       setforgraphics ();
       break;
     case 11:
+      starttext();
+      setfortext();
       startdisk ();
       dotwrite = writedisk;
       dotread = readdisk;
@@ -544,8 +546,9 @@ void blink_cursor (char ch)
     attr -= INVERSE;
   else
     attr += INVERSE;
-  delay(300);
-  putstring (-1, -1, attr, &ch);
+//  delay(300);
+  outtext(textrow, textcol, 1);
+//  putstring (-1, -1, attr, &ch);
 }
 
 /*

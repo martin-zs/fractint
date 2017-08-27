@@ -17,10 +17,8 @@
 /* Memory allocation routines. */
 
 #if 1
-/* For far memory: */
-#define FAR_RESERVE   8192L    /* amount of far mem we will leave avail. */
 /* For disk memory: */
-#define DISKWRITELEN 8192L /* max # bytes transferred to/from disk mem at once */
+#define DISKWRITELEN 16384L /* max # bytes transferred to/from disk mem at once */
 
 BYTE *charbuf = NULL;
 int numEXThandles;
@@ -37,20 +35,20 @@ char memstr[3][9] = {{"nowhere"}, {"far"}, {"disk"}};
 struct nowhere
   {
     enum stored_at_values stored_at; /* first 2 entries must be the same */
-    long size;                       /* for each of these data structures */
+    unsigned long size;                       /* for each of these data structures */
   };
 
 struct farmem
   {
     enum stored_at_values stored_at;
-    long size;
+    unsigned long size;
     BYTE *farmemory;
   };
 
 struct disk
   {
     enum stored_at_values stored_at;
-    long size;
+    unsigned long size;
     FILE *file;
   };
 
@@ -64,11 +62,11 @@ union mem
 union mem handletable[MAXHANDLES];
 
 /* Routines in this module */
-static int check_for_mem(int stored_at, long howmuch);
+static int check_for_mem(int stored_at, unsigned long howmuch);
 static U16 next_handle(void);
 static int CheckBounds (long start, long length, U16 handle);
 static void WhichDiskError(int);
-static void DisplayError(int stored_at, long howmuch);
+static void DisplayError(int stored_at, unsigned long howmuch);
 
 /* Routines in this module, visible to outside routines */
 
@@ -82,6 +80,7 @@ void MemoryRelease(U16 handle);
 int MoveToMemory(BYTE *buffer,U16 size,long count,long offset,U16 handle);
 int MoveFromMemory(BYTE *buffer,U16 size,long count,long offset,U16 handle);
 int SetMemory(int value,U16 size,long count,long offset,U16 handle);
+int ClearMemory(U16 handle);
 
 /* Memory handling support routines */
 
@@ -135,7 +134,7 @@ int MemoryType (U16 handle)
   return (handletable[handle].Nowhere.stored_at);
 }
 
-static void DisplayError(int stored_at, long howmuch)
+static void DisplayError(int stored_at, unsigned long howmuch)
 {
   /* This routine is used to display an error message when the requested */
   /* memory type cannot be allocated due to insufficient memory, AND there */
@@ -147,17 +146,17 @@ static void DisplayError(int stored_at, long howmuch)
   stopmsg(0,(char *)buf);
 }
 
-static int check_for_mem(int stored_at, long howmuch)
+static int check_for_mem(int stored_at, unsigned long howmuch)
 {
   /* This function returns an adjusted stored_at value. */
   /* This is where the memory requested can be allocated. */
 
-  long maxmem;
+  unsigned long maxmem;
   BYTE *temp;
   int use_this_type;
 
   use_this_type = NOWHERE;
-  maxmem = (long)INT_MAX; /* limit FARMEM to 2147483547 */
+  maxmem = LONG_MAX; /* limit FARMEM to 2147483647 */
 
   if (debugflag == 420)
     stored_at = DISK;
@@ -165,22 +164,22 @@ static int check_for_mem(int stored_at, long howmuch)
   switch (stored_at)
     {
     case FARMEM: /* check_for_mem */
-      if (maxmem > (howmuch + FAR_RESERVE))
+      if (maxmem > howmuch)
         {
-          temp = (BYTE *)malloc(howmuch + FAR_RESERVE);
-          if (temp != NULL)   /* minimum free space + requested amount */
+          temp = (BYTE *)malloc(howmuch);
+          if (temp != NULL)   /* requested amount */
             {
               free(temp);
               use_this_type = FARMEM;
               break;
             }
         }
-
+      /* failed, fall through, try disk */
     case DISK: /* check_for_mem */
     default: /* just in case a nonsense number gets used */
       use_this_type = DISK;
       break;
-      /* failed, fall through, no memory available */
+      /* no good way to check, assume it is okay */
 
     case NOWHERE: /* check_for_mem */
       use_this_type = NOWHERE;
@@ -317,12 +316,12 @@ U16 MemoryAlloc(U16 size, long count, int stored_at)
   /* Returns handle number if successful, 0 or NULL if failure */
   U16 handle = 0;
   int success, use_this_type;
-  long toallocate;
+  unsigned long toallocate;
 
   success = FALSE;
   toallocate = count * size;
-  if (toallocate <= 0)     /* we failed, can't allocate > 2,147,483,647 */
-    return((U16)success); /* or it wraps around to negative */
+  if (count > toallocate) /* we failed, wrapped to a low number */
+    return((U16)success);
 
   /* check structure for requested memory type (add em up) to see if
      sufficient amount is available to grant request */
@@ -355,12 +354,15 @@ U16 MemoryAlloc(U16 size, long count, int stored_at)
     case FARMEM: /* MemoryAlloc */
       /* Availability of far memory checked in check_for_mem() */
       handletable[handle].Farmem.farmemory = (BYTE *)malloc(toallocate);
-      handletable[handle].Farmem.size = toallocate;
-      handletable[handle].Farmem.stored_at = FARMEM;
-      numTOTALhandles++;
-      success = TRUE;
-      break;
-
+      if (handletable[handle].Farmem.farmemory != NULL)
+        {
+          handletable[handle].Farmem.size = toallocate;
+          handletable[handle].Farmem.stored_at = FARMEM;
+          numTOTALhandles++;
+          success = TRUE;
+          break;
+        }
+        /* Failed to allocate, fall through */
     default:
     case DISK: /* MemoryAlloc */
       memfile[9] = (char)(handle % 10 + (int)'0');
@@ -371,10 +373,10 @@ U16 MemoryAlloc(U16 size, long count, int stored_at)
       else
         handletable[handle].Disk.file = dir_fopen(tempdir,memfile, "w+b");
       rewind(handletable[handle].Disk.file);
-      if (fseek(handletable[handle].Disk.file,toallocate,SEEK_SET) != 0)
+      if (fseek(handletable[handle].Disk.file,count,SEEK_SET) != 0)
         handletable[handle].Disk.file = NULL;
       if (handletable[handle].Disk.file == NULL)
-        {
+        { /* Failed to allocate */
           handletable[handle].Disk.stored_at = NOWHERE;
           use_this_type = NOWHERE;
           WhichDiskError(1);
@@ -449,14 +451,14 @@ int MoveToMemory(BYTE *buffer,U16 size,long count,long offset,U16 handle)
   /* size is the size of the unit, count is the number of units to move */
   /* Returns TRUE if successful, FALSE if failure */
   BYTE diskbuf[DISKWRITELEN];
-  long start; /* offset to first location to move to */
-  long tomove; /* number of bytes to move */
+  unsigned long start; /* offset to first location to move to */
+  unsigned long tomove; /* number of bytes to move */
   U16 numwritten, i;
   int success;
 
   success = FALSE;
-  start = (long)offset * size;
-  tomove = (long)count * size;
+  start = (unsigned long)offset * size;
+  tomove = (unsigned long)count * size;
   if (debugflag == 10000)
     if (CheckBounds(start, tomove, handle))
       return(success); /* out of bounds, don't do it */
@@ -470,7 +472,7 @@ int MoveToMemory(BYTE *buffer,U16 size,long count,long offset,U16 handle)
     case FARMEM: /* MoveToMemory */
       for (i=0;i<size;i++)
         {
-          memcpy(handletable[handle].Farmem.farmemory+start, buffer, (U16)count);
+          memcpy(handletable[handle].Farmem.farmemory+start, buffer, count);
           start += count;
           buffer += count;
         }
@@ -483,7 +485,7 @@ int MoveToMemory(BYTE *buffer,U16 size,long count,long offset,U16 handle)
       while (tomove > DISKWRITELEN)
         {
           memcpy(diskbuf,buffer,(U16)DISKWRITELEN);
-          numwritten = (U16)write1(diskbuf,(U16)DISKWRITELEN,1,handletable[handle].Disk.file);
+          numwritten = (U16)fwrite(diskbuf,(U16)DISKWRITELEN,1,handletable[handle].Disk.file);
           if (numwritten != 1)
             {
               WhichDiskError(3);
@@ -493,11 +495,11 @@ int MoveToMemory(BYTE *buffer,U16 size,long count,long offset,U16 handle)
           buffer += DISKWRITELEN;
         }
       memcpy(diskbuf,buffer,(U16)tomove);
-      numwritten = (U16)write1(diskbuf,(U16)tomove,1,handletable[handle].Disk.file);
+      numwritten = (U16)fwrite(diskbuf,(U16)tomove,1,handletable[handle].Disk.file);
       if (numwritten != 1)
         {
           WhichDiskError(3);
-          break;
+          goto diskerror;
         }
       success = TRUE;
 diskerror:
@@ -515,14 +517,14 @@ int MoveFromMemory(BYTE *buffer,U16 size,long count,long offset,U16 handle)
   /* size is the size of the unit, count is the number of units to move */
   /* Returns TRUE if successful, FALSE if failure */
   BYTE diskbuf[DISKWRITELEN];
-  long start; /* first location to move */
-  long tomove; /* number of bytes to move */
+  unsigned long start; /* first location to move */
+  unsigned long tomove; /* number of bytes to move */
   U16 numread, i;
   int success;
 
   success = FALSE;
-  start = (long)offset * size;
-  tomove = (long)count * size;
+  start = (unsigned long)offset * size;
+  tomove = (unsigned long)count * size;
   if (debugflag == 10000)
     if (CheckBounds(start, tomove, handle))
       return(success); /* out of bounds, don't do it */
@@ -536,7 +538,7 @@ int MoveFromMemory(BYTE *buffer,U16 size,long count,long offset,U16 handle)
     case FARMEM: /* MoveFromMemory */
       for (i=0;i<size;i++)
         {
-          memcpy(buffer, handletable[handle].Farmem.farmemory+start, (U16)count);
+          memcpy(buffer, handletable[handle].Farmem.farmemory+start, count);
           start += count;
           buffer += count;
         }
@@ -562,7 +564,7 @@ int MoveFromMemory(BYTE *buffer,U16 size,long count,long offset,U16 handle)
       if (numread != 1 && !feof(handletable[handle].Disk.file))
         {
           WhichDiskError(4);
-          break;
+          goto diskerror;
         }
       memcpy(buffer,diskbuf,(U16)tomove);
       success = TRUE;
@@ -614,7 +616,7 @@ int SetMemory(int value,U16 size,long count,long offset,U16 handle)
       fseek(handletable[handle].Disk.file,start,SEEK_SET);
       while (tomove > DISKWRITELEN)
         {
-          numwritten = (U16)write1(diskbuf,(U16)DISKWRITELEN,1,handletable[handle].Disk.file);
+          numwritten = (U16)fwrite(diskbuf,(U16)DISKWRITELEN,1,handletable[handle].Disk.file);
           if (numwritten != 1)
             {
               WhichDiskError(2);
@@ -622,7 +624,7 @@ int SetMemory(int value,U16 size,long count,long offset,U16 handle)
             }
           tomove -= DISKWRITELEN;
         }
-      numwritten = (U16)write1(diskbuf,(U16)tomove,1,handletable[handle].Disk.file);
+      numwritten = (U16)fwrite(diskbuf,(U16)tomove,1,handletable[handle].Disk.file);
       if (numwritten != 1)
         {
           WhichDiskError(2);
@@ -637,3 +639,55 @@ diskerror:
   return (success);
 }
 
+int ClearMemory(U16 handle)
+{
+  /* clears memory to all zeros */
+  /* Returns TRUE if successful, FALSE if failure */
+  int success = FALSE;
+
+  switch (handletable[handle].Nowhere.stored_at)
+    {
+    case NOWHERE: /* ClearMemory */
+      DisplayHandle(handle);
+      break;
+
+    case FARMEM: /* ClearMemory */
+      memset(handletable[handle].Farmem.farmemory, 0, handletable[handle].Farmem.size);
+      success = TRUE; /* No way to gauge success or failure */
+      break;
+
+    case DISK: /* ClearMemory */
+      {
+      BYTE diskbuf[DISKWRITELEN];
+      unsigned long tomove; /* number of bytes to set */
+      U16 numwritten, i;
+
+      tomove = handletable[handle].Disk.size;
+      memset(diskbuf, 0, (U16)DISKWRITELEN);
+      rewind(handletable[handle].Disk.file);
+      fseek(handletable[handle].Disk.file,0,SEEK_SET);
+      while (tomove > DISKWRITELEN)
+        {
+          numwritten = (U16)fwrite(diskbuf,(U16)DISKWRITELEN,1,handletable[handle].Disk.file);
+          if (numwritten != 1)
+            {
+              WhichDiskError(2);
+              goto diskerror;
+            }
+          tomove -= DISKWRITELEN;
+        }
+      numwritten = (U16)fwrite(diskbuf,(U16)tomove,1,handletable[handle].Disk.file);
+      if (numwritten != 1)
+        {
+          WhichDiskError(2);
+          goto diskerror;
+        }
+      success = TRUE;
+diskerror:
+      break;
+      } /* end of DISK */
+    } /* end of switch */
+  if (!success && debugflag == 10000)
+    DisplayHandle(handle);
+  return (success);
+}

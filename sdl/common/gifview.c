@@ -315,10 +315,7 @@ int gifview(void)
   close_file();
   if (dotmode == 11)   /* disk-video */
     {
-      static FCODE o_msg[] = {"Restore completed"};
-      char msg[sizeof(o_msg)];
-      strcpy(msg,o_msg);
-      dvid_status(0,msg);
+      dvid_status(0,"Restore completed");
       dvid_status(1,"");
     }
 

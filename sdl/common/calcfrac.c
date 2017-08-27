@@ -1143,7 +1143,7 @@ static int diffusion_scan(void)
   got_status = 5;
 
   /* note: the max size of 2048x2048 gives us a 22 bit counter that will */
-  /* fit any 32 bit architecture, the maxinum limit for this case would  */
+  /* fit any 32 bit architecture, the maximum limit for this case would  */
   /* be 65536x65536 (HB) */
 
   bits = (unsigned) (min ( log (iystop-iystart+1), log(ixstop-ixstart+1) )/log2 );

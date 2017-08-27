@@ -656,6 +656,7 @@ extern void MemoryRelease(U16 handle);
 extern int MoveToMemory(BYTE *buffer,U16 size,long count,long offset,U16 handle);
 extern int MoveFromMemory(BYTE *buffer,U16 size,long count,long offset,U16 handle);
 extern int SetMemory(int value,U16 size,long count,long offset,U16 handle);
+extern int ClearMemory(U16 handle);
 
 /*  miscfrac -- C file prototypes */
 

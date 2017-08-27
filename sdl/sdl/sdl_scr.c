@@ -1589,6 +1589,7 @@ long clock_ticks(void)
 
 #define TICK_INTERVAL    50
 #define TICK_INTERVAL2   100
+#define BLINK_INTERVAL   300
 
 static U32 next_time = 0;
 
@@ -1611,11 +1612,22 @@ int time_to_update(void)
       else
         return (0);
     }
-  else if (button_held)
+    else if (button_held)
     {
       if (next_time <= now)
         {
           next_time = SDL_GetTicks() + TICK_INTERVAL2;
+          return (1);
+        }
+      else
+        return (0);
+    }
+else if (screenctr > 0)
+    {
+      if (next_time <= now)
+        {
+          blink_cursor(text_screen[textrow][textcol]);
+          next_time = SDL_GetTicks() + BLINK_INTERVAL;
           return (1);
         }
       else
