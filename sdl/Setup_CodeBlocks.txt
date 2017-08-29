@@ -1,5 +1,6 @@
-Setting up Code::Blocks to complile Fractint port to SDL
+Setting up Code::Blocks to compile Fractint port to SDL
 
+Windows:
 Download from:
  http://www.codeblocks.org/downloads/5
 
