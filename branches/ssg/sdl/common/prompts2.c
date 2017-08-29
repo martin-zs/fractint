@@ -1332,7 +1332,7 @@ retry_dir:
     {
       if ((DTA.attribute & SUBDIR) && strcmp(DTA.filename,"."))
         {
-#ifndef XFRACT
+#if 0
           strlwr(DTA.filename);
 #endif
           if (strcmp(DTA.filename,".."))
@@ -1366,7 +1366,7 @@ retry_dir:
                   splitpath(DTA.filename,NULL,NULL,fname,ext);
                   /* just using speedstr as a handy buffer */
                   makepath(speedstr,drive,dir,fname,ext);
-#ifndef XFRACT
+#if 0
                   strlwr(DTA.filename);
 #endif
                   strncpy(choices[++filecount]->name,DTA.filename,MAX_NAME);
@@ -1374,7 +1374,7 @@ retry_dir:
                 }
               else
                 {
-#ifndef XFRACT
+#if 0
                   strlwr(DTA.filename);
 #endif
                   strncpy(choices[++filecount]->name,DTA.filename,MAX_NAME);
