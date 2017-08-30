@@ -1622,7 +1622,7 @@ int time_to_update(void)
       else
         return (0);
     }
-else if (screenctr > 0)
+    else if (screenctr > 0)
     {
       if (next_time <= now)
         {
@@ -1633,7 +1633,7 @@ else if (screenctr > 0)
       else
         return (0);
     }
-  else
+    else
     {
     SDL_Delay(5);
     return (1);

@@ -18,7 +18,7 @@ extern int LINES;
 
 extern BYTE pixel[48];
 
-int fake_lut = 0;
+int fake_lut = 1;
 int istruecolor = 0;
 int daclearn = 0;
 int dacnorm = 0;
@@ -540,13 +540,15 @@ void put_a_char (char ch)
 
 void blink_cursor (char ch)
 {
-  int attr = text_attr[textrow][textcol];
+  int attr;
 
+  attr = text_attr[textrow][textcol];
   if (attr & INVERSE)
     attr -= INVERSE;
   else
     attr += INVERSE;
 //  delay(300);
+  text_attr[textrow][textcol] = attr;
   outtext(textrow, textcol, 1);
 //  putstring (-1, -1, attr, &ch);
 }
