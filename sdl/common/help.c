@@ -316,6 +316,7 @@ static void color_link(LINK *link, int color)
 
   textcbase = 0;
   textrbase = 0;
+  movecursor(25, 80);
 }
 
 /* #define PUT_KEY(name, descrip) putstring(-1,-1,C_HELP_INSTR_KEYS,name), putstring(-1,-1,C_HELP_INSTR," "descrip"  ") */

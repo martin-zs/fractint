@@ -832,6 +832,7 @@ enum
 #define L_WHITE   15
 #define INVERSE 0x8000 /* when 640x200x2 text or mode 7, inverse */
 #define BRIGHT  0x4000 /* when mode 7, bright */
+#define BLINK   0x2000 /* blink the cursor */
 /* and their use: */
 extern BYTE txtcolor[];
 #define C_TITLE           txtcolor[0]+BRIGHT

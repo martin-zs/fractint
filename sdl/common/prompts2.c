@@ -1242,7 +1242,7 @@ int getafilename(char *hdg,char *template,char *flname)
   char *instr;
   int masklen;
   char filename[FILE_MAX_PATH]; /* 13 is big enough for Fractint, but not Xfractint */
-  char speedstr[81];
+  char speedstr[FILE_MAX_PATH];
   char tmpmask[FILE_MAX_PATH];   /* used to locate next file in list */
   char old_flname[FILE_MAX_PATH];
   static int numtemplates = 1;
