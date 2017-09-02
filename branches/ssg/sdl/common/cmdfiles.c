@@ -38,7 +38,7 @@ int     sizedot;                /* size of dot crawling cursor */
 char    recordcolors;           /* default PAR color-writing method */
 char    autoshowdot=0;          /* dark, medium, bright */
 char    start_showorbit=0;      /* show orbits on at start of fractal */
-char    temp1[256];             /* temporary strings        */
+char    temp1[FILE_MAX_PATH];   /* temporary strings        */
 char    readname[FILE_MAX_PATH];/* name of fractal input file */
 char    tempdir[FILE_MAX_DIR] = {""}; /* name of temporary directory */
 char    workdir[FILE_MAX_DIR] = {""}; /* name of directory for misc files */

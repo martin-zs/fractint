@@ -907,7 +907,6 @@ extern int check_vidmode_key(int ,int );
 extern int check_vidmode_keyname(char *);
 extern void vidmode_keyname(int ,char *);
 extern void freetempmsg(void);
-extern char *despace(char *);
 extern int menu_checkkey(int ,int);
 
 /*  rotate -- C file prototypes */
@@ -1080,6 +1079,7 @@ extern int get_key_event(int);
 extern void delay(int);
 extern long clock_ticks(void);
 extern int time_to_update(void);
+extern void outtext(int, int, int);
 
 /*  video -- C file prototypes */
 
@@ -1101,5 +1101,6 @@ extern void movecursor (int, int);
 extern int keycursor (int, int);
 extern void spindac (int, int);
 extern int get_video_mode(struct fractal_info *,struct ext_blk_3 *);
+extern void blink_cursor(void);
 
 #endif

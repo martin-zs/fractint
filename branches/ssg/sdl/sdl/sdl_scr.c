@@ -861,7 +861,11 @@ void outtext(int row, int col, int max_c)
                          NULL);
 }
 #endif
-
+  if (attr & BLINK)
+  {
+    foregnd = (attr >> 4) & 15;
+    backgnd = attr & 15;
+  }
   text_rect.x = col * txt_wt;   /* starting column */
   text_rect.y = row * txt_ht;   /* starting row */
   text_rect.w = max_c * txt_wt; /* output this many columns */
@@ -1626,7 +1630,7 @@ int time_to_update(void)
     {
       if (next_time <= now)
         {
-          blink_cursor(text_screen[textrow][textcol]);
+          blink_cursor();
           next_time = SDL_GetTicks() + BLINK_INTERVAL;
           return (1);
         }

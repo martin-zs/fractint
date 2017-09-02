@@ -247,17 +247,6 @@ int keycursor (int row, int col)
 }
 
 /*
-; **************** Function home()  ********************************
-
-;       Home the cursor (called before printfs)
-*/
-void home (void)
-{
-  textrow = 0;
-  textcol = 0;
-}
-
-/*
 ; *************** Function spindac(direction, rstep) ********************
 
 ;       Rotate the MCGA/VGA DAC in the (plus or minus) "direction"
@@ -538,19 +527,17 @@ void put_a_char (char ch)
   putstring (-1, -1, attr, &ch);
 }
 
-void blink_cursor (char ch)
+void blink_cursor (void)
 {
   int attr;
 
   attr = text_attr[textrow][textcol];
-  if (attr & INVERSE)
-    attr -= INVERSE;
+  if (attr & BLINK)
+    attr -= BLINK;
   else
-    attr += INVERSE;
-//  delay(300);
+    attr += BLINK;
   text_attr[textrow][textcol] = attr;
-  outtext(textrow, textcol, 1);
-//  putstring (-1, -1, attr, &ch);
+  outtext(textrow, textcol, textcol+1);
 }
 
 /*

@@ -800,6 +800,7 @@ int tab_display_2(char *msg)
   *msg = 0;
 again:
   putstring(s_row,2,C_GENERAL_HI,msg);
+  movecursor(s_row, 2);
   key=getakeynohelp();
   if (key != ESC && key != BACKSPACE && key != TAB)
     {

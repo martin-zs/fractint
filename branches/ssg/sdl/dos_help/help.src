@@ -289,8 +289,10 @@ Version 20.5\
 
 Port to SDL 2.0
 
+Fixed issue with directories having spaces.\
+Fixed the text cursor.\
+
 Known issues:\
-No text cursor\
 No sound\
 Colors still limited to 256\
 No color cycling/editing\

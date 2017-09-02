@@ -958,20 +958,6 @@ fs_choice_end:
 
 }
 
-/* squeeze space out of string */
-char *despace(char *str)
-{
-  char *obuf, *nbuf;
-
-  for (obuf = str, nbuf = str; *obuf && obuf; ++obuf)
-    {
-      if (!isspace(*obuf))
-        *nbuf++ = *obuf;
-    }
-  *nbuf = 0;
-  return str;
-}
-
 #define LOADPROMPTSCHOICES(X,Y)     {\
    static FCODE tmp[] = { Y };\
    choices[X]= (char *)tmp;\

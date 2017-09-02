@@ -30,7 +30,6 @@ int isadirectory(char *s)
   int len;
   char sv;
 
-  despace(s);  /* scrunch out white space */
   if (strchr(s,'*') || strchr(s,'?'))
     return(0); /* for my purposes, not a directory */
 
@@ -320,7 +319,6 @@ int makepath(char *template,char *drive,char *dir,char *fname,char *ext)
 void fix_dirname(char *dirname)
 {
   int length;
-  despace(dirname);
   length = strlen(dirname); /* index of last character */
 
   /* make sure dirname ends with a slash */
@@ -382,7 +380,7 @@ void expand_dirname(char *dirname, char *drive)
 //      drive[2] = 0; /* terminate string */
       while (curdir[i] != 0)
         {
-          curdir[i-2] = (char)tolower(curdir[i]); /* remove drive info */
+          curdir[i-2] = curdir[i]; /* remove drive info */
           i++;
         }
       curdir[i-2] = 0; /* terminate string */
