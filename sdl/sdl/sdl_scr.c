@@ -982,6 +982,14 @@ void unstackscreen(void)
   else
     {
       restore_screen(); /* restore screen */
+      for (r = 0; r < TEXT_HEIGHT; r++) /* zero text array */
+        {
+          for (c = 0; c < TEXT_WIDTH; c++)
+            {
+              text_screen[r][c] = ' ';
+              text_attr[r][c] = 0;
+            }
+        }
     }
   screenctr--;
   if (screenctr < 0) /* shouldn't happen */
@@ -1280,9 +1288,35 @@ static int translate_key(SDL_KeyboardEvent *key)
           return SF10;
         case SDLK_TAB:
           return BACK_TAB;
+        case SDLK_a:
+        case SDLK_b:
+        case SDLK_c:
+        case SDLK_d:
+        case SDLK_e:
+        case SDLK_f:
+        case SDLK_g:
+        case SDLK_h:
+        case SDLK_i:
+        case SDLK_j:
+        case SDLK_k:
+        case SDLK_l:
+        case SDLK_m:
+        case SDLK_n:
+        case SDLK_o:
+        case SDLK_p:
+        case SDLK_q:
+        case SDLK_r:
+        case SDLK_s:
+        case SDLK_t:
+        case SDLK_u:
+        case SDLK_v:
+        case SDLK_w:
+        case SDLK_x:
+        case SDLK_y:
+        case SDLK_z:
+          return (tmp - ('a' - 'A'));
         default:
-          if (tmp >= 'a' && tmp <= 'z')
-            return (tmp - ('a' - 'A'));
+          break;
         }
     }
   else if (key->keysym.mod & KMOD_ALT) /* Alt key down */
