@@ -3013,10 +3013,7 @@ static int check_mapfile()
     {
       if (askflag)
         {
-          static FCODE msg[] = {"\
-                                Enter name of .MAP file to use,\n\
-                                or '*' to use palette from the image to be loaded."
-                               };
+          static FCODE msg[] = {"Enter name of .MAP file to use,\nor '*' to use palette from the image to be loaded."};
           oldhelpmode = helpmode;
           helpmode = -1;
           i = field_prompt(0,msg,NULL,temp1,60,NULL);

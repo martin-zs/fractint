@@ -17,6 +17,8 @@ extern int COLS;
 extern int LINES;
 
 extern BYTE pixel[48];
+extern int text_attr[TEXT_HEIGHT][TEXT_WIDTH];
+extern char text_screen[TEXT_HEIGHT][TEXT_WIDTH];
 
 int fake_lut = 1;
 int istruecolor = 0;
@@ -232,6 +234,11 @@ void movecursor (int row, int col)
     {
       textcol = col;
     }
+  if (textrow == 25 && textcol == 80)
+  {
+      text_attr[textrow][textcol] = 0;
+      text_screen[textrow][textcol] = ' ';
+  }
 }
 
 /*
@@ -516,8 +523,6 @@ char get_a_char (void)
 {
   return (char) getakey ();
 }
-
-extern int text_attr[TEXT_HEIGHT][TEXT_WIDTH];
 
 void put_a_char (char ch)
 {

@@ -154,6 +154,8 @@ int showtempmsg(char *msgparm)
   int xrepeat = 0;
   int yrepeat = 0;
   int save_sxoffs,save_syoffs;
+  memset(msg,' ',41);
+  memset(buffer,' ',640);
   strncpy(msg,msgparm,40);
   msg[40] = 0; /* ensure max message len of 40 chars */
   if (dotmode == 11)   /* disk video, screen in text mode, easy */
@@ -201,10 +203,8 @@ int showtempmsg(char *msgparm)
           MoveToMemory(buffer,(U16)textxdots,1L,(long)i,temptextsave);
         }
     }
-  if (fontptr == NULL)   /* bios must do it for us */
+  if (fontptr == NULL)   /* can't display it anyway */
     {
-// FIXME (jonathan#1#): What to do with next?
-//      home();
       printf(msg);
     }
   else   /* generate the characters */
