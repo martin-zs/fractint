@@ -12,10 +12,8 @@
 Need font with arrow symbols
 Remove printer functions.
  ==> 8-bit mode color cycling locks up.
-Need to fix text colors.
-Need to work on key combinations: control-anykey.
 Resize with a text screen visible doesn't regenerate image.
-Fix stackscreen/unstackscreen - see area under <TAB>.]]>
+Fix stackscreen/unstackscreen? - look at 3d images.]]>
 			</notes>
 		</Option>
 		<Build>

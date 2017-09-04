@@ -1057,7 +1057,7 @@ int main_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stacked)
         {
           if (load_palette() >= 0)
             {
-              *kbdmore = calc_status = 0;
+              refreshimage();
               break;
             }
           else
@@ -1513,7 +1513,7 @@ int evolver_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stack
         {
           if (load_palette() >= 0)
             {
-              *kbdmore = calc_status = 0;
+              refreshimage();
               break;
             }
           else

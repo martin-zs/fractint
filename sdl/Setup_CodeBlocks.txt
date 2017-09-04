@@ -30,8 +30,12 @@ Download from:
   The i686-w64-mingw32 subfolder contains the 32-bit files we need.
 
  SDL2_ttf-2.0.14-win32-x86.zip
-  Unpack and copy SDL2_ttf.dll to your working directory
-   (Will be included in fractint svn checkout)
+  Unpack and from .\SDL2_ttf-2.0.14\i686-w64-mingw32\bin copy the following
+  to your working directory:
+    SDL2_ttf.dll
+    libfreetype-6.dll
+    zlib1.dll
+  (All are included in fractint svn checkout)
 
 
 Windows Project options:
