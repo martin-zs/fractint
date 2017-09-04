@@ -214,7 +214,7 @@ void putcolor_a (int xdot, int ydot, int color)
 /*
 ; **************** Function movecursor(row, col)  **********************
 
-;       Move the cursor (called before printfs)
+;       Move the cursor
 */
 void movecursor (int row, int col)
 {

@@ -656,6 +656,25 @@ void writevideo(int x, int y, U32 pixel)
 }
 
 /*
+ * Refresh image with new DAC information
+ */
+void refreshimage(void)
+{
+  BYTE red, green, blue;
+  long *bufp;
+  int x, y;
+
+  bufp = (long *)Image_Data.color_info;
+  for (y = 0; y < Image_Data.sizey; y++)
+    for (x = 0; x < Image_Data.sizex; x++)
+    {
+      bufp = (Image_Data.color_info + (Image_Data.sizex * y) + x);
+      dac_to_rgb((BYTE)(*bufp & andcolor), &red, &green, &blue);
+      puttruecolor(x, y, red, green, blue);
+    }
+}
+
+/*
  *----------------------------------------------------------------------
  *
  * writevideoline --
@@ -772,6 +791,7 @@ void writevideopalette(void)
   /* Set palette */
   SDL_SetPaletteColors(mainscrn->format->palette, cols, 0, 256);
   SDL_SetPaletteColors(backscrn->format->palette, cols, 0, 256);
+  refreshimage();
 }
 
 void savevideopalette(void)

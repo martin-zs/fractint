@@ -1080,6 +1080,7 @@ extern void delay(int);
 extern long clock_ticks(void);
 extern int time_to_update(void);
 extern void outtext(int, int, int);
+extern void refreshimage(void);
 
 /*  video -- C file prototypes */
 

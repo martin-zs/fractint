@@ -289,8 +289,8 @@ Version 20.5\
 
 Port to SDL 2.0
 
-Fixed shift key repeating issue.\
-Fixed interrupted save message extraneous text.\
+Made loading a color map change the colors without regenerating\
+the image.\
 
 Known issues:\
 No sound\
