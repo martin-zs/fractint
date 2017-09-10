@@ -1374,7 +1374,7 @@ int getprecbf(int rezflag)
   bfyydel2  = alloc_stack(bflength+2);
   floattobf(one,1.0);
   if (rezflag == MAXREZ)
-    rez = OLDMAXPIXELS -1;
+    rez = MAXPIXELS -1;
   else
     rez = xdots-1;
 
@@ -1427,7 +1427,7 @@ int getprecdbl(int rezflag)
   int digits;
   LDBL rez;
   if (rezflag == MAXREZ)
-    rez = OLDMAXPIXELS -1;
+    rez = MAXPIXELS -1;
   else
     rez = xdots-1;
 

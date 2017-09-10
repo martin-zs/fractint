@@ -327,7 +327,6 @@ restorestart:
       if (stacked)
         {
           discardscreen();
-          setvideotext();
           stacked = 0;
         }
       if (read_overlay() == 0)       /* read hdr, get video mode */

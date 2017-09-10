@@ -21,7 +21,7 @@ typedef BYTE BOOLEAN;
 #define MSGLEN 80               /* handy buffer size for messages */
 #define MAXCMT 57               /* length of par comments       */
 #define MAXPARAMS 10            /* maximum number of parameters */
-#define MAXPIXELS   32767       /* Maximum pixel count across/down the screen */
+#define MAXPIXELS   65536       /* Maximum pixel count across/down the screen */
 #define OLDMAXPIXELS 2048       /* Limit of some old fixed arrays */
 #define MINPIXELS 10            /* Minimum pixel count across/down the screen */
 #define DEFAULTASPECT ((float)0.75)/* Assumed overall screen dimensions, y/x  */
@@ -41,8 +41,8 @@ struct videoinfo {              /* All we need to know about a Video Mode */
                                 /*      16 = 16-bit True Color          */
                                 /*      24 = 24-bit True Color          */
                                 /*      32 = 32-bit True Color          */
-        int     xdots;          /* number of dots across the screen     */
-        int     ydots;          /* number of dots down the screen       */
+        unsigned short xdots;   /* number of dots across the screen     */
+        unsigned short ydots;   /* number of dots down the screen       */
         int     colors;         /* number of colors available           */
         };
 
@@ -81,8 +81,8 @@ struct fractal_info         /*  for saving data in GIF file     */
     short videomodecx;
     short videomodedx;
     short dotmode;
-    short xdots;
-    short ydots;
+    unsigned short xdots;
+    unsigned short ydots;
     short colors;
     short version;          /* used to be 'future[0]' */
     float parm3;
@@ -352,8 +352,8 @@ struct evolution_info      /* for saving evolution data in a GIF file */
    short py;
    short sxoffs;
    short syoffs;
-   short xdots;
-   short ydots;
+   unsigned short xdots;
+   unsigned short ydots;
    short mutate[NUMGENES];
    short ecount; /* count of how many images have been calc'ed so far */
    short future[68 - NUMGENES];      /* total of 200 bytes */
@@ -977,8 +977,8 @@ struct ext_blk_6 {
    short  py;
    short  sxoffs;
    short  syoffs;
-   short  xdots;
-   short  ydots;
+   unsigned short  xdots;
+   unsigned short  ydots;
    short  ecount;
    short  mutate[NUMGENES];
    };

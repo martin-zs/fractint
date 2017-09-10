@@ -1681,8 +1681,8 @@ int load_fractint_cfg(int options)
       vident->name[25] = vident->comment[25] = 0;
       vident->keynum      = keynum;
       vident->dotmode     = dotmode;
-      vident->xdots       = (short)xdots;
-      vident->ydots       = (short)ydots;
+      vident->xdots       = (unsigned int)xdots;
+      vident->ydots       = (unsigned int)ydots;
       vident->colors      = colors;
       ++vident;
       ++vidtbllen;

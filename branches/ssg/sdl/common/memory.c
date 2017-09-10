@@ -18,7 +18,7 @@
 
 #if 1
 /* For disk memory: */
-#define DISKWRITELEN 16384L /* max # bytes transferred to/from disk mem at once */
+#define DISKWRITELEN 32768L /* max # bytes transferred to/from disk mem at once */
 
 BYTE *charbuf = NULL;
 int numEXThandles;
@@ -35,20 +35,20 @@ char memstr[3][9] = {{"nowhere"}, {"far"}, {"disk"}};
 struct nowhere
   {
     enum stored_at_values stored_at; /* first 2 entries must be the same */
-    unsigned long size;                       /* for each of these data structures */
+    unsigned long long size;                       /* for each of these data structures */
   };
 
 struct farmem
   {
     enum stored_at_values stored_at;
-    unsigned long size;
+    unsigned long long size;
     BYTE *farmemory;
   };
 
 struct disk
   {
     enum stored_at_values stored_at;
-    unsigned long size;
+    unsigned long long size;
     FILE *file;
   };
 
@@ -62,7 +62,7 @@ union mem
 union mem handletable[MAXHANDLES];
 
 /* Routines in this module */
-static int check_for_mem(int stored_at, unsigned long howmuch);
+static int check_for_mem(int stored_at, unsigned long long howmuch);
 static U16 next_handle(void);
 static int CheckBounds (long start, long length, U16 handle);
 static void WhichDiskError(int);
@@ -141,22 +141,22 @@ static void DisplayError(int stored_at, unsigned long howmuch)
   /* is also insufficient disk space to use as memory. */
 
   char buf[MSGLEN*2];
-  char msg[] = {"Allocating %ld Bytes of %s memory failed.\nAlternate disk space is also insufficient. Goodbye"};
+  char msg[] = {"Allocating %lu Bytes of %s memory failed.\nAlternate disk space is also insufficient. Goodbye"};
   sprintf(buf,msg,howmuch,memstr[stored_at]);
   stopmsg(0,(char *)buf);
 }
 
-static int check_for_mem(int stored_at, unsigned long howmuch)
+static int check_for_mem(int stored_at, unsigned long long howmuch)
 {
   /* This function returns an adjusted stored_at value. */
   /* This is where the memory requested can be allocated. */
 
-  unsigned long maxmem;
+  unsigned long long maxmem;
   BYTE *temp;
   int use_this_type;
 
   use_this_type = NOWHERE;
-  maxmem = LONG_MAX; /* limit FARMEM to 2147483647 */
+  maxmem = LONG_MAX >> 1; /* limit FARMEM to 1,073,741,823, arbitrarily */
 
   if (debugflag == 420)
     stored_at = DISK;
@@ -164,9 +164,9 @@ static int check_for_mem(int stored_at, unsigned long howmuch)
   switch (stored_at)
     {
     case FARMEM: /* check_for_mem */
-      if (maxmem > howmuch)
+      if (maxmem >= howmuch)
         {
-          temp = (BYTE *)malloc(howmuch);
+          temp = (BYTE *)malloc((size_t)howmuch);
           if (temp != NULL)   /* requested amount */
             {
               free(temp);
@@ -177,8 +177,11 @@ static int check_for_mem(int stored_at, unsigned long howmuch)
       /* failed, fall through, try disk */
     case DISK: /* check_for_mem */
     default: /* just in case a nonsense number gets used */
-      use_this_type = DISK;
-      break;
+      if (howmuch < (unsigned long long)LONG_MAX)  /* limit disk memory to 2,147,483,647 */
+      {
+        use_this_type = DISK;
+        break;
+      }
       /* no good way to check, assume it is okay */
 
     case NOWHERE: /* check_for_mem */
@@ -316,11 +319,11 @@ U16 MemoryAlloc(U16 size, long count, int stored_at)
   /* Returns handle number if successful, 0 or NULL if failure */
   U16 handle = 0;
   int success, use_this_type;
-  unsigned long toallocate;
+  unsigned long long toallocate;
 
   success = FALSE;
-  toallocate = count * size;
-  if (count > toallocate) /* we failed, wrapped to a low number */
+  toallocate = (unsigned long long)count * size;
+  if ((unsigned long long)count > toallocate) /* we failed, wrapped to a low number */
     return((U16)success);
 
   /* check structure for requested memory type (add em up) to see if
@@ -584,7 +587,7 @@ int SetMemory(int value,U16 size,long count,long offset,U16 handle)
   /* Returns TRUE if successful, FALSE if failure */
   BYTE diskbuf[DISKWRITELEN];
   long start; /* first location to set */
-  long tomove; /* number of bytes to set */
+  unsigned long tomove; /* number of bytes to set */
   U16 numwritten, i;
   int success;
 
@@ -658,17 +661,31 @@ int ClearMemory(U16 handle)
 
     case DISK: /* ClearMemory */
       {
-      BYTE diskbuf[DISKWRITELEN];
-      unsigned long tomove; /* number of bytes to set */
-      U16 numwritten, i;
+      BYTE *diskbuf;
+      unsigned long long tomove, numtomove; /* number of bytes to set */
+      U16 numwritten;
+      double percentdone = 0.0;
+      int buffersize = DISKWRITELEN;
+      char buf[40];
 
+      if (handletable[handle].Disk.size >= ULONG_MAX)
+        buffersize *= 16;
+      diskbuf = (BYTE *)malloc(buffersize);
       tomove = handletable[handle].Disk.size;
+      numtomove = handletable[handle].Disk.size;
       memset(diskbuf, 0, (U16)DISKWRITELEN);
       rewind(handletable[handle].Disk.file);
-      fseek(handletable[handle].Disk.file,0,SEEK_SET);
       while (tomove > DISKWRITELEN)
         {
           numwritten = (U16)fwrite(diskbuf,(U16)DISKWRITELEN,1,handletable[handle].Disk.file);
+          if (dotmode == 11)
+          {
+              percentdone = (double)(100.0 * ((double)numtomove - tomove) / numtomove);
+              sprintf(buf,"clearing the 'screen' %3.2f%%", percentdone);
+              dvid_status(0,buf);
+              if (keypressed())           /* user interrupt */
+                goto diskerror;
+          }
           if (numwritten != 1)
             {
               WhichDiskError(2);
@@ -684,6 +701,7 @@ int ClearMemory(U16 handle)
         }
       success = TRUE;
 diskerror:
+      free (diskbuf);
       break;
       } /* end of DISK */
     } /* end of switch */
