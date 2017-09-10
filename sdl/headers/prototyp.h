@@ -647,16 +647,16 @@ extern long divide(long, long, int);
 /*  memory -- C file prototypes */
 
 extern void DisplayMemory (void);
-extern void DisplayHandle (U16 handle);
-extern int MemoryType (U16 handle);
+extern void DisplayHandle (U16);
+extern int MemoryType (U16);
 extern void InitMemory (void);
 extern void ExitCheck (void);
-extern U16 MemoryAlloc(U16 size, long count, int stored_at);
-extern void MemoryRelease(U16 handle);
-extern int MoveToMemory(BYTE *buffer,U16 size,long count,long offset,U16 handle);
-extern int MoveFromMemory(BYTE *buffer,U16 size,long count,long offset,U16 handle);
-extern int SetMemory(int value,U16 size,long count,long offset,U16 handle);
-extern int ClearMemory(U16 handle);
+extern U16 MemoryAlloc(U16, long, int);
+extern void MemoryRelease(U16);
+extern int MoveToMemory(BYTE *, U16 ,long, long, U16);
+extern int MoveFromMemory(BYTE *, U16, long, long, U16);
+extern int SetMemory(int, U16, long, long, U16);
+extern int ClearMemory(U16);
 
 /*  miscfrac -- C file prototypes */
 

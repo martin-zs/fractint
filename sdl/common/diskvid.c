@@ -241,7 +241,7 @@ int common_startdisk(long newrowsize, long newcolsize, int colors)
       return(-1);
    }
 
-   if (dotmode == 11)
+   if (dotmode == 11) {
      switch (MemoryType(dv_handle)) {
        case NOWHERE:
        default:
@@ -254,6 +254,8 @@ int common_startdisk(long newrowsize, long newcolsize, int colors)
          putstring(BOXROW+2,BOXCOL+23,C_DVID_LO,"Using your Disk Drive");
          break;
      }
+   movecursor(25, 80);
+   }
 
    membufptr = membuf;
 
@@ -264,7 +266,7 @@ int common_startdisk(long newrowsize, long newcolsize, int colors)
          if (stopmsg(2, "Disk Video initialization interrupted:\n")) /* esc to cancel, else continue */
          {
             enddisk();
-            return -2;            /* -1 == failed, -2 == cancel   */
+            return (-2);            /* -1 == failed, -2 == cancel   */
          }
       }
 
@@ -298,6 +300,7 @@ void enddisk()
    if (membuf != NULL)
       free(membuf);
    diskflag = rowsize = disk16bit = 0;
+   diskvideo = 0;
    hash_ptr    = NULL;
    cache_start = NULL;
    membuf      = NULL;
@@ -311,7 +314,7 @@ BYTE readdisk(int col, int row)
    char buf[41];
    if (--timetodisplay < 0) {  /* time to display status? */
       if (dotmode == 11) {
-         sprintf(buf," reading line %4d",
+         sprintf(buf," reading line %5d",
                 (row >= sydots) ? row-sydots : row); /* adjust when potfile */
          dvid_status(0,buf);
          }
@@ -366,7 +369,7 @@ void writedisk(int col, int row, U32 color)
    char buf[41];
    if (--timetodisplay < 0) {  /* time to display status? */
       if (dotmode == 11) {
-         sprintf(buf," writing line %4d",
+         sprintf(buf," writing line %5d",
                 (row >= sydots) ? row-sydots : row); /* adjust when potfile */
          dvid_status(0,buf);
          }

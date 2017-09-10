@@ -289,8 +289,10 @@ Version 20.5\
 
 Port to SDL 2.0
 
-Made loading a color map change the colors without regenerating\
-the image.\
+Made disk video work up to 46340 X 46340.  This is based on a limit
+of the maximum size of a signed long value (2,147,483,647) used by the
+routines for file access.  Note that trying to run a large disk video
+mode more than once tends to cause problems.  I'm working on it.
 
 Known issues:\
 No sound\

@@ -143,7 +143,7 @@ void loaddac (void)
 */
 void setvideomode (int dotmode)
 {
-  if (diskflag && dotmode != 11)
+  if (diskflag && dotmode == 11)
     {
       enddisk ();
     }
