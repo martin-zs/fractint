@@ -511,6 +511,7 @@ void startvideo(void)
     {
       gotrealdac = 0;
       istruecolor = 1;
+      fake_lut = 1;
 // FIXME (jonathan#1#): Need to have more colors for truecolor modes
       colors = 256;
     }
@@ -987,6 +988,8 @@ void unstackscreen(void)
 #if DEBUG
   fprintf(stderr, "unstackscreen, %i screens stacked\n", screenctr);
 #endif
+  if (dotmode == 11)
+    return;  /* leave one text screen in disk video mode */
   if (screenctr > 1)
     {
       restore_text();

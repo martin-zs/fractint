@@ -99,6 +99,48 @@ struct videoinfo videotable[MAXVIDEOTABLE] = {
    SF8, 8, 1280, 1024, 256},
   {"unused  mode             ", "                         ",
    0, 0, 0, 0, 0},
+  {"unused  mode             ", "                         ",
+   0, 0, 0, 0, 0},
+  {"unused  mode             ", "                         ",
+   0, 0, 0, 0, 0},
+  {"unused  mode             ", "                         ",
+   0, 0, 0, 0, 0},
+  {"unused  mode             ", "                         ",
+   0, 0, 0, 0, 0},
+  {"unused  mode             ", "                         ",
+   0, 0, 0, 0, 0},
+  {"unused  mode             ", "                         ",
+   0, 0, 0, 0, 0},
+  {"unused  mode             ", "                         ",
+   0, 0, 0, 0, 0},
+  {"unused  mode             ", "                         ",
+   0, 0, 0, 0, 0},
+  {"unused  mode             ", "                         ",
+   0, 0, 0, 0, 0},
+  {"unused  mode             ", "                         ",
+   0, 0, 0, 0, 0},
+  {"unused  mode             ", "                         ",
+   0, 0, 0, 0, 0},
+  {"unused  mode             ", "                         ",
+   0, 0, 0, 0, 0},
+  {"unused  mode             ", "                         ",
+   0, 0, 0, 0, 0},
+  {"unused  mode             ", "                         ",
+   0, 0, 0, 0, 0},
+  {"unused  mode             ", "                         ",
+   0, 0, 0, 0, 0},
+  {"unused  mode             ", "                         ",
+   0, 0, 0, 0, 0},
+  {"unused  mode             ", "                         ",
+   0, 0, 0, 0, 0},
+  {"unused  mode             ", "                         ",
+   0, 0, 0, 0, 0},
+  {"unused  mode             ", "                         ",
+   0, 0, 0, 0, 0},
+  {"unused  mode             ", "                         ",
+   0, 0, 0, 0, 0},
+  {"unused  mode             ", "                         ",
+   0, 0, 0, 0, 0},
 };
 
 void nullwrite (int a, int b, U32 c)
@@ -270,7 +312,7 @@ void spindac (int dir, int inc)
     return;
   if (!(gotrealdac || fake_lut))
     return;
-  if (istruecolor)
+  if (istruecolor && truemode)
     return;
   if (dir != 0 && rotate_lo < colors && rotate_lo < rotate_hi)
     {
@@ -297,7 +339,7 @@ void spindac (int dir, int inc)
         }
     }
   writevideopalette ();
-  delay (colors - daccount - 1);
+  delay (colors - daccount);
 }
 
 /*

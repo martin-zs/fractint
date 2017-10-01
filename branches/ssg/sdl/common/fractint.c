@@ -211,9 +211,7 @@ int main(int argc, char **argv)
   fract_dir2 = ".";
 
   load_videotable(1); /* load fractint.cfg, no message yet if bad */
-#if 0
-  adapter_detect();   /* check what video is really present */
-#endif
+
   init_help();
 
 restart:   /* insert key re-starts here */

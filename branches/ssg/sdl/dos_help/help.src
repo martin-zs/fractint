@@ -289,15 +289,12 @@ Version 20.5\
 
 Port to SDL 2.0
 
-Made disk video work up to 46340 X 46340.  This is based on a limit
-of the maximum size of a signed long value (2,147,483,647) used by the
-routines for file access.  Note that trying to run a large disk video
-mode more than once tends to cause problems.  I'm working on it.
+Made color cycling work.  Still working on the video modes.
 
 Known issues:\
 No sound\
 Colors still limited to 256\
-No color cycling/editing\
+No color editing\
 
 Patch 14 to Version 20.4.0\
 
