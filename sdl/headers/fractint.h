@@ -389,7 +389,7 @@ struct orbits_info      /* for saving orbits data in a GIF file */
 };
 
 #define MAXVIDEOMODES 60       /* maximum entries in fractint.cfg        */
-#define MAXVIDEOTABLE 50        /* size of the resident video modes table */
+#define MAXVIDEOTABLE 40       /* size of the resident video modes table */
 
 #define AUTOINVERT -123456.789
 

@@ -275,6 +275,22 @@ prompt_user:
       /* sanity checks */
       {
         long xtotal, ytotal;
+        int i;
+
+      /* get resolution from the video name (which must be valid) */
+        pxdots = pydots = 0;
+        if ((i = check_vidmode_keyname(vidmde)) > 0)
+            if ((i = check_vidmode_key(0, i)) >= 0) {
+                /* get the resolution of this video mode */
+                pxdots = videotable[i].xdots;
+                pydots = videotable[i].ydots;
+                }
+        if (pxdots == 0 && (xm > 1 || ym > 1)) {
+            /* no corresponding video mode! */
+            static FCODE msg[] = {"Invalid video mode entry!"};
+            stopmsg(0,msg);
+            goto prompt_user;
+            }
 
         /* bounds range on xm, ym */
         if (xm < 1 || xm > 36 || ym < 1 || ym > 36)
@@ -325,6 +341,7 @@ skip_UI:
             outname[i] = 0;
           strcat(outname, "fractint.tmp");
           infile = fopen(CommandFile, "rt");
+          setvbuf(infile, tstack, _IOFBF, 4096); /* improves speed */
         }
       if ((parmfile = fopen(outname, "wt")) == NULL)
         {

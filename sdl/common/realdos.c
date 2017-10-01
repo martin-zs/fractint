@@ -1696,7 +1696,6 @@ bad_fractint_cfg:
     bad_fractint_cfg_msg();
 
 use_resident_table:
-//  adapter_detect();
   vidtbllen = 0;
   vident = vidtbl;
   for (i = 0; i < MAXVIDEOTABLE; ++i)
@@ -1709,9 +1708,7 @@ use_resident_table:
           ++vidtbllen;
         }
     }
-//  update_fractint_cfg();
   return (vidtbllen);
-
 }
 
 void bad_fractint_cfg_msg()
@@ -1723,6 +1720,7 @@ I will continue with only the built-in video modes available."
                            };
   stopmsg(0,badcfgmsg);
   badconfig = 1; /* bad, message issued */
+  adapter_detect();
 }
 
 void load_videotable(int options)

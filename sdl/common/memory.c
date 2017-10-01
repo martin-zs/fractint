@@ -681,7 +681,7 @@ int ClearMemory(U16 handle)
           if (dotmode == 11)
           {
               percentdone = (double)(100.0 * ((double)numtomove - tomove) / numtomove);
-              sprintf(buf,"clearing the 'screen' %3.2f%%", percentdone);
+              sprintf(buf,"clearing the 'screen' %3.1f%%", percentdone);
               dvid_status(0,buf);
               if (keypressed())           /* user interrupt */
                 goto diskerror;
