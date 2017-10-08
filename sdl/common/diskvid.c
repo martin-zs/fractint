@@ -181,7 +181,7 @@ int common_startdisk(long newrowsize, long newcolsize, int colors)
    cache_size = CACHEMAX;
    if (debugflag==4200)
       cache_size = CACHEMIN;
-   longtmp = (long)cache_size << 10;
+   longtmp = (long)cache_size << 11;
    if (cache_start == NULL)
       cache_start = (struct cache *)malloc(longtmp);
    if (cache_size == 64)
@@ -261,13 +261,16 @@ int common_startdisk(long newrowsize, long newcolsize, int colors)
 
    if (!disktarga)
       {
-      ClearMemory(dv_handle);
-      if (keypressed())           /* user interrupt */
-         if (stopmsg(2, "Disk Video initialization interrupted:\n")) /* esc to cancel, else continue */
+tryagain:
+      if (!ClearMemory(dv_handle))           /* user interrupt */
+         if (stopmsg(2, "Disk Video initialization interrupted or failed:\n")) /* esc to cancel, else continue */
          {
             enddisk();
-            return (-2);            /* -1 == failed, -2 == cancel   */
+            adapter = check_vidmode_keyname("SF6");
+            return (-1);            /* -1 == failed */
          }
+         else
+            goto tryagain;
       }
 
    if (disktarga) { /* Put header information in the file */

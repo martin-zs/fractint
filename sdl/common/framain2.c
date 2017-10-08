@@ -98,7 +98,8 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
 
           else if (saved_adapter_mode != adapter)
             {
-              setvideomode(dotmode); /* switch video modes */
+              if (!setvideomode(dotmode)) /* switch video modes */
+                return(RESTART); /* disk video failed */
               xdots = sxdots;
               ydots = sydots;
               saved_adapter_mode = adapter;
@@ -1053,7 +1054,7 @@ int main_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stacked)
         }
       return(CONTINUE);
     case 'e':                    /* switch to color editing      */
-      if (istruecolor && !initbatch)   /* don't enter palette editor */
+      if (istruecolor && truemode && !initbatch)   /* don't enter palette editor */
         {
           if (load_palette() >= 0)
             {
@@ -1509,7 +1510,7 @@ int evolver_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stack
         }
       return(CONTINUE);
     case 'e':                    /* switch to color editing      */
-      if (istruecolor && !initbatch)   /* don't enter palette editor */
+      if (istruecolor && truemode && !initbatch)   /* don't enter palette editor */
         {
           if (load_palette() >= 0)
             {

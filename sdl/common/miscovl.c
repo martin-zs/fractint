@@ -1700,6 +1700,7 @@ int select_video_mode(int curmode)
 
   oldtabmode = tabmode;
   oldhelpmode = helpmode;
+tryagain:
   modes_changed = 0;
   tabmode = 0;
   helpmode = HELPVIDSEL;
@@ -1720,6 +1721,9 @@ int select_video_mode(int curmode)
     i = -1 - i;
   else         /* picked by Enter key */
     i = entnums[i];
+
+  if (!checkwindowsize(vidtbl[i].xdots, vidtbl[i].ydots) && vidtbl[i].dotmode != 11)
+    goto tryagain;
 
   memcpy((char *)&videoentry,(char *)&vidtbl[i],
              sizeof(videoentry));  /* the selected entry now in videoentry */
@@ -1749,6 +1753,7 @@ int select_video_mode(int curmode)
       memcpy((char *)&videotable[MAXVIDEOTABLE-1],
                  (char *)&videoentry,sizeof(*vidtbl));
       ret = 1400; /* special value for check_vidmode_key */
+      saved_adapter_mode = -2; /* force video initialization */
     }
 
   if (modes_changed /* update fractint.cfg for new key assignments */

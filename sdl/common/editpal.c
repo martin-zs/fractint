@@ -723,7 +723,7 @@ BOOLEAN Cursor_Construct(void)
   the_cursor->x          = sxdots/2;
   the_cursor->y          = sydots/2;
   the_cursor->hidden     = 1;
-  the_cursor->blink      = FALSE;
+  the_cursor->blink      = TRUE;
   the_cursor->last_blink = 0;
 
   return (TRUE);
@@ -852,11 +852,13 @@ void Cursor_Show(void)
 
 void Cursor_StartMouseTracking()
 {
+  showcursor (0);
   editpal_cursor = 1;
 }
 
 void Cursor_EndMouseTracking()
 {
+  showcursor (1);
   editpal_cursor = 0;
 }
 
@@ -1300,9 +1302,6 @@ static CEditor *CEditor_Construct( int x, int y, char letter,
   return(this);
 }
 
-#ifdef __TURBOC__
-#   pragma argsused   /* kills "arg not used" warning */
-#endif
 #ifdef __CLINT__
 #   pragma argsused   /* kills "arg not used" warning */
 #endif

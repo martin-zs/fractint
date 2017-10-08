@@ -289,12 +289,19 @@ Version 20.5\
 
 Port to SDL 2.0
 
-Made color cycling work.  Still working on the video modes.
+Color palette editing works with the cursor keys, the mouse tries to\
+work, but is currently unusable.\
+Most video modes (see below) should select correctly now. Note that\
+selecting a mode (other than disk video) larger than your screen will\
+send you back to the <DEL> screen.
 
 Known issues:\
 No sound\
 Colors still limited to 256\
-No color editing\
+Blinking cursor leaves artifacts when arrow keys used\
+2-color disk video modes are broken\
+Interrupting disk video initialization and cancelling it\
+causes a crash
 
 Patch 14 to Version 20.4.0\
 
