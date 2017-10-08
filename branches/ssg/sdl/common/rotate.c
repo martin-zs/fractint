@@ -136,9 +136,21 @@ void rotate(int direction)      /* rotate-the-palette routine */
           daclearn = 1;
           if (++daccount >= colors) --daccount;
           break;
+        case UP_ARROW_2:                 /* UpArrow means speed up       */
+          daclearn = 1;
+          daccount += 32;
+          if (daccount > colors)
+            daccount = colors;
+          break;
         case DOWN_ARROW:               /* DownArrow means slow down    */
           daclearn = 1;
           if (daccount > 1) daccount--;
+          break;
+        case DOWN_ARROW_2:               /* DownArrow means slow down    */
+          daclearn = 1;
+          daccount -= 32;
+          if (daccount < 0)
+            daccount = 0;
           break;
         case '1':
         case '2':

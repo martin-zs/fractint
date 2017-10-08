@@ -497,6 +497,16 @@ void adapter_detect(void)
   dotmode = SDL_BYTESPERPIXEL(sdlPixelfmt) * 8;
 }
 
+int checkwindowsize(int x, int y)
+{
+  int fits_in_window = FALSE;
+  SDL_DisplayMode DTmode;
+
+  SDL_GetDesktopDisplayMode(display_in_use, &DTmode);
+  if (DTmode.w >= x && DTmode.h >= y)
+    fits_in_window = TRUE;
+  return (fits_in_window);
+}
 void startvideo(void)
 {
   int Bpp = SDL_BYTESPERPIXEL(sdlPixelfmt);
@@ -988,8 +998,8 @@ void unstackscreen(void)
 #if DEBUG
   fprintf(stderr, "unstackscreen, %i screens stacked\n", screenctr);
 #endif
-  if (dotmode == 11)
-    return;  /* leave one text screen in disk video mode */
+//  if (dotmode == 11)
+//    return;  /* leave one text screen in disk video mode */
   if (screenctr > 1)
     {
       restore_text();
@@ -1161,6 +1171,14 @@ void scrollup (int top, int bot)
     }
   outtext(bot, 0, c);
   /* bottom line is added by intro() */
+}
+
+void showcursor(int show)
+{ /* hide cursor if show==0, show cursor if show==1 */
+    if (show)
+        SDL_ShowCursor(SDL_ENABLE);
+    else
+        SDL_ShowCursor(SDL_DISABLE);
 }
 
 static int translate_key(SDL_KeyboardEvent *key)
@@ -1452,24 +1470,74 @@ static int translate_key(SDL_KeyboardEvent *key)
 int left_mouse_button_down = 0;
 int right_mouse_button_down = 0;
 int button_held = 0;
+extern int inside_help;
+extern int editpal_cursor;
+#define ABS(x) ((x) > 0?(x):-(x))
 
-void check_mouse(SDL_Event mevent)
+int check_mouse(SDL_Event mevent)
 {
   static int lastx = 0;
   static int lasty = 0;
-  static int dx,dy;
+  static int dx = 0;
+  static int dy = 0;
   int bandx0, bandy0, bandx1, bandy1;
   int done = 0;
   static int banding = 0;
+  int bnum = 0;
+  int keypressed = 0;
 
   if (screenctr) /* don't do it, we're on a text screen */
-    return;
+    return (0);
 
-  if (lookatmouse == 3 || zoomoff == 0)
+  if (mevent.button.state & SDL_BUTTON_MMASK ||
+        (mevent.button.state & SDL_BUTTON_LMASK &&
+         mevent.button.state & SDL_BUTTON_RMASK))
+       bnum = 3;
+  else if (mevent.button.state & SDL_BUTTON_LMASK)
+       bnum = 1;
+  else if (mevent.button.state & SDL_BUTTON_RMASK)
+       bnum = 2;
+  else
+       bnum = 0;
+
+  if ((lookatmouse == 3 && bnum == 0) || zoomoff == 0)
     {
+      dx += (mevent.button.x-lastx);
+      dy += (mevent.button.y-lasty);
       lastx = mevent.button.x;
       lasty = mevent.button.y;
-      return;
+    }
+
+    if (!keypressed && editpal_cursor && !inside_help && lookatmouse == 3 &&
+    (dx != 0 || dy != 0))
+    {
+        if (ABS(dx)>ABS(dy))
+        {
+            if (dx>0)
+            {
+                keypressed = mousefkey[bnum][0]; /* right */
+                dx--;
+            }
+            else if (dx<0)
+            {
+                keypressed = mousefkey[bnum][1]; /* left */
+                dx++;
+            }
+        }
+        else
+        {
+            if (dy>0)
+            {
+                keypressed = mousefkey[bnum][2]; /* down */
+                dy--;
+            }
+            else if (dy<0)
+            {
+                keypressed = mousefkey[bnum][3]; /* up */
+                dy++;
+            }
+        }
+        return (keypressed);
     }
 
   if (left_mouse_button_down && !button_held)
@@ -1517,7 +1585,7 @@ void check_mouse(SDL_Event mevent)
 
   if (right_mouse_button_down)
     (*plot)(mevent.button.x, mevent.button.y, 4);
-
+  return (0);
 }
 
 int get_key_event(int block)
@@ -1569,7 +1637,7 @@ int get_key_event(int block)
            }
              break;
             case SDL_MOUSEMOTION:
-              check_mouse(event);
+              keypressed = check_mouse(event);
               break;
             case SDL_MOUSEBUTTONDOWN:
               if (event.button.button == SDL_BUTTON_LEFT && left_mouse_button_down == 1)
