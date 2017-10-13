@@ -83,6 +83,9 @@ Fix file access.]]>
 		<Unit filename="common/decoder.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="common/diskvid.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="common/editpal.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -252,16 +255,10 @@ Fix file access.]]>
 		<Unit filename="headers/prototyp.h">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="headers/unix.h">
-			<Option compilerVar="CC" />
-		</Unit>
 		<Unit filename="sdl/calcmand.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="sdl/calmanfp.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="sdl/diskvidu.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="sdl/faccess.c">

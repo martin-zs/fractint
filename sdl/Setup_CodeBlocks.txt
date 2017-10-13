@@ -64,6 +64,9 @@ These should all be set if you open the fractint.workspace in Code::Blocks
 
 
 Linux:
+
+Run: sudo apt-get install build-essential
+
 The following packages (and their dependencies) are needed:
   codeblocks
   libsdl2-dev
