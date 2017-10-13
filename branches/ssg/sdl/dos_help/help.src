@@ -289,15 +289,12 @@ Version 20.5\
 
 Port to SDL 2.0
 
-Color palette editing works with the cursor keys, the mouse tries to\
-work, but is currently unusable.\
-Most video modes (see below) should select correctly now. Note that\
-selecting a mode (other than disk video) larger than your screen will\
-send you back to the <DEL> screen.
+Full screen mode and resizing windows work better\
 
 Known issues:\
 No sound\
 Colors still limited to 256\
+Palette editor doesn't work well with mouse\
 Blinking cursor leaves artifacts when arrow keys used\
 2-color disk video modes are broken\
 Interrupting disk video initialization and cancelling it\

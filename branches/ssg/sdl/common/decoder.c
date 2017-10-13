@@ -451,7 +451,7 @@ static short get_next_code()
   return ((short) (ret_code & code_mask[curr_size]));
 }
 
-/* called in parent reoutine to set byte_buff */
+/* called in parent routine to set byte_buff */
 void set_byte_buff(BYTE * ptr)
 {
   byte_buff = ptr;

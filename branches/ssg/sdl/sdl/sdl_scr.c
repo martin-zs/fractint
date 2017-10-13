@@ -187,8 +187,11 @@ void ResizeScreen(int mode)
         }
 
       WinIcon = SDL_LoadBMP("Fractint.bmp");
-      SDL_SetWindowIcon( sdlWindow, WinIcon );
-      SDL_FreeSurface( WinIcon );
+      if (WinIcon != NULL)
+      {
+        SDL_SetWindowIcon( sdlWindow, WinIcon );
+        SDL_FreeSurface( WinIcon );
+      }
     }
   else if (mode == 1)  /*  graphics window  */
     {
@@ -253,34 +256,7 @@ void ResizeScreen(int mode)
 
   SDL_GetRendererOutputSize(sdlRenderer, &win_size_w, &win_size_h);
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");  /* make the scaled rendering look smoother */
-  if ( window_is_fullscreen )
-    {
-    int x_scaled, y_scaled;
-    int scale_renderer = 1;
-    SDL_Rect* scaled_rect = NULL;
 
-    if ( win_size_w >= win_size_h )
-       scale_renderer = (int)(win_size_h / sydots);
-    else
-       scale_renderer = (int)(win_size_w / sxdots);
-    if ( scale_renderer < 1 )
-       scale_renderer = 1;
-
-    x_scaled = sxdots * scale_renderer;
-    y_scaled = sydots * scale_renderer;
-    SDL_RenderSetScale(sdlRenderer, (float)scale_renderer, (float)scale_renderer);
-    SDL_RenderSetLogicalSize(sdlRenderer, x_scaled, y_scaled);
-    scaled_rect->x = (int)(((double)win_size_w - x_scaled) / 2.0);
-    scaled_rect->y = (int)(((double)win_size_h - y_scaled) / 2.0);
-    scaled_rect->w = (int)(x_scaled);
-    scaled_rect->h = (int)(y_scaled);
-    SDL_RenderSetViewport(sdlRenderer, scaled_rect);
-    }
-  else
-    {
-    SDL_RenderSetLogicalSize(sdlRenderer, sxdots, sydots);
-    SDL_RenderSetViewport(sdlRenderer, NULL);
-    }
   /* initialize screen to black */
   SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
   SDL_RenderClear(sdlRenderer);
@@ -1574,8 +1550,14 @@ int check_mouse(SDL_Event mevent)
 
       /* (zbx,zby) is upper left corner of zoom box */
       /* zwidth & zdepth are deltas to lower right corner */
-      zbx = (lastx - sxoffs) / dxsize;
-      zby = (lasty - syoffs) / dysize;
+      if (mevent.button.x > lastx)
+        zbx = (lastx + sxoffs) / dxsize;
+      else
+        zbx = (mevent.button.x + sxoffs) / dxsize;
+      if (mevent.button.y > lasty)
+        zby = (lasty + syoffs) / dysize;
+      else
+        zby = (mevent.button.y + syoffs) / dysize;
       zwidth = dx / dxsize;
       zdepth = dx * finalaspectratio / dysize; /* maintain aspect ratio here */
 
@@ -1606,12 +1588,13 @@ int get_key_event(int block)
 
             switch (event.window.event) {
             case SDL_WINDOWEVENT_RESIZED:
+            case SDL_WINDOWEVENT_SIZE_CHANGED:
               videoentry.xdots = event.window.data1 & 0xFFFC;  /* divisible by 4 */
-              /*  Maintain aspect ratio of image  */
-              videoentry.ydots = finalaspectratio * videoentry.xdots;
+              videoentry.ydots = event.window.data2 & 0xFFFC;
               discardscreen(); /* dump text screen if in use */
               calc_status = 0;
               resize_flag = 1;
+              saved_adapter_mode = -2; /* force video initialization */
               ResizeScreen(1);
               keypressed = ENTER;
               break;

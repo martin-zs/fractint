@@ -1084,6 +1084,9 @@ extern int time_to_update(void);
 extern void outtext(int, int, int);
 extern void refreshimage(void);
 
+/*  sdl_snd -- C file prototypes */
+extern void sdl_buzzer(void);
+
 /*  video -- C file prototypes */
 
 extern void setnullvideo (void);
