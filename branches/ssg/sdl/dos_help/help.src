@@ -289,7 +289,9 @@ Version 20.5\
 
 Port to SDL 2.0
 
-Full screen mode and resizing windows work better\
+Full screen mode and resizing windows work better,\
+ but sometimes a resized image won't auto generate.\
+Updated Windows Fractint to SDL 2.0.6\
 
 Known issues:\
 No sound\
