@@ -9,7 +9,7 @@ For Windows XP / Vista / 7 / 8.x /10:
 
 Run this file to install.  I picked the default installation.
 
-For SDL (32-bit):
+For Windows SDL (32-bit):
 Download from:
  www.libsdl.org/download-2.0.php
 
@@ -61,6 +61,58 @@ Under Search directories
     C:\SDL\SDL2_ttf-2.0.14\i686-w64-mingw32\lib
 
 These should all be set if you open the fractint.workspace in Code::Blocks
+
+
+For Windows SDL (64-bit):
+
+Download from SourceForge:
+ mingw-w64-install.exe
+  Run and install using all the defaults.
+
+Download from:
+ www.libsdl.org/download-2.0.php
+
+ SDL2-devel-2.0.6-mingw32.tar.gz (Mingw 32/64-bit)
+  Unpack to C:\SDL.  Will create C:\SDL\SDL-2.0.6.
+  The x86_64-w64-mingw32 subfolder contains the 64-bit files we need.
+
+ SDL2-2.0.6-win32-x64.zip
+  Contains the 64-bit SDL.dll, which must be in your working directory
+
+For SDL_ttf:
+Download from:
+ www.libsdl.org/projects/SDL_ttf/
+
+ SDL2_ttf-devel-2.0.14-mingw.tar.gz (MinGW 32/64-bit)
+  Unpack to c:\SDL.  Will create c:\SDL\SDL2_ttf-2.0.14
+  The x86_64-w64-mingw32 subfolder contains the 32-bit files we need.
+
+ SDL2_ttf-2.0.14-win32-x64.zip
+  Unpack copy to your working directory
+
+Windows Project options:
+
+Under Compiler settings
+  Other compiler options
+    -fno-builtin
+
+Under Linker settings
+  Link libraries:
+    mingw32
+    SDL2main
+    SDL2
+    SDL2_ttf
+
+Under Search directories
+  Compiler
+    C:\SDL\SDL2-2.0.6\x86_64-w64-mingw32\include\SDL2
+    C:\SDL\SDL2_ttf-2.0.14\x86_64-w64-mingw32\include\SDL2
+    headers
+  Linker
+    C:\SDL\SDL2-2.0.6\x86_64-w64-mingw32\lib
+    C:\SDL\SDL2_ttf-2.0.14\x86_64-w64-mingw32\lib
+
+These should all be set if you open Fractint-64.cbp in Code::Blocks
 
 
 Linux:

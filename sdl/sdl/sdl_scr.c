@@ -23,7 +23,7 @@ static int display_in_use = 0;
 
 TTF_Font *font = NULL;
 SDL_Color cols[256];
-int SDL_video_flags = SDL_WINDOW_RESIZABLE;
+int SDL_video_flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_OPENGL;
 int SDL_renderer_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
 SDL_Cursor *mousecurser = NULL;
 
@@ -1482,6 +1482,7 @@ int check_mouse(SDL_Event mevent)
       dy += (mevent.button.y-lasty);
       lastx = mevent.button.x;
       lasty = mevent.button.y;
+      return (0);
     }
 
     if (!keypressed && editpal_cursor && !inside_help && lookatmouse == 3 &&
@@ -1588,12 +1589,15 @@ int get_key_event(int block)
 
             switch (event.window.event) {
             case SDL_WINDOWEVENT_RESIZED:
-            case SDL_WINDOWEVENT_SIZE_CHANGED:
-              videoentry.xdots = event.window.data1 & 0xFFFC;  /* divisible by 4 */
-              videoentry.ydots = event.window.data2 & 0xFFFC;
+              videotable[MAXVIDEOTABLE-1].xdots = event.window.data1 & 0xFFFC;  /* divisible by 4 */
+              videotable[MAXVIDEOTABLE-1].ydots = event.window.data2 & 0xFFFC;
+              videotable[MAXVIDEOTABLE-1].colors = 256;
+              memcpy((char *)&videoentry,(char *)&videotable[MAXVIDEOTABLE-1],
+                    sizeof(videoentry));
               discardscreen(); /* dump text screen if in use */
               calc_status = 0;
               resize_flag = 1;
+              adapter = MAXVIDEOTABLE-1;
               saved_adapter_mode = -2; /* force video initialization */
               ResizeScreen(1);
               keypressed = ENTER;
@@ -1614,6 +1618,8 @@ int get_key_event(int block)
             case SDL_WINDOWEVENT_MINIMIZED:
               updatewindow = 0;
               break;
+            case SDL_WINDOWEVENT_CLOSE:
+              goodbye();
             default:
               break;
             }

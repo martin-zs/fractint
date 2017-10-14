@@ -605,12 +605,6 @@ int main_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stacked)
   if (quick_calc && calc_status != 4)
     usr_stdcalcmode = old_stdcalcmode;
 
-  if (resize_flag)
-    {
-      resize_flag = 0; /* reset the flag */
-      return(IMAGESTART);
-    }
-
   switch (*kbdchar)
     {
     case 't':                    /* new fractal type             */
