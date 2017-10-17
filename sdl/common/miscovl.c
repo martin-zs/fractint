@@ -1795,7 +1795,7 @@ static int check_modekey(int curkey,int choice)
   i = entsptr[choice];
   ret = 0;
   if ( (curkey == '-' || curkey == '+')
-       && (vidtbl[i].keynum == 0 || vidtbl[i].keynum >= 1084))
+       && (vidtbl[i].keynum == 0 || vidtbl[i].keynum >= SF1))
     {
       static FCODE msg[]= {"Missing or bad FRACTINT.CFG file. Can't reassign keys."};
       if (badconfig)
@@ -1804,7 +1804,7 @@ static int check_modekey(int curkey,int choice)
         {
           if (curkey == '-')                     /* deassign key? */
             {
-              if (vidtbl[i].keynum >= 1084)
+              if (vidtbl[i].keynum >= SF1)
                 {
                   vidtbl[i].keynum = 0;
                   modes_changed = 1;
@@ -1813,7 +1813,7 @@ static int check_modekey(int curkey,int choice)
           else                                   /* assign key? */
             {
               j = getakeynohelp();
-              if (j >= 1084 && j <= 1113)
+              if (j >= SF1 && j <= AF10)
                 {
                   for (k = 0; k < vidtbllen; ++k)
                     {

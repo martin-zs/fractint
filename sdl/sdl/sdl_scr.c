@@ -1589,15 +1589,11 @@ int get_key_event(int block)
 
             switch (event.window.event) {
             case SDL_WINDOWEVENT_RESIZED:
-              videotable[MAXVIDEOTABLE-1].xdots = event.window.data1 & 0xFFFC;  /* divisible by 4 */
-              videotable[MAXVIDEOTABLE-1].ydots = event.window.data2 & 0xFFFC;
-              videotable[MAXVIDEOTABLE-1].colors = 256;
-              memcpy((char *)&videoentry,(char *)&videotable[MAXVIDEOTABLE-1],
-                    sizeof(videoentry));
+              videoentry.xdots = event.window.data1 & 0xFFFC;  /* divisible by 4 */
+              videoentry.ydots = event.window.data2 & 0xFFFC;
               discardscreen(); /* dump text screen if in use */
               calc_status = 0;
               resize_flag = 1;
-              adapter = MAXVIDEOTABLE-1;
               saved_adapter_mode = -2; /* force video initialization */
               ResizeScreen(1);
               keypressed = ENTER;
