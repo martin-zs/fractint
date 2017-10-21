@@ -289,9 +289,9 @@ Version 20.5\
 
 Port to SDL 2.0
 
-Full screen mode and resizing windows work better,\
- but sometimes a resized image won't auto generate.\
-Updated Windows Fractint to SDL 2.0.6\
+Fixed zoom box in viewwindow and added rotating and resizing.\
+Fixed auto generate when resizing images.\
+Adjusted the maximum path length to 512 characters.\
 
 Known issues:\
 No sound\
@@ -300,7 +300,8 @@ Palette editor doesn't work well with mouse\
 Blinking cursor leaves artifacts when arrow keys used\
 2-color disk video modes are broken\
 Interrupting disk video initialization and cancelling it\
-causes a crash
+causes a crash\
+Control-a (ant) and Control-h (history) are broken\
 
 Patch 14 to Version 20.4.0\
 
