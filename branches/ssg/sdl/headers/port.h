@@ -117,7 +117,7 @@ typedef int sigfunc(int);
 
 /* these are used to declare arrays for file names */
 #if 1 /* XFRACT */
-#define FILE_MAX_PATH  256       /* max length of path+filename  */
+#define FILE_MAX_PATH  512       /* max length of path+filename  */
 #define FILE_MAX_DIR   256       /* max length of directory name */
 #else
 #define FILE_MAX_PATH  80       /* max length of path+filename  */

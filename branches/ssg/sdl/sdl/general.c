@@ -101,7 +101,7 @@ int waitkeypressed(int timeout)
 {
   while (!keybuffer)
     {
-      keybuffer = getkeyint(1);
+      keybuffer = getkeyint(0);
       if (timeout) break;
     }
   return keypressed();
@@ -129,7 +129,7 @@ int getakey(void)
 
   do
     {
-      ch = getkeyint(1);
+      ch = getkeyint(0);
     }
   while (ch==0);
   return ch;
@@ -167,7 +167,7 @@ int getkeyint(int block)
 
   if (curkey==0 && block)
     {
-      curkey = get_key_event(1);
+      curkey = get_key_event(block);
       if (slides==1 && curkey == ESC)
         {
           stopslideshow();

@@ -303,8 +303,8 @@ void ExitCheck (void)
         if (handletable[i].Nowhere.stored_at != NOWHERE)
           {
             char buf[MSGLEN];
-            char msg[] = {"Memory type %s still allocated.  Handle = %i."};
-            sprintf(buf,msg,memstr[handletable[i].Nowhere.stored_at],i);
+            char msg[] = {"%li bytes of memory type %s still allocated.  Handle = %i."};
+            sprintf(buf,msg,handletable[i].Nowhere.size,memstr[handletable[i].Nowhere.stored_at],i);
             stopmsg(0,(char *)buf);
             MemoryRelease(i);
           }

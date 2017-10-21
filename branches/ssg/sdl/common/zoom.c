@@ -47,7 +47,7 @@ void dispbox(void)
 
   for (i=0;i<boxcount;i++)
     {
-      if (istruecolor)
+      if (istruecolor && truemode)
         {
           gettruecolor(boxx[i]-sxoffs,boxy[i]-syoffs,&rgb[0],&rgb[1],&rgb[2]);
           puttruecolor(boxx[i]-sxoffs,boxy[i]-syoffs,
@@ -57,7 +57,7 @@ void dispbox(void)
         values[i] = (unsigned char)getcolor(boxx[i]-sxoffs,boxy[i]-syoffs);
     }
   /* There is an interaction between getcolor and putcolor, so separate them */
-  if (!istruecolor) /* don't need this for truecolor */
+  if (!(istruecolor && truemode)) /* don't need this for truecolor */
     for (i=0;i<boxcount;i++)
       {
           putcolor(boxx[i]-sxoffs,boxy[i]-syoffs,boxc);
@@ -69,7 +69,7 @@ void clearbox(void)
   int i;
   BYTE rgb[3];
 
-  if (istruecolor)
+  if (istruecolor && truemode)
     for (i=0;i<boxcount;i++)
     {
       gettruecolor(boxx[i]-sxoffs,boxy[i]-syoffs,&rgb[0],&rgb[1],&rgb[2]);

@@ -23,7 +23,7 @@ static int display_in_use = 0;
 
 TTF_Font *font = NULL;
 SDL_Color cols[256];
-int SDL_video_flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI | SDL_WINDOW_OPENGL;
+int SDL_video_flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI;
 int SDL_renderer_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
 SDL_Cursor *mousecurser = NULL;
 
@@ -177,7 +177,7 @@ void ResizeScreen(int mode)
       memcpy((char *)&videoentry,(char *)&videotable[adapter],
              sizeof(videoentry));  /* the selected entry now in videoentry */
       if ( sdlWindow == NULL ) /* Don't create one if we already have one */
-         sdlWindow = SDL_CreateWindow(0, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+         sdlWindow = SDL_CreateWindow(0, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                      videoentry.xdots, videoentry.ydots, SDL_video_flags);
 
       if ( sdlWindow == NULL ) /* No luck, bail out */
@@ -186,6 +186,7 @@ void ResizeScreen(int mode)
           exit(1);
         }
 
+      SDL_SetWindowMinimumSize(sdlWindow, 320, 200);
       WinIcon = SDL_LoadBMP("Fractint.bmp");
       if (WinIcon != NULL)
       {
@@ -1204,9 +1205,11 @@ static int translate_key(SDL_KeyboardEvent *key)
         case SDLK_BACKSLASH:
           return CTL_BACKSLASH;
         case SDLK_MINUS:
+        case SDLK_KP_MINUS:
           return CTL_MINUS;
         case SDLK_EQUALS: /* pretend shift is pressed */
         case SDLK_PLUS:
+        case SDLK_KP_PLUS:
           return CTL_PLUS;
         case SDLK_RETURN:
           return CTL_ENTER;
@@ -1384,6 +1387,42 @@ static int translate_key(SDL_KeyboardEvent *key)
           break;
         }
     }
+  else if (key->keysym.mod & KMOD_NUM) /* Num Lock key down */
+    {
+      switch (key->keysym.sym)
+        {
+        case SDLK_KP_1:
+          return '1';
+        case SDLK_KP_2:
+          return '2';
+        case SDLK_KP_3:
+          return '3';
+        case SDLK_KP_4:
+          return '4';
+        case SDLK_KP_5:
+          return '5';
+        case SDLK_KP_6:
+          return '6';
+        case SDLK_KP_7:
+          return '7';
+        case SDLK_KP_8:
+          return '8';
+        case SDLK_KP_9:
+          return '9';
+        case SDLK_KP_PERIOD:
+          return '.';
+        case SDLK_KP_PLUS:
+          return '+';
+        case SDLK_KP_MINUS:
+          return '-';
+        case SDLK_KP_MULTIPLY:
+          return '*';
+        case SDLK_KP_DIVIDE:
+          return '/';
+        default:
+          break;
+        }
+    }
   /* No modifier key down */
   switch (key->keysym.sym)
     {
@@ -1449,6 +1488,7 @@ int button_held = 0;
 extern int inside_help;
 extern int editpal_cursor;
 #define ABS(x) ((x) > 0?(x):-(x))
+#define MIN(x, y) ((x) < (y)?(x):(y))
 
 int check_mouse(SDL_Event mevent)
 {
@@ -1478,8 +1518,8 @@ int check_mouse(SDL_Event mevent)
 
   if ((lookatmouse == 3 && bnum == 0) || zoomoff == 0)
     {
-      dx += (mevent.button.x-lastx);
-      dy += (mevent.button.y-lasty);
+      dx += (mevent.button.x - lastx);
+      dy += (mevent.button.y - lasty);
       lastx = mevent.button.x;
       lasty = mevent.button.y;
       return (0);
@@ -1551,14 +1591,8 @@ int check_mouse(SDL_Event mevent)
 
       /* (zbx,zby) is upper left corner of zoom box */
       /* zwidth & zdepth are deltas to lower right corner */
-      if (mevent.button.x > lastx)
-        zbx = (lastx + sxoffs) / dxsize;
-      else
-        zbx = (mevent.button.x + sxoffs) / dxsize;
-      if (mevent.button.y > lasty)
-        zby = (lasty + syoffs) / dysize;
-      else
-        zby = (mevent.button.y + syoffs) / dysize;
+      zbx = (MIN(mevent.button.x, lastx) - sxoffs) / dxsize;
+      zby = (MIN(mevent.button.y, lasty) - syoffs) / dysize;
       zwidth = dx / dxsize;
       zdepth = dx * finalaspectratio / dysize; /* maintain aspect ratio here */
 
@@ -1567,7 +1601,7 @@ int check_mouse(SDL_Event mevent)
     }
 
   if (right_mouse_button_down)
-    (*plot)(mevent.button.x, mevent.button.y, 4);
+    (*plot)(mevent.button.x - sxoffs, mevent.button.y - syoffs, 4);
   return (0);
 }
 
@@ -1594,9 +1628,10 @@ int get_key_event(int block)
               discardscreen(); /* dump text screen if in use */
               calc_status = 0;
               resize_flag = 1;
+              adapter = MAXVIDEOTABLE - 1;
               saved_adapter_mode = -2; /* force video initialization */
               ResizeScreen(1);
-              keypressed = ENTER;
+              return (ENTER);
               break;
             case SDL_WINDOWEVENT_EXPOSED:
             case SDL_WINDOWEVENT_SHOWN:

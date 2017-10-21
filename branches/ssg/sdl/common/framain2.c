@@ -121,7 +121,7 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
             {
               if (mapdacbox)   /* but there's a map=, so load that */
                 {
-                  memcpy((char *)dacbox,mapdacbox,768);
+                  memcpy((char *)dacbox,mapdacbox,256*3);
                   spindac(0,1);
                 }
             else if ((dotmode == 11 && colors == 256) || !colors) {
