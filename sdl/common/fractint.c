@@ -203,6 +203,8 @@ int main(int argc, char **argv)
 
   InitMemory();
 
+  InitHistory();
+
   fract_dir1 = getenv("FRACTDIR");
   if (fract_dir1 == NULL)
     {
