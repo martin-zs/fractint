@@ -516,6 +516,7 @@ extern void end_help(void );
 
 /*  history -- C file prototypes */
 
+void InitHistory(void);
 void restore_history_info(int);
 void save_history_info(void);
 

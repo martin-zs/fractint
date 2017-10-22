@@ -20,6 +20,11 @@ static int   saveptr = 0;         /* save ptr into history tbl      */
 int          historyflag;         /* are we backing off in history? */
 
 
+void InitHistory(void)
+{
+  history = MemoryAlloc(sizeof(HISTORY), maxhistory, FARMEM);
+}
+
 void save_history_info()
 {
   HISTORY current,last;

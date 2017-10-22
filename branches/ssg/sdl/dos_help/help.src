@@ -289,9 +289,7 @@ Version 20.5\
 
 Port to SDL 2.0
 
-Fixed zoom box in viewwindow and added rotating and resizing.\
-Fixed auto generate when resizing images.\
-Adjusted the maximum path length to 512 characters.\
+Fixed 'history' ('h' and 'CNTL-h')\
 
 Known issues:\
 No sound\
