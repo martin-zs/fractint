@@ -196,7 +196,7 @@ void ResizeScreen(int mode)
     }
   else if (mode == 1)  /*  graphics window  */
     {
-      if (resize_flag == 0)/*&& !window_is_fullscreen) */ /* not called from event Queue */
+      if (resize_flag == 0) /* not called from event Queue */
         {
           if (videotable[adapter].xdots > desktop_w || videotable[adapter].ydots > desktop_h)
              return;
@@ -271,8 +271,10 @@ void ResizeScreen(int mode)
 
 #if DEBUG
   sprintf(msg, "%s at %dx%dx%d", Fractint, sxdots, sydots, bpp);
-#else
+#elif PRODUCTION
   sprintf(msg, Fractint);
+#else
+  sprintf(msg, "%s SDL Developmental Alpha", Fractint);
 #endif /* 1 */
 
   SDL_SetWindowTitle(sdlWindow, msg);
@@ -1564,6 +1566,7 @@ int check_mouse(SDL_Event mevent)
           if (zwidth == 0)  /* haven't started zooming yet */
             {
               /* start zoombox */
+              zskew = zrotate = 0;
               button_held = 1;
               banding = 0;
               lastx = mevent.button.x;
