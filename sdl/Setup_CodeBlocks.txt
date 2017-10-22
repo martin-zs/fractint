@@ -127,6 +127,17 @@ The following packages (and their dependencies) are needed:
   libsdl2-ttf-dev
 
 Ubuntu 14.04 has these packages, 16.04 does not.
+For development work:
+  On a Debian based system (like Ubuntu):
+  Need to run: sudo apt-get install libsdl2-dev
+  Need to run: sudo apt-get install libsdl2-ttf-dev
+
+For general users:
+  On a Debian based system (like Ubuntu):
+  Need to run: sudo apt-get intall libsdl2-2.0
+  Need to run: sudo apt-get install libsdl2-ttf2.0-0
+
+  See wiki.libsdl.org/installation
 
 Linux Project options:
 
