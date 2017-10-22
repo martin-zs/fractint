@@ -120,6 +120,7 @@ extern int strnicmp(char *, char *, int);
 /* #define BUFFER_SIZE   (24*1024) */
 #define BUFFER_SIZE   (30*1024)
 
+int checkcurdir = 0;
 
 typedef struct
    {
