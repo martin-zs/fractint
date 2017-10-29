@@ -1239,11 +1239,6 @@ int menu_checkkey(int curkey,int choice)
   int testkey;
   menutype = choice; /* for intro screen only */
   testkey = (curkey>='A' && curkey<='Z') ? curkey+('a'-'A') : curkey;
-#if 0 /* XFRACT */
-// FIXME (jonathan#1#): We may be able to remove this
-  /* We use F2 for shift-@, annoyingly enough */
-  if (testkey == F2) return(0-testkey);
-#endif
   if (testkey == '2')
     testkey = '@';
   if (strchr("#@2txyzgvir3jdu",testkey) || testkey == INSERT || testkey == 2
@@ -1312,6 +1307,7 @@ int input_field(
         }
       curkey = keycursor(row+insert,col+offset);  /* get a keystroke */
       if (curkey == 1047) curkey = 47; /* numeric slash */
+      unblink_cursor();
       switch (curkey)
         {
         case ENTER:

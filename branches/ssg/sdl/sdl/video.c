@@ -24,7 +24,7 @@ int fake_lut = 1;
 int istruecolor = 0;
 int daclearn = 0;
 int dacnorm = 0;
-int daccount = 128;
+int daccount = 192;
 int ShadowColors;
 void (*dotwrite) (int, int, U32);  /* write-a-dot routine */
 BYTE (*dotread) (int, int);         /* read-a-dot routine */
@@ -717,6 +717,17 @@ void blink_cursor (void)
     attr -= BLINK;
   else
     attr += BLINK;
+  text_attr[textrow][textcol] = attr;
+  outtext(textrow, textcol, textcol+1);
+}
+
+void unblink_cursor (void)
+{
+  int attr;
+
+  attr = text_attr[textrow][textcol];
+  if (attr & BLINK)
+    attr -= BLINK;
   text_attr[textrow][textcol] = attr;
   outtext(textrow, textcol, textcol+1);
 }

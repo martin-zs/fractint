@@ -290,16 +290,22 @@ Version 20.5\
 Port to SDL 2.0
 
 Fixed 'history' ('h' and 'CNTL-h')\
+Fixed the ant type.\
+Sped up initial color cycling.\
+Number pad works.\
+Sped up response to a key press in large disk video modes.\
+Fixed the artifacts from the blinking cursor.\
+Updated character set to include the arrow symbols thanks
+to Harold Lane.\
 
 Known issues:\
 No sound\
 Colors still limited to 256\
-Palette editor doesn't work well with mouse\
-Blinking cursor leaves artifacts when arrow keys used\
+Palette editor doesn't work with the mouse\
 2-color disk video modes are broken\
-Interrupting disk video initialization and cancelling it\
+Interrupting disk video initialization and canceling it\
 causes a crash\
-Control-a (ant) and Control-h (history) are broken\
+Help docs are not updated\
 
 Patch 14 to Version 20.4.0\
 
