@@ -369,7 +369,7 @@ int ant(void)
   char rule[MAX_ANTS];
   char *extra;
 
-  extra = (char *)malloc(20000);
+  extra = (char *)malloc(4*sizeof(int)*(xdots+ydots+4));
 
   for (i = 0; i < DIRS; i++)
     {
@@ -378,7 +378,7 @@ int ant(void)
     }
 
   /* In this vectors put all the possible point that the ants can visit.
-   * Wrap them from a side to the other insted of simply end calculation
+   * Wrap them from a side to the other instead of simply end calculation
    */
   for (i = 0; i < xdots; i++)
     {

@@ -376,7 +376,10 @@ void writedisk(int col, int row, U32 color)
                 (row >= sydots) ? row-sydots : row); /* adjust when potfile */
          dvid_status(0,buf);
          }
-      timetodisplay = 1000;
+      if(bf_math)
+         timetodisplay = 10;  /* time-to-display-status counter */
+      else
+         timetodisplay = 1000;  /* time-to-display-status counter */
       }
    if (row != cur_row)    { /* try to avoid ghastly code generated for multiply */
       if (row >= colsize) /* while we're at it avoid this test if not needed  */
@@ -655,5 +658,6 @@ void dvid_status(int line,char *msg)
       }
    putstring(BOXROW+10+line,BOXCOL+12,attrib,buf);
    movecursor(25,80);
+   keypressed();
 }
 

@@ -1393,6 +1393,8 @@ static int translate_key(SDL_KeyboardEvent *key)
     {
       switch (key->keysym.sym)
         {
+        case SDLK_KP_0:
+          return '0';
         case SDLK_KP_1:
           return '1';
         case SDLK_KP_2:
@@ -1633,6 +1635,7 @@ int get_key_event(int block)
               resize_flag = 1;
               adapter = MAXVIDEOTABLE - 1;
               saved_adapter_mode = -2; /* force video initialization */
+              window_is_fullscreen = 0;
               ResizeScreen(1);
               return (ENTER);
               break;
@@ -1642,11 +1645,9 @@ int get_key_event(int block)
               break;
             case SDL_WINDOWEVENT_RESTORED:
               window_is_fullscreen = 0;
-              updatewindow = 1;
               break;
             case SDL_WINDOWEVENT_MAXIMIZED:
               window_is_fullscreen = 1;
-              updatewindow = 1;
               break;
             case SDL_WINDOWEVENT_HIDDEN:
             case SDL_WINDOWEVENT_MINIMIZED:
@@ -1741,7 +1742,7 @@ long clock_ticks(void)
 
 #define TICK_INTERVAL    50
 #define TICK_INTERVAL2   100
-#define BLINK_INTERVAL   300
+#define BLINK_INTERVAL   200
 
 static U32 next_time = 0;
 
@@ -1787,7 +1788,7 @@ int time_to_update(void)
     }
     else
     {
-    SDL_Delay(5);
+    SDL_Delay(1);
     return (1);
     }
 }

@@ -1109,5 +1109,6 @@ extern int keycursor (int, int);
 extern void spindac (int, int);
 extern int get_video_mode(struct fractal_info *,struct ext_blk_3 *);
 extern void blink_cursor(void);
+extern void unblink_cursor(void);
 
 #endif
