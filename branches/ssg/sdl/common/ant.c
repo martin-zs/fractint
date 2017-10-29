@@ -22,8 +22,13 @@
 #include "prototyp.h"
 #include "helpdefs.h"
 
+#ifdef XFRACT
 #define RANDOM(n)       ((int)((long)((long)rand() * (long)(n)) >> (sizeof(int) * 8 - 1))) /* Generate Random
 * Number 0 <= r < n */
+#else
+#define RANDOM(n)       ((int)((long)((long)rand() * (long)(n)) >> 15)) /* Generate Random
+* Number 0 <= r < n */
+#endif
 #define MAX_ANTS        256
 #define XO              (xdots/2)
 #define YO              (ydots/2)
