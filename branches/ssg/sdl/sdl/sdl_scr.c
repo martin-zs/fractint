@@ -94,9 +94,14 @@ int  text_attr[TEXT_HEIGHT][TEXT_WIDTH];
 char stack_text_screen[TEXT_HEIGHT][TEXT_WIDTH];
 int  stack_text_attr[TEXT_HEIGHT][TEXT_WIDTH];
 
+/* Routines in this module */
+void Slock(SDL_Surface *);
+void Sulock(SDL_Surface *);
 void puttruecolor_SDL(SDL_Surface*, int, int, Uint8, Uint8, Uint8);
+void save_text(void);
+void restore_text(void);
 void outtext(int, int, int);
-
+int check_mouse(SDL_Event);
 
 void Slock(SDL_Surface *screen)
 {
@@ -159,7 +164,7 @@ void ResizeScreen(int mode)
   int desktop_w, desktop_h;
   SDL_DisplayMode DTmode;
 
-  SDL_GetDesktopDisplayMode(display_in_use, &DTmode);
+  SDL_GetCurrentDisplayMode(display_in_use, &DTmode);
   desktop_w = DTmode.w;
   desktop_h = DTmode.h;
 
@@ -196,21 +201,21 @@ void ResizeScreen(int mode)
     }
   else if (mode == 1)  /*  graphics window  */
     {
-      if (resize_flag == 0) /* not called from event Queue */
+      if (resize_flag == 2) /* not called from event Queue */
         {
           if (videotable[adapter].xdots > desktop_w || videotable[adapter].ydots > desktop_h)
              return;
           SDL_SetWindowSize(sdlWindow, videotable[adapter].xdots, videotable[adapter].ydots);
-          SDL_SetWindowPosition(sdlWindow, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED);
+          SDL_SetWindowPosition(sdlWindow, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
           memcpy((char *)&videoentry,(char *)&videotable[adapter],
                  sizeof(videoentry));  /* the selected entry now in videoentry */
         }
-      else /* called from event Queue */
+      else if (resize_flag == 1) /* called from event Queue */
         {
           memcpy((char *)&videotable[adapter],(char *)&videoentry,
                sizeof(videoentry));
-          resize_flag = 0;
         }
+      resize_flag = 0;
     /* need to free the screens & texture here */
       SDL_DestroyRenderer(sdlRenderer);
       sdlRenderer = NULL;
@@ -271,6 +276,7 @@ void ResizeScreen(int mode)
 
 #if DEBUG
   sprintf(msg, "%s at %dx%dx%d", Fractint, sxdots, sydots, bpp);
+  fprintf(stderr, "Set %dx%d at %d bits-per-pixel mode\n", sxdots, sydots, bpp);
 #elif PRODUCTION
   sprintf(msg, Fractint);
 #else
@@ -284,7 +290,6 @@ void ResizeScreen(int mode)
   sdlTexture = SDL_CreateTexture(sdlRenderer, sdlPixelfmt, SDL_TEXTUREACCESS_STREAMING, sxdots, sydots);
 
 #if DEBUG
-  fprintf(stderr, "Set %dx%d at %d bits-per-pixel mode\n", sxdots, sydots, bpp);
   if ( sdlTexture == NULL )
       SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
                          "Creation Error",
@@ -1500,8 +1505,7 @@ int check_mouse(SDL_Event mevent)
   static int lasty = 0;
   static int dx = 0;
   static int dy = 0;
-  int bandx0, bandy0, bandx1, bandy1;
-  int done = 0;
+  int bandx1, bandy1;
   static int banding = 0;
   int bnum = 0;
   int keypressed = 0;
@@ -1614,6 +1618,10 @@ int get_key_event(int block)
 {
   SDL_Event event;
   int keypressed = 0;
+  int winx, winy;
+  static int old_winx = 0;
+  static int old_winy = 0;
+  int changing_win_size = 0;
 
   do
     {
@@ -1628,16 +1636,22 @@ int get_key_event(int block)
 
             switch (event.window.event) {
             case SDL_WINDOWEVENT_RESIZED:
-              videoentry.xdots = event.window.data1 & 0xFFFC;  /* divisible by 4 */
-              videoentry.ydots = event.window.data2 & 0xFFFC;
+              if (resize_flag == 0)
+                 {
+                 winx = event.window.data1 & 0xFFFC;  /* divisible by 4 */
+                 winy = event.window.data2 & 0xFFFC;  /* divisible by 4 */
+                 changing_win_size = 1;
+                 break;
+                 }
+              else /* resize_flag == 1 or 2 set by WM or <DEL> */
+              {
+                 if (calc_status != -1)
+                    keypressed = ENTER;
+              }
               discardscreen(); /* dump text screen if in use */
               calc_status = 0;
-              resize_flag = 1;
-              adapter = MAXVIDEOTABLE - 1;
-              saved_adapter_mode = -2; /* force video initialization */
-              window_is_fullscreen = 0;
               ResizeScreen(1);
-              return (ENTER);
+              return (keypressed);
               break;
             case SDL_WINDOWEVENT_EXPOSED:
             case SDL_WINDOWEVENT_SHOWN:
@@ -1659,7 +1673,6 @@ int get_key_event(int block)
               break;
             }
            }
-             break;
             case SDL_MOUSEMOTION:
               keypressed = check_mouse(event);
               break;
@@ -1691,8 +1704,31 @@ int get_key_event(int block)
               break;
             }
         }
-      if (checkautosave()) keypressed = 9999; /* time to save, exit */
-  if (time_to_update() && updatewindow)
+  if (changing_win_size)
+    {
+       calc_status = 0;
+       if ((winx == old_winx && winy == old_winy) || window_is_fullscreen)
+          {
+          videoentry.xdots = winx;
+          videoentry.ydots = winy;
+          changing_win_size = 0;
+          keypressed = ENTER;
+          resize_flag = 1;
+          adapter = MAXVIDEOTABLE - 1;
+          saved_adapter_mode = -2; /* force video initialization */
+          discardscreen(); /* dump text screen if in use */
+          ResizeScreen(1);
+          return (keypressed);
+          }
+       else
+          {
+          old_winx = winx;
+          old_winy = winy;
+          }
+    }
+  if (checkautosave())
+      keypressed = 9999; /* time to save, exit */
+  if (time_to_update() && updatewindow && !changing_win_size)
     {
       SDL_UpdateTexture( sdlTexture, NULL, mainscrn->pixels, rowbytes );
       SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
@@ -1707,6 +1743,17 @@ int get_key_event(int block)
       SDL_RenderPresent(sdlRenderer);
     }
   return (keypressed);
+}
+
+void push_resize_event (int flag)
+{
+  SDL_Event pushevent;
+
+  resize_flag = flag;
+  pushevent.type = SDL_WINDOWEVENT;
+  pushevent.window.event = SDL_WINDOWEVENT_RESIZED;
+
+  SDL_PushEvent(&pushevent);
 }
 
 /*

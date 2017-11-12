@@ -50,6 +50,8 @@ int textcbase = 0; /* textcol is relative to this */
 
 struct videoinfo videoentry;
 
+void nullwrite (int, int, U32);
+BYTE nullread (int, int);
 void setfortext (void);
 void setforgraphics (void);
 int  setvideomode (int);
@@ -205,7 +207,7 @@ int setvideomode (int dotmode)
       dotread = readvideo;
       lineread = readvideoline;
       linewrite = writevideoline;
-      ResizeScreen(1);
+      push_resize_event(2);
       setforgraphics ();
       break;
     case 11:

@@ -125,7 +125,7 @@ typedef int sigfunc(int);
 #endif
 #define FILE_MAX_DRIVE  3       /* max length of drive letter   */
 
-#if 1
+#if 0
 #define FILE_MAX_FNAME  9       /* max length of filename       */
 #define FILE_MAX_EXT    5       /* max length of extension      */
 #else
@@ -137,14 +137,14 @@ in the UI would break if file names were bigger than DOS 8-3
 names. So for now humor us and let's keep the names short.
 */
 #define FILE_MAX_FNAME  64       /* max length of filename       */
-#define FILE_MAX_EXT    64       /* max length of extension      */
+#define FILE_MAX_EXT    5       /* max length of extension      */
 #endif
 
 #define MAX_NAME FILE_MAX_FNAME+FILE_MAX_EXT-1
 
 struct DIR_SEARCH               /* Allocate DTA and define structure */
 {
-     char path[21];             /* DOS path and filespec */
+     char path[FILE_MAX_PATH];             /* DOS path and filespec */
      char attribute;            /* File attributes wanted */
      int  ftime;                /* File creation time */
      int  fdate;                /* File creation date */

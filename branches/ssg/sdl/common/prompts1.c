@@ -987,11 +987,11 @@ static int select_fracttype(int t) /* subrtn of get_fracttype, separated */
   if (done >= 0)
     {
       done = choices[done]->num;
-      if ((done == FORMULA || done == FFORMULA) && !strcmp(FormFileName, CommandFile))
+      if ((done == FORMULA || done == FFORMULA) && !stricmp(FormFileName, CommandFile))
         strcpy(FormFileName, searchfor.frm);
-      if (done == LSYSTEM && !strcmp(LFileName, CommandFile))
+      if (done == LSYSTEM && !stricmp(LFileName, CommandFile))
         strcpy(LFileName, searchfor.lsys);
-      if ((done == IFS || done == IFS3D) && !strcmp(IFSFileName, CommandFile))
+      if ((done == IFS || done == IFS3D) && !stricmp(IFSFileName, CommandFile))
         strcpy(IFSFileName, searchfor.ifs);
     }
 

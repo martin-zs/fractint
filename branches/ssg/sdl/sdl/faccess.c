@@ -623,15 +623,15 @@ int  fr_findnext(void)  /* Find next file (or subdir) meeting above path/filespe
           stat(tmpname,&sbuf);
           DTA.size = sbuf.st_size;
           if ((sbuf.st_mode&S_IFMT)==S_IFREG &&
-              (searchname[0]=='*' || strcmp(searchname,thisname)==0) &&
-              (searchext[0]=='*' || strcmp(searchext,thisext)==0))
+              (searchname[0]=='*' || stricmp(searchname,thisname)==0) &&
+              (searchext[0]=='*' || stricmp(searchext,thisext)==0))
             {
               DTA.attribute = 0;
               return 0;
             }
           else if (((sbuf.st_mode&S_IFMT)==S_IFDIR) &&
                    ((searchname[0]=='*' || searchext[0]=='*') ||
-                    (strcmp(searchname,thisname)==0)))
+                    (stricmp(searchname,thisname)==0)))
             {
               DTA.attribute = SUBDIR;
               return 0;

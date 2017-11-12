@@ -1428,7 +1428,7 @@ retry_dir:
   else
     options = 8+32;
   i = fullscreen_choice(options,temp1,NULL,instr,filecount,(char **)choices,
-                        attributes,5,99,MAX_NAME-1,i,NULL,speedstr,filename_speedstr,check_f6_key);
+                        attributes,0,99,0,i,NULL,speedstr,filename_speedstr,check_f6_key);
   if (i==-F4)
     {
       dosort = 1 - dosort;
