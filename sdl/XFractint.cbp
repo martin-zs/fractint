@@ -9,7 +9,7 @@
 		<Option show_notes="0">
 			<notes>
 				<![CDATA[Integer mandel not coded.
-Need font with arrow symbols
+makedoc parameter is broken - no TOC
 Remove printer functions.
 Halley and Newton set <T> command back to Ant.
 Resize with a text screen visible doesn't regenerate image.
