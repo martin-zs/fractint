@@ -206,7 +206,7 @@ void ResizeScreen(int mode)
           if (videotable[adapter].xdots > desktop_w || videotable[adapter].ydots > desktop_h)
              return;
           SDL_SetWindowSize(sdlWindow, videotable[adapter].xdots, videotable[adapter].ydots);
-          SDL_SetWindowPosition(sdlWindow, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+          SDL_SetWindowPosition(sdlWindow, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED);
           memcpy((char *)&videoentry,(char *)&videotable[adapter],
                  sizeof(videoentry));  /* the selected entry now in videoentry */
         }
