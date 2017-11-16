@@ -1019,6 +1019,8 @@ static void backwardscompat(struct fractal_info *info)
     case MANDELLAMBDA :
       useinitorbit = 2;
       break;
+    default:
+      break;
     }
   curfractalspecific = &fractalspecific[fractype];
 }
@@ -1045,6 +1047,8 @@ void set_if_old_bif(void)
     case BIFADSINPI:
     case LBIFADSINPI:
       set_trig_array(0,s_sin);
+      break;
+    default:
       break;
     }
 }
@@ -1246,7 +1250,7 @@ int fgetwindow(void)
   struct ext_blk_6 blk_6_info;
   struct ext_blk_7 blk_7_info;
   time_t thistime,lastime;
-  char mesg[40],newname[60],oldname[60];
+  char mesg[80],newname[MAX_NAME],oldname[MAX_NAME];
   int c,i,index,done,wincount,toggle,color_of_box;
   struct window winlist;
   char drive[FILE_MAX_DRIVE];
@@ -1281,7 +1285,7 @@ int fgetwindow(void)
     vid_too_big = 2;
   /* 4096 based on 4096B in boxx... max 1/4 pixels plotted, and need words */
   /* 4096 = 10240/2.5 based on size of boxx+boxy+boxvalues */
-#if 1 /* XFRACT */
+#if 0 /* XFRACT */
   vidlength = 4; /* Xfractint only needs the 4 corners saved. */
 #endif
   browsehandle = MemoryAlloc((U16)sizeof(struct window),(long)MAX_WINDOWS_OPEN,FARMEM);
@@ -1310,6 +1314,7 @@ int fgetwindow(void)
     }
   find_special_colors();
   color_of_box = color_medium;
+  save_screen();
 rescan:  /* entry for changed browse parms */
   time(&lastime);
   toggle = 0;
@@ -1437,7 +1442,7 @@ rescan:  /* entry for changed browse parms */
               MoveFromMemory((BYTE *)boxvalues,(U16)(vidlength>>1),1L,(long)index,boxvalueshandle);
               showtempmsg(winlist.name);
               break;
-#if 0
+#if 1
             case CTL_INSERT:
               color_of_box += key_count(CTL_INSERT);
               for (i=0 ; i < wincount ; i++)
@@ -1534,7 +1539,7 @@ rescan:  /* entry for changed browse parms */
               makepath(tmpmask,drive,dir,fname,ext);
               strcpy(newname,tmpmask);
               strcat(mesg,tmpmask);
-              i = field_prompt(0,mesg,NULL,newname,60,NULL);
+              i = field_prompt(0,mesg,NULL,newname,MAX_NAME,NULL);
               unstackscreen();
               if ( i != -1)
                 if (!rename(tmpmask,newname))
@@ -1593,13 +1598,14 @@ rescan:  /* entry for changed browse parms */
               MoveFromMemory((BYTE *)boxvalues,(U16)(vidlength>>1),1L,(long)index,boxvalueshandle);
               boxcount >>= 1;
               if (boxcount > 0 )
-#if 1 /* XFRACT */
+#if 0 /* XFRACT */
                 /* Turn all boxes off */
                 drawindow(color_bright,&winlist);
 #else
                 clearbox();
 #endif
             }
+          restore_screen(); /* incase not all boxes get cleared */
         }
       if (done == 3)
         {
@@ -1630,7 +1636,7 @@ rescan:  /* entry for changed browse parms */
 
 static void drawindow(int colour,struct window *info)
 {
-#if 0
+#if 1
   int cross_size;
   struct coords ibl,itr;
 #endif
@@ -1641,7 +1647,7 @@ static void drawindow(int colour,struct window *info)
     {
       /* big enough on screen to show up as a box so draw it */
       /* corner pixels */
-#if 0
+#if 1
       addbox(info->itl);
       addbox(info->itr);
       addbox(info->ibl);
@@ -1663,7 +1669,7 @@ static void drawindow(int colour,struct window *info)
     }
   else   /* draw crosshairs */
     {
-#if 0
+#if 1
       cross_size = ydots / 45;
       if (cross_size < 2) cross_size = 2;
       itr.x = info->itl.x - cross_size;

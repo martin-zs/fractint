@@ -56,8 +56,8 @@ int get_bytes(BYTE *where,int how_many)
  */
 
 #if 1
-BYTE decoderline[MAXPIXELS+1]; /* write-line routines use this */
-#define DECODERLINE_WIDTH MAXPIXELS
+BYTE decoderline[OLDMAXPIXELS+1]; /* write-line routines use this */
+#define DECODERLINE_WIDTH OLDMAXPIXELS
 #else
 #define DECODERLINE_WIDTH 2048 /* width of decoderline, can be smaller */
 #endif
