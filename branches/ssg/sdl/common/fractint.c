@@ -170,7 +170,7 @@ static void check_samename(void)
   char ext[FILE_MAX_EXT];
   char path[FILE_MAX_PATH];
   splitpath(savename,drive,dir,fname,ext);
-  if (strcmp(fname,"fract001"))
+  if (stricmp(fname,"fract001"))
     {
       makepath(path,drive,dir,fname,"gif");
       if (access(path,0)==0)
@@ -225,7 +225,7 @@ restart:   /* insert key re-starts here */
   toosmall = 6;
   minbox   = 3;
   strcpy(browsemask,"*.gif");
-  strcpy(browsename,"            "); // NOTE (jonathan#1#): Won't work with long filenames JCO 02/20/2010
+  memset(browsename,' ',MAX_NAME-1);
   name_stack_ptr= -1; /* init loaded files stack */
 
   evolving = FALSE;

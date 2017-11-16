@@ -271,7 +271,7 @@ int include_stack_top = -1;
 #define putw( x1, x2 )  fprintf( x2, "%c%c", x1&0xFF, x1>>8 );
 #endif
 
-#ifdef XFRACT
+#if 0
 #define putw( x1, x2 )  fwrite( &(x1), 1, sizeof(int), x2);
 #endif
 
@@ -775,7 +775,7 @@ int read_char(void)
          ch = atoi(buff);
          }
 
-#ifdef XFRACT
+#if 0
    /* Convert graphics arrows into keyboard chars */
        if (ch>=24 && ch<=27) {
            ch = "KJHL"[ch-24];

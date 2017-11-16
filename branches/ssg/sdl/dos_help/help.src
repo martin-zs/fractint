@@ -289,10 +289,8 @@ Version 20.5\
 
 Port to SDL 2.0
 
-Increased filename length to 64 characters.\
-Removed upper/lower case restrictions on filenames and
-extentions.\
-Restoring images should now work.\
+Image browser now draws boxes.\
+
 
 Known issues:\
 Resizing images using the window border doesn't work very well\

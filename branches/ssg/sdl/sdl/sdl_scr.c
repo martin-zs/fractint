@@ -1683,6 +1683,7 @@ int get_key_event(int block)
                 left_mouse_button_down = 1;
               if (event.button.button == SDL_BUTTON_RIGHT)
                 right_mouse_button_down = 1;
+              keypressed = 255;
               break;
             case SDL_MOUSEBUTTONUP:
               if (event.button.button == SDL_BUTTON_LEFT) {
