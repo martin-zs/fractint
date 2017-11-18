@@ -122,7 +122,7 @@ struct fractal_info         /*  for saving data in GIF file     */
     short distestold;
     short floatflag;
     short bailoutold;
-    long calctime;
+    U32 calctime;
     BYTE trigndx[4];      /* which trig functions selected */
     short finattract;
     double initorbit[2];  /* init Mandelbrot orbit values */
@@ -169,22 +169,22 @@ struct fractal_info         /*  for saving data in GIF file     */
     double dparm9;
     double dparm10;
                         /* version 10 stuff, release 19 */
-    long bailout;
+    U32 bailout;
     short bailoutest;
-    long iterations;
+    U32 iterations;
     short bf_math;
     short bflength;
     short yadjust;        /* yikes! we left this out ages ago! */
     short old_demm_colors;
-    long logmap;
-    long distest;
+    U32 logmap;
+    U32 distest;
     double dinvert[3];
     short logcalc;
     short stoppass;
     short quick_calc;
     double closeprox;
     short nobof;
-    long orbit_interval;
+    U32 orbit_interval;
     short orbit_delay;
     double math_tol[2];
     short future[7];     /* for stuff we haven't thought of yet */
@@ -205,7 +205,7 @@ struct history_info
     short rflag;
     short biomorph;
     short inside;
-    long logmap;
+    U32 logmap;
     double invert[3];
     short decomp;
     short symmetry;
@@ -225,7 +225,7 @@ struct history_info
     short outside;
     double x3rd;
     double y3rd;
-    long distest;
+    U32 distest;
     short bailoutold;
     BYTE trigndx[4];
     short finattract;
@@ -266,9 +266,9 @@ struct history_info
     double dparm8;
     double dparm9;
     double dparm10;
-    long bailout;
+    U32 bailout;
     short bailoutest;
-    long iterations;
+    U32 iterations;
     short bf_math;
     short bflength;
     short yadjust;
@@ -287,7 +287,7 @@ struct history_info
     short nobof;
     double math_tol[2];
     short orbit_delay;
-    long orbit_interval;
+    U32 orbit_interval;
     double oxmin;
     double oxmax;
     double oymin;
@@ -930,13 +930,13 @@ typedef struct frm_jump_st {
 
 struct ext_blk_2 {
    char got_data;
-   int length;
-   int resume_data;
+   U16 length;
+   U16 resume_data;
    };
 
 struct ext_blk_3 {
    char got_data;
-   int length;
+   U16 length;
    char form_name[40];
    short uses_p1;
    short uses_p2;
@@ -949,20 +949,20 @@ struct ext_blk_3 {
 
 struct ext_blk_4 {
    char got_data;
-   int length;
-   int *range_data;
+   U16 length;
+   U16 *range_data;
    };
 
 struct ext_blk_5 {
    char got_data;
-   int length;
+   U16 length;
    char *apm_data;
    };
 
 /* parameter evolution stuff */
 struct ext_blk_6 {
    char got_data;
-   int length;
+   U16 length;
    short evolving;
    short gridsz;
    unsigned short this_gen_rseed;
@@ -985,7 +985,7 @@ struct ext_blk_6 {
 
 struct ext_blk_7 {
    char got_data;
-   int length;
+   U16 length;
    double oxmin;
    double oxmax;
    double oymin;
