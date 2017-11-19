@@ -55,7 +55,7 @@ typedef    struct fractal_info FRACTAL_INFO;
  * to do special processing of the fractal_info structure in loadfile.c.
  * Make sure changes to the structure here get reflected there.
  */
-#ifndef XFRACT
+#if 0 /* XFRACT */
 #define FRACTAL_INFO_SIZE sizeof(FRACTAL_INFO)
 #else
 /* This value should be the MSDOS size, not the Unix size. */
@@ -118,7 +118,7 @@ struct fractal_info         /*  for saving data in GIF file     */
     char stdcalcmode;     /* 1/2/g/b */
     char useinitorbit;    /* init Mandelbrot orbit flag */
     short calc_status;    /* resumable, finished, etc */
-    long tot_extend_len;  /* total length of extension blocks in .gif file */
+    U32 tot_extend_len;  /* total length of extension blocks in .gif file */
     short distestold;
     short floatflag;
     short bailoutold;
@@ -329,7 +329,7 @@ typedef    struct evolution_info EVOLUTION_INFO;
  * encoder.c.  See decode_evolver_info() in general.c.
  * Make sure changes to the structure here get reflected there.
  */
-#ifndef XFRACT
+#if 0 /* XFRACT */
 #define EVOLVER_INFO_SIZE sizeof(evolution_info)
 #else
 /* This value should be the MSDOS size, not the Unix size. */
@@ -367,7 +367,7 @@ typedef    struct orbits_info ORBITS_INFO;
  * encoder.c.  See decode_orbits_info() in general.c.
  * Make sure changes to the structure here get reflected there.
  */
-#ifndef XFRACT
+#if 0 /* XFRACT */
 #define ORBITS_INFO_SIZE sizeof(orbits_info)
 #else
 /* This value should be the MSDOS size, not the Unix size. */

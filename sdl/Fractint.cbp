@@ -63,7 +63,7 @@ Fix stackscreen/unstackscreen? - look at 3d images.]]>
 		</Build>
 		<Compiler>
 			<Add option="-fno-builtin" />
-			<Add directory="C:/SDL/SDL2-2.0.6/i686-w64-mingw32/include/SDL2" />
+			<Add directory="C:/SDL/SDL2-2.0.7/i686-w64-mingw32/include/SDL2" />
 			<Add directory="C:/SDL/SDL2_ttf-2.0.14/i686-w64-mingw32/include/SDL2" />
 			<Add directory="headers" />
 		</Compiler>
@@ -72,7 +72,7 @@ Fix stackscreen/unstackscreen? - look at 3d images.]]>
 			<Add library="SDL2main" />
 			<Add library="SDL2" />
 			<Add library="SDL2_ttf" />
-			<Add directory="C:/SDL/SDL2-2.0.6/i686-w64-mingw32/lib" />
+			<Add directory="C:/SDL/SDL2-2.0.7/i686-w64-mingw32/lib" />
 			<Add directory="C:/SDL/SDL2_ttf-2.0.14/i686-w64-mingw32/lib" />
 		</Linker>
 		<Unit filename="common/3d.c">
@@ -409,10 +409,6 @@ Fix stackscreen/unstackscreen? - look at 3d images.]]>
 			<Option target="default" />
 			<Option target="debug" />
 			<Option target="Production" />
-		</Unit>
-		<Unit filename="dos_help/unix.c">
-			<Option compilerVar="CC" />
-			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="fractint.cfg">
 			<Option target="default" />

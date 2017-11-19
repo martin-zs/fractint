@@ -461,9 +461,9 @@ int read_overlay()      /* read overlay/3D files, if reqr'd */
 
   if (blk_4_info.got_data == 1)
     {
-      ranges = (int *)blk_4_info.range_data;
+      ranges = (U16 *)blk_4_info.range_data;
       rangeslen = blk_4_info.length;
-#ifdef XFRACT
+#if 1 /* XFRACT */
       fix_ranges(ranges,rangeslen,1);
 #endif
     }
@@ -677,7 +677,7 @@ static int find_fractal_info(char *gif_file,struct fractal_info *info,
   dummy = fread(info,1,FRACTAL_INFO_SIZE,fp);
   if (strcmp(INFO_ID,info->info_id) == 0)
     {
-#ifdef XFRACT
+#if 1 /* XFRACT */
       decode_fractal_info(info,1);
 #endif
       hdr_offset = -1-fractinf_len;
@@ -700,7 +700,7 @@ static int find_fractal_info(char *gif_file,struct fractal_info *info,
                 strcpy(info->info_id,INFO_ID);
                 fseek(fp,(long)(hdr_offset=i-offset),SEEK_END);
                 dummy = fread(info,1,FRACTAL_INFO_SIZE,fp);
-#ifdef XFRACT
+#if 1 /* XFRACT */
                 decode_fractal_info(info,1);
 #endif
                 offset = 10000; /* force exit from outer loop */
@@ -737,7 +737,7 @@ static int find_fractal_info(char *gif_file,struct fractal_info *info,
                       break;
                     }
                   load_ext_blk((char *)info,FRACTAL_INFO_SIZE);
-#ifdef XFRACT
+#if 1 /* XFRACT */
                   decode_fractal_info(info,1);
 #endif
                   scan_extend = 2;
@@ -788,7 +788,7 @@ static int find_fractal_info(char *gif_file,struct fractal_info *info,
                   break;
                 case 4: /* ranges info */
                   skip_ext_blk(&block_len,&data_len); /* once to get lengths */
-                  if ((blk_4_info->range_data = (int *)malloc((long)data_len)) != NULL)
+                  if ((blk_4_info->range_data = (U16 *)malloc((long)data_len)) != NULL)
                     {
                       fseek(fp,(long)(0-block_len),SEEK_CUR);
                       load_ext_blk((char *)blk_4_info->range_data,data_len);
@@ -811,7 +811,7 @@ static int find_fractal_info(char *gif_file,struct fractal_info *info,
                   fseek(fp,(long)(0-block_len),SEEK_CUR);
                   load_ext_blk((char *)&eload_info,data_len);
                   /* XFRACT processing of doubles here */
-#ifdef XFRACT
+#if 1 /* XFRACT */
                   decode_evolver_info(&eload_info,1);
 #endif
                   blk_6_info->length = data_len;
@@ -842,7 +842,7 @@ static int find_fractal_info(char *gif_file,struct fractal_info *info,
                   fseek(fp,(long)(0-block_len),SEEK_CUR);
                   load_ext_blk((char *)&oload_info,data_len);
                   /* XFRACT processing of doubles here */
-#ifdef XFRACT
+#if 1 /* XFRACT */
                   decode_orbits_info(&oload_info,1);
 #endif
                   blk_7_info->length = data_len;
@@ -1314,7 +1314,7 @@ int fgetwindow(void)
     }
   find_special_colors();
   color_of_box = color_medium;
-  save_screen();
+  savegraphics();
 rescan:  /* entry for changed browse parms */
   time(&lastime);
   toggle = 0;
@@ -1605,7 +1605,7 @@ rescan:  /* entry for changed browse parms */
                 clearbox();
 #endif
             }
-          restore_screen(); /* incase not all boxes get cleared */
+          restoregraphics(); /* in case not all boxes get cleared */
         }
       if (done == 3)
         {

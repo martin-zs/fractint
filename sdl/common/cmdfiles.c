@@ -86,8 +86,8 @@ long    bailout;                /* user input bailout value */
 enum    bailouts bailoutest;    /* test used for determining bailout */
 double  inversion[3];           /* radius, xcenter, ycenter */
 int     rotate_lo,rotate_hi;    /* cycling color range      */
-int     *ranges;                /* iter->color ranges mapping */
-int     rangeslen = 0;          /* size of ranges array     */
+U16     *ranges;                /* iter->color ranges mapping */
+U16     rangeslen = 0;          /* size of ranges array     */
 BYTE    *mapdacbox = NULL;      /* map= (default colors)    */
 int     colorstate;             /* 0, dacbox matches default (bios or map=) */
 /* 1, dacbox matches no known defined map   */
@@ -1540,7 +1540,7 @@ int cmdarg(char *curarg,int mode) /* process a single argument */
           tmpranges[entries++] = prev = j;
         }
       if (prev == 0) goto badarg;
-      if ((ranges = (int *)malloc(sizeof(int)*entries)) == (int *)NULL)
+      if ((ranges = (U16 *)malloc(sizeof(int)*entries)) == (U16 *)NULL)
         {
           static FCODE msg[] = {"Insufficient memory for ranges="};
           stopmsg(1,msg);

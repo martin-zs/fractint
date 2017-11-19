@@ -1132,7 +1132,7 @@ extern bn_t bnroot;
 void goodbye(void)                  /* we done.  Bail out */
 {
   int ret = 0;
-#if DEBUG
+#if 0
   char goodbyemessage[40];
   static FCODE gbm[]={"   Thank You for using "FRACTINT};
 #endif
