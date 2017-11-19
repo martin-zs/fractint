@@ -418,7 +418,7 @@ int encoder()
         {
           /* ranges block, 004 */
           save_info.tot_extend_len += extend_blk_len(rangeslen * 2);
-#ifdef XFRACT
+#if 1 /* XFRACT */
           fix_ranges(ranges, rangeslen, 0);
 #endif
           if (!put_extend_blk(4, rangeslen * 2, (char *) ranges))
@@ -517,7 +517,7 @@ int encoder()
             osave_info.future[i] = 0;
 
           /* some XFRACT logic for the doubles needed here */
-#ifdef XFRACT
+#if 1 /* XFRACT */
           decode_orbits_info(&osave_info, 0);
 #endif
           /* orbits info block, 007 */
@@ -528,7 +528,7 @@ int encoder()
 
       /* main and last block, 001 */
       save_info.tot_extend_len += extend_blk_len(FRACTAL_INFO_SIZE);
-#ifdef XFRACT
+#if 1 /* XFRACT */
       decode_fractal_info(&save_info, 0);
 #endif
       if (!put_extend_blk(1, FRACTAL_INFO_SIZE, (char *) &save_info))
@@ -652,9 +652,9 @@ static void setup_save_info(struct fractal_info * save_info)
   save_info->creal = param[0];
   save_info->cimag = param[1];
   save_info->dotmode = dotmode;
-  save_info->xdots = xdots;
-  save_info->ydots = ydots;
-  save_info->colors = colors;
+  save_info->xdots = (unsigned short)xdots;
+  save_info->ydots = (unsigned short)ydots;
+  save_info->colors = (short)colors;
   save_info->parm3 = 0;        /* pre version==7 fields */
   save_info->parm4 = 0;
   save_info->dparm3 = param[2];

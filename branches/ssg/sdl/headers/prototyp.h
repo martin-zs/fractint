@@ -1033,11 +1033,13 @@ extern void mute(void);
 extern long readticker(void);
 extern int  checkautosave(void);
 extern long stackavail(void);
-#ifdef XFRACT
+#if 1 /* XFRACT */
 extern void decode_fractal_info(struct fractal_info *, int);
-extern void fix_ranges(int *, int, int);
+extern void fix_ranges(U16 *, U16, int);
 extern void decode_evolver_info(struct evolution_info *, int);
 extern void decode_orbits_info(struct orbits_info *, int);
+#endif
+#ifdef XFRACT
 extern unsigned short _rotl(unsigned short, short);
 extern int ltoa(long, char *, int);
 extern char *strlwr(char *);

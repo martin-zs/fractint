@@ -1699,7 +1699,7 @@ int get_key_event(int block)
               keypressed = translate_key(&event.key);
               break;
             case SDL_QUIT:
-              exit(0);
+              goodbye();
               break;
             default:
               break;

@@ -348,7 +348,7 @@ long normalize(char *ptr)
   return (long) ptr;
 }
 
-#ifdef XFRACT
+#if 1 /* XFRACT */
 /* --------------------------------------------------------------------
  * The following routines are used for encoding/decoding gif images.
  * If we aren't on a PC, things are rough for decoding the fractal info
@@ -358,8 +358,8 @@ long normalize(char *ptr)
  */
 
 static void getChar(unsigned char *, unsigned char **, int);
-static void getInt(short *, unsigned char **, int);
-static void getLong(long *, unsigned char **, int);
+static void getInt(U16 *, unsigned char **, int);
+static void getLong(U32 *, unsigned char **, int);
 static void getDouble(double *, unsigned char **, int);
 static void getFloat(float *, unsigned char **, int);
 
@@ -557,7 +557,7 @@ static void getChar(unsigned char *dst, unsigned char **src, int dir)
  * This routine gets an int out of the buffer.
  * It updates the buffer pointer accordingly.
  */
-static void getInt(short *dst, unsigned char **src, int dir)
+static void getInt(U16 *dst, unsigned char **src, int dir)
 {
   if (dir==1)
     {
@@ -575,14 +575,14 @@ static void getInt(short *dst, unsigned char **src, int dir)
  * This routine gets a long out of the buffer.
  * It updates the buffer pointer accordingly.
  */
-static void getLong(long *dst, unsigned char **src, int dir)
+static void getLong(U32 *dst, unsigned char **src, int dir)
 {
   if (dir==1)
     {
-      *dst = ((unsigned long)((*src)[0])) +
-             (((unsigned long)((*src)[1]))<<8) +
-             (((unsigned long)((*src)[2]))<<16) +
-             (((long)(((char *)(*src))[3]))<<24);
+      *dst = ((U32)((*src)[0])) +
+             (((U32)((*src)[1]))<<8) +
+             (((U32)((*src)[2]))<<16) +
+             (((S32)(((char *)(*src))[3]))<<24);
     }
   else
     {
@@ -778,7 +778,7 @@ static void getFloat(float *dst, unsigned char **src, int dir)
 /*
  * Fix up the ranges data.
  */
-void fix_ranges(int *ranges, int num, int dir)
+void fix_ranges(U16 *ranges, U16 num, int dir)
 {
   unsigned char *buf;
   unsigned char *bufPtr;
