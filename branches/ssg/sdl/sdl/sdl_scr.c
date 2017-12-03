@@ -33,6 +33,8 @@ struct dac_color_info {
   long *color_info; /* This is the iteration count for each pixel. */
 } Image_Data;
 
+long *save_color_info = NULL;
+
 SDL_Color XlateText[] =
 {
 #if BYTE_ORDER == BIG_ENDIAN
@@ -102,6 +104,7 @@ void save_text(void);
 void restore_text(void);
 void outtext(int, int, int);
 int check_mouse(SDL_Event);
+void updateimage(void);
 
 void Slock(SDL_Surface *screen)
 {
@@ -137,6 +140,8 @@ void CleanupSDL(void)
   SDL_FreeSurface(backtext);
 
   free(Image_Data.color_info);
+  if (save_color_info != NULL)
+    free(save_color_info);
 
   SDL_FreeCursor(mousecurser);
 
@@ -648,6 +653,37 @@ void writevideo(int x, int y, U32 pixel)
   *bufp = pixel;
   dac_to_rgb((BYTE)(pixel & andcolor), &red, &green, &blue);
   puttruecolor(x, y, red, green, blue);
+}
+
+void updateimage(void)
+{
+  SDL_UpdateTexture( sdlTexture, NULL, mainscrn->pixels, rowbytes );
+  SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
+  SDL_RenderPresent(sdlRenderer);
+}
+
+void saveimagedata(void)
+{
+  long data_length;
+
+  data_length = sxdots * sydots * sizeof(long);
+  if (save_color_info == NULL)
+    save_color_info = (long *)malloc(data_length);
+  else       /* already exists, probably the wrong size */
+    save_color_info = (long *)realloc(save_color_info, data_length);
+  memcpy(save_color_info, Image_Data.color_info, data_length);
+}
+
+void restoreimagedata(void)
+{
+  long data_length;
+
+  data_length = sxdots * sydots * sizeof(long);
+  memcpy(Image_Data.color_info, save_color_info, data_length);
+  free(save_color_info);
+  save_color_info = NULL;
+  refreshimage();
+  updateimage();
 }
 
 /*
@@ -1645,7 +1681,7 @@ int get_key_event(int block)
                  }
               else /* resize_flag == 1 or 2 set by WM or <DEL> */
               {
-                 if (calc_status != -1)
+                 if (calc_status != -1 && !browsing)
                     keypressed = ENTER;
               }
               discardscreen(); /* dump text screen if in use */
@@ -1731,17 +1767,13 @@ int get_key_event(int block)
       keypressed = 9999; /* time to save, exit */
   if (time_to_update() && updatewindow && !changing_win_size)
     {
-      SDL_UpdateTexture( sdlTexture, NULL, mainscrn->pixels, rowbytes );
-      SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
-      SDL_RenderPresent(sdlRenderer);
+      updateimage();
     }
    }
   while (block && !keypressed);
   if (time_to_update() && updatewindow)
     {
-      SDL_UpdateTexture( sdlTexture, NULL, mainscrn->pixels, rowbytes );
-      SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
-      SDL_RenderPresent(sdlRenderer);
+      updateimage();
     }
   return (keypressed);
 }

@@ -289,13 +289,7 @@ Version 20.5\
 
 Port to SDL 2.0
 
-Image browser now draws boxes, but crashes after one use.\
-Fixed Windows version to correctly read and generate
-GIFs.  GIFs created with it prior to this version need
-to be tossed.  If you want to keep the image, use the 11/12 version
-to create a PAR using <b> and then regenerate the image with
-the 11/19 version.  GIFs created with Linux version are not
-affected.\
+Fixed image browser crashes.\
 
 Known issues:\
 Resizing images using the window border doesn't work very well\

@@ -183,6 +183,17 @@ int gifview(void)
     }
   if (dacbox[0][0] != 255)
     spindac(0,1);       /* update the DAC */
+  if (dotmode == 11)
+    { /* disk-video */
+      char fname[FILE_MAX_FNAME];
+      char ext[FILE_MAX_EXT];
+      char tmpname[MAX_NAME];
+      char msg[MAX_NAME + 10];
+      splitpath(temp1,NULL,NULL,fname,ext);
+      makepath(tmpname,NULL,NULL,fname,ext);
+      sprintf(msg," restoring %s",tmpname);
+      dvid_status(1,msg);
+    }
   dontreadcolor = 0;
 
   /* Now display one or more GIF objects */

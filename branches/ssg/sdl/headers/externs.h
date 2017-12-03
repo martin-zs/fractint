@@ -41,7 +41,6 @@ extern BYTE                  block[];
 extern int                   blue_bright;
 extern int                   blue_crop_left;
 extern int                   blue_crop_right;
-extern BYTE                 *bnseg;
 extern int                   boxcolor;
 extern int                   boxcount;
 extern int                   boxvalues[];

@@ -137,7 +137,7 @@ restart:
       char buf[41];
       extract_filename(tmpmsg, openfile);
 
-      sprintf(buf, "Saving %s", tmpmsg);
+      sprintf(buf, " Saving %s", tmpmsg);
       dvid_status(1, buf);
     }
 
@@ -487,7 +487,7 @@ int encoder()
           for (i = 0; i < NUMGENES; i++)
             esave_info.mutate[i] = (short)gene[i].mutate;
 
-          for (i = 0; i < sizeof(esave_info.future) / sizeof(short); i++)
+          for (i = 0; i < (int)(sizeof(esave_info.future) / sizeof(short)); i++)
             esave_info.future[i] = 0;
 
           /* some XFRACT logic for the doubles needed here */
@@ -513,7 +513,7 @@ int encoder()
           osave_info.oy3rd     = oy3rd;
           osave_info.keep_scrn_coords= (short)keep_scrn_coords;
           osave_info.drawmode  = drawmode;
-          for (i = 0; i < sizeof(osave_info.future) / sizeof(short); i++)
+          for (i = 0; i < (int)(sizeof(osave_info.future) / sizeof(short)); i++)
             osave_info.future[i] = 0;
 
           /* some XFRACT logic for the doubles needed here */
@@ -623,7 +623,7 @@ static int store_item_name(char *nameptr)
       fsave_info.uses_p4 = 0;
       fsave_info.uses_p5 = 0;
     }
-  for (i = 0; i < sizeof(fsave_info.future) / sizeof(short); i++)
+  for (i = 0; i < (int)(sizeof(fsave_info.future) / sizeof(short)); i++)
     fsave_info.future[i] = 0;
   /* formula/lsys/ifs info block, 003 */
   put_extend_blk(3, sizeof(fsave_info), (char *) &fsave_info);
@@ -775,7 +775,7 @@ static void setup_save_info(struct fractal_info * save_info)
   save_info->orbit_delay = (short) orbit_delay;
   save_info->math_tol[0] = math_tol[0];
   save_info->math_tol[1] = math_tol[1];
-  for (i = 0; i < sizeof(save_info->future) / sizeof(short); i++)
+  for (i = 0; i < (int)(sizeof(save_info->future) / sizeof(short)); i++)
     save_info->future[i] = 0;
 
 }
