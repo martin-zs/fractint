@@ -1605,6 +1605,7 @@ rescan:  /* entry for changed browse parms */
                 clearbox();
 #endif
             }
+          restoreimagedata(); /* in case not all boxes get cleared */
         }
       if (done == 3)
         {
@@ -1619,7 +1620,6 @@ rescan:  /* entry for changed browse parms */
       no_sub_images = TRUE;
     }
 
-  restoreimagedata(); /* in case not all boxes get cleared */
   MemoryRelease(browsehandle);
   MemoryRelease(boxxhandle);
   MemoryRelease(boxyhandle);
