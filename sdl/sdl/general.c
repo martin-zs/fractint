@@ -17,7 +17,7 @@
 #include "port.h"
 #include "prototyp.h"
 
-int boxx[8192], boxy[8192];
+int boxx[10000], boxy[10000];
 int boxvalues[512];
 char tstack[4096];
 BYTE dacbox[256][3];
@@ -358,8 +358,8 @@ long normalize(char *ptr)
  */
 
 static void getChar(unsigned char *, unsigned char **, int);
-static void getInt(U16 *, unsigned char **, int);
-static void getLong(U32 *, unsigned char **, int);
+static void getInt(S16 *, unsigned char **, int);
+static void getLong(S32 *, unsigned char **, int);
 static void getDouble(double *, unsigned char **, int);
 static void getFloat(float *, unsigned char **, int);
 
@@ -557,7 +557,7 @@ static void getChar(unsigned char *dst, unsigned char **src, int dir)
  * This routine gets an int out of the buffer.
  * It updates the buffer pointer accordingly.
  */
-static void getInt(U16 *dst, unsigned char **src, int dir)
+static void getInt(S16 *dst, unsigned char **src, int dir)
 {
   if (dir==1)
     {
@@ -575,7 +575,7 @@ static void getInt(U16 *dst, unsigned char **src, int dir)
  * This routine gets a long out of the buffer.
  * It updates the buffer pointer accordingly.
  */
-static void getLong(U32 *dst, unsigned char **src, int dir)
+static void getLong(S32 *dst, unsigned char **src, int dir)
 {
   if (dir==1)
     {

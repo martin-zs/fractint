@@ -324,7 +324,7 @@ struct fractalspecificstuff fractalspecific[]=
       {3, 0, 0, 0},
       HT_NEWTBAS, HF_NEWTBAS, WINFRAC,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
-      0, NOFRACTAL, NOFRACTAL, MPNEWTBASIN, NOSYM,
+      0, NOFRACTAL, NOFRACTAL, NOFRACTAL, NOSYM,
       NewtonFractal2, otherjuliafp_per_pixel, NewtonSetup, StandardFractal,
       NOBAILOUT
    },

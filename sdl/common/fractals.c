@@ -392,7 +392,7 @@ int NewtonFractal2(void)
 
   if (DIST1(new) < threshold)
     {
-      if (fractype==NEWTBASIN || fractype==MPNEWTBASIN)
+      if (fractype==NEWTBASIN)
         {
           long tmpcolor;
           int i;

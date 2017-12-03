@@ -385,12 +385,11 @@ init_restart:
       dely2 = fudgetolong((double)delyy2);
     }
 
-  /* following should be okay since extraseg no longer used.  JCO */
   /* skip this if plasma to avoid 3d problems */
   /* skip if bf_math to avoid extraseg conflict with dx0 arrays */
   /* skip if ifs, ifs3d, or lsystem to avoid crash when mathtolerance */
   /* is set.  These types don't auto switch between float and integer math */
-  if (fractype != PLASMA /* && bf_math == 0 */
+  if (fractype != PLASMA && bf_math == 0
       && fractype != IFS && fractype != IFS3D && fractype != LSYSTEM)
     {
       if (integerfractal && !invert && use_grid)
@@ -548,10 +547,10 @@ expand_retry:
 #if 0
   else
    {
-      /* zap all of bnseg except high area to flush out bugs */
+      /* zap all of extraseg except high area to flush out bugs */
       /* in production version this code can be deleted */
       char *extra;
-      extra = (char *) bnseg;
+      extra = (char *) extraseg;
       memset(extra,0,(unsigned int)(0x10000l-(bflength+2)*22U));
    }
 #endif
@@ -1248,7 +1247,7 @@ void end_resume(void)
 
 /* sleep N * a tenth of a millisecond */
 
-void sleepms_old(long ms)
+static void sleepms_old(long ms)
 {
   static long scalems = 0L;
   int savehelpmode,savetabmode;

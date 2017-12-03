@@ -14,7 +14,6 @@ is in the allocations of memory for the big numbers.
 #include "fractype.h"
 
 /* globals */
-BYTE *bnseg = NULL;
 int bnstep, bnlength, intlength, rlength, padding, shiftfactor, decimals;
 int bflength, rbflength, bfdecimals;
 
@@ -100,9 +99,7 @@ static void init_bf_2(void)
   calc_lengths();
 
   /* allocate all the memory at once */
-  if (bnseg == NULL)
-    bnseg = (BYTE *) malloc (MAX_BF_MEM);
-  bnroot = (big_t)bnseg;
+  bnroot = (bf_t)extraseg;
   /* at present time one call would suffice, but this logic allows
      multiple kinds of alternate math eg long double */
   if ((i = find_alternate_math(fractype, BIGNUM)) > -1)
@@ -263,7 +260,7 @@ static void init_bf_2(void)
       goodbye();
     }
 
-  /* room for 6 corners + 6 save corners + 10 params at top of bnseg */
+  /* room for 6 corners + 6 save corners + 10 params at top of extraseg */
   /* this area is safe - use for variables that are used outside fractal*/
   /* generation - e.g. zoom box variables */
   ptr    = maxstack;
@@ -395,8 +392,6 @@ void free_bf_vars()
   bnstep=bnlength=intlength=rlength=padding=shiftfactor=decimals=0;
   bflength=rbflength=bfdecimals=0;
   maxptr = startstack = maxstack = 0;
-  free(bnseg);
-  bnseg = NULL;
 }
 
 /************************************************************************/

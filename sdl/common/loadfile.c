@@ -765,7 +765,7 @@ static int find_fractal_info(char *gif_file,struct fractal_info *info,
                   strcpy(blk_3_info->form_name,fload_info.form_name);
                   blk_3_info->length = data_len;
                   blk_3_info->got_data = 1; /* got data */
-                  if (data_len < sizeof(fload_info))   /* must be old GIF */
+                  if (data_len < (int)sizeof(fload_info))   /* must be old GIF */
                     {
                       blk_3_info->uses_p1 = 1;
                       blk_3_info->uses_p2 = 1;
@@ -1227,16 +1227,16 @@ static void bfsetup_convert_to_screen( void );
 static void bftransform( bf_t, bf_t, struct dblcoords * );
 
 char browsename[MAX_NAME]; /* name for browse file */
-U16 browsehandle;
-U16 boxxhandle;
-U16 boxyhandle;
-U16 boxvalueshandle;
+U16 browsehandle = 0;
+U16 boxxhandle = 0;
+U16 boxyhandle = 0;
+U16 boxvalueshandle = 0;
 
 /* here because must be visible inside several routines */
 static struct affine *cvt;
 static bf_t   bt_a, bt_b, bt_c, bt_d, bt_e, bt_f;
 static bf_t   n_a, n_b, n_c, n_d, n_e, n_f;
-int oldbf_math;
+int oldbf_math = 0;
 
 /* fgetwindow reads all .GIF files and draws window outlines on the screen */
 int fgetwindow(void)
@@ -1314,7 +1314,7 @@ int fgetwindow(void)
     }
   find_special_colors();
   color_of_box = color_medium;
-  savegraphics();
+  saveimagedata();
 rescan:  /* entry for changed browse parms */
   time(&lastime);
   toggle = 0;
@@ -1605,7 +1605,6 @@ rescan:  /* entry for changed browse parms */
                 clearbox();
 #endif
             }
-          restoregraphics(); /* in case not all boxes get cleared */
         }
       if (done == 3)
         {
@@ -1620,10 +1619,15 @@ rescan:  /* entry for changed browse parms */
       no_sub_images = TRUE;
     }
 
+  restoreimagedata(); /* in case not all boxes get cleared */
   MemoryRelease(browsehandle);
   MemoryRelease(boxxhandle);
   MemoryRelease(boxyhandle);
   MemoryRelease(boxvalueshandle);
+  browsehandle = 0;
+  boxxhandle = 0;
+  boxyhandle = 0;
+  boxvalueshandle = 0;
   restore_stack(saved);
   if (!oldbf_math)
     free_bf_vars();
