@@ -662,16 +662,21 @@ void updateimage(void)
   SDL_RenderPresent(sdlRenderer);
 }
 
-void saveimagedata(void)
+int saveimagedata(void)
 {
   long data_length;
+  int ret = 1;
 
   data_length = sxdots * sydots * sizeof(long);
   if (save_color_info == NULL)
     save_color_info = (long *)malloc(data_length);
   else       /* already exists, probably the wrong size */
     save_color_info = (long *)realloc(save_color_info, data_length);
-  memcpy(save_color_info, Image_Data.color_info, data_length);
+  if (save_color_info == NULL) /* we failed */
+    ret = 0;
+  else  /* we won */
+    memcpy(save_color_info, Image_Data.color_info, data_length);
+  return (ret);
 }
 
 void restoreimagedata(void)

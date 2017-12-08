@@ -1085,7 +1085,7 @@ extern void delay(int);
 extern long clock_ticks(void);
 extern int time_to_update(void);
 extern void outtext(int, int, int);
-extern void saveimagedata(void);
+extern int saveimagedata(void);
 extern void restoreimagedata(void);
 extern void refreshimage(void);
 extern void push_resize_event(int);

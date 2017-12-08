@@ -1263,6 +1263,7 @@ int fgetwindow(void)
   U16 vidlength;
   BYTE *winlistptr = (BYTE *)&winlist;
   int saved;
+  int imagesaved = 0;
   U32 blinks;
 
   oldbf_math = bf_math;
@@ -1288,11 +1289,12 @@ int fgetwindow(void)
 #if 0 /* XFRACT */
   vidlength = 4; /* Xfractint only needs the 4 corners saved. */
 #endif
+  imagesaved = saveimagedata();
   browsehandle = MemoryAlloc((U16)sizeof(struct window),(long)MAX_WINDOWS_OPEN,FARMEM);
   boxxhandle = MemoryAlloc((U16)(vidlength),(long)MAX_WINDOWS_OPEN,FARMEM);
   boxyhandle = MemoryAlloc((U16)(vidlength),(long)MAX_WINDOWS_OPEN,FARMEM);
   boxvalueshandle = MemoryAlloc((U16)(vidlength>>1),(long)MAX_WINDOWS_OPEN,FARMEM);
-  if (!browsehandle || !boxxhandle || !boxyhandle || !boxvalueshandle)
+  if (!browsehandle || !boxxhandle || !boxyhandle || !boxvalueshandle || !imagesaved)
     no_memory = 1;
 
   /* set up complex-plane-to-screen transformation */
@@ -1314,7 +1316,6 @@ int fgetwindow(void)
     }
   find_special_colors();
   color_of_box = color_medium;
-  saveimagedata();
 rescan:  /* entry for changed browse parms */
   time(&lastime);
   toggle = 0;
