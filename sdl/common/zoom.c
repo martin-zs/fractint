@@ -69,7 +69,7 @@ void clearbox(void)
   int i;
   BYTE rgb[3];
 
-  if (istruecolor && truemode)
+  if ((istruecolor && truemode) || fake_lut)
     for (i=0;i<boxcount;i++)
     {
       gettruecolor(boxx[i]-sxoffs,boxy[i]-syoffs,&rgb[0],&rgb[1],&rgb[2]);
