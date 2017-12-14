@@ -125,6 +125,14 @@ void Sulock(SDL_Surface *screen)
     }
 }
 
+static int RemoveImageData(void *ptr)
+{
+  free(Image_Data.color_info);
+  if (save_color_info != NULL)
+    free(save_color_info);
+  return (0);
+}
+
 void CleanupSDL(void)
 {
   /*
@@ -132,16 +140,17 @@ void CleanupSDL(void)
    * mode and restore the previous video settings,
    * etc.  Called by goodbye() routine.
    */
+  SDL_Thread *CleanupThread;
+
+  CleanupThread = SDL_CreateThread(RemoveImageData, "CleanupThread", (void*)NULL);
+
+  SDL_DetachThread(CleanupThread);
 
   SDL_DestroyRenderer(sdlRenderer);
   SDL_DestroyTexture(sdlTexture);
   SDL_FreeSurface(mainscrn);
   SDL_FreeSurface(backscrn);
   SDL_FreeSurface(backtext);
-
-  free(Image_Data.color_info);
-  if (save_color_info != NULL)
-    free(save_color_info);
 
   SDL_FreeCursor(mousecurser);
 
@@ -250,6 +259,8 @@ void ResizeScreen(int mode)
 
   sxdots = videoentry.xdots;
   sydots = videoentry.ydots;
+  screenaspect = (float)sydots / (float)sxdots;
+  finalaspectratio = screenaspect;
   dotmode = videoentry.dotmode;
   colors = videoentry.colors;
   Image_Data.sizex = sxdots;
@@ -1729,7 +1740,10 @@ int get_key_event(int block)
             case SDL_MOUSEBUTTONUP:
               if (event.button.button == SDL_BUTTON_LEFT) {
                 if (left_mouse_button_down == 1)
-                   keypressed = ENTER;
+                   {
+//                      calc_status = 2;
+                      keypressed = ENTER;
+                   }
                 left_mouse_button_down = 0;
                 button_held = 0;
               }
