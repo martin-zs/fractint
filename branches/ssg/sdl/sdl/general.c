@@ -228,6 +228,7 @@ void buzzer(int buzzertype)
     {
 // FIXME (jonathan#1#): Need to determine what next should do.
 //      redrawscreen();
+sdl_buzzer();
     }
 }
 

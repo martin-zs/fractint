@@ -458,7 +458,7 @@ expand_retry:
               /* Following is the old logic for detecting failure of double
                  precision. It has two advantages: it is independent of the
                  representation of numbers, and it is sensitive to resolution
-                 (allows depper zooms at lower resolution. However it fails
+                 (allows deeper zooms at lower resolution. However it fails
                  for rotations of exactly 90 degrees, so we added a safety net
                  by using the magnification.  */
               if (++tries < 2) /* for safety */
