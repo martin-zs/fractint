@@ -52,7 +52,7 @@ dev = SDL_OpenAudioDevice(NULL, 0, &want, &have, SDL_AUDIO_ALLOW_FORMAT_CHANGE);
 
 void sdl_buzzer(void)
 {
-
+int SampleIndex;
 setup_sdl_audio();
 SquareWavePeriod = SamplesPerSecond / ToneHz;
 HalfSquareWavePeriod = SquareWavePeriod / 2;
@@ -63,7 +63,7 @@ SampleOut = (U16 *)SoundBuffer;
 SampleCount = BytesToWrite/BytesPerSample;
 
 
-for(int SampleIndex = 0;
+for(SampleIndex = 0;
     SampleIndex < SampleCount;
     ++SampleIndex)
 {
