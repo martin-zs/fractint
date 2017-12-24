@@ -210,6 +210,8 @@ static BOOLEAN            inverse;
 
 static float    gamma_val = 1;
 
+void Cursor_StartMouseTracking(void);
+void Cursor_EndMouseTracking(void);
 
 /*
  * Interface to FRACTINT's graphics stuff
@@ -850,13 +852,13 @@ void Cursor_Show(void)
     }
 }
 
-void Cursor_StartMouseTracking()
+void Cursor_StartMouseTracking(void)
 {
   showcursor (0);
   editpal_cursor = 1;
 }
 
-void Cursor_EndMouseTracking()
+void Cursor_EndMouseTracking(void)
 {
   showcursor (1);
   editpal_cursor = 0;

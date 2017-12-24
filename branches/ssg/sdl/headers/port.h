@@ -174,7 +174,7 @@ extern struct DIR_SEARCH DTA;   /* Disk Transfer Area */
 /* #define DO_NOT_USE_LONG_DOUBLE */
 
 #ifndef XFRACT
-#define DO_NOT_USE_LONG_DOUBLE
+#define NO_LDBL_IO 1
 #endif
 
 

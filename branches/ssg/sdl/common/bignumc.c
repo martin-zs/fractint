@@ -941,7 +941,7 @@ bf_t floattobf(bf_t r, LDBL f)
 bf_t floattobf1(bf_t r, LDBL f)
 {
   char msg[80];
-#ifdef USE_LONG_DOUBLE
+#ifndef NO_LDBL_IO
   sprintf(msg,"%-.22Le",f);
 #else
   sprintf(msg,"%-.22le",f);

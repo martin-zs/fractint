@@ -2179,7 +2179,7 @@ int StandardFractal(void)       /* per pixel 1/2/b/g, called with row & col set 
                 }
               mag = (LDBL)fmodtest();
               if (mag < closeprox)
-                memvalue = mag;
+                memvalue = (double)mag;
             }
         }
 
@@ -2425,8 +2425,8 @@ int StandardFractal(void)       /* per pixel 1/2/b/g, called with row & col set 
     {
       LDBL dist, temp;
       dist = sqr(new.x) + sqr(new.y);
-      if (dist == 0 || overflow)
-        dist = 0;
+      if (dist == 0.0 || overflow)
+        dist = 0.0;
       else
         {
           temp = logl(dist);

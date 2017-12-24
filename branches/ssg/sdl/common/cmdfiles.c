@@ -456,10 +456,10 @@ int getpower10(LDBL x)
   char string[11]; /* space for "+x.xe-xxxx" */
   int p;
 
-#ifdef USE_LONG_DOUBLE
+#ifndef NO_LDBL_IO
   sprintf(string,"%+.1Le", x);
 #else
-  sprintf(string,"%+.1le", x);
+  sprintf(string,"%+.1le", (double)x);
 #endif
   p = atoi(string+5);
   return p;
@@ -971,7 +971,11 @@ int cmdarg(char *curarg,int mode) /* process a single argument */
   char    tmpc;
   int     lastarg;
   double Xctr, Yctr, Xmagfactor, Rotation, Skew;
+#ifndef NO_LDBL_IO
   LDBL Magnification;
+#else
+  double Magnification;
+#endif
   bf_t bXctr, bYctr;
 
 
@@ -1935,7 +1939,7 @@ int cmdarg(char *curarg,int mode) /* process a single argument */
       if (totparms == 0) return 0; /* turns center-mag mode on */
       initcorners = 1;
       /* dec = get_max_curarg_len(floatvalstr,totparms); */
-#ifdef USE_LONG_DOUBLE
+#ifndef NO_LDBL_IO
       sscanf(floatvalstr[2], "%Lf", &Magnification);
 #else
       sscanf(floatvalstr[2], "%lf", &Magnification);

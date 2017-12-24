@@ -5,11 +5,10 @@
 		<Option title="Fractint" />
 		<Option platforms="Windows;" />
 		<Option pch_mode="2" />
-		<Option compiler="gcc" />
+		<Option compiler="gnu_gcc_32-bit_compiler" />
 		<Option show_notes="0">
 			<notes>
 				<![CDATA[Integer mandel not coded.
-Need font with arrow symbols
 Remove printer functions.
 Resize with a text screen visible doesn't regenerate image.
 Fix stackscreen/unstackscreen? - look at 3d images.]]>
@@ -19,7 +18,7 @@ Fix stackscreen/unstackscreen? - look at 3d images.]]>
 			<Target title="default">
 				<Option output="Fractint" prefix_auto="1" extension_auto="1" />
 				<Option type="0" />
-				<Option compiler="gcc" />
+				<Option compiler="gnu_gcc_32-bit_compiler" />
 				<Option projectLinkerOptionsRelation="0" />
 				<Option projectIncludeDirsRelation="0" />
 				<Option projectResourceIncludeDirsRelation="0" />
@@ -29,7 +28,7 @@ Fix stackscreen/unstackscreen? - look at 3d images.]]>
 				<Option platforms="Windows;" />
 				<Option output="Fractint" prefix_auto="1" extension_auto="1" />
 				<Option type="1" />
-				<Option compiler="gcc" />
+				<Option compiler="gnu_gcc_32-bit_compiler" />
 				<Option use_console_runner="0" />
 				<Option projectLinkerOptionsRelation="0" />
 				<Option projectIncludeDirsRelation="0" />
@@ -44,13 +43,13 @@ Fix stackscreen/unstackscreen? - look at 3d images.]]>
 				<Option output="HC" prefix_auto="1" extension_auto="1" />
 				<Option object_output="C:/svn/SDL/.objs" />
 				<Option type="1" />
-				<Option compiler="gcc" />
+				<Option compiler="gnu_gcc_32-bit_compiler" />
 				<Option use_console_runner="0" />
 			</Target>
 			<Target title="Production">
 				<Option output="Fractint" prefix_auto="1" extension_auto="1" />
 				<Option type="0" />
-				<Option compiler="gcc" />
+				<Option compiler="gnu_gcc_32-bit_compiler" />
 				<Option projectLinkerOptionsRelation="0" />
 				<Option projectIncludeDirsRelation="0" />
 				<Option projectResourceIncludeDirsRelation="0" />
@@ -508,6 +507,12 @@ Fix stackscreen/unstackscreen? - look at 3d images.]]>
 			<Option target="Production" />
 		</Unit>
 		<Unit filename="sdl/sdl_scr.c">
+			<Option compilerVar="CC" />
+			<Option target="default" />
+			<Option target="debug" />
+			<Option target="Production" />
+		</Unit>
+		<Unit filename="sdl/sdl_snd.c">
 			<Option compilerVar="CC" />
 			<Option target="default" />
 			<Option target="debug" />
