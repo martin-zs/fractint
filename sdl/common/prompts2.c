@@ -1752,7 +1752,7 @@ gc_loop:
         {
           Xctr          = values[0].uval.dval;
           Yctr          = values[1].uval.dval;
-          Magnification = values[2].uval.dval;
+          Magnification = (LDBL)values[2].uval.dval;
           Xmagfactor    = values[3].uval.dval;
           Rotation      = values[4].uval.dval;
           Skew          = values[5].uval.dval;
@@ -1996,7 +1996,7 @@ gsc_loop:
         {
           Xctr          = values[0].uval.dval;
           Yctr          = values[1].uval.dval;
-          Magnification = values[2].uval.dval;
+          Magnification = (LDBL)values[2].uval.dval;
           Xmagfactor    = values[3].uval.dval;
           Rotation      = values[4].uval.dval;
           Skew          = values[5].uval.dval;

@@ -641,10 +641,10 @@ void write_batch_parms(char *colorinf, int colorsonly, int maxcolor, int ii, int
               /*          convert 1000 fudged long to double, 1000/1<<24 = 6e-5 */
               put_parm(ddelmin > 6e-5 ? "%g/%g" : "%+20.17lf/%+20.17lf", Xctr, Yctr);
             }
-#ifdef USE_LONG_DOUBLE
+#ifndef NO_LDBL_IO
           put_parm("/%.7Lg",Magnification); /* precision of magnification not critical, but magnitude is */
 #else
-          put_parm("/%.7lg",Magnification); /* precision of magnification not critical, but magnitude is */
+          put_parm("/%.7lg",(double)Magnification); /* precision of magnification not critical, but magnitude is */
 #endif
           /* Round to avoid ugly decimals, precision here is not critical */
           /* Don't round Xmagfactor if it's small */
@@ -726,7 +726,7 @@ void write_batch_parms(char *colorinf, int colorsonly, int maxcolor, int ii, int
             put_parm(" %s=%.1f",s_params,param[0]);
           else
             {
-#ifdef USE_LONG_DOUBLE
+#ifndef NO_LDBL_IO
               if (debugflag == 750)
                 put_parm(" %s=%.17Lg",s_params,(long double)param[0]);
               else
@@ -738,7 +738,7 @@ void write_batch_parms(char *colorinf, int colorsonly, int maxcolor, int ii, int
               put_parm("/%.1f",param[j]);
             else
               {
-#ifdef USE_LONG_DOUBLE
+#ifndef NO_LDBL_IO
                 if (debugflag == 750)
                   put_parm("/%.17Lg",(long double)param[j]);
                 else
@@ -1511,7 +1511,7 @@ static void put_float(int slash,double fnum,int prec)
   if (slash)
     *(bptr++) = '/';
   /*   sprintf(bptr,"%1.*f",prec,fnum); */
-#ifdef USE_LONG_DOUBLE
+#ifndef NO_LDBL_IO
   /* Idea of long double cast is to squeeze out another digit or two
      which might be needed (we have found cases where this digit makes
      a difference.) But lets not do this at lower precision */

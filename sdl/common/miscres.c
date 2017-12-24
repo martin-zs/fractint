@@ -122,7 +122,7 @@ void cvtcentermag(double *Xctr, double *Yctr, LDBL *Magnification, double *Xmagf
       Height = yymax - yymin;
       *Xctr = (xxmin + xxmax)/2.0;
       *Yctr = (yymin + yymax)/2.0;
-      *Magnification  = 2.0/Height;
+      *Magnification  = (LDBL)2.0/Height;
       *Xmagfactor =  Height / (DEFAULTASPECT * Width);
       *Rotation = 0.0;
       *Skew = 0.0;
@@ -154,7 +154,7 @@ void cvtcentermag(double *Xctr, double *Yctr, LDBL *Magnification, double *Xmagf
 
       Height = b * sin(tmpa);
 
-      *Magnification  = 2.0/Height; /* 1/(h/2) */
+      *Magnification  = (LDBL)2.0/Height; /* 1/(h/2) */
       *Xmagfactor = Height / (DEFAULTASPECT * a);
 
       /* if vector_a cross vector_b is negative */
@@ -167,7 +167,7 @@ void cvtcentermag(double *Xctr, double *Yctr, LDBL *Magnification, double *Xmagf
         }
     }
   /* just to make par file look nicer */
-  if (*Magnification < 0)
+  if (*Magnification < 0.0)
     {
       *Magnification = -*Magnification;
       *Rotation += 180;
@@ -213,7 +213,7 @@ void cvtcorners(double Xctr, double Yctr, LDBL Magnification, double Xmagfactor,
   if (Xmagfactor == 0.0)
     Xmagfactor = 1.0;
 
-  h = (double)(1.0 / Magnification);
+  h = (double)(1.0 / (double)Magnification);
   w = h / (DEFAULTASPECT * Xmagfactor);
 
   if (Rotation == 0.0 && Skew == 0.0)
@@ -295,7 +295,7 @@ void cvtcentermagbf(bf_t Xctr, bf_t Yctr, LDBL *Magnification, double *Xmagfacto
       /* *Yctr = (yymin + yymax)/2; */
       add_bf(Yctr, bfymin, bfymax);
       half_a_bf(Yctr);
-      *Magnification  = 2.0/Height;
+      *Magnification  = (LDBL)2.0/Height;
       *Xmagfactor =  (double)(Height / (DEFAULTASPECT * Width));
       *Rotation = 0.0;
       *Skew = 0.0;
@@ -356,7 +356,7 @@ void cvtcentermagbf(bf_t Xctr, bf_t Yctr, LDBL *Magnification, double *Xmagfacto
       half_a_bf(Yctr);
 
       Height = b * sinl(tmpa);
-      *Magnification  = 2.0/Height; /* 1/(h/2) */
+      *Magnification  = (LDBL)2.0/Height; /* 1/(h/2) */
       *Xmagfactor = (double)(Height / (DEFAULTASPECT * a));
 
       /* if vector_a cross vector_b is negative */
@@ -368,7 +368,7 @@ void cvtcentermagbf(bf_t Xctr, bf_t Yctr, LDBL *Magnification, double *Xmagfacto
           *Magnification = -*Magnification;
         }
     }
-  if (*Magnification < 0)
+  if (*Magnification < 0.0)
     {
       *Magnification = -*Magnification;
       *Rotation += 180;
@@ -396,7 +396,7 @@ void cvtcornersbf(bf_t Xctr, bf_t Yctr, LDBL Magnification, double Xmagfactor, d
   if (Xmagfactor == 0.0)
     Xmagfactor = 1.0;
 
-  h = 1.0/Magnification;
+  h = 1.0/(double)Magnification;
   floattobf(bfh, h);
   w = h / (DEFAULTASPECT * Xmagfactor);
   floattobf(bfw, w);
@@ -1098,10 +1098,10 @@ top:
           if (putstringwrap(&s_row,10,78,C_GENERAL_HI,msg,5)==1 || truncate)
             putstring(truncaterow,2,C_GENERAL_MED,struncate);
           putstring(++s_row,2,C_GENERAL_MED,smag);
-#ifdef USE_LONG_DOUBLE
+#ifndef NO_LDBL_IO
           sprintf(msg,"%10.8Le",Magnification);
 #else
-          sprintf(msg,"%10.8le",Magnification);
+          sprintf(msg,"%10.8le",(double)Magnification);
 #endif
           putstring(-1,11,C_GENERAL_HI,msg);
           putstring(++s_row,2,C_GENERAL_MED,sxmag);
@@ -1135,10 +1135,10 @@ top:
           sprintf(msg,"%20.16f %20.16f  ",Xctr,Yctr);
           putstring(-1,-1,C_GENERAL_HI,msg);
           putstring(-1,-1,C_GENERAL_MED,smag);
-#ifdef USE_LONG_DOUBLE
+#ifndef NO_LDBL_IO
           sprintf(msg," %10.8Le",Magnification);
 #else
-          sprintf(msg," %10.8le",Magnification);
+          sprintf(msg," %10.8le",(double)Magnification);
 #endif
           putstring(-1,-1,C_GENERAL_HI,msg);
           putstring(++s_row,2,C_GENERAL_MED,sxmag);
@@ -1186,7 +1186,11 @@ top:
   sprintf(msg,"%ld (%ld)",coloriter,maxit);
   putstring(-1,-1,C_GENERAL_HI,msg);
   putstring(-1,-1,C_GENERAL_MED,seffective_bailout);
+#ifndef NO_LDBL_IO
   sprintf(msg,"%Lf",rqlim);
+#else
+  sprintf(msg,"%lf",(double)rqlim);
+#endif
   putstring(-1,-1,C_GENERAL_HI,msg);
 
   if (fractype == PLASMA || fractype == ANT || fractype == CELLULAR)

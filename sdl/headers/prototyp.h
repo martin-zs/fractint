@@ -115,26 +115,26 @@ extern int ToMemDisk(long,int,void *);
 
 extern void EditPalette(void );
 extern VOIDPTR mem_alloc(unsigned size);
-void putrow(int x, int y, int width, char *buff);
-void getrow(int x, int y, int width, char *buff);
-void mem_init(VOIDPTR block, unsigned size);
+extern void putrow(int x, int y, int width, char *buff);
+extern void getrow(int x, int y, int width, char *buff);
+extern void mem_init(VOIDPTR block, unsigned size);
 /* void hline(int x, int y, int width, int color); */
-int Cursor_WaitKey(void);
-void Cursor_CheckBlink(void);
-#ifdef XFRACT
-void Cursor_StartMouseTracking(void);
-void Cursor_EndMouseTracking(void);
+extern int Cursor_WaitKey(void);
+extern void Cursor_CheckBlink(void);
+#if 1
+extern void Cursor_StartMouseTracking(void);
+extern void Cursor_EndMouseTracking(void);
 #endif
-void clip_putcolor(int x, int y, int color);
-int clip_getcolor(int x, int y);
-BOOLEAN Cursor_Construct (void);
-void Cursor_Destroy (void);
-void Cursor_SetPos (int x, int y);
-void Cursor_Move (int xoff, int yoff);
-int Cursor_GetX (void);
-int Cursor_GetY (void);
-void Cursor_Hide (void);
-void Cursor_Show (void);
+extern void clip_putcolor(int x, int y, int color);
+extern int clip_getcolor(int x, int y);
+extern BOOLEAN Cursor_Construct (void);
+extern void Cursor_Destroy (void);
+extern void Cursor_SetPos (int x, int y);
+extern void Cursor_Move (int xoff, int yoff);
+extern int Cursor_GetX (void);
+extern int Cursor_GetY (void);
+extern void Cursor_Hide (void);
+extern void Cursor_Show (void);
 extern void displayc(int, int, int, int, int);
 
 /*  encoder -- C file prototypes */
