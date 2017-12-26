@@ -63,6 +63,7 @@ union mem handletable[MAXHANDLES];
 
 /* Routines in this module */
 static int check_for_mem(int stored_at, unsigned long long howmuch);
+static long fr_farfree(void);
 static U16 next_handle(void);
 static int CheckBounds (long start, long length, U16 handle);
 static void WhichDiskError(int);
@@ -205,7 +206,7 @@ static U16 next_handle()
 
 static int CheckBounds (long start, long length, U16 handle)
 {
-  if (handletable[handle].Nowhere.size - start - length < 0)
+  if (((long long)handletable[handle].Nowhere.size - start - length) < 0)
     {
       static FCODE msg[] = {"Memory reference out of bounds."};
       stopmsg(20,msg);
@@ -244,7 +245,7 @@ static int CheckBounds (long start, long length, U16 handle)
   return (0);
 }
 
-long fr_farfree(void)
+static long fr_farfree(void)
 {
    long j,j2;
    BYTE *fartempptr;
@@ -420,6 +421,7 @@ void MemoryRelease(U16 handle)
 {
   switch (handletable[handle].Nowhere.stored_at)
     {
+    default:
     case NOWHERE: /* MemoryRelease */
       break;
 
@@ -468,6 +470,7 @@ int MoveToMemory(BYTE *buffer,U16 size,long count,long offset,U16 handle)
 
   switch (handletable[handle].Nowhere.stored_at)
     {
+    default:
     case NOWHERE: /* MoveToMemory */
       DisplayHandle(handle);
       break;
@@ -534,6 +537,7 @@ int MoveFromMemory(BYTE *buffer,U16 size,long count,long offset,U16 handle)
 
   switch (handletable[handle].Nowhere.stored_at)
     {
+    default:
     case NOWHERE: /* MoveFromMemory */
       DisplayHandle(handle);
       break;
@@ -600,6 +604,7 @@ int SetMemory(int value,U16 size,long count,long offset,U16 handle)
 
   switch (handletable[handle].Nowhere.stored_at)
     {
+    default:
     case NOWHERE: /* SetMemory */
       DisplayHandle(handle);
       break;
@@ -650,6 +655,7 @@ int ClearMemory(U16 handle)
 
   switch (handletable[handle].Nowhere.stored_at)
     {
+    default:
     case NOWHERE: /* ClearMemory */
       DisplayHandle(handle);
       break;

@@ -1621,7 +1621,7 @@ int check_mouse(SDL_Event mevent)
     {
       if (zoomoff == 1)  /* zooming is allowed */
         {
-          if (zwidth == 0)  /* haven't started zooming yet */
+          if (zwidth == 0.0)  /* haven't started zooming yet */
             {
               /* start zoombox */
               zskew = zrotate = 0;

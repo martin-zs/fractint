@@ -25,6 +25,7 @@ Additional fractal-specific modules are also invoked from CALCFRAC:
 
 
 /* routines in this module      */
+static LDBL fmodtest(void);
 static void perform_worklist(void);
 static int  OneOrTwoPass(void);
 static int  StandardCalc(int);
@@ -38,6 +39,7 @@ static void plotblock(int,int,int,int);
 static void setsymmetry(int,int);
 static int  xsym_split(int,int);
 static int  ysym_split(int,int);
+static void showdotsaverestore(int, int, int, int, int, int);
 static void puttruecolor_disk(int,int,int);
 static int  diffusion_engine (void);
 static int  sticky_orbits(void);
@@ -225,7 +227,7 @@ static int showdot_width = 0;
    methods are not used - in these cases a normal
    modulus test is used                              */
 
-LDBL fmodtest(void)
+static LDBL fmodtest(void)
 {
   LDBL result;
   if (inside==FMODI && save_release <= 2000) /* for backwards compatibility */
@@ -375,7 +377,7 @@ static void sym_put_line(int row, int left, int right, BYTE *str)
     }
 }
 
-void showdotsaverestore(int startx, int stopx, int starty, int stopy, int direction, int action)
+static void showdotsaverestore(int startx, int stopx, int starty, int stopy, int direction, int action)
 {
   int j,ct;
   ct = 0;

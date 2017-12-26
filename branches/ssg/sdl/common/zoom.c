@@ -11,14 +11,17 @@
 
 #define PIXELROUND 0.00001
 
+static void calc_corner(bf_t, bf_t, double, bf_t, double, bf_t);
 static void zmo_calc(double, double, double *, double *, double);
 static void zmo_calcbf(bf_t,bf_t,bf_t,bf_t,bf_t,bf_t,bf_t,bf_t,bf_t);
 static int  check_pan(void);
 static void fix_worklist(void);
 static void move_row(int, int, int);
+static void zoomoutbf(void);
+static void zoomoutdbl(void);
 
 /* big number declarations */
-void calc_corner(bf_t target,bf_t p1,double p2,bf_t p3,double p4,bf_t p5)
+static void calc_corner(bf_t target,bf_t p1,double p2,bf_t p3,double p4,bf_t p5)
 {
   bf_t btmp1, btmp2 ,btmp3;
   int saved;
@@ -92,7 +95,7 @@ void drawbox(int drawit)
   double fxwidth,fxskew,fydepth,fyskew,fxadj;
   bf_t bffxwidth, bffxskew, bffydepth, bffyskew, bffxadj;
   int saved=0;
-  if (zwidth==0)   /* no box to draw */
+  if (zwidth==0.0)   /* no box to draw */
     {
       if (boxcount!=0)   /* remove the old box from display */
         {
@@ -297,27 +300,27 @@ void moveboxf(double dx, double dy)
   if (dx!=0.0)
     {
       if ((zbx += dx) + zwidth/2 < 0)  /* center must stay onscreen */
-        zbx = zwidth/-2;
-      if (zbx + zwidth/2 > 1)
-        zbx = 1.0 - zwidth/2;
+        zbx = zwidth/-2.0;
+      if (zbx + zwidth/2.0 > 1.0)
+        zbx = 1.0 - zwidth/2.0;
       if (align != 0
           && ((col = (int)(zbx*(dxsize+PIXELROUND))) & (align-1)) != 0)
         {
-          if (dx > 0) col += align;
+          if (dx > 0.0) col += align;
           col -= col & (align-1); /* adjust col to pass alignment */
           zbx = (double)col/dxsize;
         }
     }
   if (dy!=0.0)
     {
-      if ((zby += dy) + zdepth/2 < 0)
-        zby = zdepth/-2;
-      if (zby + zdepth/2 > 1)
-        zby = 1.0 - zdepth/2;
+      if ((zby += dy) + zdepth/2.0 < 0.0)
+        zby = zdepth/-2.0;
+      if (zby + zdepth/2.0 > 1.0)
+        zby = 1.0 - zdepth/2.0;
       if (align != 0
           && ((row = (int)(zby*(dysize+PIXELROUND))) & (align-1)) != 0)
         {
-          if (dy > 0) row += align;
+          if (dy > 0.0) row += align;
           row -= row & (align-1);
           zby = (double)row/dysize;
         }
@@ -432,7 +435,7 @@ static void zmo_calc(double dx, double dy, double *newx, double *newy, double ft
   *newy = symax + tempy*(sy3rd-symax)/ftemp + tempx*(symin-sy3rd)/ftemp;
 }
 
-void zoomoutbf(void) /* for ctl-enter, calc corners for zooming out */
+static void zoomoutbf(void) /* for ctl-enter, calc corners for zooming out */
 {
   /* (xxmin,yymax), etc, are already set to zoombox corners;
      (sxmin,symax), etc, are still the screen's corners;
@@ -496,7 +499,7 @@ void zoomoutbf(void) /* for ctl-enter, calc corners for zooming out */
   restore_stack(saved);
 }
 
-void zoomoutdbl(void) /* for ctl-enter, calc corners for zooming out */
+static void zoomoutdbl(void) /* for ctl-enter, calc corners for zooming out */
 {
   /* (xxmin,yymax), etc, are already set to zoombox corners;
      (sxmin,symax), etc, are still the screen's corners;
