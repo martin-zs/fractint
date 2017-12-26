@@ -290,6 +290,7 @@ Version 20.5\
 Port to SDL 2.0
 
 Fixed image browser crashes.\
+Fixed windows version use of long double\
 
 Known issues:\
 Resizing images using the window border doesn't work very well\
@@ -299,6 +300,8 @@ Palette editor doesn't work with the mouse\
 2-color disk video modes are broken (windows)\
 Interrupting disk video initialization and canceling it\
 causes a crash\
+Zooming with mouse before image is finished doesn't create desired
+image\
 Help docs are not updated\
 
 Patch 14 to Version 20.4.0\

@@ -442,7 +442,7 @@ done:
           diskisactive = 0;              /* flag for disk-video routines */
         }
       boxcount = 0;                     /* no zoom box yet  */
-      zwidth = 0;
+      zwidth = 0.0;
 
       if (fractype == PLASMA)
         {
@@ -474,8 +474,8 @@ resumeloop:                             /* return here on failed overlays */
             }
           else if (initbatch == 0)       /* not batch mode */
             {
-              lookatmouse = (zwidth == 0) ? -PAGE_UP : 3;
-              if (calc_status == 2 && zwidth == 0 && !keypressed())
+              lookatmouse = (zwidth == 0.0) ? -PAGE_UP : 3;
+              if (calc_status == 2 && zwidth == 0.0 && !keypressed())
                 {
                   kbdchar = ENTER ;  /* no visible reason to stop, continue */
                 }
@@ -1135,7 +1135,7 @@ do_3d_transform:
       return(RESTORESTART);
     case 'l':
     case 'L':                    /* Look for other files within this view */
-      if ((zwidth == 0) && (!diskvideo))
+      if ((zwidth == 0.0) && (!diskvideo))
         /* not zooming & no disk video */
         {
           int oldhelpmode;
@@ -1304,15 +1304,15 @@ do_3d_transform:
     case PAGE_UP:                /* page up                      */
       if (zoomoff == 1)
         {
-          if (zwidth == 0)
+          if (zwidth == 0.0)
             {
               /* start zoombox */
-              zwidth = zdepth = 1;
-              zskew = zrotate = 0;
-              zbx = zby = 0;
+              zwidth = zdepth = 1.0;
+              zrotate = 0;
+              zskew = zbx = zby = 0.0;
               find_special_colors();
               boxcolor = color_bright;
-              px = py = gridsz/2;
+              px = py = (int)gridsz/2;
               moveboxf(0.0,0.0); /* force scrolling */
             }
           else
@@ -1322,8 +1322,8 @@ do_3d_transform:
     case PAGE_DOWN:              /* page down                    */
       if (boxcount)
         {
-          if (zwidth >= .999 && zdepth >= 0.999) /* end zoombox */
-            zwidth = 0;
+          if (zwidth >= 0.999 && zdepth >= 0.999) /* end zoombox */
+            zwidth = 0.0;
           else
             resizebox(key_count(PAGE_DOWN));
         }
@@ -1723,12 +1723,12 @@ int evolver_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stack
     case PAGE_UP:                /* page up                      */
       if (zoomoff == 1)
         {
-          if (zwidth == 0)
+          if (zwidth == 0.0)
             {
               /* start zoombox */
-              zwidth = zdepth = 1;
-              zskew = zrotate = 0;
-              zbx = zby = 0;
+              zwidth = zdepth = 1.0;
+              zrotate = 0;
+              zskew = zbx = zby = 0.0;
               find_special_colors();
               boxcolor = color_bright;
               /*rb*/
@@ -1751,9 +1751,9 @@ int evolver_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stack
     case PAGE_DOWN:              /* page down                    */
       if (boxcount)
         {
-          if (zwidth >= .999 && zdepth >= 0.999)   /* end zoombox */
+          if (zwidth >= 0.999 && zdepth >= 0.999)   /* end zoombox */
             {
-              zwidth = 0;
+              zwidth = 0.0;
               if (evolving&1)
                 {
                   drawparmbox(1); /* clear boxes off screen */
@@ -2046,7 +2046,7 @@ static void cmp_line_cleanup(void)
 
 void clear_zoombox()
 {
-  zwidth = 0;
+  zwidth = 0.0;
   drawbox(0);
   reset_zoom_corners();
 }

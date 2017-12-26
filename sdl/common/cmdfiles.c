@@ -2781,7 +2781,7 @@ static void parse_textcolors(char *value)
   int i,j,k,hexval;
   if (strcmp(value,s_mono) == 0)
     {
-      for (k = 0; k < sizeof(txtcolor); ++k)
+      for (k = 0; k < (int)sizeof(txtcolor); ++k)
         txtcolor[k] = BLACK*16+WHITE;
       /* C_HELP_CURLINK = C_PROMPT_INPUT = C_CHOICE_CURRENT = C_GENERAL_INPUT
                         = C_AUTHDIV1 = C_AUTHDIV2 = WHITE*16+BLACK; */
@@ -2797,7 +2797,7 @@ static void parse_textcolors(char *value)
   else
     {
       k = 0;
-      while ( k < sizeof(txtcolor))
+      while ( k < (int)sizeof(txtcolor))
         {
           if (*value == 0) break;
           if (*value != '/')
