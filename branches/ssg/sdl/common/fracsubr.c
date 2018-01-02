@@ -568,8 +568,10 @@ static double fudgetodouble(long l)
 {
   char buf[30];
   double d;
-  sprintf(buf,"%.9g",(double)l / fudge);
-  sscanf(buf,"%lf",&d);
+  d = (double)l / fudge;
+  sprintf(buf,"%.9g", d);
+//  sprintf(buf,"%.9g",(double)l / fudge);
+  sscanf(buf,"%lg",&d);
   return d;
 }
 
@@ -923,19 +925,19 @@ static void adjust_to_limits(double expand)
       if (bitshift >= 29) limit = 3.99;
     }
 
-  centerx = (xxmin+xxmax)/2;
-  centery = (yymin+yymax)/2;
+  centerx = (xxmin+xxmax)/2.0;
+  centery = (yymin+yymax)/2.0;
 
   if (xxmin == centerx)   /* ohoh, infinitely thin, fix it */
     {
       smallest_add(&xxmax);
-      xxmin -= xxmax-centerx;
+      xxmin -= (xxmax-centerx);
     }
 
   if (yymin == centery)
     {
       smallest_add(&yymax);
-      yymin -= yymax-centery;
+      yymin -= (yymax-centery);
     }
 
   if (xx3rd == centerx)
@@ -979,10 +981,11 @@ static void adjust_to_limits(double expand)
   /* if image is too large, downsize it maintaining center */
   ftemp = highx-lowx;
 
-  if (highy-lowy > ftemp) ftemp = highy-lowy;
+  if ((highy-lowy) > ftemp)
+    ftemp = highy-lowy;
 
   /* if image is too large, downsize it maintaining center */
-  if ((ftemp = limit*2/ftemp) < 1.0)
+  if ((ftemp = limit*2.0/ftemp) < 1.0)
     {
       for (i=0; i<4; ++i)
         {
@@ -992,20 +995,20 @@ static void adjust_to_limits(double expand)
     }
 
   /* if any corner has x or y past limit, move the image */
-  adjx = adjy = 0;
+  adjx = adjy = 0.0;
 
   for (i=0; i<4; ++i)
     {
-      if (cornerx[i] > limit && (ftemp = cornerx[i] - limit) > adjx)
+      if (cornerx[i] > limit && (ftemp = (cornerx[i] - limit)) > adjx)
         adjx = ftemp;
-      if (cornerx[i] < 0.0-limit && (ftemp = cornerx[i] + limit) < adjx)
+      if (cornerx[i] < (0.0-limit) && (ftemp = (cornerx[i] + limit)) < adjx)
         adjx = ftemp;
-      if (cornery[i] > limit     && (ftemp = cornery[i] - limit) > adjy)
+      if (cornery[i] > limit     && (ftemp = (cornery[i] - limit)) > adjy)
         adjy = ftemp;
-      if (cornery[i] < 0.0-limit && (ftemp = cornery[i] + limit) < adjy)
+      if (cornery[i] < (0.0-limit) && (ftemp = (cornery[i] + limit)) < adjy)
         adjy = ftemp;
     }
-  if (calc_status == 2 && (adjx != 0 || adjy != 0) && (zwidth == 1.0))
+  if (calc_status == 2 && (adjx != 0.0 || adjy != 0.0) && (zwidth == 1.0))
     calc_status = 0;
   xxmin = cornerx[0] - adjx;
   xxmax = cornerx[1] - adjx;

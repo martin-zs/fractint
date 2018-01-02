@@ -95,7 +95,7 @@ extern int strnicmp(char *, char *, int);
  * generated a error or warning.
  */
 
-#ifndef XFRACT
+#if 1
 #define SHOW_ERROR_LINE
 #endif
 
