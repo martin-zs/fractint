@@ -744,8 +744,8 @@ For a summary of keystrokes in RDS mode, see {RDS Commands}
 ;
 ~Topic=Palette Maps, Label=HELPCOLORMAP
 
-If you have a VGA, MCGA, Super-VGA, 8514/A, XGA, TARGA, or TARGA+ video
-adapter, you can save and restore color palettes for use
+If you have are using a 256 color (or less) video mode, you can save and
+restore color palettes for use
 with any image.  To load a palette onto an existing image, use
 the <L> command in color-cycling or palette-editing mode.  To save a
 palette, use the <S> command in those modes.  To change the default

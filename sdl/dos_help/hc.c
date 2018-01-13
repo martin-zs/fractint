@@ -267,10 +267,6 @@ int include_stack_top = -1;
 
 #define CHK_BUFFER(off) { if ((long)(curr+(off)) - (long)buffer >= (BUFFER_SIZE-1024)) fatal(0,"Buffer overflowed -- Help topic too large."); }
 
-#ifdef __WATCOMC__
-#define putw( x1, x2 )  fprintf( x2, "%c%c", x1&0xFF, x1>>8 );
-#endif
-
 #if 0
 #define putw( x1, x2 )  fwrite( &(x1), 1, sizeof(int), x2);
 #endif
