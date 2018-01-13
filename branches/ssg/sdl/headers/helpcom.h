@@ -753,6 +753,7 @@ int process_document(PD_FUNC get_info, PD_FUNC output, VOIDPTR info)
                      return (0);
                   break;
 
+               default:
                case TOK_DONE:
                case TOK_XONLINE:   /* skip */
                case TOK_XDOC:      /* ignore */

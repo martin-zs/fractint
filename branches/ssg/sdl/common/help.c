@@ -278,6 +278,7 @@ static void display_parse_text(char *text, unsigned len, int start_margin, int *
             }
           break;
 
+        default:
         case TOK_XONLINE:  /* skip */
         case TOK_FF:       /* ignore */
         case TOK_XDOC:     /* ignore */
@@ -746,6 +747,8 @@ static int help_topic(HIST *curr, HIST *next, int flags)
               action = ACTION_CALL;
             }
           break;
+        default:
+          break;
         } /* switch */
     }
   while ( action == -1 );
@@ -824,6 +827,7 @@ int help(int action)
             curr = hist[--curr_hist];
           break;
 
+        default:
         case ACTION_QUIT:
           break;
 
@@ -851,7 +855,7 @@ int help(int action)
         {
           if ( curr.topic_num == -100 )
             {
-              print_document("FRACTINT.DOC", print_doc_msg_func, 1);
+              print_document("FRACTINT.DOC", print_doc_msg_func, 0);
               action = ACTION_PREV2;
             }
 
@@ -866,6 +870,8 @@ int help(int action)
                 {
                   switch (getakey())
                     {
+                    default:
+                      break;
                     case ESC:
                       action = ACTION_QUIT;
                       break;
@@ -1024,7 +1030,7 @@ int read_help_topic(int label_num, int off, int len, VOIDFARPTR buf)
   return ( ret );
 }
 
-#define PRINT_BUFFER_SIZE  (32767)       /* max. size of help topic in doc. */
+#define PRINT_BUFFER_SIZE  (0x10000)       /* max. size of help topic in doc. */
 #define TEMP_FILE_NAME     "HELP.$$$"    /* temp file for storing extraseg  */
 /*    while printing document      */
 #define MAX_NUM_TOPIC_SEC  (10)          /* max. number of topics under any */
@@ -1060,8 +1066,6 @@ typedef struct PRINT_DOC_INFO
     int       start_of_line; /* are we at the beginning of a line? */
     int       spaces;        /* number of spaces in a row */
   } PRINT_DOC_INFO;
-
-void print_document(char *outfname, int (*msg_func)(int,int), int save_extraseg );
 
 static void printerc(PRINT_DOC_INFO *info, int c, int n)
 {
@@ -1327,7 +1331,7 @@ void print_document(char *outfname, int (*msg_func)(int,int), int save_extraseg 
   char          *msg = NULL;
   int            dummy; /* to quiet compiler */
 
-  info.buffer = malloc(32000);
+  info.buffer = malloc(0x10000);
 
   /*   help_seek((long)sizeof(int)+sizeof(long));         Strange -- should be 8 -- CWM */
   help_seek(8L);                               /* indeed it should - Bert */

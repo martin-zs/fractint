@@ -149,7 +149,7 @@
 {4.12 , 1, "Interfacing with Ray Tracing Programs"}
 
 {5.   , 0, Command Line Parameters\, Parameter Files\, Batch Mode, "Introduction to Parameters", FF}
-{5.1  , 1, "Using the DOS Command Line"}
+{5.1  , 1, "Using the Command Line"}
 {5.2  , 1, "Setting Defaults (SSTOOLS.INI File)"}
 {5.3  , 1, "Parameter Files and the <@> Command"}
 {5.4  , 1, "General Parameter Syntax"}
@@ -178,8 +178,7 @@
 
 {6.   , 0, Hardware Support, FF}
 {6.1  , 1, Notes on Video Modes\, \"Standard\" and Otherwise,
-                    "Video Adapter Notes", "EGA", "Tweaked VGA", "Super-VGA",
-                    "8514/A", "XGA", "Targa", "Targa+"}
+                    "Video Adapter Notes"}
 {6.2  , 1, "\"Disk-Video\" Modes"}
 {6.3  , 1, "Customized Video Modes\, FRACTINT.CFG"}
 
@@ -289,8 +288,7 @@ Version 20.5\
 
 Port to SDL 2.0
 
-Fixed image browser crashes.\
-Fixed windows version use of long double\
+Fixed \
 
 Known issues:\
 Resizing images using the window border doesn't work very well\
