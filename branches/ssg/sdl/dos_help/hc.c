@@ -84,6 +84,8 @@ extern char *strlwr(char *);
 extern int stricmp(char *, char *);
 extern int strnicmp(char *, char *, int);
 #endif /* HAVESTRI */
+#else
+extern int splitpath(char *template,char *drive,char *dir,char *fname,char *ext);
 #endif
 
 /*
@@ -3681,7 +3683,7 @@ void delete_hlp_from_exe(char *exe_fname)
 
    /* see if any help is currently installed */
 
-#ifndef XFRACT
+#if 1 /* ndef XFRACT */
    lseek(exe, filelength(exe) - 10, SEEK_SET);
    read(exe, (char *)&hs, 10);
 #else

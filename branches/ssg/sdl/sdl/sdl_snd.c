@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 #include <SDL.h>
 
 #include "port.h"
@@ -26,7 +27,7 @@ U16 *SampleOut;
 int SampleCount;
 
 
-#if 1
+#ifdef DEBUG
 void
 SDLAudioCallback(void *UserData, Uint8 *AudioData, int Length)
 {
@@ -52,6 +53,7 @@ dev = SDL_OpenAudioDevice(NULL, 0, &want, &have, SDL_AUDIO_ALLOW_FORMAT_CHANGE);
 
 void sdl_buzzer(void)
 {
+#ifdef DEBUG
 int SampleIndex;
 setup_sdl_audio();
 SquareWavePeriod = SamplesPerSecond / ToneHz;
@@ -76,6 +78,6 @@ SDL_PauseAudio(0);
 SDL_QueueAudio(dev, SoundBuffer, BytesToWrite);
 free(SoundBuffer);
 SDL_PauseAudio(1);
-
+#endif // DEBUG
 }
 

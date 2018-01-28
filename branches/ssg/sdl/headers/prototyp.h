@@ -1091,6 +1091,7 @@ extern void refreshimage(void);
 extern void push_resize_event(int);
 
 /*  sdl_snd -- C file prototypes */
+extern void setup_sdl_audio(void);
 extern void sdl_buzzer(void);
 
 /*  video -- C file prototypes */

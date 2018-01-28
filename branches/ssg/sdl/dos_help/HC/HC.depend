@@ -10,7 +10,7 @@
 	"port.h"
 	"prototyp.h"
 
-1297429643 source:c:\svn\sdl\dos_help\hc.c
+1515867527 source:c:\svn\sdl\dos_help\hc.c
 	<io.h>
 	<stdarg.h>
 	<varargs.h>
@@ -20,4 +20,51 @@
 	<assert.h>
 	"port.h"
 	"helpcom.h"
+
+1515943399 c:\svn\sdl\headers\port.h
+	<unistd.h>
+	<stdio.h>
+	<stdlib.h>
+	<float.h>
+	<math.h>
+	<sys/endian.h>
+	<endian.h>
+	"unix.h"
+
+1291131996 c:\svn\sdl\headers\unix.h
+	<sys/types.h>
+
+1515851391 c:\svn\sdl\headers\helpcom.h
+
+1515865457 source:c:\svn\sdl\sdl\faccess.c
+	<sys/types.h>
+	<sys/stat.h>
+	<dirent.h>
+	<ctype.h>
+	<fcntl.h>
+	<string.h>
+	<stdio.h>
+	<stdlib.h>
+	"port.h"
+	"prototyp.h"
+
+1515871726 c:\svn\sdl\headers\prototyp.h
+	"cmplx.h"
+	"big.h"
+	"fractint.h"
+	"helpcom.h"
+	"externs.h"
+
+1443881566 c:\svn\sdl\headers\cmplx.h
+
+1486238256 c:\svn\sdl\headers\big.h
+	"cmplx.h"
+	"biginit.h"
+
+1258722462 c:\svn\sdl\headers\biginit.h
+
+1511095797 c:\svn\sdl\headers\fractint.h
+	<sys/types.h>
+
+1513216268 c:\svn\sdl\headers\externs.h
 
