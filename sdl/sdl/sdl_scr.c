@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 #include <SDL.h>
 #include <SDL_ttf.h>
 
@@ -23,6 +24,11 @@ static int display_in_use = 0;
 
 TTF_Font *font = NULL;
 SDL_Color cols[256];
+#ifdef DEBUG
+int SDL_init_flags = SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_TIMER;
+#else
+int SDL_init_flags = SDL_INIT_VIDEO|SDL_INIT_TIMER;
+#endif
 int SDL_video_flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI;
 int SDL_renderer_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
 SDL_Cursor *mousecurser = NULL;
@@ -386,7 +392,7 @@ void SetupSDL(void)
 {
   /* called by main() routine */
 
-  if ( SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_TIMER) < 0 )
+  if ( SDL_Init(SDL_init_flags) < 0 )
     {
       SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
                          "Initiation Error",
@@ -1007,7 +1013,7 @@ void restore_text(void)
 void stackscreen(void)
 {
   int r, c;
-#if DEBUG
+#if 0
   fprintf(stderr, "stackscreen, %i screens stacked\n", screenctr+1);
 #endif
 
@@ -1031,7 +1037,7 @@ void stackscreen(void)
 void unstackscreen(void)
 {
   int r, c;
-#if DEBUG
+#if 0
   fprintf(stderr, "unstackscreen, %i screens stacked\n", screenctr);
 #endif
 //  if (dotmode == 11)
@@ -1067,7 +1073,7 @@ void unstackscreen(void)
 
 void discardscreen(void)
 {
-#if DEBUG
+#if 0
   fprintf(stderr, "discardscreen, %i screens stacked\n", screenctr);
 #endif
   screenctr = 0;   /* unstack all */
@@ -1113,7 +1119,7 @@ void putstring (int row, int col, int attr, CHAR *msg)
         }
       else
         {
-#if DEBUG
+#if 0
           if (c >= TEXT_WIDTH) c = TEXT_WIDTH - 1; /* keep going, but truncate */
           if (r >= TEXT_HEIGHT) r = TEXT_HEIGHT - 1;
 #endif
@@ -1146,7 +1152,7 @@ void setattr (int row, int col, int attr, int count)
 {
   int i = col;
   int r, c, s_c;
-#if DEBUG
+#if 0
   fprintf(stderr, "setattr, row= %d col=%d attr=%d count=%d\n", row, col, attr, count);
 #endif
 
@@ -1186,7 +1192,7 @@ void setattr (int row, int col, int attr, int count)
 void scrollup (int top, int bot)
 {
   int r, c;
-#if DEBUG
+#if 0
   fprintf(stderr, "scrollup(%d, %d)\n", top, bot);
 #endif
 

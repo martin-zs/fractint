@@ -439,7 +439,13 @@ _CMPLX ComplexSqrtFloat(LDBL x, LDBL y)
         result.x = result.y = 0.0;
     else if (y == 0.0)   /* number is real */
     {
-        result.x = sqrtl(x);
+        if (x > 0.0)
+           result.x = sqrtl(x);
+        else
+        {
+            result.x = 0.0;
+            overflow = 1;
+        }
         result.y = 0.0;
     }
     else

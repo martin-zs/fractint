@@ -24,6 +24,14 @@ static char searchname[FILE_MAX_PATH];
 static char searchext[FILE_MAX_EXT];
 static DIR *currdir = NULL;
 
+static char getdriveletter(void)
+{
+  char *dummy; /* to quiet compiler */
+  char curdir[FILE_MAX_DIR+1];
+
+  dummy = getcwd(curdir,FILE_MAX_DIR);
+  return ((char)tolower(curdir[0]));
+}
 
 int isadirectory(char *s)
 {
@@ -466,7 +474,7 @@ int merge_pathnames(char *oldfullpath, char *newfilename, int mode)
   if (newfilename[0] == '.' &&
       newfilename[1] == SLASHC && newfilename[2] == 0)
     {
-      temp_path[0] = (char)('a' + _getdrive() - 1);
+      temp_path[0] = getdriveletter();
       temp_path[1] = ':';
       temp_path[2] = 0;
       expand_dirname(newfilename,temp_path);
@@ -479,7 +487,7 @@ int merge_pathnames(char *oldfullpath, char *newfilename, int mode)
       newfilename[1] == SLASHC)
     {
       int len, test_dir=0;
-      temp_path[0] = (char)('a' + _getdrive() - 1);
+      temp_path[0] = getdriveletter();
       temp_path[1] = ':';
       temp_path[2] = 0;
       if (strrchr(newfilename,'.') == newfilename)
