@@ -133,7 +133,7 @@ bf_t strtobf(bf_t r, char *s)
 /********************************************************************/
 /* strlen_needed() - returns string length needed to hold bigfloat */
 
-int strlen_needed_bf()
+static int strlen_needed_bf()
 {
   int length;
 

@@ -99,6 +99,7 @@ extern void set_byte_buff(BYTE *ptr);
 
 /*  diskvid -- C file prototypes */
 
+extern int startdisk(void);
 extern int pot_startdisk(void);
 extern int targa_startdisk(FILE *,int );
 extern void enddisk(void);
@@ -964,8 +965,15 @@ extern long calcmandasm(void);
 
 /*  calmanfp -- C file prototypes */
 
+extern long (*calcmandfpasm)(void);
 extern void calcmandfpasmstart(void);
 extern long calcmandfp_c(void);
+
+/*  calmanp5  --assembler file prototypes */
+#ifdef NASM
+extern long calcmandfpasm_p5(void);
+extern void calcmandfpasmstart_p5(void);
+#endif
 
 /*  faccess -- C file prototypes */
 

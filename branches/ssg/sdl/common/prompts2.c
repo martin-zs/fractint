@@ -1230,7 +1230,7 @@ void heap_sort(void *ra1, int n, unsigned sz, int (*fct)(VOIDFARPTR arg1,VOIDFAR
 
 int lccompare(VOIDFARPTR arg1, VOIDFARPTR arg2) /* for sort */
 {
-  return(strncasecmp(*((char **)arg1),*((char **)arg2),40));
+  return(strnicmp(*((char **)arg1),*((char **)arg2),40));
 }
 
 static int speedstate;

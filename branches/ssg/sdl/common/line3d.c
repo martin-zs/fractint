@@ -354,7 +354,7 @@ int line3d(BYTE * pixels, unsigned linelen)
               /* NOTE: fudge was pre-calculated above in r and R */
               /* (almost) guarantee negative */
               lv[2] = (long) (-R - r * costheta * sinphi);     /* z */
-              if ((lv[2] > zcutoff) && !FILLTYPE < 0)
+              if ((lv[2] > zcutoff) && !(FILLTYPE < 0))
                 {
                   cur = bad;
                   f_cur = f_bad;

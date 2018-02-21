@@ -421,7 +421,7 @@ void process_speedstring(char  *speedstring,
     {
       *pcurrent = 0;
       while (*pcurrent < numchoices
-             && (comp_result = strncasecmp(speedstring,choices[*pcurrent],i))!=0)
+             && (comp_result = strnicmp(speedstring,choices[*pcurrent],i))!=0)
         {
           if (comp_result < 0 && !is_unsorted)
             {
@@ -441,7 +441,7 @@ void process_speedstring(char  *speedstring,
           int temp = *pcurrent;
           while (++temp < numchoices)
             {
-              if (!choices[temp][i] && !strncasecmp(speedstring, choices[temp], i))
+              if (!choices[temp][i] && !strnicmp(speedstring, choices[temp], i))
                 {
                   *pcurrent = temp;
                   break;
@@ -509,7 +509,7 @@ int fullscreen_choice(
       if (options&CHOICESNOTSORTED)
         {
           while (current < numchoices
-                 && (k = strncasecmp(speedstring,choices[current],i)) != 0)
+                 && (k = strnicmp(speedstring,choices[current],i)) != 0)
             ++current;
           if (k != 0)
             current = 0;
@@ -517,7 +517,7 @@ int fullscreen_choice(
       else
         {
           while (current < numchoices
-                 && (k = strncasecmp(speedstring,choices[current],i)) > 0)
+                 && (k = strnicmp(speedstring,choices[current],i)) > 0)
             ++current;
           if (k < 0 && current > 0)  /* oops - overshot */
             --current;

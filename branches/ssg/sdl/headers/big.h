@@ -260,7 +260,6 @@ extern bf_t floattobf1(bf_t r, LDBL f);
 /* bigflt.c */
 extern void bf_hexdump(bf_t r);
 extern bf_t strtobf(bf_t r, char *s);
-extern int strlen_needed_bf();
 extern char *unsafe_bftostr(char *s, int dec, bf_t r);
 extern char *unsafe_bftostr_e(char *s, int dec, bf_t r);
 extern char *unsafe_bftostr_f(char *s, int dec, bf_t r);

@@ -274,6 +274,7 @@ bn_t strtobn(bn_t r, char *s)
           switch (intlength)
             {
               /* only 1, 2, or 4 are allowed */
+            default:
             case 1:
               *onesbyte = (BYTE)longval;
               break;
@@ -292,6 +293,7 @@ bn_t strtobn(bn_t r, char *s)
       switch (intlength)
         {
           /* only 1, 2, or 4 are allowed */
+        default:
         case 1:
           *onesbyte = (BYTE)longval;
           break;
@@ -314,13 +316,14 @@ bn_t strtobn(bn_t r, char *s)
 /********************************************************************/
 /* strlen_needed() - returns string length needed to hold bignumber */
 
-int strlen_needed()
+static int strlen_needed(void)
 {
   int length = 3;
 
   /* first space for integer part */
   switch (intlength)
     {
+    default:
     case 1:
       length = 3;  /* max 127 */
       break;
@@ -363,6 +366,7 @@ char *unsafe_bntostr(char *s, int dec, bn_t r)
   switch (intlength)
     {
       /* only 1, 2, or 4 are allowed */
+    default:
     case 1:
       longval = *onesbyte;
       break;
@@ -401,6 +405,7 @@ bn_t inttobn(bn_t r, long longval)
   switch (intlength)
     {
       /* only 1, 2, or 4 are allowed */
+    default:
     case 1:
       *onesbyte = (BYTE)longval;
       break;
@@ -426,6 +431,7 @@ long bntoint(bn_t n)
   switch (intlength)
     {
       /* only 1, 2, or 4 are allowed */
+    default:
     case 1:
       longval = *onesbyte;
       break;
@@ -468,6 +474,7 @@ bn_t floattobn(bn_t r, LDBL f)
   switch (intlength)
     {
       /* only 1, 2, or 4 are allowed */
+    default:
     case 1:
       *onesbyte = (BYTE)f;
       break;

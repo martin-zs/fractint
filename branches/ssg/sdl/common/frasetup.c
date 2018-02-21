@@ -186,8 +186,14 @@ MandelfpSetup(void)
           && using_jiim == 0 && bailoutest == Mod
           && (orbitsave&2) == 0)
         {
-          calcmandfpasmstart();
           calctype = calcmandfp; /* the normal case - use calcmandfp */
+#ifdef NASM
+          calcmandfpasmstart_p5();
+          calcmandfpasm = (long (*)(void))calcmandfpasm_p5;
+#else
+          calcmandfpasmstart();
+          calcmandfpasm = (long (*)(void))calcmandfp_c;
+#endif
         }
       else
         {
@@ -293,8 +299,14 @@ JuliafpSetup(void)
           && using_jiim == 0 && bailoutest == Mod
           && (orbitsave&2) == 0)
         {
-          calcmandfpasmstart();
           calctype = calcmandfp; /* the normal case - use calcmandfp */
+#ifdef NASM
+          calcmandfpasmstart_p5();
+          calcmandfpasm = (long (*)(void))calcmandfpasm_p5;
+#else
+          calcmandfpasmstart();
+          calcmandfpasm = (long (*)(void))calcmandfp_c;
+#endif
         }
       else
         {
