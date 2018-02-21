@@ -269,6 +269,7 @@ void ResizeScreen(int mode)
   finalaspectratio = screenaspect;
   dotmode = videoentry.dotmode;
   colors = videoentry.colors;
+  rotate_hi = colors - 1;
   Image_Data.sizex = sxdots;
   Image_Data.sizey = sydots;
   Image_Data.color_info = (long *)malloc(sxdots * sydots * sizeof(long));

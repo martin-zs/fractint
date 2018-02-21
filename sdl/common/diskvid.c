@@ -66,7 +66,7 @@ static void mem_putc(BYTE);
 static BYTE mem_getc(void);
 static void mem_seek(long);
 
-int startdisk()
+int startdisk(void)
 {
    if (!diskisactive)
       return(0);
@@ -74,7 +74,7 @@ int startdisk()
    return (common_startdisk(sxdots,sydots,colors));
    }
 
-int pot_startdisk()
+int pot_startdisk(void)
 {
    int i;
    if (dotmode == 11) /* ditch the original disk file */
@@ -112,13 +112,13 @@ int targa_startdisk(FILE *targafp,int overhead)
 
 int common_startdisk(long newrowsize, long newcolsize, int colors)
 {
-   int i,freemem;
-   unsigned long memorysize, offset;
+   int i;
+   unsigned long memorysize;
    unsigned int *fwd_link = NULL;
    struct cache *ptr1 = NULL;
    long longtmp;
    unsigned int cache_size;
-   BYTE *tempfar = NULL;
+
    if (diskflag)
       enddisk();
    if (dotmode == 11) { /* otherwise, real screen also in use, don't hit it */
@@ -163,21 +163,6 @@ int common_startdisk(long newrowsize, long newcolsize, int colors)
    else
       timetodisplay = 1000;  /* time-to-display-status counter */
 
-#if 0
-   /* allocate cache: try for the max; leave FREEMEMk free if we can get
-      that much or more; if we can't get that much leave 1/2 of whatever
-      there is free; demand a certain minimum or nogo at all */
-   freemem = FREEMEM;
-
-   for (cache_size = CACHEMAX; cache_size >= CACHEMIN; --cache_size) {
-      longtmp = ((int)cache_size < freemem) ? (long)cache_size << 11
-                                       : (long)(cache_size+freemem) << 10;
-      if ((tempfar = malloc(longtmp)) != NULL) {
-         free(tempfar);
-         break;
-         }
-      }
-#endif
    cache_size = CACHEMAX;
    if (debugflag==4200)
       cache_size = CACHEMIN;
@@ -263,6 +248,7 @@ int common_startdisk(long newrowsize, long newcolsize, int colors)
       {
 tryagain:
       if (!ClearMemory(dv_handle))           /* user interrupt */
+      {
          if (stopmsg(2, "Disk Video initialization interrupted or failed:\n")) /* esc to cancel, else continue */
          {
             enddisk();
@@ -271,6 +257,7 @@ tryagain:
          }
          else
             goto tryagain;
+      }
       }
 
    if (disktarga) { /* Put header information in the file */
@@ -327,11 +314,11 @@ BYTE readdisk(int col, int row)
          timetodisplay = 1000;  /* time-to-display-status counter */
       }
    if (row != cur_row) { /* try to avoid ghastly code generated for multiply */
-      if (row >= colsize) /* while we're at it avoid this test if not needed  */
+      if ((unsigned int)row >= colsize) /* while we're at it avoid this test if not needed  */
          return(0);
       cur_row_base = (long)(cur_row = row) * rowsize;
       }
-   if (col >= rowsize)
+   if ((unsigned int)col >= rowsize)
       return(0);
    offset = cur_row_base + col;
    col_subscr = (short)offset & (BLOCKLEN-1); /* offset within cache entry */

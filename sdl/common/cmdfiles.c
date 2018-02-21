@@ -11,8 +11,6 @@
 #include "prototyp.h"
 #include "fractype.h"
 
-#define strncmp strnicmp
-
 static int  cmdfile(FILE *,int);
 static int  next_command(char *,int,FILE *,char *,int *,int);
 static int  next_line(FILE *,char *,int);
@@ -924,12 +922,12 @@ static int next_line(FILE *handle,char *linebuf,int mode)
           strncpy(tmpbuf,&linebuf[1],9);
           tmpbuf[9] = 0;
           strlwr(tmpbuf);
-          toolssection = strncmp(tmpbuf,"fractint]",9);
+          toolssection = strnicmp(tmpbuf,"fractint]",9);
 #else
           strncpy(tmpbuf,&linebuf[1],10);
           tmpbuf[10] = 0;
           strlwr(tmpbuf);
-          toolssection = strncmp(tmpbuf,"xfractint]",10);
+          toolssection = strnicmp(tmpbuf,"xfractint]",10);
 #endif
           continue;                              /* skip tools section heading */
         }
@@ -984,9 +982,9 @@ int cmdarg(char *curarg,int mode) /* process a single argument */
     {
       if (*argptr >= 'A' && *argptr <= 'Z')
         *argptr += 'a' - 'A';
-      if (*argptr == '=' && strncmp(curarg,"colors=",7) == 0)
+      if (*argptr == '=' && strnicmp(curarg,"colors=",7) == 0)
         break;                         /* don't convert colors=value */
-      if (*argptr == '=' && strncmp(curarg,s_comment,7) == 0)
+      if (*argptr == '=' && strnicmp(curarg,s_comment,7) == 0)
         break;                         /* don't convert comment=value */
       ++argptr;
     }
@@ -1365,17 +1363,17 @@ int cmdarg(char *curarg,int mode) /* process a single argument */
         inside = BOF60;
       else if (strcmp(value,s_bof61)==0)
         inside = BOF61;
-      else if (strncmp(value,s_epscross,3)==0)
+      else if (strnicmp(value,s_epscross,3)==0)
         inside = EPSCROSS;
-      else if (strncmp(value,s_startrail,4)==0)
+      else if (strnicmp(value,s_startrail,4)==0)
         inside = STARTRAIL;
-      else if (strncmp(value,s_period,3)==0)
+      else if (strnicmp(value,s_period,3)==0)
         inside = PERIOD;
-      else if (strncmp(value,s_fmod,3)==0)
+      else if (strnicmp(value,s_fmod,3)==0)
         inside = FMODI;
-      else if (strncmp(value,s_atan,3)==0)
+      else if (strnicmp(value,s_atan,3)==0)
         inside = ATANI;
-      else if (strcmp(value,s_maxiter)==0)
+      else if (stricmp(value,s_maxiter)==0)
         inside = -1;
       else if (numval == NONNUMERIC)
         goto badarg;
@@ -1949,14 +1947,15 @@ int cmdarg(char *curarg,int mode) /* process a single argument */
       /* be used in case compiler's LDBL_MAX is not big enough    */
       if (Magnification > LDBL_MAX || Magnification < -LDBL_MAX)
         goto badarg;     /* ie: Magnification is +-1.#INF */
-
+/* The above sscanf doesn't work under mingw, so next is needed. */
+      Magnification = (LDBL)floatval[2];
       dec = getpower10(Magnification) + 4; /* 4 digits of padding sounds good */
 
       if ((dec <= DBL_DIG+1 && debugflag != 3200) || debugflag == 3400)  /* rough estimate that double is OK */
         {
           Xctr = floatval[0];
           Yctr = floatval[1];
-          /* Magnification = floatval[2]; */  /* already done above */
+          /* Magnification = floatval[2]; */ /* already done above */
           Xmagfactor = 1;
           Rotation = 0;
           Skew = 0;
@@ -2140,7 +2139,7 @@ int cmdarg(char *curarg,int mode) /* process a single argument */
 
       if (charval[0] == 'n' || charval[0] == 'o')
         soundflag = soundflag & 0xF8;
-      else if ((strncmp(value,"ye",2) == 0) || (charval[0] == 'b'))
+      else if ((strnicmp(value,"ye",2) == 0) || (charval[0] == 'b'))
         soundflag = soundflag | 1;
       else if (charval[0] == 'x')
         soundflag = soundflag | 2;

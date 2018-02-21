@@ -396,6 +396,8 @@ static void showdotsaverestore(int startx, int stopx, int starty, int stopy, int
     }
   switch (direction)
     {
+    default:
+      break;
     case LOWER_RIGHT:
       for (j=starty;   j<=stopy; startx++,j++)
         {
@@ -453,7 +455,7 @@ static void showdotsaverestore(int startx, int stopx, int starty, int stopy, int
     (*plot) (col,row, showdotcolor);
 }
 
-int calctypeshowdot(void)
+static int calctypeshowdot(void)
 {
   int out, startx, starty, stopx, stopy, direction, width;
   direction = JUST_A_POINT;
@@ -735,6 +737,7 @@ int calcfract(void)
     }
 
   if (curfractalspecific->calctype != StandardFractal
+      && curfractalspecific->calctype != calcmandfp
       && curfractalspecific->calctype != lyapunov
       && curfractalspecific->calctype != calcfroth)
     {
@@ -1752,7 +1755,7 @@ int calcmand(void)              /* fast per pixel 1/2/b/g, called with row & col
   return (color);
 }
 
-extern long calcmandfp_c(void);
+long (*calcmandfpasm)(void);
 
 /************************************************************************/
 /* added by Wes Loewer - sort of a floating point version of calcmand() */
@@ -1768,7 +1771,7 @@ int calcmandfp(void)
       init.x = dxpixel();
       init.y = dypixel();
     }
-  if (calcmandfp_c() >= 0)
+  if (calcmandfpasm() >= 0)
     {
       if (potflag)
         coloriter = potential(magnitude, realcoloriter);
