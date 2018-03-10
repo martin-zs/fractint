@@ -189,10 +189,10 @@ MandelfpSetup(void)
           calctype = calcmandfp; /* the normal case - use calcmandfp */
 #ifdef NASM
           calcmandfpasmstart_p5();
-          calcmandfpasm = (long (*)(void))calcmandfpasm_p5;
+          calcmandfpasm = calcmandfpasm_p5;
 #else
           calcmandfpasmstart();
-          calcmandfpasm = (long (*)(void))calcmandfp_c;
+          calcmandfpasm = calcmandfp_c;
 #endif
         }
       else
@@ -302,10 +302,10 @@ JuliafpSetup(void)
           calctype = calcmandfp; /* the normal case - use calcmandfp */
 #ifdef NASM
           calcmandfpasmstart_p5();
-          calcmandfpasm = (long (*)(void))calcmandfpasm_p5;
+          calcmandfpasm = calcmandfpasm_p5;
 #else
           calcmandfpasmstart();
-          calcmandfpasm = (long (*)(void))calcmandfp_c;
+          calcmandfpasm = calcmandfp_c;
 #endif
         }
       else

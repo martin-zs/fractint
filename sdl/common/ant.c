@@ -42,7 +42,7 @@
 static int *incx[DIRS];         /* tab for 4 directions */
 static int *incy[DIRS];
 
-void setwait(long *wait)
+static void setwait(long *wait)
 {
   char msg[30];
   int kbdchar;
@@ -85,7 +85,7 @@ void setwait(long *wait)
 /* turkmite from scientific american july 1994 pag 91
  * Tweaked by Luciano Genero & Fulvio Cappelli
  */
-void TurkMite1(int maxtur, int rule_len, char *ru, long maxpts, long wait)
+static void TurkMite1(int maxtur, int rule_len, char *ru, long maxpts, long wait)
 {
   int color, ix, iy, idir, pixel, i;
   int kbdchar, step, antwrap;
@@ -240,7 +240,7 @@ exit_ant:
 }
 
 /* this one ignore the color of the current cell is more like a white ant */
-void TurkMite2(int maxtur, int rule_len, char *ru, long maxpts, long wait)
+static void TurkMite2(int maxtur, int rule_len, char *ru, long maxpts, long wait)
 {
   int color, ix, iy, idir, pixel, dir[MAX_ANTS + 1], i;
   int kbdchar, step, antwrap;
@@ -270,7 +270,7 @@ void TurkMite2(int maxtur, int rule_len, char *ru, long maxpts, long wait)
   else
     {                            /* the same rule the user wants for every
                                  * turkmite (max rule_len = 16 bit) */
-      rule_len = min(rule_len, 8 * sizeof(int));
+      rule_len = min(rule_len, (int)(8 * sizeof(int)));
       for (i = 0, rule[0] = 0; i < rule_len; i++)
         rule[0] = (rule[0] << 1) | ru[i];
       for (color = MAX_ANTS - 1; color; color--)
@@ -452,6 +452,7 @@ int ant(void)
     type = RANDOM(2);         /* if type == 0 choose a random type */
   switch (type)
     {
+    default:
     case 0:
       TurkMite1(maxants, rule_len, rule, maxpts, wait);
       break;

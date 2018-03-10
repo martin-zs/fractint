@@ -323,7 +323,7 @@ extern char                  newodpy;
 extern double                newopx;
 extern double                newopy;
 extern int                   neworbittype;
-extern int                   nextsavedincr;
+extern long                  nextsavedincr;
 extern int                   no_sub_images;
 extern int                   no_mag_calc;
 extern int                   nobof;
