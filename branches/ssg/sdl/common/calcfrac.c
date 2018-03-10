@@ -202,7 +202,7 @@ int trail_row, trail_col;
 int periodicitycheck;
 
 /* For periodicity testing, only in StandardFractal() */
-int nextsavedincr;
+long nextsavedincr;
 long firstsavedand;
 
 static BYTE *savedots = NULL;
@@ -578,7 +578,7 @@ int calcfract(void)
     }
   else
     {
-      nextsavedincr = (int)log10(maxit); /* works better than log() */
+      nextsavedincr = (long)log10(maxit); /* works better than log() */
       if (nextsavedincr < 4) nextsavedincr = 4; /* maintains image with low iterations */
       firstsavedand = (long)((nextsavedincr*2) + 1);
     }
