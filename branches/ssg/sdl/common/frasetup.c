@@ -188,8 +188,16 @@ MandelfpSetup(void)
         {
           calctype = calcmandfp; /* the normal case - use calcmandfp */
 #ifdef NASM
-          calcmandfpasmstart_p5();
-          calcmandfpasm = calcmandfpasm_p5;
+          if (debugflag != 98)
+          {
+            calcmandfpasmstart_p5();
+            calcmandfpasm = calcmandfpasm_p5;
+          }
+          else
+          {
+            calcmandfpasmstart();
+            calcmandfpasm = calcmandfp_c;
+          }
 #else
           calcmandfpasmstart();
           calcmandfpasm = calcmandfp_c;
@@ -301,8 +309,16 @@ JuliafpSetup(void)
         {
           calctype = calcmandfp; /* the normal case - use calcmandfp */
 #ifdef NASM
-          calcmandfpasmstart_p5();
-          calcmandfpasm = calcmandfpasm_p5;
+          if (debugflag != 98)
+          {
+            calcmandfpasmstart_p5();
+            calcmandfpasm = calcmandfpasm_p5;
+          }
+          else
+          {
+            calcmandfpasmstart();
+            calcmandfpasm = calcmandfp_c;
+          }
 #else
           calcmandfpasmstart();
           calcmandfpasm = calcmandfp_c;
@@ -808,7 +824,10 @@ JuliafnPlusZsqrdSetup(void)
     case 10:  /* tan */
     case 11:  /* tanh */
       symmetry = ORIGIN;
+      break;
       /* default is for NOSYM symmetry */
+    default:
+      symmetry = NOSYM;
     }
   if (curfractalspecific->isinteger)
     return(JulialongSetup());
@@ -829,7 +848,10 @@ SqrTrigSetup(void)
     case COS: /* cosxx */
     case 9:   /* 'real' cos */
       symmetry = PI_SYM;
+      break;
       /* default is for XAXIS symmetry */
+    default:
+      symmetry = XAXIS;
     }
   if (curfractalspecific->isinteger)
     return(JulialongSetup());

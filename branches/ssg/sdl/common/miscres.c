@@ -780,7 +780,7 @@ int tab_display_2(char *msg)
   */
   sprintf(msg,"xxstart %d xxstop %d yystart %d yystop %d %s uses_ismand %d",
           xxstart,xxstop,yystart,yystop,
-#if 0
+#ifdef NASM
           curfractalspecific->orbitcalc == fFormula?"fast parser":
 #endif
           curfractalspecific->orbitcalc ==  Formula?"slow parser":

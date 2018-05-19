@@ -115,18 +115,18 @@
 /* global data  */
 struct fls *pfls = (struct fls *)0;
 
-#if 0 /* #ifndef XFRACT */ /* --  */
+#ifdef NASM /* #ifndef XFRACT */ /* --  */
 
 /* not moved to PROTOTYPE.H because these only communicate within
    PARSER.C and other parser modules */
 
 extern union Arg *Arg1, *Arg2;
-extern double _1_, _2_;
+extern LDBL _1_, _2_;
 extern union Arg s[20], * *Store, * *Load;
-extern int StoPtr, LodPtr, OpPtr;
+extern long StoPtr, LodPtr, OpPtr;
 extern unsigned int vsp, LastOp;
 extern struct ConstArg *v;
-extern int InitLodPtr, InitStoPtr, InitOpPtr, LastInitOp;
+extern long InitLodPtr, InitStoPtr, InitOpPtr, LastInitOp;
 extern void (* *f)(void);
 extern JUMP_CONTROL_ST *jump_control;
 extern int uses_jump, jump_index;
@@ -157,7 +157,7 @@ OLD_FN  dStkRound;
 OLD_FN  StkJump, dStkJumpOnTrue, dStkJumpOnFalse;
 OLD_FN  dStkOne;
 
-typedef void (near NEW_FN)(void);  /* new 387-only ASM functions  */
+typedef void (NEW_FN)(void);  /* new 387-only ASM functions  */
 
 NEW_FN  fStkPull2;  /* pull up fpu stack from 2 to 4  */
 NEW_FN  fStkPush2;  /* push down fpu stack from 8 to 6  */
@@ -243,8 +243,8 @@ NEW_FN  fStkOne;   /* to support new parser fn.  */
 #define CLEAR_STK 127
 #define FNPTR(x) pfls[(x)].function  /* function pointer */
 #define OPPTR(x) pfls[(x)].operand   /* operand pointer */
-#define NO_OPERAND (union Arg near *)0
-#define NO_FUNCTION (void (near *)(void))0
+#define NO_OPERAND (union Arg *)0
+#define NO_FUNCTION (void (*)(void))0
 #define LASTSQR v[4].a
 #define PARM1 v[1].a
 #define PARM2 v[2].a
@@ -388,12 +388,12 @@ p5const;      /* ...and p5?  */
 static unsigned int
 cvtptrx;      /* subscript of next free entry in pfls  */
 
-static void (near *prevfptr )(void);  /* previous function pointer  */
+static void (*prevfptr )(void);  /* previous function pointer  */
 
 /* the entries in this table must be in the same order as  */
 /*    the #defines above  */
 /* this table is searched sequentially  */
-struct fn_entry
+static struct fn_entry
   {
 
 #ifdef TESTFP
@@ -402,7 +402,7 @@ struct fn_entry
     void (*infn)(void);  /* 'old' function pointer  */
     /* (infn points to an operator fn in parser.c)  */
 
-    void (near *outfn)(void);  /* pointer to equiv. fast fn.  */
+    void (*outfn)(void);  /* pointer to equiv. fast fn.  */
 
     char min_regs;  /* min regs needed on stack by this fn.  */
     /* (legal values are 0, 2, 4)  */
@@ -413,7 +413,7 @@ struct fn_entry
     char delta;  /* net change to # of values on the fp stack  */
     /* (legal values are -2, 0, +2)  */
 
-  } static afe[NUM_OLD_FNS] =    /* array of function entries  */
+  } afe[NUM_OLD_FNS] =    /* array of function entries  */
 {
 
   {FNAME("Lod",     StkLod,      fStkLod,    0, 2, +2) },          /*  0  */
@@ -486,7 +486,7 @@ static int CvtFptr(void (* ffptr)(void), int MinStk, int FreeStk,
 #ifdef TESTFP
   int prevstkcnt;
 #endif
-  double dTemp;
+  LDBL dTemp;
 
   int Max_On_Stack = MAX_STACK - FreeStk;  /* max regs allowed on stack  */
   int Num_To_Push; /* number of regs to push  */
@@ -553,12 +553,12 @@ awful_error:
   /* set the operand pointer here for store function  */
   if (ffptr == fStkSto )
     {
-      OPPTR(cvtptrx) = (void near *)FP_OFF((Store[StoPtr++]));
+      OPPTR(cvtptrx) = (void *)FP_OFF((Store[StoPtr++]));
     }
   else if (ffptr == fStkLod && debugflag == 322 )
     {
       /* when disabling optimizer, set load pointer here  */
-      OPPTR(cvtptrx) = (void near *)FP_OFF((Load[LodPtr++]));
+      OPPTR(cvtptrx) = (void *)FP_OFF((Load[LodPtr++]));
     }
   else   /* the optimizer will set the pointer for load fn.  */
     {
@@ -647,7 +647,7 @@ awful_error:
             }
         }
       /* set the operand ptr here  */
-      OPPTR(cvtptrx) = (void near *)FP_OFF((Load[LodPtr++]));
+      OPPTR(cvtptrx) = (void *)FP_OFF((Load[LodPtr++]));
     }
   /* ******************************************************************** */
   else if (ffptr == fStkAdd )
@@ -1021,13 +1021,13 @@ awful_error:
             {
               DBUGMSG(0, "*lodrealc (div) -> (*lodrealmul)" );
             }
-          v[vsp].s = (void near *)0;  /* this constant has no name  */
+          v[vsp].s = (void *)0;  /* this constant has no name  */
           v[vsp].len = 0;
           v[vsp].a.d.x = _1_ / Load[LodPtr-1]->d.x;
           v[vsp].a.d.y = 0.0;
           {
             void *p = &v[vsp++].a;
-            OPPTR(cvtptrx) = (void near *)FP_OFF(p);  /* isn't C fun!  */
+            OPPTR(cvtptrx) = (void *)FP_OFF(p);  /* isn't C fun!  */
           }
           ffptr = fStkLodRealMul;
         }
@@ -1352,7 +1352,7 @@ int fpfill_jump_struct(void)
   /* On entry, jump_index is the number of jump functions in the formula*/
   int i = 0;
   int checkforelse = 0;
-  NEW_FN near * JumpFunc = NULL;
+  NEW_FN *JumpFunc = NULL;
   int find_new_func = 1;
   JUMP_PTRS_ST jump_data[MAX_JUMPS];
 
@@ -1385,7 +1385,7 @@ int fpfill_jump_struct(void)
         }
       if (pfls[OpPtr].function == JumpFunc)
         {
-          jump_data[i].JumpOpPtr = OpPtr*4;
+          jump_data[i].JumpOpPtr = OpPtr*sizeof(void*);
           i++;
           find_new_func = 1;
         }
@@ -1501,7 +1501,7 @@ int CvtStk()    /* convert the array of ptrs  */
       f[LastOp++] = StkClr;
     }
 
-  prevfptr = (void (near *)(void))0;
+  prevfptr = (void (*)(void))0;
   cvtptrx = realstkcnt = stkcnt = 0;
 
   for (OpPtr = LodPtr = StoPtr = 0; OpPtr < (int)LastOp; OpPtr++)
@@ -1639,4 +1639,4 @@ skipfinalopt:  /* -------------- end of final optimizations ------------ */
   return 1;
 }
 
-#endif /* XFRACT  */
+#endif /* NASM  */
