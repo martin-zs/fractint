@@ -35,6 +35,8 @@
 ; Fixed keyboard/periodicity conflict JCO  10 DEC 1999
 ;
 
+DEFAULT REL
+
 ;%use smartalign
 %include "xfract_a-64.inc"
 
@@ -86,16 +88,20 @@ newx    EQU  new
 newy    EQU  new+LDBLSZ
 
 section .data
-;align 16
+align 16
 orbit_real              DQ  0.0
+align 16
 orbit_imag              DQ  0.0
+align 16
 round_down_half         DQ  0.5
-tmp_dword               DD  0
+align 16
 inside_color            DQ  0
+align 16
 periodicity_color       DQ  7
 %define savedincr  rdi      ; space, but it doesn't hurt either
 ;;savedand_p5           DD 0    ;EQU     EDX
 
+align 16
 savedx_p5               DT  0.0 ;:TWORD
 savedy_p5               DT  0.0 ;:TWORD
 ;closenuff_p5           DQ  0.0 ;:QWORD
@@ -106,6 +112,8 @@ tmp_ten_byte_3   DT 0.0  ;:tbyte
 tmp_ten_byte_4   DT 0.0  ;:tbyte
 tmp_ten_byte_5   DT 0.0  ;:tbyte
 
+tmp_dword               DD  0
+align 16
 Control  DW 0   ;:word
 
 ;calmanp5_text:
@@ -142,11 +150,11 @@ CGLOBAL calcmandfpasm_p5
 ALIGN 16
 calcmandfpasm_p5:
 
-; Register usage:  rax: ??????    rbx:oldcoloriter
+; Register usage:  rax: ??????    r8:oldcoloriter
 ;                  rcx:counter    rdx:savedand_p5
 ;                  rdi:????       rsi: -1
 
-     FRAME rsi, rdi
+     FRAME rsi, rdi, rbx
 
 ;    {Set up FPU stack for quick access while in the loop}
 ; initialization stuff
@@ -158,7 +166,7 @@ calcmandfpasm_p5:
         cmp     dword [reset_periodicity],0    ; periodicity reset?
         je      initparms               ;  no, inherit oldcolor from prior invocation
         mov     rax,[maxit]               ; yup.  reset oldcolor to maxit-250
-        sub     rax,250                 ; (avoids slowness at high maxits)
+        sub     rax,255                 ; (avoids slowness at high maxits)
 
 initoldcolor:
         mov     [oldcoloriter],rax   ; reset oldcolor
@@ -196,16 +204,20 @@ slowkbd:
         shr     dword [kbdcount],2     ; yes, reduce count
 
 quickkbd:
+        sub     rsp, 8                 ; 16 byte align
         call    keypressed      ; has a key been pressed?
-        cmp     eax,0                    ;  ...
+        add     rsp, 8
+        cmp     ax,0                    ;  ...
         je      nokey                   ; nope.  proceed
         mov     dword [kbdcount],0              ; make sure it goes negative again
-        cmp     eax,'o'                  ; orbit toggle hit?
+        cmp     ax,'o'                  ; orbit toggle hit?
         je      orbitkey                ;  yup.  show orbits
-        cmp     eax,'O'                  ; orbit toggle hit?
+        cmp     ax,'O'                  ; orbit toggle hit?
         jne     keyhit                  ;  nope.  normal key.
 orbitkey:
+        sub     rsp, 8                 ; 16 byte align
         call    getakey         ; read the key for real and eat it
+        add     rsp, 8
         mov     eax,1                   ; reset orbittoggle = 1 - orbittoggle
         sub     eax,[show_orbit]           ;  ...
         mov     [show_orbit],eax           ;  ...
@@ -216,11 +228,12 @@ keyhit:
         mov     [coloriter],rax         ; set color to -1
 ;        mov     rdx,rax                  ; put results in ax,dx ; rax is 8 bytes
 ;        shr     rdx,16                   ; all 1's anyway, don't bother w/shift
+      UNFRAME rsi, rdi, rbx
         ret                             ; bail out!
 nokey:
 
         mov     rcx,[maxit]               ; initialize counter
-        mov     rbx,[oldcoloriter]
+        mov     r8,[oldcoloriter]
 
         cmp     dword [fractype],JULIAFP        ; julia or mandelbrot set?
         je      near dojulia_p5              ; julia set - go there
@@ -247,12 +260,12 @@ ALIGN 16
 DoKeyCheck:
         push    rax
         push    rcx
-        push    rbx
+        push    r8
         call    keypressed      ; has a key been pressed?
-        pop     rbx
+        pop     r8
         pop     rcx
 ;        cmp     ax,0                   ;  ...
-        or      eax,eax
+        or      ax,ax
         je      SkipKeyCheck            ; nope.  proceed
         pop     rax
         jmp     keyhit
@@ -352,7 +365,7 @@ LoopStart:
 ;    {Check to see if (x^2)+(y^2) < b and discard (x^2)+(y^2)}
         fcomp   st5                   ;  {y^2, x^2, y, x, b, Cy, Cx}
 
-        cmp     rcx,rbx    ; put oldcoloriter in rbx above
+        cmp     rcx,r8    ; put oldcoloriter in r8 above
         jae     SkipTasks  ; don't check periodicity
 
         fnstsw  ax         ;Get the pending NPX info into AX
@@ -414,7 +427,9 @@ JustAfterFnstsw:
         fadd    st0,st3              ;  {Newy, Newx, b, Cy, Cx}
 
         jz      no_show_orbit_p5         ; if so then skip
+        sub     rsp, 8
         call    show_orbit_xy_p5  ; y x b Cy Cx
+        add     rsp, 8
 ALIGN 16
 no_show_orbit_p5:
 
@@ -454,19 +469,21 @@ no_fix_underflow_p5:
         inc     rax                     ; if (rax == 0 ) rax = 1
 zero_color_fix_p5:
         mov     [realcoloriter],rax       ; save unadjusted realcolor
-        sub     [kbdcount],rax             ; adjust the keyboard count
+        sub     [kbdcount],eax             ; adjust the keyboard count
 
         cmp     dword [outside],-1              ; iter ? (most common case)
         je      overiteration_p5
         cmp     dword [outside],-2              ; outside <= -2 ?
         jle     to_special_outside_p5   ; yes, go do special outside options
         sub     rax,rax                 ; clear top half of rax for next
-        mov     rax,[outside]              ; use outside color
+        mov     eax,[outside]              ; use outside color
         jmp     short overiteration_p5
 
 to_special_outside_p5:
 
+        sub     rsp, 8
         call    special_outside_p5
+        add     rsp, 8
 ALIGN 16
 overiteration_p5:
 
@@ -483,7 +500,9 @@ overiteration_p5:
 
         cmp     dword [orbit_ptr],0             ; any orbits to clear?
         je      calcmandfpasm_ret_p5    ; nope.
+        sub     rsp, 8
         call    scrub_orbit     ; clear out any old orbits
+        add     rsp, 8
         mov     rax,[coloriter]           ; restore color
                                         ; speed not critical here in orbit land
 
@@ -492,19 +511,19 @@ calcmandfpasm_ret_p5:
 ;        mov     edx,eax       ;     {The low 16 bits already in AX}
 ;        shr     edx,16        ;     {Shift high 16 bits to low 16 bits position}
 
-      UNFRAME rsi, rdi
+      UNFRAME rsi, rdi, rbx
 
         ret
 
 ;;; _calcmandfpasm_p5
 
 ALIGN 16
-show_orbit_xy_p5:             ;PROC NEAR USES rbx rcx rdx rsi rdi
+show_orbit_xy_p5:             ;PROC NEAR USES r8 rcx rdx rsi rdi
 ; USES is needed because in all likelyhood, plot_orbit surely
 ; uses these registers.  It's ok to have to push/pop's here in the
 ; orbits as speed is not crucial when showing orbits.
 
-    FRAME rbx, rcx, rdx, rsi, rdi
+    FRAME r8, rcx, rdx, rsi, rdi
                                         ; fpu stack is either
                                         ; y x b Cx Cy (p5)
         fld     st1                   ;
@@ -528,12 +547,14 @@ show_orbit_xy_p5:             ;PROC NEAR USES rbx rcx rdx rsi rdi
 ;        push    word ptr orbit_imag+6   ; co-ordinates for plot orbit
 ;        push    dword [orbit_imag+4]   ;       ...
 ;        push    word ptr orbit_imag+2   ;       ...
-        movq    xmm1, qword [orbit_imag]     ;       ... should be second
+        movsd   xmm1, qword [orbit_imag]     ;       ... should be second
 ;        push    word ptr orbit_real+6   ; co-ordinates for plot orbit
 ;        push    dword [orbit_real+4]   ;       ...
 ;        push    word ptr orbit_real+2   ;       ...
-        movq    xmm0, qword [orbit_real]     ;       ... should be first
+        movsd   xmm0, qword [orbit_real]     ;       ... should be first
+        sub     rsp, 8
         call    plot_orbit      ; display the orbit
+        add     rsp, 8
 ;        add     sp,5*4                  ; clear out the parameters - not on stack
 
         fld     tword [tmp_ten_byte_5]
@@ -542,7 +563,7 @@ show_orbit_xy_p5:             ;PROC NEAR USES rbx rcx rdx rsi rdi
         fld     tword [tmp_ten_byte_2]
         fld     tword [tmp_ten_byte_1]
 ;        fwait                           ; just to be safe
-    UNFRAME rbx, rcx, rdx, rsi, rdi
+    UNFRAME r8, rcx, rdx, rsi, rdi
         ret
 ;;;   show_orbit_xy_p5   ENDP
 

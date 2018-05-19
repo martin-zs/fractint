@@ -3,6 +3,7 @@
 
 PTRSZ    equ    8
 INTSZ    equ    4
+LNGSZ    equ    8
 DBLSZ    equ    8
 LDBLSZ   equ   16
 
@@ -34,7 +35,10 @@ LDBLSZ   equ   16
 ;  Note that the order of the passed parameters is the same in both.
 %macro FRAME 1-*          ; build a stack frame
       push         rbp
-;      mov          rbp, rsp
+      mov          rbp, rsp
+;      push         rbx
+;      push         rsi
+;      push         rdi
 %rep %0
       push %1
 %rotate 1
@@ -46,6 +50,10 @@ LDBLSZ   equ   16
 %rotate -1
           pop %1
 %endrep
+;      pop         rdi
+;      pop         rsi
+;      pop         rbx
+      mov         rsp, rbp
       pop         rbp
 %endmacro
 

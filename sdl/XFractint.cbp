@@ -57,6 +57,7 @@ Fix file access.]]>
 			<Add option="-fno-builtin" />
 			<Add option="`sdl2-config --cflags --libs`" />
 			<Add option="-DXFRACT" />
+			<Add option="-DNASM" />
 			<Add directory="headers" />
 			<Add directory="/usr/include/SDL2" />
 		</Compiler>
@@ -275,6 +276,7 @@ Fix file access.]]>
 		<Unit filename="sdl/calmanfp.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="sdl/calmanfx-64.o" />
 		<Unit filename="sdl/faccess.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -284,6 +286,7 @@ Fix file access.]]>
 		<Unit filename="sdl/general.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="sdl/parserax-64.o" />
 		<Unit filename="sdl/sdl_scr.c">
 			<Option compilerVar="CC" />
 		</Unit>
