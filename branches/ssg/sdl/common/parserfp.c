@@ -115,7 +115,8 @@
 /* global data  */
 struct fls *pfls = (struct fls *)0;
 
-#ifdef NASM /* #ifndef XFRACT */ /* --  */
+#ifdef XFRACT
+#ifdef NASM /* #ifdef XFRACT */ /* --  */
 
 /* not moved to PROTOTYPE.H because these only communicate within
    PARSER.C and other parser modules */
@@ -1640,3 +1641,4 @@ skipfinalopt:  /* -------------- end of final optimizations ------------ */
 }
 
 #endif /* NASM  */
+#endif /* XFRACT */
