@@ -77,11 +77,11 @@ MANDELFP EQU 0
 KEYPRESSDELAY equ 16383         ; 3FFFh
 
 initx   EQU  init   ; just to make life easier
-inity   EQU  init+LBLSZ
+inity   EQU  init+LDBLSZ
 parmx   EQU  parm
-parmy   EQU  parm+LBLSZ
+parmy   EQU  parm+LDBLSZ
 newx    EQU  new
-newy    EQU  new+LBLSZ
+newy    EQU  new+LDBLSZ
 
 section .data
 ;align 4
@@ -166,16 +166,17 @@ initparms:
 ;        fstp    qword [closenuff_p5]
         fldz
 ;        sub     eax,eax                   ; clear ax for below
-        mov     dword [orbit_ptr],0             ; clear orbits
-        mov     edx,1           ; edx = savedand_p5 = 1
-        fst     qword [savedx_p5]      ; savedx = 0.0
-        fstp    qword [savedy_p5]      ; savedy = 0.0
+        mov     dword [orbit_ptr],0     ; clear orbits
+        fldz                            ;  0.0, 0.0
+        mov     edx,1                   ; edx = savedand_p5 = 1
+        fstp    tword [savedx_p5]       ; savedx = 0.0
+        fstp    tword [savedy_p5]       ; savedy = 0.0
 ;        mov     savedincr,dx
-        mov     edi,edx          ; savedincr is in edi = 1
+        mov     edi,edx                 ; savedincr is in edi = 1
 ;        mov     savedincr,1             ; savedincr = 1
 ;        mov     edx,firstsavedand
 
-        mov     esi,0FFFFh
+        mov     esi,-1
         dec     dword [kbdcount]                ; decrement the keyboard counter
         jns      near nokey        ;  skip keyboard test if still positive
         mov     dword [kbdcount],10             ; stuff in a low kbd count
@@ -211,8 +212,9 @@ keyhit:
         fninit
         mov     eax,-1                   ; return with -1
         mov     [coloriter],eax            ; set color to -1
-        mov     edx,eax                  ; put results in ax,dx
+;        mov     edx,eax                  ; put results in ax,dx
 ;        shr     edx,16                  ; all 1's anyway, don't bother w/shift
+      UNFRAME esi, edi
         ret                             ; bail out!
 nokey:
 
@@ -227,15 +229,17 @@ nokey:
                                         ; the fpu stack is shown below
                                         ; st(0) ... st(7)
 
-        fld     qword [initx]                   ; Cx
-        fld     qword [inity]                   ; Cy Cx
-        fld     qword [rqlim]                   ; b Cy Cx
-        fld     st2                   ; Cx b Cy Cx
-        fadd    qword [parmx]                   ; Px+Cx b Cy Cx
-        fld     st0                   ; Px+Cx Px+Cx b Cy Cx
-        fmul    st0,st0                   ; (Px+Cx)^2 Px+Cx b Cy Cx
-        fld     st3                   ; Cy (Px+Cx)^2 Px+Cx b Cy Cx
-        fadd    qword [parmy]                   ; Py+Cy (Px+Cx)^2 Px+Cx b Cy Cx
+        fld     tword [initx]           ; Cx
+        fld     tword [inity]           ; Cy Cx
+        fld     tword [rqlim]           ; b Cy Cx
+        fld     st2                     ; Cx b Cy Cx
+        fld     tword [parmx]           ; Px Cx b Cy Cx
+        faddp   st1,st0                 ; Px+Cx b Cy Cx
+        fld     st0                     ; Px+Cx Px+Cx b Cy Cx
+        fmul    st0,st0                 ; (Px+Cx)^2 Px+Cx b Cy Cx
+        fld     st3                     ; Cy (Px+Cx)^2 Px+Cx b Cy Cx
+        fld     tword [parmy]           ; Py Cy (Px+Cx)^2 Px+Cx b Cy Cx
+        faddp   st1,st0                 ; Py+Cy (Px+Cx)^2 Px+Cx b Cy Cx
         jmp     bottom_of_dojulia_p5
 
 align 16
@@ -246,7 +250,7 @@ DoKeyCheck:
         call    keypressed      ; has a key been pressed?
         pop     ebx
         pop     ecx
-;        cmp     ax,0                    ;  ...
+;        cmp     ax,0                   ;  ...
         or      eax,eax
         je      SkipKeyCheck            ; nope.  proceed
         pop     eax
@@ -254,21 +258,20 @@ DoKeyCheck:
 
 ALIGN 16
 save_new_old_value:
-        fld     st2                   ; y y^2 x^2 y x b Cy Cx
-        fstp    qword [savedy_p5]               ; y^2 x^2 y x b Cy Cx
-        fld     st3                   ; x y^2 x^2 y x b Cy Cx
-        fstp    qword [savedx_p5]               ; y^2 x^2 y x b Cy Cx
-        dec     savedincr               ; time to lengthen the periodicity?
-        jnz     near JustAfterFnstsw    ; if not 0, then skip
-;        add     edx,edx            ; savedand = (savedand * 2) + 1
-;        inc     edx                ; for longer periodicity
+        fld     st2                    ; y y^2 x^2 y x b Cy Cx
+        fstp    tword [savedy_p5]      ; y^2 x^2 y x b Cy Cx
+        fld     st3                    ; x y^2 x^2 y x b Cy Cx
+        fstp    tword [savedx_p5]      ; y^2 x^2 y x b Cy Cx
+        dec     savedincr              ; time to lengthen the periodicity?
+        jnz     near JustAfterFnstsw   ; if not 0, then skip
+;        add     edx,edx               ; savedand = (savedand * 2) + 1
+;        inc     edx                   ; for longer periodicity
         lea     edx,[edx*2+1]
-        mov     savedincr,[nextsavedincr]       ; and restart counter
+        mov     savedincr,[nextsavedincr]  ; and restart counter
 
-;        test    cx,KEYPRESSDELAY       ; ecx holds the loop count
+;        test    cx,KEYPRESSDELAY      ; ecx holds the loop count
 ;        test    cx,0FFFFh
-;        test    ecx,esi                ; put 0FFFFh into esi above
-        test    cx,si
+        test    ecx,esi               ; put -1 (all 1's) into esi above
         jz      DoKeyCheck
         jmp     JustAfterFnstsw
 
@@ -280,28 +283,28 @@ ALIGN 16
 do_check_p5_fast:
 ;        call    near ptr periodicity_check_p5  ; y x b Cy Cx
 ; REMEMBER, the cx counter is counting BACKWARDS from maxit to 0
-                                        ; fpu stack is
-                                        ; y2 x2 y x b Cy Cx
-        fld     qword [savedx_p5]               ; savedx y2 x2 y x ...
-        fsub    st0,st4             ; x-savedx y2 x2 y x ...
-        fabs                            ; |x-savedx| y2 x2 y x ...
-        fcomp   qword [closenuff]            ; y2 x2 y x ...
-        push    ax                      ; push AX for later
+                                      ; fpu stack is
+                                      ; y2 x2 y x b Cy Cx
+        fld     tword [savedx_p5]     ; savedx y2 x2 y x ...
+        fsub    st0,st4               ; x-savedx y2 x2 y x ...
+        fabs                          ; |x-savedx| y2 x2 y x ...
+        fcomp   qword [closenuff]     ; y2 x2 y x ...
+        push    eax                   ; push AX for later
         fnstsw  ax
-        and     ah,41h                  ; if |x-savedx| > closenuff
+        and     ah,41h                ; if |x-savedx| > closenuff
         jz      near per_check_p5_ret_fast   ; we're done
-        fld     qword [savedy_p5]               ; savedy y2 x2 y x ...
-        fsub    st0,st3             ; y-savedy y2 x2 y x ...
-        fabs                            ; |y-savedy| y2 x2 y x ...
-        fcomp   qword [closenuff]            ; y2 x2 y x ...
+        fld     qword [savedy_p5]     ; savedy y2 x2 y x ...
+        fsub    st0,st3               ; y-savedy y2 x2 y x ...
+        fabs                          ; |y-savedy| y2 x2 y x ...
+        fcomp   qword [closenuff]     ; y2 x2 y x ...
         fnstsw  ax
-        and     ah,41h                  ; if |y-savedy| > closenuff
+        and     ah,41h                ; if |y-savedy| > closenuff
         jz      near per_check_p5_ret_fast   ; we're done
-                                       ; caught a cycle!!!
-        pop     ax                     ; undo push
-        fcompp                         ; pop off y2 and x2, leaving y x ...
+                                      ; caught a cycle!!!
+        pop     eax                   ; undo push
+        fcompp                        ; pop off y2 and x2, leaving y x ...
         mov     eax,[maxit]
-        mov     dword [oldcoloriter],-1        ; check periodicity immediately next time
+        mov     dword [oldcoloriter],-1  ; check periodicity immediately next time
         mov     [realcoloriter],eax      ; save unadjusted realcolor as maxit
         mov     eax,[periodicity_color]  ; set color
         jmp     overiteration_p5
@@ -310,25 +313,25 @@ do_check_p5_fast:
 dojulia_p5:
                                         ; Julia p5 initialization of stack
                                         ; note that init and parm are "reversed"
-        fld     qword [parmx]                   ; Cx
-        fld     qword [parmy]                   ; Cy Cx
-        fld     qword [rqlim]                   ; b Cy Cx
+        fld     tword [parmx]           ; Cx
+        fld     tword [parmy]           ; Cy Cx
+        fld     tword [rqlim]           ; b Cy Cx
 
-        fld     qword [initx]                   ; x b Cy Cx
-        fld     st0                      ; x x b Cy Cx
-        fmul    st0,st0                   ; x^2 x b Cy Cx
-        fld     qword [inity]                   ; y x^2 x b Cy Cx
+        fld     tword [initx]           ; x b Cy Cx
+        fld     st0                     ; x x b Cy Cx
+        fmul    st0,st0                 ; x^2 x b Cy Cx
+        fld     tword [inity]           ; y x^2 x b Cy Cx
 
 bottom_of_dojulia_p5:
-        fmul    st2,st0                ; y x^2 xy b Cy Cx
-        fmul    st0,st0                   ; y^2 x^2 xy b Cy Cx
+        fmul    st2,st0                 ; y x^2 xy b Cy Cx
+        fmul    st0,st0                 ; y^2 x^2 xy b Cy Cx
 
-        fsubp  st1,st0                        ; x^2-y^2 xy b Cy Cx
-        fadd    st0,st4                ; x^2-y^2+Cx xy b Cy Cx
+        fsubp   st1,st0                 ; x^2-y^2 xy b Cy Cx
+        fadd    st0,st4                 ; x^2-y^2+Cx xy b Cy Cx
         fxch                            ; xy x^2-y^2+Cx b Cy Cx
 
-        fadd    st0,st0                   ; 2xy x^2-y^2+Cx b Cy Cx
-        fadd    st0,st3                ; 2xy+Cy x^2-y^2+Cx b Cy Cx
+        fadd    st0,st0                 ; 2xy x^2-y^2+Cx b Cy Cx
+        fadd    st0,st3                 ; 2xy+Cy x^2-y^2+Cx b Cy Cx
 
 ; first iteration complete
 ; {FPU stack all set, we're ready for the start of the loop}
@@ -338,33 +341,33 @@ LoopStart:
 ; {While (Sqr(x) + Sqr(y) < b) and (Count < MaxIterations) do}
 ;    {square both numbers}
         fld     st1                   ;  {x, y, x, b, Cy, Cx}
-        fmul    st0,st0             ;  {x^2, y, x, b, Cy, Cx}
+        fmul    st0,st0               ;  {x^2, y, x, b, Cy, Cx}
         fld     st1                   ;  {y, x^2, y, x, b, Cy, Cx}
-        fmul    st0,st0             ;  {y^2, x^2, y, x, b, Cy, Cx}
+        fmul    st0,st0               ;  {y^2, x^2, y, x, b, Cy, Cx}
 
 ;    {add both squares and leave at top of stack ready for the compare}
         fld     st1                   ;  {x^2, y^2, x^2, y, x, b, Cy, Cx}
-        fadd    st0,st1             ;  {(y^2)+(x^2), y^2, x^2, y, x, b, Cy, Cx}
+        fadd    st0,st1               ;  {(y^2)+(x^2), y^2, x^2, y, x, b, Cy, Cx}
 ;    {Check to see if (x^2)+(y^2) < b and discard (x^2)+(y^2)}
         fcomp   st5                   ;  {y^2, x^2, y, x, b, Cy, Cx}
 
-        cmp     ecx,ebx    ; put oldcoloriter in ebx above
-        jae     SkipTasks  ; don't check periodicity
+        cmp     ecx,ebx               ; put oldcoloriter in ebx above
+        jae     SkipTasks             ; don't check periodicity
 
         fnstsw  ax         ;Get the pending NPX info into AX
 
-        test    ecx,edx         ; save on 0, check on anything else
-        jnz     near do_check_p5_fast        ;  time to save a new "old" value
+        test    ecx,edx               ; save on 0, check on anything else
+        jnz     near do_check_p5_fast   ;  time to save a new "old" value
         jmp     save_new_old_value
 ;        jz      save_new_old_value
-;        jmp     do_check_p5_fast        ;  time to save a new "old" value
+;        jmp     do_check_p5_fast      ;  time to save a new "old" value
 align 16
 per_check_p5_ret_fast:
 
-        pop     ax              ;pop AX to continue with the FCOMP test
-        jz      short JustAfterFnstsw ;test that got us here, & pairable
-        jmp     short JustAfterFnstsw ;since we have done the FNSTSW,
-                                ; Skip over next instruction
+        pop     eax                    ;pop AX to continue with the FCOMP test
+        jz      short JustAfterFnstsw  ;test that got us here, & pairable
+        jmp     short JustAfterFnstsw  ;since we have done the FNSTSW,
+                                       ; Skip over next instruction
 align 4
 SkipTasks:
 
@@ -431,7 +434,7 @@ overbailout_p5:
 
         faddp   st1,st0                       ; x^2+y^2 y x b Cy Cx
         mov     eax,ecx
-        fstp    qword [magnitude]               ; y x b Cy Cx
+        fstp    tword [magnitude]               ; y x b Cy Cx
         sub     eax,10                  ; 10 more next time before checking
 
         jns     no_fix_underflow_p5
@@ -466,8 +469,8 @@ to_special_outside_p5:
 align 4
 overiteration_p5:
 
-        fstp    qword [newy]                    ; x b Cy Cx
-        fstp    qword [newx]                    ; b Cy Cx
+        fstp    tword [newy]                    ; x b Cy Cx
+        fstp    tword [newx]                    ; b Cy Cx
 
 
 ;    {Pop 3 used registers from FPU stack, discarding the values.
@@ -509,7 +512,7 @@ show_orbit_xy_p5:             ;PROC NEAR USES ebx ecx edx esi edi
                                         ; y ...
 
         fstp    qword [orbit_real]              ; y ...
-        fst      qword [orbit_imag]              ; y ...
+        fst     qword [orbit_imag]              ; y ...
         mov     eax,-1                   ; color for plot orbit
         push    eax                      ;       ...
 ; since the number fpu registers that plot_orbit() preserves is compiler
@@ -617,7 +620,7 @@ not_mult:
         fld     st1           ; newx
         fadd    st0,st1     ; newx+newy
         test    dword [bad_outside],1h
-        jz     short over_bad_summ
+        jz      short over_bad_summ
         fsub    qword [round_down_half]
         jmp     short over_good_summ
 over_bad_summ:
@@ -654,7 +657,7 @@ check_release:
         jne     special_outside_ret
         mov     eax,1                   ; eax = 1
 special_outside_ret:
-        pop   word [Control]
+        pop     word [Control]
         fldcw [Control]              ; Restore control word
         ret
 ;;;   special_outside_p5 ENDP

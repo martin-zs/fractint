@@ -10,6 +10,7 @@ LDBLSZ   equ   12
 ;  The following two macros take care of the case where gcc uses
 ;   underscores for assembly identifiers.
 ;   Define the variable U_SCORE in the Make file if underscores are required.
+%define U_SCORE
 
 %macro CGLOBAL 1
 %ifdef   U_SCORE

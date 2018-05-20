@@ -24,7 +24,9 @@ Fix stackscreen/unstackscreen? - look at 3d images.]]>
 		</MakeCommands>
 		<Build>
 			<Target title="default">
+				<Option platforms="Windows;" />
 				<Option output="Fractint" prefix_auto="1" extension_auto="1" />
+				<Option object_output="." />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Option projectLinkerOptionsRelation="0" />
@@ -88,6 +90,7 @@ Fix stackscreen/unstackscreen? - look at 3d images.]]>
 			<Add option="-std=c11" />
 			<Add option="-fno-builtin" />
 			<Add option="-D__USE_MINGW_ANSI_STDIO" />
+			<Add option="-DNASM" />
 			<Add directory="C:/SDL/SDL2-2.0.7/i686-w64-mingw32/include/SDL2" />
 			<Add directory="C:/SDL/SDL2_ttf-2.0.14/i686-w64-mingw32/include/SDL2" />
 			<Add directory="headers" />
@@ -517,6 +520,7 @@ Fix stackscreen/unstackscreen? - look at 3d images.]]>
 			<Option target="debug" />
 			<Option target="Production" />
 		</Unit>
+		<Unit filename="sdl/calmanfx.o" />
 		<Unit filename="sdl/faccess.c">
 			<Option compilerVar="CC" />
 		</Unit>
