@@ -3522,7 +3522,7 @@ int fpFormulaSetup(void)
   int RunFormRes;              /* CAE fp */
   MathType = D_MATH;
   RunFormRes = !RunForm(FormName, 0); /* RunForm() returns 1 for failure */
-#ifdef XFRACT
+#if 0 //def XFRACT
 #ifdef NASM
   if (RunFormRes && debugflag != 90 && (orbitsave&2) == 0
       && !Randomized)
