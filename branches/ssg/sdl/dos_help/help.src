@@ -48,18 +48,17 @@
 {1.4  , 1, "Color Cycling Commands"}
 {1.5  , 1, "Palette Editing Commands"}
 {1.6  , 1, "Image Save/Restore Commands"}
-{1.7  , 1, "Print Command"}
-{1.8  , 1, "Parameter Save/Restore Commands"}
-{1.9  , 1, "\"3D\" Commands"}
-{1.10 , 1, "Interrupting and Resuming"}
-{1.11 , 1, "Orbits Window"}
-{1.12 , 1, "View Window"}
-{1.13 , 1, "Video Mode Function Keys"}
-{1.14 , 1, "Browse Commands"}
-{1.15 , 1, "Evolver Commands"}
-{1.16 , 1, "RDS Commands"}
-{1.17 , 1, "Hints"}
-{1.18 , 1, "Fractint on Unix"}
+{1.7  , 1, "Parameter Save/Restore Commands"}
+{1.8  , 1, "\"3D\" Commands"}
+{1.9 , 1, "Interrupting and Resuming"}
+{1.10 , 1, "Orbits Window"}
+{1.11 , 1, "View Window"}
+{1.12 , 1, "Video Mode Function Keys"}
+{1.13 , 1, "Browse Commands"}
+{1.14 , 1, "Evolver Commands"}
+{1.15 , 1, "RDS Commands"}
+{1.16 , 1, "Hints"}
+{1.17 , 1, "Fractint on Unix"}
 
 {2.   , 0, "Fractal Types", FF}
 {2.1  , 1, "The Mandelbrot Set"}
@@ -284,11 +283,13 @@ which very likely have new bugs.
 Version 20.5.00 is an update of Fractint 20.0 based on the developer's
   version 20.4.14.  New features include:
 
-Version 20.5\
-
-Port to SDL 2.0
+Version 20.5 is a Port to SDL 2.0
 
 Fixed \
+
+Mouse and function keys should no longer cause a crash in text modes.
+Increased buffer sizes and size checks should eliminate some buffer
+overflow crashes.
 
 Known issues:\
 Resizing images using the window border doesn't work very well\
@@ -1095,7 +1096,6 @@ see "Command Line Parameters, Parameter Files, Batch Mode" for details.
    { Plotting Commands}
    { Zoom Box Commands }
    { Image Save/Restore Commands }
-   { Print Command }
    { Parameter Save/Restore Commands }
    { Interrupting and Resuming }
    { Orbits Window }

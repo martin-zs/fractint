@@ -111,7 +111,7 @@ void make_batch_file()
 
   /* put comment storage in memory */
   inpcommandfile = malloc(16000);
-  inpcommandname = inpcommandfile+80;
+  inpcommandname = inpcommandfile+FILE_MAX_PATH+1;
   inpcomment[0]    = inpcommandname+(ITEMNAMELEN + 1);
   inpcomment[1]    = inpcomment[0] + MAXCMT;
   inpcomment[2]    = inpcomment[1] + MAXCMT;
