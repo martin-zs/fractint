@@ -115,7 +115,7 @@
 /* global data  */
 struct fls *pfls = (struct fls *)0;
 
-#ifdef XFRACT
+#if 0 //def XFRACT
 #ifdef NASM /* #ifdef XFRACT */ /* --  */
 
 /* not moved to PROTOTYPE.H because these only communicate within
@@ -394,7 +394,7 @@ static void (*prevfptr )(void);  /* previous function pointer  */
 /* the entries in this table must be in the same order as  */
 /*    the #defines above  */
 /* this table is searched sequentially  */
-static struct fn_entry
+struct fn_entry
   {
 
 #ifdef TESTFP

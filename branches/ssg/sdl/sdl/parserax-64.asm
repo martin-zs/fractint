@@ -222,7 +222,9 @@ Code_%1:
 %%Incl_%1  EQU $ - Code_%1
 
 ;; Generate a call to the included fn.
+      sub     rsp, 8
       call         qword fStk%2
+      add     rsp, 8
 %endmacro
 
 ; ---------------------------------------------------------------------------
@@ -337,7 +339,7 @@ section .data
    CEXTERN           row             ;:DWORD - int
    CEXTERN           Arg1            ;:TWORD - LDBL x 2
    CEXTERN           Arg2            ;:TWORD - LDBL x 2
-   CEXTERN           pfls            ;:QWORD - (pointer) function, operand
+;   CEXTERN           pfls            ;:QWORD - (pointer) function, operand
    CEXTERN           v               ;:QWORD - pointer to Const Args array
    CEXTERN           ldcheck         ;:DWORD - int
    CEXTERN           jump_index      ;:DWORD - int
@@ -399,6 +401,7 @@ PtrToZ:     ;     offset of z
    ;  Put this code in PARSERA_TEXT, not PARSERFP_TEXT           CAE 09OCT93
 ;PARSERA_TEXT     segment para public use16 'CODE'
 section .text
+CEXTERN           pfls            ;:QWORD - (pointer) function, operand
    ;  Non-standard segment register setup.
 ;   assume         es:DGROUP, ds:nothing, cs:PARSERA_TEXT
 
@@ -411,20 +414,20 @@ section .text
       ftst
       fstsw        ax
       sahf
-      jnz          short NotBothZero
+      jnz          short .NotBothZero
       fxch                             ; y x
       ftst
       fstsw        ax
       sahf
       fxch                             ; x y
-      jnz          short NotBothZero
+      jnz          short .NotBothZero
       POP_STK 2                   ; clear two numbers
       fldz
       fldz
       mov          rax, 1               ; domain error (1 in rax)
       EXIT_OPER    Log                 ; return (0,0)
    PARSALIGN
-NotBothZero:
+.NotBothZero:
       xor          rax,rax               ; no domain error (0 in rax)
       fld          st1               ; y x y
       fld          st1               ; x y x y
@@ -1288,19 +1291,19 @@ domainok2:
       ftst
       fstsw        ax
       sahf
-      jnz          short ATanh_NotBothZero
+      jnz          short .ATanh_NotBothZero
       fxch                             ; y x
       ftst
       fstsw        ax
       sahf
       fxch                             ; x y
-      jnz          short ATanh_NotBothZero
+      jnz          short .ATanh_NotBothZero
       POP_STK      2                   ; clear two numbers
       fldz
       fldz
       jmp          SHORT End_Log_ATanh ; return (0,0)
    PARSALIGN
-ATanh_NotBothZero:
+.ATanh_NotBothZero:
       fld          st1               ; y x y
       fld          st1               ; x y x y
       fpatan                           ; z.y x y
@@ -1333,19 +1336,19 @@ End_Log_ATanh:
       ftst
       fstsw        ax
       sahf
-      jnz          short ATan_NotBothZero
+      jnz          short .ATan_NotBothZero
       fxch                             ; y x
       ftst
       fstsw        ax
       sahf
       fxch                             ; x y
-      jnz          short ATan_NotBothZero
+      jnz          short .ATan_NotBothZero
       POP_STK      2                   ; clear two numbers
       fldz
       fldz
       jmp          short End_Log_ATan  ; return (0,0)
    PARSALIGN
-ATan_NotBothZero:
+.ATan_NotBothZero:
       fld          st1               ; y x y
       fld          st1               ; x y x y
       fpatan                           ; z.y x y
@@ -1472,7 +1475,7 @@ End_Log_ATan:
       mov          rbx, qword [rbx+INTSZ]; rbx = JumpOpPtr
 ;      pop          es
       mov          dword [jump_index],eax
-      add          rbx, qword pfls  ;
+      add          rbx, qword [pfls]  ;
    END_INCL        Jump                ;
 ; --------------------------------------------------------------------------
    BEGN_OPER       JumpOnTrue          ;
@@ -1944,8 +1947,8 @@ Img_Setup:
       FRAME        rsi,rdi,rbx
 
       xor          rdi, rdi
-;      mov          rsi, qword pfls         ; rsi = &pfls[0]
-      lea          rsi, [pfls]       ; rsi = &pfls[0]
+      mov          rsi, qword [pfls]         ; rsi = &pfls[0]
+;      lea          rsi, [pfls]       ; rsi = &pfls[0]
       mov          edi, dword [LastOp]     ; load index of lastop
 
       dec          rdi                     ; flastop now points at last operator
@@ -1954,8 +1957,8 @@ Img_Setup:
       shl          rdi,4                   ; convert to offset, 2xPTRSZ= x16
       add          rdi,rsi                 ; rdi = offset lastop
       mov          qword [fLastOp],rdi         ; save value of flastop
-;      mov          rax, qword v            ; build a ptr to Z
-      lea          rax, [v]
+      mov          rax, qword v            ; build a ptr to Z
+;      lea          rax, [v]
       add          rax,3*CARG+CPFX
       mov          qword [PtrToZ],rax      ; and save it
       UNFRAME      rsi,rdi,rbx
@@ -1986,7 +1989,7 @@ fFormulaX:    ;     proc far
       mov          [coloriter],rdx      ; set coloriter to maxit
 ;      mov          eax,eds               ; save ds in ax
 ;      lds          cx,word [_fLastOp]         ; ds:cx -> one past last token
-      lea          rcx, [fLastOp]       ; rcx -> one past last token
+      mov          rcx, [fLastOp]       ; rcx -> one past last token
 ;      mov          es,ax               ; es -> DGROUP
 ;   assume          es:DGROUP, ds:nothing ; swap es, ds before any fn. calls
       jmp          short skipfirst     ; skip bailout test first time
@@ -2029,6 +2032,7 @@ doneloop:
    CGLOBAL          fFormula
    align           16
 fFormula:      ;    proc far
+      push         rbx
       push         rdi                  ; don't build a frame here
       mov          rdi, qword s ; reset this for stk overflow area
       mov          rbx, qword [InitOpPtr]       ; bx -> one before first token
@@ -2036,14 +2040,13 @@ fFormula:      ;    proc far
       mov          [jump_index],eax
 ;      mov          ax,ds               ; save ds in ax
 ;      lds          cx,_fLastOp         ; ds:cx -> last token
-      lea          rcx, [fLastOp]       ; rcx -> last token
+      mov          rcx, [fLastOp]       ; rcx -> last token
 ;      mov          es,ax               ; es -> DGROUP
 ;   assume          es:DGROUP, ds:nothing
       push         rsi
 
    ;;;;align           8
 inner_loop:                            ; new loop             CAE 1 Dec 1998
-;      mov          rsi, [rbx+PTRSZ]
       mov          rsi, rbx
       add          rsi, PTRSZ
       call         qword [rbx]
@@ -2067,7 +2070,8 @@ past_loop:
       fld          tword [rsi + LDBLSZ]
       fstp         tword [rdi + LDBLSZ] ; new.y = z.y
       pop          rsi
-      pop          rdi                  ; restore si, di
+      pop          rdi                  ; restore rsi, rdi, rbx
+      pop          rbx
 ;      mov          ds,bx               ; restore ds from bx before return
 ;   assume          ds:DGROUP, es:nothing
       ret                              ; return AX unmodified
@@ -2081,7 +2085,8 @@ fform_per_pixel:   ; proc far
       mov          eax, dword [row]    ; eax = row
       add          eax, dword [col]    ; eax = row+col
       and          eax, 1              ; eax = (row+col)&1
-      lea          rbx, [v]            ; load pointer to constants
+      mov          rbx, qword v        ; load pointer to constants
+;      lea          rbx, [v]            ; load pointer to constants
       cmp          eax, 0              ; zero?
       je           checker_is_0
    ;      v[9].a.d.x = 1.0;            ; not zero, set whitesq.x=1.0
@@ -2168,8 +2173,8 @@ skip_grid:
       fmulp        st1,st0
       faddp        st1,st0
       fadd         QWORD [xxmin]
-;      mov          rbx, qword v      ; &v
-      lea          rbx,[v]  
+      mov          rbx, qword v      ; &v
+;      lea          rbx,[v]  
 ;      fstp         TWORD [rbx+CPFX]
       add          rbx, CPFX
       fstp         TWORD [rbx]
@@ -2187,10 +2192,10 @@ skip_grid:
       add          rbx, LDBLSZ
       fstp         TWORD [rbx]
 after_load:
-;      mov          rdi, qword s           ; rdi points to stack overflow area
-      lea          rdi,[s]
-;      mov          rbx, qword [pfls]        ; rbx -> pfls
-      lea          rbx, [pfls]
+      mov          rdi, qword s           ; rdi points to stack overflow area
+;      lea          rdi,[s]
+      mov          rbx, qword [pfls]      ; rbx -> pfls
+;      lea          rbx, [pfls]
       mov          r8, qword [fLastOp]    ; r8 = offset &f[LastOp]
       cmp          qword [LastInitOp],0
       je           short skip_initloop    ; no operators to do here
@@ -2198,12 +2203,14 @@ after_load:
       jmp          short pixel_loop
    align           16
 pixel_loop:
-;      mov          rsi, qword [rbx+PTRSZ]  ; get address of load or store
-      mov          rsi, rbx
+      mov          rsi, rbx  ; get address of load or store
       add          rsi, PTRSZ
-;      call         qword [rbx]              ; (*opptr)()
 mov r9, [rbx]
-call qword r9
+      sub          rsp, 8                 ; need rsp on 16-byte boundary
+      call         qword [rbx]            ; (*opptr)()
+      add          rsp, 8
+;mov r9, rbx
+;call qword r9
       add          rbx,PTRSZ*2            ; ++opptr
       cmp          rbx,r8                 ; [LastInitOp]
       jb           short pixel_loop

@@ -584,7 +584,14 @@ int fullscreen_prompt(  /* full-screen prompting routine */
               strncpy(values[curchoice].uval.sval,buf,16);
               break;
             default: /* assume 0x100+n */
-              strcpy(values[curchoice].uval.sbuf,buf);
+              {
+              unsigned int sbuflen;
+              sbuflen = values[curchoice].type | 0x100;
+              if (strlen (buf) > sbuflen)
+                strncpy(values[curchoice].uval.sbuf, buf, sbuflen);
+              else
+                strcpy(values[curchoice].uval.sbuf, buf);
+              }
             }
         }
 

@@ -131,6 +131,10 @@ void Sulock(SDL_Surface *screen)
     }
 }
 
+/* it seems faster to not use a thread for this */
+/* #define USE_THREAD 1 */
+
+#ifdef USE_THREAD
 static int RemoveImageData(void *ptr)
 {
   free(Image_Data.color_info);
@@ -138,6 +142,7 @@ static int RemoveImageData(void *ptr)
     free(save_color_info);
   return (0);
 }
+#endif
 
 void CleanupSDL(void)
 {
@@ -146,12 +151,17 @@ void CleanupSDL(void)
    * mode and restore the previous video settings,
    * etc.  Called by goodbye() routine.
    */
+#ifdef USE_THREAD
   SDL_Thread *CleanupThread;
 
   CleanupThread = SDL_CreateThread(RemoveImageData, "CleanupThread", (void*)NULL);
 
   SDL_DetachThread(CleanupThread);
-
+#else
+  free(Image_Data.color_info);
+  if (save_color_info != NULL)
+    free(save_color_info);
+#endif
   SDL_DestroyRenderer(sdlRenderer);
   SDL_DestroyTexture(sdlTexture);
   SDL_FreeSurface(mainscrn);
@@ -646,12 +656,15 @@ void puttruecolor_SDL(SDL_Surface *screen, int x, int y, Uint8 R, Uint8 G, Uint8
     break;
     }
   Sulock(screen);
+#if 1
   if (show_orbit) /* Do it slow, one pixel at a time */
   {
-     SDL_UpdateTexture( sdlTexture, NULL, mainscrn->pixels, rowbytes );
-     SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
-     SDL_RenderPresent(sdlRenderer);
+     updateimage();
+//     SDL_UpdateTexture( sdlTexture, NULL, mainscrn->pixels, rowbytes );
+//     SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
+//     SDL_RenderPresent(sdlRenderer);
   }
+#endif
 }
 
 void puttruecolor(int x, int y, BYTE R, BYTE G, BYTE B)
@@ -1246,6 +1259,8 @@ static int translate_key(SDL_KeyboardEvent *key)
     {
       switch (key->keysym.sym)
         {
+        if (!screenctr)
+        {
         case SDLK_F1:
           return CF1;
         case SDLK_F2:
@@ -1266,6 +1281,7 @@ static int translate_key(SDL_KeyboardEvent *key)
           return CF9;
         case SDLK_F10:
           return CF10;
+        }
         case SDLK_TAB:
           return CTL_TAB;
         case SDLK_BACKSLASH:
@@ -1352,6 +1368,8 @@ static int translate_key(SDL_KeyboardEvent *key)
           return SDLK_GREATER;
         case SDLK_SLASH:
           return SDLK_QUESTION;
+        if (!screenctr)
+        {
         case SDLK_F1:
           return SF1;
         case SDLK_F2:
@@ -1372,6 +1390,7 @@ static int translate_key(SDL_KeyboardEvent *key)
           return SF9;
         case SDLK_F10:
           return SF10;
+        }
         case SDLK_TAB:
           return BACK_TAB;
         case SDLK_a:
@@ -1409,6 +1428,8 @@ static int translate_key(SDL_KeyboardEvent *key)
     {
       switch (key->keysym.sym)
         {
+        if (!screenctr)
+        {
         case SDLK_F1:
           return AF1;
         case SDLK_F2:
@@ -1429,6 +1450,7 @@ static int translate_key(SDL_KeyboardEvent *key)
           return AF9;
         case SDLK_F10:
           return AF10;
+        }
         case SDLK_TAB:
           return ALT_TAB;
         case SDLK_a:
@@ -1494,6 +1516,8 @@ static int translate_key(SDL_KeyboardEvent *key)
   /* No modifier key down */
   switch (key->keysym.sym)
     {
+    if (!screenctr)
+    {
     case SDLK_F1:
       return F1;
     case SDLK_F2:
@@ -1514,6 +1538,7 @@ static int translate_key(SDL_KeyboardEvent *key)
       return F9;
     case SDLK_F10:
       return F10;
+    }
     case SDLK_INSERT:
       return INSERT;
     case SDLK_DELETE:
@@ -1736,6 +1761,8 @@ int get_key_event(int block)
               keypressed = check_mouse(event);
               break;
             case SDL_MOUSEBUTTONDOWN:
+             if (!screenctr)
+              {
               if (event.button.button == SDL_BUTTON_LEFT && left_mouse_button_down == 1)
                 button_held = 1;
               if (event.button.button == SDL_BUTTON_LEFT)
@@ -1743,12 +1770,15 @@ int get_key_event(int block)
               if (event.button.button == SDL_BUTTON_RIGHT)
                 right_mouse_button_down = 1;
               keypressed = 255;
+              }
               break;
             case SDL_MOUSEBUTTONUP:
+             if (!screenctr)
+              {
               if (event.button.button == SDL_BUTTON_LEFT) {
                 if (left_mouse_button_down == 1)
                    {
-//                      calc_status = 2;
+                      calc_status = 0;
                       keypressed = ENTER;
                    }
                 left_mouse_button_down = 0;
@@ -1756,6 +1786,7 @@ int get_key_event(int block)
               }
               if (event.button.button == SDL_BUTTON_RIGHT)
                 right_mouse_button_down = 0;
+              }
               break;
             case SDL_KEYDOWN:
               keypressed = translate_key(&event.key);
