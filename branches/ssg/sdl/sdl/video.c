@@ -293,6 +293,8 @@ void movecursor (int row, int col)
 */
 int keycursor (int row, int col)
 {
+  if (row & 0x8000)
+    row ^= 0x8000; /* remove if insert flag is set */
   movecursor (row, col);
   waitkeypressed (0);
   return getakey ();
