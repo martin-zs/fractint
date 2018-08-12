@@ -285,11 +285,7 @@ Version 20.5.00 is an update of Fractint 20.0 based on the developer's
 
 Version 20.5 is a Port to SDL 2.0
 
-Fixed \
-
-Mouse and function keys should no longer cause a crash in text modes.
-Increased buffer sizes and size checks should eliminate some buffer
-overflow crashes.
+Fixed bug that was causing a crash when the INSERT key was pressed.
 
 Known issues:\
 Resizing images using the window border doesn't work very well\

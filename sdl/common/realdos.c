@@ -1366,7 +1366,7 @@ int input_field(
               break;                                /* non alphanum char */
             }
           if (offset >= len) break;                /* at end of field */
-          if (insert && started && strlen(fld) >= (size_t)len)
+          if (insert && started && (strlen(fld) >= (size_t)len))
             break;                                /* insert & full */
           if ((options & 1)
               && (curkey < '0' || curkey > '9')
