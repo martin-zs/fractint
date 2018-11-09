@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_workspace_file>
 	<Workspace title="Default Workspace">
-		<Project filename="XFractint.cbp" active="1" />
+		<Project filename="XFractint.cbp" />
 		<Project filename="XHC.cbp" />
 	</Workspace>
 </CodeBlocks_workspace_file>

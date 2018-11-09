@@ -2171,6 +2171,7 @@ static int check_gfe_key(int curkey,int choice)
     return 0-F6;
   if (curkey == F4)
     return 0-F4;
+  infbuf = (char *)malloc(16000);
   if (curkey == F2)
     {
       int widest_entry_line = 0;
@@ -2178,7 +2179,6 @@ static int check_gfe_key(int curkey,int choice)
       int comment = 0;
       int c = 0;
       int widthct = 0;
-      infbuf = (char *)malloc(16000);
       fseek(gfe_file,gfe_choices[choice]->point,SEEK_SET);
       while ((c = fgetc(gfe_file)) != EOF && c != '\032')
         {
