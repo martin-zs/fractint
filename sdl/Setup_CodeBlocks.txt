@@ -131,7 +131,7 @@ The following packages (and their dependencies) are needed:
   libsdl2-ttf2.0-0
   libsdl2-ttf-dev
 
-Ubuntu 14.04 has these packages, 16.04 does not.
+Ubuntu 14.04 has these packages, 16.04 does not, 18.04 does.
 For development work:
   On a Debian based system (like Ubuntu):
   Need to run: sudo apt-get install libsdl2-dev
@@ -160,11 +160,14 @@ Search directories:
   headers
   /usr/include/SDL2
 
-Link libraries:
-
+Linker settings:
+  Link libraries:
   /usr/lib/x86_64-linux-gnu/libSDL2main.a
   /usr/lib/x86_64-linux-gnu/libSDL2.so
   /usr/lib/x86_64-linux-gnu/libSDL2_ttf.so
+
+  Other linker options:
+  -no-pie              *** this is needed for now due to parserax-64 ***
 
 These should all be set if you open the xfractint.workspace in Code::Blocks
 

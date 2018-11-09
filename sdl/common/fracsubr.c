@@ -38,8 +38,13 @@ int    taborhelp;    /* kludge for sound and tab or help key press */
 
 // FIXME (jonathan#1#): Next allows integer mandel to work with StandardFractal().
 //#define FUDGEFACTOR     29      /* fudge all values up by 2**this */
-#define FUDGEFACTOR     28      /* fudge all values up by 2**this */
-#define FUDGEFACTOR2    24      /* (or maybe this)                */
+#if 0
+#define FUDGEFACTOR     (sizeof(long) * 8) - 4 /* fudge all values up by 2**this */
+#define FUDGEFACTOR2    (sizeof(long) * 8) - 8 /* (or maybe this)                */
+#else
+#define FUDGEFACTOR     28     /* fudge all values up by 2**this */
+#define FUDGEFACTOR2    24     /* (or maybe this)                */
+#endif
 
 void set_grid_pointers()
 {

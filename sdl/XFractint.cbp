@@ -34,7 +34,6 @@ Fix file access.]]>
 				<Compiler>
 					<Add option="-Winit-self" />
 					<Add option="-Wmissing-declarations" />
-					<Add option="-Wswitch-default" />
 					<Add option="-pedantic" />
 					<Add option="-Wextra" />
 					<Add option="-Wall" />
@@ -62,6 +61,7 @@ Fix file access.]]>
 			<Add directory="/usr/include/SDL2" />
 		</Compiler>
 		<Linker>
+			<Add option="-no-pie" />
 			<Add library="/usr/lib/x86_64-linux-gnu/libSDL2main.a" />
 			<Add library="/usr/lib/x86_64-linux-gnu/libSDL2.so" />
 			<Add library="/usr/lib/x86_64-linux-gnu/libSDL2_ttf.so" />
