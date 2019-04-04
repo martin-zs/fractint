@@ -21,6 +21,7 @@ Uint32 sdlPixelfmt;
 int rowbytes;
 SDL_PixelFormat *sdlPixelFormat;
 static int display_in_use = 0;
+int x_close = 0;
 
 TTF_Font *font = NULL;
 SDL_Color cols[256];
@@ -178,6 +179,39 @@ void CleanupSDL(void)
   delay(250);
 }
 
+void popup_error (int num, char *msg)
+{
+  switch (num)
+  {
+   case 0:
+      SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+                         "Creation Error",
+                         msg,
+                         NULL);
+      break;
+   case 1:
+   default:
+      SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+                         "Error reading sstools.ini",
+                         msg,
+                         NULL);
+      break;
+   case 2:
+      SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING,
+                         "Warning",
+                         msg,
+                         NULL);
+      break;
+   case 3:
+      SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION,
+                         "Information",
+                         msg,
+                         NULL);
+      break;
+  }
+}
+
+
 void ResizeScreen(int mode)
 {
   /* mode = 0 for initial startup */
@@ -289,7 +323,8 @@ void ResizeScreen(int mode)
   sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_renderer_flags);
   if ( sdlRenderer == NULL )
     {
-      SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Render creation for surface fail : %s\n",SDL_GetError());
+      sprintf(msg, "Render creation for surface fail : %s\n", SDL_GetError());
+      popup_error(0, msg);
       exit(1);
     }
 
@@ -324,10 +359,10 @@ void ResizeScreen(int mode)
 
 #if DEBUG
   if ( sdlTexture == NULL )
-      SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-                         "Creation Error",
-                         SDL_GetError(),
-                         NULL);
+      {
+      sprintf(msg, "%s\n", SDL_GetError());
+      popup_error(0, msg);
+      }
 #endif
 
 #if BYTE_ORDER == BIG_ENDIAN
@@ -350,20 +385,20 @@ void ResizeScreen(int mode)
   }
 #if DEBUG
   if (mainscrn == NULL )
-      SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-                         "Creation Error",
-                         "No mainscrn.",
-                         NULL);
+      {
+      sprintf(msg, "No mainscrn.\n");
+      popup_error(0, msg);
+      }
   if (backscrn == NULL )
-      SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-                         "Creation Error",
-                         "No backscrn.",
-                         NULL);
+      {
+      sprintf(msg, "No backscrn.\n");
+      popup_error(0, msg);
+      }
   if (backtext == NULL )
-      SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-                         "Creation Error",
-                         "No backtext.",
-                         NULL);
+      {
+      sprintf(msg, "No backtext.\n");
+      popup_error(0, msg);
+      }
 #endif
 
   SDL_FillRect(mainscrn, NULL, 0);
@@ -386,10 +421,8 @@ void ResizeScreen(int mode)
   font = TTF_OpenFont("crystal.ttf", fontsize);
   if ( font == NULL )
     {
-      SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-                         "Missing file",
-                         "Couldn't set font.",
-                         NULL);
+      sprintf(msg, "Missing file, couldn't set font.\n");
+      popup_error(0, msg);
       exit(1);
     }
 
@@ -403,25 +436,23 @@ void SetupSDL(void)
 {
   /* called by main() routine */
 
+  char msg[40];
+
   if ( SDL_Init(SDL_init_flags) < 0 )
     {
-      SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-                         "Initiation Error",
-                         "Unable to init SDL.",
-                         NULL);
+      sprintf(msg, "Unable to init SDL.\n");
+      popup_error(0, msg);
       exit(1);
     }
 
   if (TTF_Init() < 0)
     {
-      SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-                         "Initiation Error",
-                         "Unable to init TTF.",
-                         NULL);
+      sprintf(msg, "Unable to init TTF.\n");
+      popup_error(0, msg);
       exit(1);
     }
 
-  ResizeScreen(0);
+/*  ResizeScreen(0);  * Need to run cmdfile() first */
 
 // NOTE (jonathan#1#): May not need this once png support is added.
 //  if ( IMG_Init(IMG_INIT_PNG) < 0 )
@@ -465,7 +496,11 @@ void adapter_detect(void)
   j = 0;
   do {
       if (SDL_GetDisplayMode(display_in_use, i, &mode) != 0)
-          SDL_Log("SDL_GetDisplayMode failed: %s", SDL_GetError());
+        {
+         char msg[40];
+         sprintf(msg, "SDL_GetDisplayMode failed: %s", SDL_GetError());
+         popup_error(2, msg);
+        }
       if (mode.refresh_rate == 60 && mode.h >= 600) {
         if (mode.w == desktop_w && mode.h == desktop_h)
            strncpy(vidtbl[j].comment, "Full Desktop Mode", 25);
@@ -524,6 +559,7 @@ int checkwindowsize(int x, int y)
     fits_in_window = TRUE;
   return (fits_in_window);
 }
+
 void startvideo(void)
 {
   int Bpp = SDL_BYTESPERPIXEL(sdlPixelfmt);
@@ -760,12 +796,39 @@ void writevideoline(int y, int x, int lastx, BYTE *pixels)
 {
   int width;
   int i;
+#if 0
+  int pixel;
+  BYTE red, green, blue;
+  long *bufp;
+  SDL_Rect line;
+
+  bufp = (long *)Image_Data.color_info + Image_Data.sizex * y + x;
+#endif
 
   width = lastx-x+1;
+
   for (i=0; i<width; i++)
     {
+#if 0
+      *bufp++ = (U32)pixels;
+#else
       writevideo(x+i, y, (U32)pixels[i]);
+#endif
     }
+#if 0
+  line.x = x;
+  line.y = y;
+  line.h = 1;
+  line.w = width;
+  pixel = (int) &pixels;
+#if BYTE_ORDER == BIG_ENDIAN
+  dac_to_rgb((BYTE)(pixel & andcolor), &red, &green, &blue);
+#else
+  dac_to_rgb((BYTE)(pixel & andcolor), &blue, &green, &red);
+#endif
+
+  SDL_FillRect(mainscrn, &line, SDL_MapRGB(mainscrn->format, red, green, blue));
+#endif
 }
 /*
  *----------------------------------------------------------------------
@@ -1035,17 +1098,18 @@ void stackscreen(void)
     {
       save_screen();
     }
-  if (screenctr > 0)
+  if (screenctr == 1)
     {
-      save_text();
       for (r = 0; r < TEXT_HEIGHT; r++)
         for (c = 0; c < TEXT_WIDTH; c++)
           {
             stack_text_screen[r][c] = text_screen[r][c];
             stack_text_attr[r][c] = text_attr[r][c];
           }
+      save_text();
     }
-  screenctr++;
+  if (screenctr < (MAXSCREENS - 1))
+    screenctr++;
 }
 
 void unstackscreen(void)
@@ -1054,9 +1118,7 @@ void unstackscreen(void)
 #if 0
   fprintf(stderr, "unstackscreen, %i screens stacked\n", screenctr);
 #endif
-//  if (dotmode == 11)
-//    return;  /* leave one text screen in disk video mode */
-  if (screenctr > 1)
+  if (screenctr > 1 || dotmode == 11)
     {
       restore_text();
       for (r = 0; r < TEXT_HEIGHT; r++)
@@ -1081,6 +1143,8 @@ void unstackscreen(void)
         }
     }
   screenctr--;
+  if (dotmode == 11)
+    screenctr = 1; /* leave in text mode */
   if (screenctr < 0) /* shouldn't happen */
     screenctr = 0;
 }
@@ -1090,8 +1154,16 @@ void discardscreen(void)
 #if 0
   fprintf(stderr, "discardscreen, %i screens stacked\n", screenctr);
 #endif
-  screenctr = 0;   /* unstack all */
-  restore_screen(); /* restore screen */
+  if (dotmode == 11 || dotmode == 3)
+    {
+      screenctr = 1; /* in text mode */
+      restore_text();
+    }
+  else
+    {
+      screenctr = 0;   /* unstack all */
+      restore_screen(); /* restore screen */
+    }
 }
 
 void putstring (int row, int col, int attr, CHAR *msg)
@@ -1259,29 +1331,46 @@ static int translate_key(SDL_KeyboardEvent *key)
     {
       switch (key->keysym.sym)
         {
-        if (!screenctr)
-        {
         case SDLK_F1:
+         if (screenctr == 0)
           return CF1;
+         break;
         case SDLK_F2:
+         if (screenctr == 0)
           return CF2;
+         break;
         case SDLK_F3:
+         if (screenctr == 0)
           return CF3;
+         break;
         case SDLK_F4:
+         if (screenctr == 0)
           return CF4;
+         break;
         case SDLK_F5:
+         if (screenctr == 0)
           return CF5;
+         break;
         case SDLK_F6:
+         if (screenctr == 0)
           return CF6;
+         break;
         case SDLK_F7:
+         if (screenctr == 0)
           return CF7;
+         break;
         case SDLK_F8:
+         if (screenctr == 0)
           return CF8;
+         break;
         case SDLK_F9:
+         if (screenctr == 0)
           return CF9;
+         break;
         case SDLK_F10:
+         if (screenctr == 0)
           return CF10;
-        }
+         break;
         case SDLK_TAB:
           return CTL_TAB;
         case SDLK_BACKSLASH:
@@ -1368,29 +1457,46 @@ static int translate_key(SDL_KeyboardEvent *key)
           return SDLK_GREATER;
         case SDLK_SLASH:
           return SDLK_QUESTION;
-        if (!screenctr)
-        {
         case SDLK_F1:
+         if (screenctr == 0)
           return SF1;
+         break;
         case SDLK_F2:
+         if (screenctr == 0)
           return SF2;
+         break;
         case SDLK_F3:
+         if (screenctr == 0)
           return SF3;
+         break;
         case SDLK_F4:
+         if (screenctr == 0)
           return SF4;
+         break;
         case SDLK_F5:
+         if (screenctr == 0)
           return SF5;
+         break;
         case SDLK_F6:
+         if (screenctr == 0)
           return SF6;
+         break;
         case SDLK_F7:
+         if (screenctr == 0)
           return SF7;
+         break;
         case SDLK_F8:
+         if (screenctr == 0)
           return SF8;
+         break;
         case SDLK_F9:
+         if (screenctr == 0)
           return SF9;
+         break;
         case SDLK_F10:
+         if (screenctr == 0)
           return SF10;
-        }
+         break;
         case SDLK_TAB:
           return BACK_TAB;
         case SDLK_a:
@@ -1428,29 +1534,46 @@ static int translate_key(SDL_KeyboardEvent *key)
     {
       switch (key->keysym.sym)
         {
-        if (!screenctr)
-        {
         case SDLK_F1:
+         if (screenctr == 0)
           return AF1;
+         break;
         case SDLK_F2:
+         if (screenctr == 0)
           return AF2;
+         break;
         case SDLK_F3:
+         if (screenctr == 0)
           return AF3;
+         break;
         case SDLK_F4:
+         if (screenctr == 0)
           return AF4;
+         break;
         case SDLK_F5:
+         if (screenctr == 0)
           return AF5;
+         break;
         case SDLK_F6:
+         if (screenctr == 0)
           return AF6;
+         break;
         case SDLK_F7:
+         if (screenctr == 0)
           return AF7;
+         break;
         case SDLK_F8:
+         if (screenctr == 0)
           return AF8;
+         break;
         case SDLK_F9:
+         if (screenctr == 0)
           return AF9;
+         break;
         case SDLK_F10:
+         if (screenctr == 0)
           return AF10;
-        }
+         break;
         case SDLK_TAB:
           return ALT_TAB;
         case SDLK_a:
@@ -1516,29 +1639,39 @@ static int translate_key(SDL_KeyboardEvent *key)
   /* No modifier key down */
   switch (key->keysym.sym)
     {
-    if (!screenctr)
-    {
     case SDLK_F1:
       return F1;
     case SDLK_F2:
-      return F2;
+     return F2;
+     break;
     case SDLK_F3:
+     if (screenctr == 0)
       return F3;
+     break;
     case SDLK_F4:
-      return F4;
+     return F4;
+     break;
     case SDLK_F5:
-      return F5;
+     return F5;
+     break;
     case SDLK_F6:
-      return F6;
+     return F6;
+     break;
     case SDLK_F7:
-      return F7;
+     return F7;
+     break;
     case SDLK_F8:
+     if (screenctr == 0)
       return F8;
+     break;
     case SDLK_F9:
+     if (screenctr == 0)
       return F9;
+     break;
     case SDLK_F10:
+     if (screenctr == 0)
       return F10;
-    }
+     break;
     case SDLK_INSERT:
       return INSERT;
     case SDLK_DELETE:
@@ -1752,6 +1885,7 @@ int get_key_event(int block)
               updatewindow = 0;
               break;
             case SDL_WINDOWEVENT_CLOSE:
+              x_close = 1;
               goodbye();
             default:
               break;

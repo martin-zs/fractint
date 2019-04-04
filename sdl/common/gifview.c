@@ -34,9 +34,9 @@ static unsigned int gifview_image_top;    /* (for migs) */
 static unsigned int gifview_image_left;   /* (for migs) */
 static unsigned int gifview_image_twidth; /* (for migs) */
 
-int get_byte()
+int get_byte(void)
 {
-  return (getc(fpin)); /* EOF is -1, as desired */
+    return (getc(fpin)); /* EOF is -1, as desired */
 }
 
 int get_bytes(BYTE *where,int how_many)
@@ -339,7 +339,7 @@ int gifview(void)
   return(status);
 }
 
-static void close_file()
+static void close_file(void)
 {
   fclose(fpin);
   fpin = NULL;

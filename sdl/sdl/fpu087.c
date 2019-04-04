@@ -40,7 +40,12 @@ void FPUcplxmul(_CMPLX *x, _CMPLX *y, _CMPLX *z)
 {
     LDBL tx, ty;
 
-    if (y->y == 0.0)   /* y is real */
+    if (x->y == 0.0 && y->y == 0.0)   /* x & y are real */
+    {
+        tx = (LDBL)x->x * (LDBL)y->x;
+        ty = 0.0;
+    }
+    else if (y->y == 0.0)   /* y is real */
     {
         tx = (LDBL)x->x * (LDBL)y->x;
         ty = (LDBL)x->y * (LDBL)y->x;
@@ -68,7 +73,7 @@ void FPUcplxmul(_CMPLX *x, _CMPLX *y, _CMPLX *z)
 
 void FPUcplxdiv(_CMPLX *x, _CMPLX *y, _CMPLX *z)
 {
-    LDBL mod,tx,yxmod,yymod, yx, yy;
+    LDBL mod,tx,ty,yxmod,yymod, yx, yy;
     yx = y->x;
     yy = y->y;
     mod = yx * yx + yy * yy;
@@ -90,8 +95,9 @@ void FPUcplxdiv(_CMPLX *x, _CMPLX *y, _CMPLX *z)
         yxmod = yx/mod;
         yymod = - yy/mod;
         tx = x->x * yxmod - x->y * yymod;
-        z->y = (LDBL)(x->x * yymod + x->y * yxmod);
+        ty = x->x * yymod + x->y * yxmod;
         z->x = (LDBL)tx;
+        z->y = (LDBL)ty;
     }
 }
 
@@ -135,16 +141,19 @@ void FPUcplxlog(_CMPLX *x, _CMPLX *z)
     if (xx == 0.0 && xy == 0.0)
     {
         z->x = z->y = 0.0;
+        overflow = 1;
         return;
     }
+#if 0  /* Don't need this */
     else if(xy == 0.0)   /* x is real */
     {
         z->x = logl(xx);
         z->y = 0.0;
         return;
     }
-    mod = xx*xx + xy*xy;
-    if (isnan(mod) || islessequal(mod,0) || isinf(mod))
+#endif
+    mod = xx*xx + xy*xy;   /* always positive */
+    if (isnan(mod) || isinf(mod))
         z->x = 0.5;
     else
         z->x = (LDBL)(0.5 * logl(mod));

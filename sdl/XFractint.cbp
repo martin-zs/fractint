@@ -50,6 +50,9 @@ Fix file access.]]>
 				<Compiler>
 					<Add option="-DPRODUCTION" />
 				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
 			</Target>
 		</Build>
 		<Compiler>

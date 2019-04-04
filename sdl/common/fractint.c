@@ -185,6 +185,8 @@ static void my_floating_point_err(int sig)
     overflow = 1;
 }
 
+extern int resize_flag;
+
 int main(int argc, char **argv)
 {
 
@@ -245,6 +247,14 @@ restart:   /* insert key re-starts here */
   calc_status = -1;                    /* no active fractal image */
 
   cmdfiles(argc,argv);         /* process the command-line */
+
+  if (adapter < 0)
+     ResizeScreen(0);
+  else
+  {
+     resize_flag = 2;
+     ResizeScreen(1);
+  }
 
   dopause(0);                  /* pause for error msg if not batch */
   init_msg(0,"",NULL,0);  /* this causes getakey if init_msg called on runup */
@@ -382,8 +392,8 @@ imagestart:                             /* calc/display a new image */
           goodbye();
         }
       kbdchar = main_menu(0);
-      if (kbdchar == INSERT) goto restart;      /* restart pgm on Insert Key */
-      if (kbdchar == DELETE)                    /* select video mode list */
+/*      if (kbdchar == INSERT) goto restart;  */  /* restart pgm on Insert Key */
+      if (kbdchar == DELETE || kbdchar == INSERT) /* select video mode list */
         kbdchar = select_video_mode(-1);
       if ((adapter = check_vidmode_key(0,kbdchar)) >= 0)
         break;                                 /* got a video mode now */

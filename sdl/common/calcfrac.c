@@ -173,7 +173,7 @@ typedef int (*TPREFIX)[2][maxyblk][maxxblk];
 #define tprefix   (*((TPREFIX)prefix))
 
 /* size of next puts a limit of OLDMAXPIXELS pixels across on solid guessing logic */
-BYTE dstack[4096];              /* common temp, two put_line calls */
+BYTE dstack[OLDMAXPIXELS * 2];            /* common temp, two put_line calls */
 unsigned int prefix[2][maxyblk][maxxblk]; /* common temp */
 
 int nxtscreenflag; /* for cellular next screen generation */

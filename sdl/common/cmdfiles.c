@@ -2924,7 +2924,8 @@ static void argerror(char *badarg)      /* oops. couldn't decode this */
     sprintf(msg,"%s%s%s",argerrmsg1,badarg,argerrmsg2);
   else
     sprintf(msg,"%s%s",argerrmsg1,badarg);
-  stopmsg(0,msg);
+  popup_error(1, msg);
+/*  stopmsg(0,msg); */
   if (initbatch)
     {
       initbatch = 4;
@@ -3050,11 +3051,15 @@ int init_msg(int flags,char *cmdstr,char *badfilename,int mode)
     {
       if (row == 1 && badfilename)
         {
+        popup_error(1, diags);
+/*
           setvideotext();
           putstring(0,0,15,diags);
+*/
         }
       if (badfilename)
-        putstring(row++,0,7,msg);
+        popup_error(1, msg);
+/*        putstring(row++,0,7,msg); */
       else if (row > 1)
         {
           putstring(++row,0,15,s_escapetoabort);

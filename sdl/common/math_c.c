@@ -276,10 +276,10 @@ void Arccoshz(_CMPLX z,_CMPLX *rz)
 {
     _CMPLX tempz;
     FPUcplxmul( &z, &z, &tempz);
-    tempz.x -= 1.0;                              /* tempz = tempz - 1 */
+    tempz.x -= 1.0;                                /* tempz = tempz - 1 */
     Sqrtz( tempz, &tempz);
-    tempz.x = z.x + tempz.x;
-    tempz.y = z.y + tempz.y;  /* tempz = z + tempz */
+    tempz.x += z.x;
+    tempz.y += z.y;             /* tempz = z + tempz */
     FPUcplxlog( &tempz, rz);
 }   /* end. Arccoshz */
 
@@ -439,14 +439,16 @@ _CMPLX ComplexSqrtFloat(LDBL x, LDBL y)
         result.x = result.y = 0.0;
     else if (y == 0.0)   /* number is real */
     {
-        if (x > 0.0)
+        if (x >= 0.0)
+        {
            result.x = sqrtl(x);
+           result.y = 0.0;
+        }
         else
         {
             result.x = 0.0;
-            overflow = 1;
+            result.y = sqrtl(-x);
         }
-        result.y = 0.0;
     }
     else
     {
