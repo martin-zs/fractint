@@ -801,6 +801,7 @@ extern WORKLIST              worklist[MAXCALCWORK];
 extern int                   workpass;
 extern int                   worksym;
 extern long                  x3rd;
+extern int                   x_close;
 extern int                   xadjust;
 extern double                xcjul;
 extern int                   xdots;

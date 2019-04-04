@@ -709,7 +709,6 @@ struct trig_funct_lst
     char *name;
     void (*lfunct)(void);
     void (*dfunct)(void);
-    void (*mfunct)(void);
 } ;
 extern struct trig_funct_lst trigfn[];
 

@@ -1154,6 +1154,8 @@ void goodbye(void)                  /* we done.  Bail out */
     free(extraseg);
   if (extraseg2)
     free(extraseg2);
+  if (x_close == 1)
+    freetempmsg();
   enddisk();
   free_bf_vars();
   ExitCheck();

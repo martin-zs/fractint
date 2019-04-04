@@ -285,9 +285,12 @@ Version 20.5.00 is an update of Fractint 20.0 based on the developer's
 
 Version 20.5 is a Port to SDL 2.0
 
-Fixed bug that was causing a crash when the INSERT key was pressed.
+Added default palette for cases where error occurs during startup.\
+Increased the size of several buffers.\
+Fixed ComplexSqrtFloat routine.\
 
 Known issues:\
+Random crashes\
 Resizing images using the window border doesn't work very well\
 No sound\
 Colors still limited to 256\

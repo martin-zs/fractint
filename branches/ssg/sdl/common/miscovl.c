@@ -1760,6 +1760,8 @@ tryagain:
       && badconfig == 0)
     update_fractint_cfg();
 
+  discardscreen();
+
   return(ret);
 }
 

@@ -813,10 +813,6 @@ extern void dStkTrunc(void );
 extern void lStkTrunc(void );
 extern void dStkRound(void );
 extern void lStkRound(void );
-extern void (*mtrig0)(void);
-extern void (*mtrig1)(void);
-extern void (*mtrig2)(void);
-extern void (*mtrig3)(void);
 extern void EndInit(void );
 extern struct ConstArg *isconst(char *,int );
 extern void NotAFnct(void );
@@ -1124,5 +1120,6 @@ extern void spindac (int, int);
 extern int get_video_mode(struct fractal_info *,struct ext_blk_3 *);
 extern void blink_cursor(void);
 extern void unblink_cursor(void);
+extern void popup_error (int, char *);
 
 #endif

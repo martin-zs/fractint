@@ -72,7 +72,8 @@ int stopmsg (int flags, char *msg)
   if (active_system == 0 /* DOS */
       && first_init)       /* & cmdfiles hasn't finished 1st try */
     {
-      printf("%Fs\n",msg);
+/*      printf("%Fs\n",msg); */
+      popup_error(1, msg);
       dopause(1); /* pause deferred until after cmdfiles */
       return(0);
     }
@@ -91,6 +92,7 @@ int stopmsg (int flags, char *msg)
     {
       stackscreen();
       toprow = 4;
+      blankrows(toprow, 4, 7);
       movecursor(4,0);
     }
   textcbase = 2; /* left margin is 2 */
@@ -166,7 +168,8 @@ int showtempmsg(char *msgparm)
   if (active_system == 0 /* DOS */
       && first_init)       /* & cmdfiles hasn't finished 1st try */
     {
-      printf("%s\n",msg);
+/*      printf("%s\n",msg); */
+      popup_error(1, msg);
       return(0);
     }
 
@@ -205,7 +208,8 @@ int showtempmsg(char *msgparm)
     }
   if (fontptr == NULL)   /* can't display it anyway */
     {
-      printf(msg);
+/*      printf(msg); */
+      popup_error(1, msg);
     }
   else   /* generate the characters */
     {
@@ -1143,9 +1147,11 @@ top:
       choicekey[nextright+=2] = 'b';
       attributes[nextright] = MENU_ITEM;
       LOADPROMPTSCHOICES(nextright,"save current parameters..<b>  ");
+#if 0
       choicekey[nextright+=2] = 16;
       attributes[nextright] = MENU_ITEM;
       LOADPROMPTSCHOICES(nextright,"print image            <ctl-p>  ");
+#endif
     }
   choicekey[nextright+=2] = 'g';
   attributes[nextright] = MENU_ITEM;
@@ -1248,8 +1254,8 @@ int menu_checkkey(int curkey,int choice)
     {
       if (strchr("\\sobpkha",testkey) || testkey == TAB
           || testkey == 1 || testkey == 5 || testkey == 8
-          || testkey == 16
-          || testkey == 19 || testkey == 21) /* ctrl-A, E, H, P, S, U */
+       /*   || testkey == 16 */
+          || testkey == 19 || testkey == 21) /* ctrl-A, E, H, S, U */
         return(0-testkey);
       if (testkey == ' ')
         if ((curfractalspecific->tojulia != NOFRACTAL
@@ -1598,7 +1604,7 @@ int load_fractint_cfg(int options)
   char tempstring[150];
 
   if (extraseg2 == NULL)
-    extraseg2 = (BYTE*)malloc(20000);
+    extraseg2 = (BYTE*)malloc(30000);
   else  /* already loaded, we're done */
     return (vidtbllen);
   vidtbl = (VIDEOINFO *)extraseg2;
