@@ -910,7 +910,7 @@ Press F1 for help, "};
    strcpy(select_msg,o_select_msg);
 
    initmode = -1;
-   load_fractint_cfg(0); /* get fractint.cfg into *vidtbl (== extraseg) */
+   load_fractint_cfg(0); /* get fractint.cfg into *vidtbl (== extraseg2) */
 
 #if 0
    /* try to change any VESA entries to fit the loaded image size */

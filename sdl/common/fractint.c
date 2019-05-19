@@ -265,7 +265,7 @@ restart:   /* insert key re-starts here */
   diskisactive = 0;                    /* disk-video is inactive */
   diskvideo = 0;                       /* disk driver is not in use */
 
-  setvideotext();                      /* switch to text mode */
+//  setvideotext();                      /* switch to text mode */
 // NOTE (jonathan#1#): Following shows up a lot, is it really necessary??? JCO
   savedac = 0;                         /* don't save the VGA DAC */
 
