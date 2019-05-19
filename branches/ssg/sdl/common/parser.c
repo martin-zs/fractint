@@ -156,7 +156,7 @@ struct token_st
 #define MAX_LOADS  ((unsigned)(Max_Ops*.8))  /* and 80% can be loads */
 /* PB 901103 made some of the following static for safety */
 
-static struct PEND_OP *o;
+static struct PEND_OP *opsptr;
 
 struct var_list_st
   {
@@ -1573,7 +1573,7 @@ struct ConstArg *isconst(char *Str, int Len)
         || (Str[0] == '-' && (isdigit(Str[1]) || Str[1] == '.'))
         || Str[0] == '.')
       {
-        if (o[posp-1].f == StkNeg)
+        if (opsptr[posp-1].f == StkNeg)
           {
             posp--;
             Str = Str - 1;
@@ -1650,7 +1650,7 @@ int isjump(char *Str, int Len)
   int i;
 
   for (i = 0; *JumpList[i]; i++)
-    if (strlen(JumpList[i]) == Len)
+    if ((int)strlen(JumpList[i]) == Len)
       if (!strnicmp(JumpList[i], Str, Len))
         return i + 1;
   return 0;
@@ -1758,7 +1758,7 @@ void (*isfunct(char *Str, int Len))(void)
     {
       for (n = 0; n < sizeof(FnctList) / sizeof(struct FNCT_LIST); n++)
         {
-          if (strlen(FnctList[n].s) == Len)         /* TIW 03-31-91 added */
+          if ((int)strlen(FnctList[n].s) == Len)         /* TIW 03-31-91 added */
             {
               if (!strnicmp(FnctList[n].s, Str, Len))   /* TIW 03-31-91 added */
                 {
@@ -1778,9 +1778,9 @@ void (*isfunct(char *Str, int Len))(void)
 void RecSortPrec(void)
 {
   int ThisOp = NextOp++;
-  while (o[ThisOp].p > o[NextOp].p && NextOp < posp)
+  while (opsptr[ThisOp].p > opsptr[NextOp].p && NextOp < posp)
     RecSortPrec();
-  f[OpPtr++] = o[ThisOp].f;
+  f[OpPtr++] = opsptr[ThisOp].f;
 }
 
 static char *Constants[] =
@@ -1843,11 +1843,11 @@ static int ParseStr(char *Str, int pass)
   uses_jump = 0;
   jump_index = 0;
   if (big_formula == 0)
-    o = (struct PEND_OP *)
+    opsptr = (struct PEND_OP *)
         ((char *)typespecific_workarea + total_formula_mem-sizeof(struct PEND_OP) * Max_Ops);
   else
-    o = (struct PEND_OP *)malloc(sizeof(struct PEND_OP) * (long)Max_Ops);
-  if ( !o || !typespecific_workarea)
+    opsptr = (struct PEND_OP *)malloc(sizeof(struct PEND_OP) * (long)Max_Ops);
+  if ( !opsptr || !typespecific_workarea)
     {
       stopmsg(0,ParseErrs(PE_INSUFFICIENT_MEM_FOR_TYPE_FORMULA));
       return(1);
@@ -2069,8 +2069,8 @@ static int ParseStr(char *Str, int pass)
             {
               ExpectingArg = 1;
               n++;
-              o[posp].f = StkOR;
-              o[posp++].p = 7 - (paren + Equals)*15;
+              opsptr[posp].f = StkOR;
+              opsptr[posp++].p = 7 - (paren + Equals)*15;
             }
           else if (ModFlag == paren-1)
             {
@@ -2080,8 +2080,8 @@ static int ParseStr(char *Str, int pass)
           else
             {
               Mod[mdstk++] = ModFlag;
-              o[posp].f = StkMod;
-              o[posp++].p = 2 - (paren + Equals)*15;
+              opsptr[posp].f = StkMod;
+              opsptr[posp++].p = 2 - (paren + Equals)*15;
               ModFlag = paren++;
             }
           break;
@@ -2090,101 +2090,101 @@ static int ParseStr(char *Str, int pass)
           if (!ExpectingArg)
             {
               ExpectingArg = 1;
-              o[posp].f = (void(*)(void))0;
-              o[posp++].p = 15;
-              o[posp].f = StkClr;
-              o[posp++].p = -30000;
+              opsptr[posp].f = (void(*)(void))0;
+              opsptr[posp++].p = 15;
+              opsptr[posp].f = StkClr;
+              opsptr[posp++].p = -30000;
               Equals = paren = 0;
             }
           break;
         case ':':
           ExpectingArg = 1;
-          o[posp].f = (void(*)(void))0;
-          o[posp++].p = 15;
-          o[posp].f = EndInit;
-          o[posp++].p = -30000;
+          opsptr[posp].f = (void(*)(void))0;
+          opsptr[posp++].p = 15;
+          opsptr[posp].f = EndInit;
+          opsptr[posp++].p = -30000;
           Equals = paren = 0;
           LastInitOp = 10000;
           break;
         case '+':
           ExpectingArg = 1;
-          o[posp].f = StkAdd;
-          o[posp++].p = 4 - (paren + Equals)*15;
+          opsptr[posp].f = StkAdd;
+          opsptr[posp++].p = 4 - (paren + Equals)*15;
           break;
         case '-':
           if (ExpectingArg)
             {
-              o[posp].f = StkNeg;
-              o[posp++].p = 2 - (paren + Equals)*15;
+              opsptr[posp].f = StkNeg;
+              opsptr[posp++].p = 2 - (paren + Equals)*15;
             }
           else
             {
-              o[posp].f = StkSub;
-              o[posp++].p = 4 - (paren + Equals)*15;
+              opsptr[posp].f = StkSub;
+              opsptr[posp++].p = 4 - (paren + Equals)*15;
               ExpectingArg = 1;
             }
           break;
         case '&':
           ExpectingArg = 1;
           n++;
-          o[posp].f = StkAND;
-          o[posp++].p = 7 - (paren + Equals)*15;
+          opsptr[posp].f = StkAND;
+          opsptr[posp++].p = 7 - (paren + Equals)*15;
           break;
         case '!':
           ExpectingArg = 1;
           n++;
-          o[posp].f = StkNE;
-          o[posp++].p = 6 - (paren + Equals)*15;
+          opsptr[posp].f = StkNE;
+          opsptr[posp++].p = 6 - (paren + Equals)*15;
           break;
         case '<':
           ExpectingArg = 1;
           if (Str[n+1] == '=')
             {
               n++;
-              o[posp].f = StkLTE;
+              opsptr[posp].f = StkLTE;
             }
           else
-            o[posp].f = StkLT;
-          o[posp++].p = 6 - (paren + Equals)*15;
+            opsptr[posp].f = StkLT;
+          opsptr[posp++].p = 6 - (paren + Equals)*15;
           break;
         case '>':
           ExpectingArg = 1;
           if (Str[n+1] == '=')
             {
               n++;
-              o[posp].f = StkGTE;
+              opsptr[posp].f = StkGTE;
             }
           else
-            o[posp].f = StkGT;
-          o[posp++].p = 6 - (paren + Equals)*15;
+            opsptr[posp].f = StkGT;
+          opsptr[posp++].p = 6 - (paren + Equals)*15;
           break;
         case '*':
           ExpectingArg = 1;
-          o[posp].f = StkMul;
-          o[posp++].p = 3 - (paren + Equals)*15;
+          opsptr[posp].f = StkMul;
+          opsptr[posp++].p = 3 - (paren + Equals)*15;
           break;
         case '/':
           ExpectingArg = 1;
-          o[posp].f = StkDiv;
-          o[posp++].p = 3 - (paren + Equals)*15;
+          opsptr[posp].f = StkDiv;
+          opsptr[posp++].p = 3 - (paren + Equals)*15;
           break;
         case '^':
           ExpectingArg = 1;
-          o[posp].f = StkPwr;
-          o[posp++].p = 2 - (paren + Equals)*15;
+          opsptr[posp].f = StkPwr;
+          opsptr[posp++].p = 2 - (paren + Equals)*15;
           break;
         case '=':
           ExpectingArg = 1;
           if (Str[n+1] == '=')
             {
               n++;
-              o[posp].f = StkEQ;
-              o[posp++].p = 6 - (paren + Equals)*15;
+              opsptr[posp].f = StkEQ;
+              opsptr[posp++].p = 6 - (paren + Equals)*15;
             }
           else
             {
-              o[posp-1].f = StkSto;
-              o[posp-1].p = 5 - (paren + Equals)*15;
+              opsptr[posp-1].f = StkSto;
+              opsptr[posp-1].p = 5 - (paren + Equals)*15;
               Store[StoPtr++] = Load[--LodPtr];
               Equals++;
             }
@@ -2202,31 +2202,31 @@ static int ParseStr(char *Str, int pass)
                 case 1:                      /* if */
                   ExpectingArg = 1;
                   jump_control[jump_index++].type = 1;
-                  o[posp].f = StkJumpOnFalse;
-                  o[posp++].p = 1;
+                  opsptr[posp].f = StkJumpOnFalse;
+                  opsptr[posp++].p = 1;
                   break;
                 case 2:                     /* elseif */
                   ExpectingArg = 1;
                   jump_control[jump_index++].type = 2;
                   jump_control[jump_index++].type = 2;
-                  o[posp].f = StkJump;
-                  o[posp++].p = 1;
-                  o[posp].f = (void(*)(void))0;
-                  o[posp++].p = 15;
-                  o[posp].f = StkClr;
-                  o[posp++].p = -30000;
-                  o[posp].f = StkJumpOnFalse;
-                  o[posp++].p = 1;
+                  opsptr[posp].f = StkJump;
+                  opsptr[posp++].p = 1;
+                  opsptr[posp].f = (void(*)(void))0;
+                  opsptr[posp++].p = 15;
+                  opsptr[posp].f = StkClr;
+                  opsptr[posp++].p = -30000;
+                  opsptr[posp].f = StkJumpOnFalse;
+                  opsptr[posp++].p = 1;
                   break;
                 case 3:                     /* else */
                   jump_control[jump_index++].type = 3;
-                  o[posp].f = StkJump;
-                  o[posp++].p = 1;
+                  opsptr[posp].f = StkJump;
+                  opsptr[posp++].p = 1;
                   break;
                 case 4: /* endif */
                   jump_control[jump_index++].type = 4;
-                  o[posp].f = StkJumpLabel;
-                  o[posp++].p = 1;
+                  opsptr[posp].f = StkJumpLabel;
+                  opsptr[posp++].p = 1;
                   break;
                 default:
                   break;
@@ -2234,18 +2234,18 @@ static int ParseStr(char *Str, int pass)
             }
           else
             {
-              o[posp].f = isfunct(&Str[InitN], Len);
-              if (o[posp].f != NotAFnct)
+              opsptr[posp].f = isfunct(&Str[InitN], Len);
+              if (opsptr[posp].f != NotAFnct)
                 {
-                  o[posp++].p = 1 - (paren + Equals)*15;
+                  opsptr[posp++].p = 1 - (paren + Equals)*15;
                   ExpectingArg = 1;
                 }
               else
                 {
                   c = isconst(&Str[InitN], Len);
                   Load[LodPtr++] = &(c->a);
-                  o[posp].f = StkLod;
-                  o[posp++].p = 1 - (paren + Equals)*15;
+                  opsptr[posp].f = StkLod;
+                  opsptr[posp++].p = 1 - (paren + Equals)*15;
                   n = InitN + c->len - 1;
                 }
             }
@@ -2254,17 +2254,17 @@ static int ParseStr(char *Str, int pass)
      if (pass == 0 && posp >= Max_Ops)
      {
        if (big_formula == 1)
-         free(o);
+         free(opsptr);
        return(1);
      }
     }
-  o[posp].f = (void(*)(void))0;
-  o[posp++].p = 16;
+  opsptr[posp].f = (void(*)(void))0;
+  opsptr[posp++].p = 16;
   NextOp = 0;
   LastOp = posp;
   while (NextOp < posp)
     {
-      if (o[NextOp].f)
+      if (opsptr[NextOp].f)
         RecSortPrec();
       else
         {
@@ -2273,7 +2273,7 @@ static int ParseStr(char *Str, int pass)
         }
     }
   if (big_formula == 1)
-    free(o);
+    free(opsptr);
   return(0);
 }
 
@@ -2546,6 +2546,7 @@ int frmgetchar (FILE * openfile)
             {}
           if (c == EOF || c == '\032')
             done = 1;
+          break;
         case '\n' :
           if (!linewrap)
             done = 1;
@@ -2564,7 +2565,7 @@ int frmgetchar (FILE * openfile)
 void getfuncinfo(struct token_st * tok)
 {
   int i;
-  for (i=0; i < sizeof(FnctList)/ sizeof(struct FNCT_LIST); i++)
+  for (i=0; i < (int)(sizeof(FnctList)/ sizeof(struct FNCT_LIST)); i++)
     {
       if (!strcmp(FnctList[i].s, tok->token_str))
         {
@@ -2595,7 +2596,7 @@ void getvarinfo(struct token_st * tok)
 {
   int i;
 
-  for (i=0; i < sizeof(Constants) / sizeof(char*); i++)
+  for (i=0; i < (int)(sizeof(Constants) / sizeof(char*)); i++)
     {
       if (!strcmp(Constants[i], tok->token_str))
         {
@@ -3063,7 +3064,7 @@ CASE_TERMINATOR:
       this_token->token_str[i] = (char) 0;
       if (this_token->token_type == OPERATOR)
         {
-          for (i=0; i < sizeof(OPList)/sizeof(struct OP_LIST); i++)
+          for (i=0; i < (int)(sizeof(OPList)/sizeof(struct OP_LIST)); i++)
             {
               if (!strcmp(OPList[i].s, this_token->token_str))
                 {

@@ -1586,7 +1586,7 @@ int showvidlength()
 
 int load_fractint_cfg(int options)
 {
-  /* Reads fractint.cfg, loading videoinfo entries into extraseg. */
+  /* Reads fractint.cfg, loading videoinfo entries into extraseg2. */
   /* Sets vidtbl pointing to the loaded table, and returns the    */
   /* number of entries (also sets vidtbllen to this).             */
   /* Past vidtbl, cfglinenums are stored for update_fractint_cfg. */

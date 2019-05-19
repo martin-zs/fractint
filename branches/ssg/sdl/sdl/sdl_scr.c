@@ -192,7 +192,7 @@ void popup_error (int num, char *msg)
    case 1:
    default:
       SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
-                         "Error reading sstools.ini",
+                         "Error reading parameters/sstools.ini",
                          msg,
                          NULL);
       break;
@@ -221,16 +221,12 @@ void ResizeScreen(int mode)
   Uint32 rmask, gmask, bmask, amask;
   char msg[40];
   int bpp; /* bits per pixel for graphics mode */
-  int sxdots, sydots, dotmode;
   int fontsize;
   int win_size_w;
   int win_size_h;
-  int desktop_w, desktop_h;
-  SDL_DisplayMode DTmode;
+  SDL_Rect max_win_size;
 
-  SDL_GetCurrentDisplayMode(display_in_use, &DTmode);
-  desktop_w = DTmode.w;
-  desktop_h = DTmode.h;
+  SDL_GetDisplayUsableBounds(display_in_use, &max_win_size);
 
   /*
    * Initialize the display to 1024x768,
@@ -239,7 +235,7 @@ void ResizeScreen(int mode)
     {
       SDL_Surface *WinIcon;
 
-      if (initmode <= 0)   /* make sure we have something reasonable */
+      if (initmode < 0)   /* make sure we have something reasonable */
           adapter = check_vidmode_key(0, check_vidmode_keyname("SF7"));  /* Default to SF7 1024x768 */
       else
           adapter = initmode;
@@ -262,15 +258,18 @@ void ResizeScreen(int mode)
         SDL_SetWindowIcon( sdlWindow, WinIcon );
         SDL_FreeSurface( WinIcon );
       }
+      Image_Data.color_info = NULL;
     }
   else if (mode == 1)  /*  graphics window  */
     {
       if (resize_flag == 2) /* not called from event Queue */
         {
-          if (videotable[adapter].xdots > desktop_w || videotable[adapter].ydots > desktop_h)
-             return;
-          SDL_SetWindowSize(sdlWindow, videotable[adapter].xdots, videotable[adapter].ydots);
-          SDL_SetWindowPosition(sdlWindow, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED);
+          if (videotable[adapter].xdots > max_win_size.w || videotable[adapter].ydots > max_win_size.h)
+            {
+                sprintf(msg, "Selected video mode larger than usable display.  Fractint will crash.\n");
+                popup_error(2, msg);
+                return;
+            }
           memcpy((char *)&videoentry,(char *)&videotable[adapter],
                  sizeof(videoentry));  /* the selected entry now in videoentry */
         }
@@ -279,7 +278,10 @@ void ResizeScreen(int mode)
           memcpy((char *)&videotable[adapter],(char *)&videoentry,
                sizeof(videoentry));
         }
+      SDL_SetWindowSize(sdlWindow, videotable[adapter].xdots, videotable[adapter].ydots);
+      SDL_SetWindowPosition(sdlWindow, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED);
       resize_flag = 0;
+      calc_status = 0; /* make sure we recalculate */
     /* need to free the screens & texture here */
       SDL_DestroyRenderer(sdlRenderer);
       sdlRenderer = NULL;
@@ -292,11 +294,12 @@ void ResizeScreen(int mode)
       SDL_FreeSurface(backtext);
       backtext = NULL;
       free(Image_Data.color_info);
-
+      Image_Data.color_info = NULL;
     }
   else  /*  mode == 2  text window  */
     {
       if (adapter < 0)   /* make sure we have something reasonable */
+{
           adapter = check_vidmode_key(0, check_vidmode_keyname("SF7"));  /* Default to SF7 1024x768 */
       memcpy((char *)&videoentry,(char *)&videotable[adapter],
              sizeof(videoentry));  /* the selected entry now in videoentry */
@@ -305,6 +308,7 @@ void ResizeScreen(int mode)
          SDL_SetWindowSize(sdlWindow, videoentry.xdots, videoentry.ydots);
          SDL_SetWindowPosition(sdlWindow, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED);
       }
+}
     }
 
   sxdots = videoentry.xdots;
@@ -314,10 +318,12 @@ void ResizeScreen(int mode)
   dotmode = videoentry.dotmode;
   colors = videoentry.colors;
   rotate_hi = colors - 1;
-  Image_Data.sizex = sxdots;
-  Image_Data.sizey = sydots;
-  Image_Data.color_info = (long *)malloc(sxdots * sydots * sizeof(long));
-
+  if (Image_Data.color_info == NULL)
+  {
+      Image_Data.sizex = sxdots;
+      Image_Data.sizey = sydots;
+      Image_Data.color_info = (long *)malloc(sxdots * sydots * sizeof(long));
+  }
   if ( sdlRenderer != NULL ) /* Don't create two with same name */
       SDL_DestroyRenderer(sdlRenderer);
   sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_renderer_flags);
@@ -330,6 +336,11 @@ void ResizeScreen(int mode)
 
   SDL_GetRendererOutputSize(sdlRenderer, &win_size_w, &win_size_h);
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");  /* make the scaled rendering look smoother */
+  if (videotable[adapter].xdots != win_size_w || videotable[adapter].ydots != win_size_h)
+    {
+      sprintf(msg, "Selected video mode different than Window size.  Fractint will crash.\n");
+      popup_error(2, msg);
+     }
 
   /* initialize screen to black */
   SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
@@ -696,9 +707,6 @@ void puttruecolor_SDL(SDL_Surface *screen, int x, int y, Uint8 R, Uint8 G, Uint8
   if (show_orbit) /* Do it slow, one pixel at a time */
   {
      updateimage();
-//     SDL_UpdateTexture( sdlTexture, NULL, mainscrn->pixels, rowbytes );
-//     SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
-//     SDL_RenderPresent(sdlRenderer);
   }
 #endif
 }
@@ -1725,7 +1733,7 @@ int check_mouse(SDL_Event mevent)
   int bandx1, bandy1;
   static int banding = 0;
   int bnum = 0;
-  int keypressed = 0;
+  int keyispressed = 0;
 
   if (screenctr) /* don't do it, we're on a text screen */
     return (0);
@@ -1750,19 +1758,19 @@ int check_mouse(SDL_Event mevent)
       return (0);
     }
 
-    if (!keypressed && editpal_cursor && !inside_help && lookatmouse == 3 &&
+    if (!keyispressed && editpal_cursor && !inside_help && lookatmouse == 3 &&
     (dx != 0 || dy != 0))
     {
         if (ABS(dx)>ABS(dy))
         {
             if (dx>0)
             {
-                keypressed = mousefkey[bnum][0]; /* right */
+                keyispressed = mousefkey[bnum][0]; /* right */
                 dx--;
             }
             else if (dx<0)
             {
-                keypressed = mousefkey[bnum][1]; /* left */
+                keyispressed = mousefkey[bnum][1]; /* left */
                 dx++;
             }
         }
@@ -1770,16 +1778,16 @@ int check_mouse(SDL_Event mevent)
         {
             if (dy>0)
             {
-                keypressed = mousefkey[bnum][2]; /* down */
+                keyispressed = mousefkey[bnum][2]; /* down */
                 dy--;
             }
             else if (dy<0)
             {
-                keypressed = mousefkey[bnum][3]; /* up */
+                keyispressed = mousefkey[bnum][3]; /* up */
                 dy++;
             }
         }
-        return (keypressed);
+        return (keyispressed);
     }
 
   if (left_mouse_button_down && !button_held)
@@ -1834,10 +1842,8 @@ int check_mouse(SDL_Event mevent)
 int get_key_event(int block)
 {
   SDL_Event event;
-  int keypressed = 0;
+  int keyispressed = 0;
   int winx, winy;
-  static int old_winx = 0;
-  static int old_winy = 0;
   int changing_win_size = 0;
 
   do
@@ -1856,19 +1862,19 @@ int get_key_event(int block)
               if (resize_flag == 0)
                  {
                  winx = event.window.data1 & 0xFFFC;  /* divisible by 4 */
-                 winy = event.window.data2 & 0xFFFC;  /* divisible by 4 */
+                 winy = (event.window.data2 + 3) & 0xFFFC;  /* divisible by 4 */
                  changing_win_size = 1;
                  break;
                  }
               else /* resize_flag == 1 or 2 set by WM or <DEL> */
               {
                  if (calc_status != -1 && !browsing)
-                    keypressed = ENTER;
+                    keyispressed = ENTER;
               }
               discardscreen(); /* dump text screen if in use */
               calc_status = 0;
               ResizeScreen(1);
-              return (keypressed);
+              return (keyispressed);
               break;
             case SDL_WINDOWEVENT_EXPOSED:
             case SDL_WINDOWEVENT_SHOWN:
@@ -1892,7 +1898,7 @@ int get_key_event(int block)
             }
            }
             case SDL_MOUSEMOTION:
-              keypressed = check_mouse(event);
+              keyispressed = check_mouse(event);
               break;
             case SDL_MOUSEBUTTONDOWN:
              if (!screenctr)
@@ -1903,7 +1909,7 @@ int get_key_event(int block)
                 left_mouse_button_down = 1;
               if (event.button.button == SDL_BUTTON_RIGHT)
                 right_mouse_button_down = 1;
-              keypressed = 255;
+              keyispressed = 255;
               }
               break;
             case SDL_MOUSEBUTTONUP:
@@ -1913,7 +1919,7 @@ int get_key_event(int block)
                 if (left_mouse_button_down == 1)
                    {
                       calc_status = 0;
-                      keypressed = ENTER;
+                      keyispressed = ENTER;
                    }
                 left_mouse_button_down = 0;
                 button_held = 0;
@@ -1923,7 +1929,7 @@ int get_key_event(int block)
               }
               break;
             case SDL_KEYDOWN:
-              keypressed = translate_key(&event.key);
+              keyispressed = translate_key(&event.key);
               break;
             case SDL_QUIT:
               goodbye();
@@ -1932,41 +1938,32 @@ int get_key_event(int block)
               break;
             }
         }
-  if (changing_win_size)
+  if (changing_win_size && ((winx != sxdots || winy != sydots) || window_is_fullscreen))
     {
-       calc_status = 0;
-       if ((winx == old_winx && winy == old_winy) || window_is_fullscreen)
-          {
-          videoentry.xdots = winx;
-          videoentry.ydots = winy;
-          changing_win_size = 0;
-          keypressed = ENTER;
-          resize_flag = 1;
-          adapter = MAXVIDEOTABLE - 1;
-          saved_adapter_mode = -2; /* force video initialization */
-          discardscreen(); /* dump text screen if in use */
-          ResizeScreen(1);
-          return (keypressed);
-          }
-       else
-          {
-          old_winx = winx;
-          old_winy = winy;
-          }
+      videoentry.xdots = winx;
+      videoentry.ydots = winy;
+      changing_win_size = 0;
+      keyispressed = ENTER;
+      resize_flag = 1;
+      adapter = MAXVIDEOTABLE - 1;
+//      saved_adapter_mode = -2; /* force video initialization */
+      discardscreen(); /* dump text screen if in use */
+      ResizeScreen(1);
+      return (keyispressed);
     }
   if (checkautosave())
-      keypressed = 9999; /* time to save, exit */
-  if (time_to_update() && updatewindow && !changing_win_size)
-    {
-      updateimage();
-    }
-   }
-  while (block && !keypressed);
+      keyispressed = 9999; /* time to save, exit */
   if (time_to_update() && updatewindow)
     {
       updateimage();
     }
-  return (keypressed);
+   }
+  while (block && !keyispressed);
+  if (time_to_update() && updatewindow)
+    {
+      updateimage();
+    }
+  return (keyispressed);
 }
 
 void push_resize_event (int flag)
