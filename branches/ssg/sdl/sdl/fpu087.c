@@ -23,61 +23,61 @@
 
 int overflow = 0;
 
-LDBL _2_ = 2.0;
-LDBL _1_ = 1.0;
-LDBL PointFive = 0.5;
-LDBL infinity = 1.0E+300;
+double _2_ = 2.0;
+double _1_ = 1.0;
+double PointFive = 0.5;
+double infinity = 1.0E+300;
 
-void FPUaptan387(LDBL *y, LDBL *x, LDBL *atan)
+void FPUaptan387(double *y, double *x, double *atan)
 {
     if (isnan(*x) || isnan(*y) || isinf(*x) || isinf(*y))
         *atan = 1.0;
     else
-        *atan = (LDBL)atan2l(*y,*x);
+        *atan = (double)atan2l(*y,*x);
 }
 
 void FPUcplxmul(_CMPLX *x, _CMPLX *y, _CMPLX *z)
 {
-    LDBL tx, ty;
+    double tx, ty;
 
     if (x->y == 0.0 && y->y == 0.0)   /* x & y are real */
     {
-        tx = (LDBL)x->x * (LDBL)y->x;
+        tx = (double)x->x * (double)y->x;
         ty = 0.0;
     }
     else if (y->y == 0.0)   /* y is real */
     {
-        tx = (LDBL)x->x * (LDBL)y->x;
-        ty = (LDBL)x->y * (LDBL)y->x;
+        tx = (double)x->x * (double)y->x;
+        ty = (double)x->y * (double)y->x;
     }
     else if (x->y == 0.0)   /* x is real */
     {
-        tx = (LDBL)x->x * (LDBL)y->x;
-        ty = (LDBL)x->x * (LDBL)y->y;
+        tx = (double)x->x * (double)y->x;
+        ty = (double)x->x * (double)y->y;
     }
     else
     {
-        tx = (LDBL)x->x * (LDBL)y->x - (LDBL)x->y * (LDBL)y->y;
-        ty = (LDBL)x->x * (LDBL)y->y + (LDBL)x->y * (LDBL)y->x;
+        tx = (double)x->x * (double)y->x - (double)x->y * (double)y->y;
+        ty = (double)x->x * (double)y->y + (double)x->y * (double)y->x;
     }
 
     if (isnan(ty) || isinf(ty))
         z->y = infinity;
     else
-        z->y = (LDBL)ty;
+        z->y = (double)ty;
     if (isnan(tx) || isinf(tx))
         z->x = infinity;
     else
-        z->x = (LDBL)tx;
+        z->x = (double)tx;
 }
 
 void FPUcplxdiv(_CMPLX *x, _CMPLX *y, _CMPLX *z)
 {
-    LDBL mod,tx,ty,yxmod,yymod, yx, yy;
+    double mod,tx,ty,yxmod,yymod, yx, yy;
     yx = y->x;
     yy = y->y;
     mod = yx * yx + yy * yy;
-    if (mod == 0.0 || fabsl(mod) <= LDBL_MIN)
+    if (mod == 0.0 || fabsl(mod) <= DBL_MIN)
     {
         z->x = infinity;
         z->y = infinity;
@@ -87,8 +87,8 @@ void FPUcplxdiv(_CMPLX *x, _CMPLX *y, _CMPLX *z)
 
     if (yy == 0.0)   /* if y is real */
     {
-        z->x = (LDBL)x->x / yx;
-        z->y = (LDBL)x->y / yx;
+        z->x = (double)x->x / yx;
+        z->y = (double)x->y / yx;
     }
     else
     {
@@ -96,12 +96,12 @@ void FPUcplxdiv(_CMPLX *x, _CMPLX *y, _CMPLX *z)
         yymod = - yy/mod;
         tx = x->x * yxmod - x->y * yymod;
         ty = x->x * yymod + x->y * yxmod;
-        z->x = (LDBL)tx;
-        z->y = (LDBL)ty;
+        z->x = (double)tx;
+        z->y = (double)ty;
     }
 }
 
-void FPUsincos(LDBL *Angle, LDBL *Sin, LDBL *Cos)
+void FPUsincos(double *Angle, double *Sin, double *Cos)
 {
     if (isnan(*Angle) || isinf(*Angle))
     {
@@ -110,12 +110,12 @@ void FPUsincos(LDBL *Angle, LDBL *Sin, LDBL *Cos)
     }
     else
     {
-        *Sin = (LDBL)sinl(*Angle);
-        *Cos = (LDBL)cosl(*Angle);
+        *Sin = (double)sinl(*Angle);
+        *Cos = (double)cosl(*Angle);
     }
 }
 
-void FPUsinhcosh(LDBL *Angle, LDBL *Sinh, LDBL *Cosh)
+void FPUsinhcosh(double *Angle, double *Sinh, double *Cosh)
 {
     if (isnan(*Angle) || isinf(*Angle))
     {
@@ -124,8 +124,8 @@ void FPUsinhcosh(LDBL *Angle, LDBL *Sinh, LDBL *Cosh)
     }
     else
     {
-        *Sinh = (LDBL)sinhl(*Angle);
-        *Cosh = (LDBL)coshl(*Angle);
+        *Sinh = (double)sinhl(*Angle);
+        *Cosh = (double)coshl(*Angle);
     }
     if (isnan(*Sinh) || isinf(*Sinh))
         *Sinh = 1.0;
@@ -135,7 +135,7 @@ void FPUsinhcosh(LDBL *Angle, LDBL *Sinh, LDBL *Cosh)
 
 void FPUcplxlog(_CMPLX *x, _CMPLX *z)
 {
-    LDBL mod, xx, xy;
+    double mod, xx, xy;
     xx = x->x;
     xy = x->y;
     if (xx == 0.0 && xy == 0.0)
@@ -156,11 +156,11 @@ void FPUcplxlog(_CMPLX *x, _CMPLX *z)
     if (isnan(mod) || isinf(mod))
         z->x = 0.5;
     else
-        z->x = (LDBL)(0.5 * logl(mod));
+        z->x = (double)(0.5 * logl(mod));
     if (isnan(xx) || isnan(xy) || isinf(xx) || isinf(xy))
         z->y = 1.0;
     else
-        z->y = (LDBL)atan2l(xy,xx);
+        z->y = (double)atan2l(xy,xx);
 }
 
 /* Integer Routines */

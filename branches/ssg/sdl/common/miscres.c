@@ -780,13 +780,13 @@ int tab_display_2(char *msg)
   */
   sprintf(msg,"xxstart %d xxstop %d yystart %d yystop %d %s uses_ismand %d",
           xxstart,xxstop,yystart,yystop,
-/*
+
 #ifdef XFRACT
 #ifdef NASM
           curfractalspecific->orbitcalc == fFormula?"fast parser":
 #endif
 #endif
-*/
+
           curfractalspecific->orbitcalc ==  Formula?"slow parser":
           curfractalspecific->orbitcalc ==  BadFormula?"bad formula":
           "",uses_ismand);

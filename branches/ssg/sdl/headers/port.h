@@ -169,7 +169,8 @@ extern struct DIR_SEARCH DTA;   /* Disk Transfer Area */
 /* Some compiler libraries don't correctly handle long double.*/
 /* If you want to force the use of doubles, */
 /* then uncomment this next line  */
-/* #define DO_NOT_USE_LONG_DOUBLE */
+/* Long double messes up using the fast parser code */
+#define DO_NOT_USE_LONG_DOUBLE
 
 /* If the compiler supports long doubles, but does not allow  */
 /*   scanf("%Lf", &longdoublevar);                            */

@@ -17,7 +17,7 @@ struct LHyperComplex {
 };
 
 struct DComplex {
-    LDBL x,y;
+    double x,y;
 };
 
 struct LDComplex {

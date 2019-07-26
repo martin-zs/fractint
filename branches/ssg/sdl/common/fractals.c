@@ -79,8 +79,8 @@ _LCMPLX *longparm; /* used here and in jb.c */
 /*              These variables are external for speed's sake only      */
 /* -------------------------------------------------------------------- */
 
-LDBL sinx,cosx;
-LDBL siny,cosy;
+double sinx,cosx;
+double siny,cosy;
 LDBL tmpexp;
 LDBL tempsqrx,tempsqry;
 
@@ -2971,7 +2971,7 @@ MandelbrotMix4fpFractal(void) /* from formula by Jim Muth */
 #undef K
 #undef L
 
-LDBL b_const;
+long double b_const;
 
 int DivideBrot5Setup(void)
 {

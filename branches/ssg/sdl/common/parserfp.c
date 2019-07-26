@@ -115,21 +115,22 @@
 /* global data  */
 struct fls *pfls = (struct fls *)0;
 
-#if 0 /* def XFRACT */
+//#if 0 /* def XFRACT */
+#ifdef USEFP
 #ifdef NASM /* #ifdef XFRACT */ /* --  */
 
 /* not moved to PROTOTYPE.H because these only communicate within
    PARSER.C and other parser modules */
 
 extern union Arg *Arg1, *Arg2;
-extern LDBL _1_, _2_;
+extern double _1_, _2_;
 extern union Arg s[20], * *Store, * *Load;
 extern long StoPtr, LodPtr, OpPtr;
 extern unsigned int vsp, LastOp;
 extern struct ConstArg *v;
 extern long InitLodPtr, InitStoPtr, InitOpPtr, LastInitOp;
 extern void (* *f)(void);
-extern JUMP_CONTROL_ST *jump_control;
+extern JUMP_CONTROL_ST jump_control[MAX_JUMPS];
 extern int uses_jump, jump_index;
 
 typedef void OLD_FN(void);  /* old C functions  */
@@ -255,7 +256,7 @@ NEW_FN  fStkOne;   /* to support new parser fn.  */
 #define MAX_STACK 8   /* max # of stack register avail  */
 
 #ifdef TESTFP
-int pstopmsg(int x,char *msg)
+static int pstopmsg(int x,char *msg)
 {
   static FILE *fp = NULL;
   if (fp == NULL)
@@ -487,7 +488,7 @@ static int CvtFptr(void (* ffptr)(void), int MinStk, int FreeStk,
 #ifdef TESTFP
   int prevstkcnt;
 #endif
-  LDBL dTemp;
+  double dTemp;
 
   int Max_On_Stack = MAX_STACK - FreeStk;  /* max regs allowed on stack  */
   int Num_To_Push; /* number of regs to push  */
@@ -554,12 +555,12 @@ awful_error:
   /* set the operand pointer here for store function  */
   if (ffptr == fStkSto )
     {
-      OPPTR(cvtptrx) = (void *)FP_OFF((Store[StoPtr++]));
+      OPPTR(cvtptrx) = (void *)(char *)((Store[StoPtr++]));
     }
   else if (ffptr == fStkLod && debugflag == 322 )
     {
       /* when disabling optimizer, set load pointer here  */
-      OPPTR(cvtptrx) = (void *)FP_OFF((Load[LodPtr++]));
+      OPPTR(cvtptrx) = (void *)(char *)((Load[LodPtr++]));
     }
   else   /* the optimizer will set the pointer for load fn.  */
     {
@@ -648,7 +649,7 @@ awful_error:
             }
         }
       /* set the operand ptr here  */
-      OPPTR(cvtptrx) = (void *)FP_OFF((Load[LodPtr++]));
+      OPPTR(cvtptrx) = (void *)(char *)((Load[LodPtr++]));
     }
   /* ******************************************************************** */
   else if (ffptr == fStkAdd )
@@ -1028,7 +1029,7 @@ awful_error:
           v[vsp].a.d.y = 0.0;
           {
             void *p = &v[vsp++].a;
-            OPPTR(cvtptrx) = (void *)FP_OFF(p);  /* isn't C fun!  */
+            OPPTR(cvtptrx) = (void *)(char *)(p);  /* isn't C fun!  */
           }
           ffptr = fStkLodRealMul;
         }
@@ -1347,7 +1348,7 @@ SkipOptimizer:  /* -------------  end of optimizer ----------------------- */
   return 1;  /* return 1 for success  */
 }
 
-int fpfill_jump_struct(void)
+static int fpfill_jump_struct(void)
 {
   /* Completes all entries in jump structure. Returns 1 on error) */
   /* On entry, jump_index is the number of jump functions in the formula*/
@@ -1386,7 +1387,7 @@ int fpfill_jump_struct(void)
         }
       if (pfls[OpPtr].function == JumpFunc)
         {
-          jump_data[i].JumpOpPtr = OpPtr*sizeof(void*);
+          jump_data[i].JumpOpPtr = OpPtr*(2*sizeof(void *));
           i++;
           find_new_func = 1;
         }

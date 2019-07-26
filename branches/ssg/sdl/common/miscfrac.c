@@ -508,7 +508,7 @@ int diffusion()
   int colorcount,currentcolor;
 
   int i;
-  LDBL cosine,sine,angle;
+  double cosine,sine,angle;
   int x,y;
   float r, radius;
 
