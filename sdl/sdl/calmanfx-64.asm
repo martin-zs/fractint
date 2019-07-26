@@ -47,13 +47,13 @@ CEXTERN   plot_orbit    ;:FAR          ; this routine is in 'fracsubr.c'
 CEXTERN   scrub_orbit   ;:FAR          ; this routine is in 'fracsubr.c'
 
 ; external data
-CEXTERN init       ;:TWORD  16 - LDBL each ; declared as type complex
-CEXTERN parm       ;:TWORD  16 - LDBL each ; declared as type complex
-CEXTERN new        ;:TWORD  16 - LDBL each ; declared as type complex
+CEXTERN init       ;:QWORD  8 - DBL each ; declared as type complex
+CEXTERN parm       ;:QWORD  8 - DBL each ; declared as type complex
+CEXTERN new        ;:QWORD  8 - DBL each ; declared as type complex
 CEXTERN maxit      ;:QWORD  8 - long
 CEXTERN inside     ;:DWORD  4 - int
 CEXTERN outside    ;:DWORD  4 - int
-CEXTERN rqlim      ;:TWORD  16 - LDBL      ; bailout (I never did figure out
+CEXTERN rqlim      ;:QWORD  8 - DBL      ; bailout (I never did figure out
                                 ;   what "rqlim" stands for. -Wes)
 CEXTERN coloriter      ;:QWORD 8 - long
 CEXTERN oldcoloriter      ;:QWORD 8 - long
@@ -66,7 +66,7 @@ CEXTERN kbdcount       ;:DWORD 4 - int    ; keyboard counter
 CEXTERN dotmode        ;:DWORD 4 - int
 CEXTERN show_orbit     ;:DWORD 4 - int   ; "show-orbit" flag
 CEXTERN orbit_ptr      ;:DWORD 4 - int   ; "orbit pointer" flag
-CEXTERN magnitude      ;:TWORD 16 - LDBL ; when using potential
+CEXTERN magnitude      ;:QWORD 8 - DBL   ; when using potential
 CEXTERN nextsavedincr  ;:QWORD 8 - long  ; for incrementing AND value
 CEXTERN firstsavedand  ;:QWORD 8 - long  ; AND value
 CEXTERN bad_outside    ;:DWORD 4 - int   ; old FPU code with bad
@@ -81,11 +81,11 @@ MANDELFP EQU 0
 KEYPRESSDELAY equ 16383         ; 3FFFh
 
 initx   EQU  init   ; just to make life easier
-inity   EQU  init+LDBLSZ
+inity   EQU  init+DBLSZ
 parmx   EQU  parm
-parmy   EQU  parm+LDBLSZ
+parmy   EQU  parm+DBLSZ
 newx    EQU  new
-newy    EQU  new+LDBLSZ
+newy    EQU  new+DBLSZ
 
 section .data
 align 16
@@ -243,16 +243,16 @@ nokey:
                                         ; the fpu stack is shown below
                                         ; st(0) ... st(7)
 
-        fld     tword [initx]           ; Cx
-        fld     tword [inity]           ; Cy Cx
-        fld     tword [rqlim]           ; b Cy Cx
+        fld     qword [initx]           ; Cx
+        fld     qword [inity]           ; Cy Cx
+        fld     qword [rqlim]           ; b Cy Cx
         fld     st2                     ; Cx b Cy Cx
-        fld     tword [parmx]           ; Px Cx b Cy Cx
+        fld     qword [parmx]           ; Px Cx b Cy Cx
         faddp   st1,st0                 ; Px+Cx b Cy Cx
         fld     st0                     ; Px+Cx Px+Cx b Cy Cx
         fmul    st0,st0                 ; (Px+Cx)^2 Px+Cx b Cy Cx
         fld     st3                     ; Cy (Px+Cx)^2 Px+Cx b Cy Cx
-        fld     tword [parmy]           ; Py Cy (Px+Cx)^2 Px+Cx b Cy Cx
+        fld     qword [parmy]           ; Py Cy (Px+Cx)^2 Px+Cx b Cy Cx
         faddp   st1,st0                 ; Py+Cy (Px+Cx)^2 Px+Cx b Cy Cx
         jmp     bottom_of_dojulia_p5
 
@@ -327,14 +327,14 @@ do_check_p5_fast:
 dojulia_p5:
                                         ; Julia p5 initialization of stack
                                         ; note that init and parm are "reversed"
-        fld     tword [parmx]           ; Cx
-        fld     tword [parmy]           ; Cy Cx
-        fld     tword [rqlim]           ; b Cy Cx
+        fld     qword [parmx]           ; Cx
+        fld     qword [parmy]           ; Cy Cx
+        fld     qword [rqlim]           ; b Cy Cx
 
-        fld     tword [initx]           ; x b Cy Cx
+        fld     qword [initx]           ; x b Cy Cx
         fld     st0                     ; x x b Cy Cx
         fmul    st0,st0                 ; x^2 x b Cy Cx
-        fld     tword [inity]           ; y x^2 x b Cy Cx
+        fld     qword [inity]           ; y x^2 x b Cy Cx
 
 bottom_of_dojulia_p5:
         fmul    st2,st0                ; y x^2 xy b Cy Cx
@@ -450,7 +450,7 @@ overbailout_p5:
 
         faddp   st1,st0                       ; x^2+y^2 y x b Cy Cx
         mov     rax,rcx
-        fstp    tword [magnitude]               ; y x b Cy Cx
+        fstp    qword [magnitude]               ; y x b Cy Cx
         sub     rax,10                  ; 10 more next time before checking
 
         jns     no_fix_underflow_p5
@@ -487,8 +487,8 @@ to_special_outside_p5:
 ALIGN 16
 overiteration_p5:
 
-        fstp    tword [newy]                    ; x b Cy Cx
-        fstp    tword [newx]                    ; b Cy Cx
+        fstp    qword [newy]                    ; x b Cy Cx
+        fstp    qword [newx]                    ; b Cy Cx
 
 
 ;    {Pop 3 used registers from FPU stack, discarding the values.

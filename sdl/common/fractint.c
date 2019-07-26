@@ -73,8 +73,8 @@ char    stdcalcmode;            /* '1', '2', 'g', 'b'       */
 long    creal, cimag;           /* real, imag'ry parts of C */
 long    delx, dely;             /* screen pixel increments  */
 long    delx2, dely2;           /* screen pixel increments  */
-LDBL    delxx, delyy;           /* screen pixel increments  */
-LDBL    delxx2, delyy2;         /* screen pixel increments  */
+double  delxx, delyy;           /* screen pixel increments  */
+double  delxx2, delyy2;         /* screen pixel increments  */
 long    delmin;                 /* for calcfrac/calcmand    */
 double  ddelmin;                /* same as a double         */
 double  param[MAXPARAMS];       /* parameters               */

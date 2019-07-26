@@ -60,6 +60,7 @@ Fix file access.]]>
 			<Add option="`sdl2-config --cflags --libs`" />
 			<Add option="-DXFRACT" />
 			<Add option="-DNASM" />
+			<Add option="-DUSEFP" />
 			<Add directory="headers" />
 			<Add directory="/usr/include/SDL2" />
 		</Compiler>

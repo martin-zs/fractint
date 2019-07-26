@@ -203,7 +203,7 @@ static unsigned long RandNum;
 short uses_p1, uses_p2, uses_p3, uses_p4, uses_p5, uses_jump;
 short uses_ismand;
 unsigned int chars_in_formula;
-extern LDBL infinity;
+extern double infinity;
 
 #define ChkLongDenom(denom)\
     if ((denom == 0 || overflow) && save_release > 1920) {\
@@ -383,8 +383,8 @@ void dRandom(void)
          the same fractals when the srand() function is used. */
   x = NewRandNum() >> (32 - bitshift);
   y = NewRandNum() >> (32 - bitshift);
-  v[7].a.d.x = ((LDBL)x / (1L << bitshift));
-  v[7].a.d.y = ((LDBL)y / (1L << bitshift));
+  v[7].a.d.x = ((double)x / (1L << bitshift));
+  v[7].a.d.y = ((double)y / (1L << bitshift));
 
 }
 
@@ -838,7 +838,7 @@ void (*PtrStkClr)(void) = StkClr;
 
 void dStkFlip(void)
 {
-  LDBL t;
+  double t;
 
   t = Arg1->d.x;
   Arg1->d.x = Arg1->d.y;
@@ -858,7 +858,7 @@ void (*StkFlip)(void) = dStkFlip;
 
 void dStkSin(void)
 {
-  LDBL sinx, cosx, sinhy, coshy;
+  double sinx, cosx, sinhy, coshy;
 
   FPUsincos(&Arg1->d.x, &sinx, &cosx);
   FPUsinhcosh(&Arg1->d.y, &sinhy, &coshy);
@@ -884,7 +884,7 @@ void (*StkSin)(void) = dStkSin;
 
 void dStkTan(void)
 {
-  LDBL sinx, cosx, sinhy, coshy, denom;
+  double sinx, cosx, sinhy, coshy, denom;
   Arg1->d.x *= 2.0;
   Arg1->d.y *= 2.0;
   FPUsincos(&Arg1->d.x, &sinx, &cosx);
@@ -914,7 +914,7 @@ void (*StkTan)(void) = dStkTan;
 
 void dStkTanh(void)
 {
-  LDBL siny, cosy, sinhx, coshx, denom;
+  double siny, cosy, sinhx, coshx, denom;
   Arg1->d.x *= 2.0;
   Arg1->d.y *= 2.0;
   FPUsincos(&Arg1->d.y, &siny, &cosy);
@@ -944,7 +944,7 @@ void (*StkTanh)(void) = dStkTanh;
 
 void dStkCoTan(void)
 {
-  LDBL sinx, cosx, sinhy, coshy, denom;
+  double sinx, cosx, sinhy, coshy, denom;
   Arg1->d.x *= 2.0;
   Arg1->d.y *= 2.0;
   FPUsincos(&Arg1->d.x, &sinx, &cosx);
@@ -974,7 +974,7 @@ void (*StkCoTan)(void) = dStkCoTan;
 
 void dStkCoTanh(void)
 {
-  LDBL siny, cosy, sinhx, coshx, denom;
+  double siny, cosy, sinhx, coshx, denom;
   Arg1->d.x *= 2.0;
   Arg1->d.y *= 2.0;
   FPUsincos(&Arg1->d.y, &siny, &cosy);
@@ -1010,7 +1010,7 @@ void (*StkCoTanh)(void) = dStkCoTanh;
 
 void dStkRecip(void)
 {
-  LDBL mod;
+  double mod;
   mod =Arg1->d.x * Arg1->d.x + Arg1->d.y * Arg1->d.y;
   ChkFloatDenom(mod);
   Arg1->d.x =  Arg1->d.x/mod;
@@ -1038,7 +1038,7 @@ void StkIdent(void)   /* do nothing - the function Z */
 
 void dStkSinh(void)
 {
-  LDBL siny, cosy, sinhx, coshx;
+  double siny, cosy, sinhx, coshx;
 
   FPUsincos(&Arg1->d.y, &siny, &cosy);
   FPUsinhcosh(&Arg1->d.x, &sinhx, &coshx);
@@ -1062,7 +1062,7 @@ void (*StkSinh)(void) = dStkSinh;
 
 void dStkCos(void)
 {
-  LDBL sinx, cosx, sinhy, coshy;
+  double sinx, cosx, sinhy, coshy;
 
   FPUsincos(&Arg1->d.x, &sinx, &cosx);
   FPUsinhcosh(&Arg1->d.y, &sinhy, &coshy);
@@ -1102,7 +1102,7 @@ void (*StkCosXX)(void) = dStkCosXX;
 
 void dStkCosh(void)
 {
-  LDBL siny, cosy, sinhx, coshx;
+  double siny, cosy, sinhx, coshx;
 
   FPUsincos(&Arg1->d.y, &siny, &cosy);
   FPUsinhcosh(&Arg1->d.x, &sinhx, &coshx);
@@ -1228,7 +1228,7 @@ void (*StkCAbs)(void) = dStkCAbs;
 
 void dStkLT(void)
 {
-  Arg2->d.x = (LDBL)(Arg2->d.x < Arg1->d.x);
+  Arg2->d.x = (double)(Arg2->d.x < Arg1->d.x);
   Arg2->d.y = 0.0;
   Arg1--;
   Arg2--;
@@ -1246,7 +1246,7 @@ void (*StkLT)(void) = dStkLT;
 
 void dStkGT(void)
 {
-  Arg2->d.x = (LDBL)(Arg2->d.x > Arg1->d.x);
+  Arg2->d.x = (double)(Arg2->d.x > Arg1->d.x);
   Arg2->d.y = 0.0;
   Arg1--;
   Arg2--;
@@ -1264,7 +1264,7 @@ void (*StkGT)(void) = dStkGT;
 
 void dStkLTE(void)
 {
-  Arg2->d.x = (LDBL)(Arg2->d.x <= Arg1->d.x);
+  Arg2->d.x = (double)(Arg2->d.x <= Arg1->d.x);
   Arg2->d.y = 0.0;
   Arg1--;
   Arg2--;
@@ -1282,7 +1282,7 @@ void (*StkLTE)(void) = dStkLTE;
 
 void dStkGTE(void)
 {
-  Arg2->d.x = (LDBL)(Arg2->d.x >= Arg1->d.x);
+  Arg2->d.x = (double)(Arg2->d.x >= Arg1->d.x);
   Arg2->d.y = 0.0;
   Arg1--;
   Arg2--;
@@ -1300,7 +1300,7 @@ void (*StkGTE)(void) = dStkGTE;
 
 void dStkEQ(void)
 {
-  Arg2->d.x = (LDBL)(Arg2->d.x == Arg1->d.x);
+  Arg2->d.x = (double)(Arg2->d.x == Arg1->d.x);
   Arg2->d.y = 0.0;
   Arg1--;
   Arg2--;
@@ -1318,7 +1318,7 @@ void (*StkEQ)(void) = dStkEQ;
 
 void dStkNE(void)
 {
-  Arg2->d.x = (LDBL)(Arg2->d.x != Arg1->d.x);
+  Arg2->d.x = (double)(Arg2->d.x != Arg1->d.x);
   Arg2->d.y = 0.0;
   Arg1--;
   Arg2--;
@@ -1336,7 +1336,7 @@ void (*StkNE)(void) = dStkNE;
 
 void dStkOR(void)
 {
-  Arg2->d.x = (LDBL)(Arg2->d.x || Arg1->d.x);
+  Arg2->d.x = (double)(Arg2->d.x || Arg1->d.x);
   Arg2->d.y = 0.0;
   Arg1--;
   Arg2--;
@@ -1354,7 +1354,7 @@ void (*StkOR)(void) = dStkOR;
 
 void dStkAND(void)
 {
-  Arg2->d.x = (LDBL)(Arg2->d.x && Arg1->d.x);
+  Arg2->d.x = (double)(Arg2->d.x && Arg1->d.x);
   Arg2->d.y = 0.0;
   Arg1--;
   Arg2--;
@@ -1405,10 +1405,10 @@ void lStkPwr(void)
 {
   _CMPLX x, y;
 
-  x.x = (LDBL)Arg2->l.x / fg;
-  x.y = (LDBL)Arg2->l.y / fg;
-  y.x = (LDBL)Arg1->l.x / fg;
-  y.y = (LDBL)Arg1->l.y / fg;
+  x.x = (double)Arg2->l.x / fg;
+  x.y = (double)Arg2->l.y / fg;
+  y.x = (double)Arg1->l.x / fg;
+  y.y = (double)Arg1->l.y / fg;
   x = ComplexPower(x, y);
   if (fabsl(x.x) < fgLimit && fabsl(x.y) < fgLimit)
     {
@@ -1836,9 +1836,9 @@ static int ParseStr(char *Str, int pass)
   struct ConstArg *c;
   int ModFlag = 999, Len, Equals = 0, Mod[20], mdstk = 0;
   int jumptype;
-  LDBL const_pi, const_e;
+  double const_pi, const_e;
   double Xctr, Yctr, Xmagfactor, Rotation, Skew;
-  LDBL Magnification;
+  double Magnification;
   SetRandom = Randomized = 0;
   uses_jump = 0;
   jump_index = 0;
@@ -1979,36 +1979,36 @@ static int ParseStr(char *Str, int pass)
   const_pi = atanl(1.0) * 4.0;
   const_e  = expl(1.0);
   v[7].a.d.x = v[7].a.d.y = 0.0;
-  v[11].a.d.x = (LDBL)xdots;
-  v[11].a.d.y = (LDBL)ydots;
-  v[12].a.d.x = (LDBL)maxit;
+  v[11].a.d.x = (double)xdots;
+  v[11].a.d.y = (double)ydots;
+  v[12].a.d.x = (double)maxit;
   v[12].a.d.y = 0.0;
-  v[13].a.d.x = (LDBL)ismand;
+  v[13].a.d.x = (double)ismand;
   v[13].a.d.y = 0.0;
-  v[14].a.d.x = (LDBL)Xctr;
-  v[14].a.d.y = (LDBL)Yctr;
-  v[15].a.d.x = (LDBL)Magnification;
-  v[15].a.d.y = (LDBL)Xmagfactor;
-  v[16].a.d.x = (LDBL)Rotation;
-  v[16].a.d.y = (LDBL)Skew;
+  v[14].a.d.x = (double)Xctr;
+  v[14].a.d.y = (double)Yctr;
+  v[15].a.d.x = (double)Magnification;
+  v[15].a.d.y = (double)Xmagfactor;
+  v[16].a.d.x = (double)Rotation;
+  v[16].a.d.y = (double)Skew;
 
   switch (MathType)
     {
     case D_MATH:
-      v[1].a.d.x = (LDBL)param[0];
-      v[1].a.d.y = (LDBL)param[1];
-      v[2].a.d.x = (LDBL)param[2];
-      v[2].a.d.y = (LDBL)param[3];
+      v[1].a.d.x = (double)param[0];
+      v[1].a.d.y = (double)param[1];
+      v[2].a.d.x = (double)param[2];
+      v[2].a.d.y = (double)param[3];
       v[5].a.d.x = const_pi;
       v[5].a.d.y = 0.0;
       v[6].a.d.x = const_e;
       v[6].a.d.y = 0.0;
-      v[8].a.d.x = (LDBL)param[4];
-      v[8].a.d.y = (LDBL)param[5];
-      v[17].a.d.x = (LDBL)param[6];
-      v[17].a.d.y = (LDBL)param[7];
-      v[18].a.d.x = (LDBL)param[8];
-      v[18].a.d.y = (LDBL)param[9];
+      v[8].a.d.x = (double)param[4];
+      v[8].a.d.y = (double)param[5];
+      v[17].a.d.x = (double)param[6];
+      v[17].a.d.y = (double)param[7];
+      v[18].a.d.x = (double)param[8];
+      v[18].a.d.y = (double)param[9];
       break;
     case L_MATH:
       v[1].a.l.x = (long)(param[0] * fg);
@@ -2330,8 +2330,8 @@ int form_per_pixel(void)
   Arg2--;
 
 
-  v[10].a.d.x = (LDBL)col;
-  v[10].a.d.y = (LDBL)row;
+  v[10].a.d.x = (double)col;
+  v[10].a.d.y = (double)row;
 
   switch (MathType)
     {
@@ -3527,7 +3527,8 @@ int fpFormulaSetup(void)
   MathType = D_MATH;
   RunFormRes = !RunForm(FormName, 0); /* RunForm() returns 1 for failure */
 
-#if 0 /* def XFRACT */
+//#if 0 /* def XFRACT */
+#ifdef USEFP
 #ifdef NASM
   if (RunFormRes && debugflag != 90 && (orbitsave&2) == 0
       && !Randomized)

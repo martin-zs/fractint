@@ -993,8 +993,8 @@ extern FILE *dir_fopen(char *, char *, char *);
 
 extern void FPUcplxmul(_CMPLX *, _CMPLX *, _CMPLX *);
 extern void FPUcplxdiv(_CMPLX *, _CMPLX *, _CMPLX *);
-extern void FPUsincos(LDBL *, LDBL *, LDBL *);
-extern void FPUsinhcosh(LDBL *, LDBL *, LDBL *);
+extern void FPUsincos(double *, double *, double *);
+extern void FPUsinhcosh(double *, double *, double *);
 extern void FPUcplxlog(_CMPLX *, _CMPLX *);
 extern void SinCos086(long , long *, long *);
 extern void SinhCosh086(long , long *, long *);
