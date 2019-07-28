@@ -115,8 +115,6 @@
 /* global data  */
 struct fls *pfls = (struct fls *)0;
 
-//#if 0 /* def XFRACT */
-#ifdef USEFP
 #ifdef NASM /* #ifdef XFRACT */ /* --  */
 
 /* not moved to PROTOTYPE.H because these only communicate within
@@ -1642,4 +1640,3 @@ skipfinalopt:  /* -------------- end of final optimizations ------------ */
 }
 
 #endif /* NASM  */
-#endif /* XFRACT */

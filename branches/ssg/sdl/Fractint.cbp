@@ -536,6 +536,7 @@ Fix stackscreen/unstackscreen? - look at 3d images.]]>
 			<Option target="debug" />
 			<Option target="Production" />
 		</Unit>
+		<Unit filename="sdl/parserax.o" />
 		<Unit filename="sdl/sdl_scr.c">
 			<Option compilerVar="CC" />
 			<Option target="default" />

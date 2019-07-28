@@ -1526,6 +1526,7 @@ struct ConstArg *isconst(char *Str, int Len)
     _CMPLX z;
     unsigned n, j;
     /* next line enforces variable vs constant naming convention */
+n = sizeof(long double);
     for (n = 0; n < vsp; n++)
       {
         if (v[n].len == Len)
@@ -3527,13 +3528,10 @@ int fpFormulaSetup(void)
   MathType = D_MATH;
   RunFormRes = !RunForm(FormName, 0); /* RunForm() returns 1 for failure */
 
-//#if 0 /* def XFRACT */
-#ifdef USEFP
 #ifdef NASM
   if (RunFormRes && debugflag != 90 && (orbitsave&2) == 0
       && !Randomized)
     return CvtStk(); /* run fast assembler code in parsera.asm */
-#endif
 #endif
 
   return RunFormRes;
