@@ -4,7 +4,7 @@
 PTRSZ    equ   4
 INTSZ    equ   4
 DBLSZ    equ   8
-LDBLSZ   equ   16
+LDBLSZ   equ   12
 
 ; ---------------------------------------------------------------------------
 ;  The following two macros take care of the case where gcc uses

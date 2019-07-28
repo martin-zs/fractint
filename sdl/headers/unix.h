@@ -59,6 +59,8 @@ typedef void (*SignalHandler)(int);
 
 extern int iocount;
 
+#undef HAVESTRI
+
 #if 0
 char *strlwr(char *s);
 char *strupr(char *s);

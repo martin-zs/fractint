@@ -130,8 +130,8 @@ JCSZ               equ 3*LNGSZ+2*(INTSZ+PDDING) ; size of jump_control structure
 
 ; Uncomment the following line to enable compiler code generation.
 ;   Note: I removed all the compiler code when I ported over to NASM.  JCO  1/12/2002
-;   Note: I restored the compiler code.  JCO  7/26/2019
-;COMPILER           EQU 1
+;   Note: I restored the compiler code, but it doesn't work.  JCO  7/26/2019
+; %define  COMPILER
 
 ; ---------------------------------------------------------------------------
 ; Generate beginning code for operator fn.
@@ -1059,18 +1059,18 @@ oldwayR:
    BEGN_INCL       Push2               ; Push stack down from 8 to 6
       fdecstp                          ; roll the stack
       fdecstp                          ; ...
-      fstp         qword [rdi]   ; store x on overflow stack
-      add          rdi, DBLSZ         ; adjust rdi
-      fstp         qword [rdi] ; and y (ten bytes each)
-      add          rdi, DBLSZ         ; adjust rdi
+      fstp         tword [rdi]   ; store x on overflow stack
+      add          rdi, LDBLSZ         ; adjust rdi (LDBLSZ > 10)
+      fstp         tword [rdi] ; and y (ten bytes each)
+      add          rdi, LDBLSZ         ; adjust rdi
    END_INCL        Push2
 ; --------------------------------------------------------------------------
    BEGN_INCL       Pull2               ; Pull stack up from 2 to 4
-      sub          rdi, DBLSZ       ; adjust rdi now
-      fld          qword [rdi] ; oldy x y
-      sub          rdi, DBLSZ       ; adjust rdi now
+      sub          rdi, LDBLSZ       ; adjust rdi now
+      fld          tword [rdi] ; oldy x y
+      sub          rdi, LDBLSZ       ; adjust rdi now
       fxch         st2               ; y x oldy
-      fld          qword [rdi]   ; oldx y x oldy
+      fld          tword [rdi]   ; oldx y x oldy
       fxch         st2               ; x y oldx oldy
    END_INCL        Pull2
 ; --------------------------------------------------------------------------
@@ -1079,14 +1079,14 @@ oldwayR:
       fdecstp
       fdecstp
       fdecstp
-      fstp         qword [rdi] ; save the bottom four numbers
-      add          rdi, DBLSZ
-      fstp         qword [rdi] ; save full precision on overflow
-      add          rdi, DBLSZ
-      fstp         qword [rdi]
-      add          rdi, DBLSZ
-      fstp         qword [rdi]
-      add          rdi, DBLSZ     ; adjust rdi
+      fstp         tword [rdi] ; save the bottom four numbers
+      add          rdi, LDBLSZ
+      fstp         tword [rdi] ; save full precision on overflow
+      add          rdi, LDBLSZ
+      fstp         tword [rdi]
+      add          rdi, LDBLSZ
+      fstp         tword [rdi]
+      add          rdi, LDBLSZ     ; adjust rdi
    END_INCL        Push4
 ; --------------------------------------------------------------------------
    BEGN_INCL       Push2a              ; Push stack down from 6 to 4
@@ -1094,10 +1094,10 @@ oldwayR:
       fdecstp
       fdecstp
       fdecstp
-      fstp         qword [rdi]   ; save only two numbers
-      add          rdi, DBLSZ
-      fstp         qword [rdi]
-      add          rdi, DBLSZ
+      fstp         tword [rdi]   ; save only two numbers
+      add          rdi, LDBLSZ
+      fstp         tword [rdi]
+      add          rdi, LDBLSZ
       fincstp                          ; roll back 2 times
       fincstp
    END_INCL        Push2a
@@ -2293,14 +2293,14 @@ skip_initloop:
    align           16
 Img_Setup:
       mov          rax, qword [v]        ; build a ptr to Z
-      add          rax, 3*CARG+CPFX]
+      add          rax, 3*CARG+CPFX
       mov          qword [PtrToZ], rax   ; and save it
       ret
 ;Img_Setup         endp
 ; --------------------------------------------------------------------------
 ;  Hybrid orbitcalc/per-pixel routine.
 ; --------------------------------------------------------------------------
-   public          fFormulaX
+   CGLOBAL          fFormulaX
    align           16
 fFormulaX:
       FRAME        rsi, rdi

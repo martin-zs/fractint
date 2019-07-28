@@ -1043,7 +1043,7 @@ extern void fix_ranges(U16 *, U16, int);
 extern void decode_evolver_info(struct evolution_info *, int);
 extern void decode_orbits_info(struct orbits_info *, int);
 #endif
-#ifdef XFRACT
+#if 1
 extern unsigned short _rotl(unsigned short, short);
 extern int ltoa(long, char *, int);
 extern char *strlwr(char *);

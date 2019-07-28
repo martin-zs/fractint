@@ -127,18 +127,43 @@ JCSZ               equ 5*INTSZ         ; size of jump_control structure (5 * int
 
 ; Uncomment the following line to enable compiler code generation.
 ;   Note: I removed all the compiler code when I ported over to NASM.  JCO  1/12/2002
-;COMPILER           EQU 1
+;   Note: I restored the compiler code, but it doesn't work.  JCO  7/26/2019
+; %define  COMPILER
 
 ; ---------------------------------------------------------------------------
 ; Generate beginning code for operator fn.
 %macro BEGN_OPER 1
 ; %1 = OperName
-   align           4
+%ifndef COMPILER
+   align           16
+%endif
 
 ;; always generate public and begin of proc (before fixups)
    CGLOBAL          fStk%1
 ;_fStk&OperName     proc near
 fStk%1:
+
+%ifdef COMPILER
+;; generate the fixups for compiler
+;; size of fn. | 8000h to mark it as an OPER instead of an INCL  CAE 27Dec93
+;      dw           Size_%1 OR 8000h
+   %%size   equ      Size_%1 | 8000h
+;; pointer to the start of actual code                      CAE 19Dec93
+;      dd           Code_%1
+   %%code   equ      Code_%1
+;;    addr of fn to include (undefined if Incl_%1==255 below)
+;      dd           IAddr_%1
+   %%addr   equ      IAddr_%1
+;; offset of x fixup or 255 if none
+;      db           XFixup_%1
+   %%xfix   equ      XFixup_%1
+;; offset of y fixup or 255 if none
+;      db           YFixup_%1
+   %%yfix   equ      YFixup_%1
+;; offset of included(called) fn or 255 if none
+;      db           Incl_%1
+   %%incl   equ      Incl_%1
+%endif
 
 ;; added label for code begin point                              CAE 25Nov93
 Code_%1:
@@ -150,8 +175,32 @@ Code_%1:
 ; %1 = OperName
 ; Generate end of operator fn. code.
 
+%ifndef COMPILER
 ;; gen a return instr.
       ret
+
+%else
+
+;; gen a jump label
+End_%1:
+
+;; generate zero for fixups not generated during fn.
+
+%ifndef          Incl_%1
+;; No included operator. Generate 255 offset, 0 address.          CAE 19Nov93
+   Incl_%1     EQU 255
+   IAddr_%1    EQU 0
+%endif
+
+%ifndef          XFixup_%1
+   XFixup_%1   EQU 255
+%endif
+
+%ifndef          YFixup_%1
+   YFixup_%1   EQU 255
+%endif
+
+%endif
 
 ;; Always gen size of fn (subtract size of header here)
 Size_%1     EQU $ - Code_%1
@@ -175,12 +224,20 @@ Size_%1     EQU $ - Code_%1
 ;;Is_Incl_%1  EQU 1
 %define Is_Incl_%1 1
 
-   align           4
+;; Don't bother with align in compiler mode.
+%ifndef          COMPILER
+   align           16
+%endif
 
 ;; Generate public (incl fns. can be called directly) and begin of proc.
    CGLOBAL          fStk%1
 ;_fStk&OperName     proc near
 fStk%1:
+
+%ifdef           COMPILER
+;; Size of included fn.  changed to word                          CAE 27Dec93
+      dw           Size_%1
+%endif
 
 ;; added label for code begin point                               CAE 25Nov93
 Code_%1:
@@ -191,7 +248,14 @@ Code_%1:
 ; Generate end of 'included' operator fn. code.
 %macro END_INCL 1
 ;  %1 = OperName
+
+%ifndef          COMPILER
+;; generate return
       ret
+%else
+;; generate label for jump to end of fn.
+End_%1:
+%endif
 
 ;; always generate actual size of fn. (subtract hdr. size)
    Size_%1  EQU $ - Code_%1
@@ -219,8 +283,20 @@ Code_%1:
 ;;    building the compiler.
 Incl_%1  EQU $ - Code_%1
 
+%ifdef           COMPILER
+;; Address of included fn.
+IAddr_%1 EQU fStk%2
+;; Gen 1 1-byte placeholder for the included fn to make codegen easier
+      db           0ffH
+%else
+
 ;; Generate a call to the included fn.
-      call         dword fStk%2
+;      sub     esp, 4
+      call         fStk%2
+;      add     esp, 4
+
+%endif
+
 %endmacro
 
 ; ---------------------------------------------------------------------------
@@ -228,8 +304,15 @@ Incl_%1  EQU $ - Code_%1
 %macro EXIT_OPER 1
 ;  %1 = FnToExit
 
+%ifdef           COMPILER
+;; jump to end of operator fn
+      jmp          short End_%1
+%else
+
 ;; return to caller
       ret
+%endif
+
 %endmacro
 
 ; ---------------------------------------------------------------------------
@@ -237,22 +320,39 @@ Incl_%1  EQU $ - Code_%1
 ; AddrToFix is = X or Y
 %macro FIXUP 3
 ;  %1 = OperName, %2 = InstrToFix, %3 = Addr
-;  OperName was used for compiler version, now not used
+
+%ifdef           COMPILER
+
+;; Generate a fixup as an offset from start of fn.
+;; Fixup is two bytes into the instruction, thus the '+ 2'.
+;; This may not be true for all instructions.
+%ifidni          %3, X
+   XFixup_%1   EQU $ - Code_%1 + 2
+%else
+;; assume fixup is for y
+   YFixup_%1   EQU $ - Code_%1 + 2
+%endif
+;; Generate a load, store or whatever of any convenient value.
+      %2  QWORD [fLastOp]
+%else
 
 %ifidni          %3, X
 ;; Gen load of X using ESI.
       %2  QWORD [esi]
 %else
-;; Assume fixup is for y, use ESI+8.
-      %2  QWORD [esi+DBLSZ]
+;; Assume fixup is for y, use ESI+DBLSZ.
+      %2  QWORD [esi + DBLSZ]
+%endif
 %endif
 
 %endmacro
 
 ; ---------------------------------------------------------------------------
-; Align 4 if no compiler.
+; Align 16 if no compiler.
 %macro PARSALIGN 0
-   align           4
+%ifndef  COMPILER
+   align           16
+%endif
 %endmacro
 
 ; CAE added macros for common operations Feb 1995
@@ -274,7 +374,10 @@ Incl_%1  EQU $ - Code_%1
       fld          st1               ; y x y
       fld          st1               ; x y x y
       fpatan                           ; atan x y
-      fdiv        qword [_2_]                ; theta=atan/2 x y
+;;      fdiv        qword [_2_]                ; theta=atan/2 x y
+      fld1                           ; 1 atan x y
+      fadd         st0,st0           ; 2 atan x y
+      fdiv                           ; theta=atan/2 x y
       fsincos                          ; cos sin x y
       fxch         st3               ; y sin x cos
       fmul         st0,st0            ; yy sin x cos
@@ -304,62 +407,59 @@ Incl_%1  EQU $ - Code_%1
 ; ---------------------------------------------------------------------------
 ;_DATA              segment word public use16 'DATA'
 section .data
-   CEXTERN           invert             ;:WORD
-   CEXTERN           maxit               ;:DWORD
-   CEXTERN           inside                 ;:WORD
-   CEXTERN           outside                   ;:WORD
-   CEXTERN           coloriter                     ;:DWORD
-   CEXTERN           kbdcount               ;:WORD      ; keyboard counter
-   CEXTERN           dotmode              ;:WORD
-   CEXTERN           _1_         ;:QWORD
-   CEXTERN           PointFive       ;:QWORD
-   CEXTERN           _2_                ;:QWORD
-   CEXTERN           infinity            ;:QWORD
-   CEXTERN           LastOp           ;:WORD
-   CEXTERN           LastInitOp      ;:WORD
-   CEXTERN           InitOpPtr          ;:WORD
-   CEXTERN           InitStoPtr           ;:WORD
-   CEXTERN           InitLodPtr            ;:WORD
-   CEXTERN           s               ;:WORD
-   CEXTERN           dy1           ;:DWORD
-   CEXTERN           dx1           ;:DWORD
-   CEXTERN           dy0           ;:DWORD
-   CEXTERN           dx0           ;:DWORD
-   CEXTERN           new          ;:WORD
-   CEXTERN           old            ;:WORD
-   CEXTERN           overflow       ;:WORD
-   CEXTERN           save_release        ;:WORD
-   CEXTERN           col        ;:WORD
-   CEXTERN           row       ;:WORD
-   CEXTERN           Arg1     ;:WORD
-   CEXTERN           Arg2     ;:WORD
-   CEXTERN           pfls       ;:DWORD
-   CEXTERN           v          ;:DWORD
-   CEXTERN           ldcheck      ;:WORD
-   CEXTERN           jump_index       ;:WORD
-   CEXTERN           InitJumpIndex   ;:WORD
-   CEXTERN           jump_control     ;:DWORD
-   CEXTERN           delxx         ;:TBYTE
-   CEXTERN           delxx2       ;:TBYTE
-   CEXTERN           delyy         ;:TBYTE
-   CEXTERN           delyy2       ;:TBYTE
-   CEXTERN           xxmin        ;:QWORD
-   CEXTERN           yymax       ;:QWORD
-   CEXTERN           use_grid   ;:WORD
+   CEXTERN           invert          ;:DWORD - int
+   CEXTERN           maxit           ;:DWORD - long
+   CEXTERN           inside          ;:DWORD - int
+;   CEXTERN           outside         ;:DWORD - int
+   CEXTERN           coloriter       ;:DWORD - long
+;   CEXTERN           kbdcount        ;:DWORD - int   ; keyboard counter
+;   CEXTERN           dotmode         ;:DWORD - int
+   CEXTERN           PointFive       ;:QWORD - LDBL treat as double
+   CEXTERN           infinity        ;:QWORD - LDBL treat as double
+   CEXTERN           LastOp          ;:DWORD - int (unsigned)
+   CEXTERN           LastInitOp      ;:DWORD - long
+   CEXTERN           InitOpPtr       ;:DWORD - long
+   CEXTERN           InitStoPtr      ;:DWORD - long
+   CEXTERN           InitLodPtr      ;:DWORD - long
+   CEXTERN           s               ;:DWORD - array of pointers to Arg
+   CEXTERN           dy1             ;:DWORD - pointer to double
+   CEXTERN           dx1             ;:DWORD - pointer to double
+   CEXTERN           dy0             ;:DWORD - pointer to double
+   CEXTERN           dx0             ;:DWORD - pointer to double
+   CEXTERN           new             ;:QWORD - DBL x 2
+   CEXTERN           old             ;:QWORD - DBL x 2
+   CEXTERN           overflow        ;:DWORD - int
+   CEXTERN           save_release    ;:DWORD - int
+   CEXTERN           col             ;:DWORD - int
+   CEXTERN           row             ;:DWORD - int
+   CEXTERN           Arg1            ;:DWORD - (pointer to DBL x 2)
+   CEXTERN           Arg2            ;:DWORD - (pointer to DBL x 2)
+   CEXTERN           pfls            ;:DWORD - (pointer) function, operand
+   CEXTERN           v               ;:DWORD - pointer to Const Args array
+   CEXTERN           ldcheck         ;:DWORD - int
+   CEXTERN           jump_index      ;:DWORD - int
+   CEXTERN           InitJumpIndex   ;:DWORD - int
+   CEXTERN           jump_control    ;:DWORD - array of pointers to JUMP_CONTROL_ST
+   CEXTERN           delxx           ;:QBYTE - DBL
+   CEXTERN           delxx2          ;:QBYTE - DBL
+   CEXTERN           delyy           ;:QBYTE - DBL
+   CEXTERN           delyy2          ;:QBYTE - DBL
+   CEXTERN           xxmin           ;:QWORD - double
+   CEXTERN           yymax           ;:QWORD - double
+   CEXTERN           use_grid        ;:DWORD - int
 ;_DATA               ends
 
 ; ---------------------------------------------------------------------------
 
-;_BSS               segment word public use16 'BSS'
+; local storage area
+
 section .bss
+alignb  16
+
 fLastOp:    ;    offset of lastop here
-      resb  INTSZ
+      resb  PTRSZ
 PtrToZ:     ;     offset of z
       resb  PTRSZ
-;_BSS               ends
-
-;DGROUP             group _DATA,_BSS
-;group    DGROUP data bss
 
 ; ---------------------------------------------------------------------------
 ; Operator Functions follow.
@@ -391,11 +491,8 @@ PtrToZ:     ;     offset of z
 ;  3. Only one included fn. allowed per 'normal' fn.
 
 ; --------------------------------------------------------------------------
-   ;  Put this code in PARSERA_TEXT, not PARSERFP_TEXT           CAE 09OCT93
-;PARSERA_TEXT     segment para public use16 'CODE'
+
 section .text
-   ;  Non-standard segment register setup.
-;   assume         es:DGROUP, ds:nothing, cs:PARSERA_TEXT
 
 ; --------------------------------------------------------------------------
 ; Included functions must be before any fns that include them.
@@ -460,7 +557,9 @@ NotBothZero:
       fxch                             ; x/ln(2), int
       fsub         st0,st1            ; -1 < rem < 1.0, int
       f2xm1                            ; 2**rem-1, int
-      fadd         qword [_1_]                ; 2**rem, int
+;;      fadd         qword [_1_]                ; 2**rem, int
+      fld1
+      fadd
       fscale                           ; e**x, int
       fstp         st1               ; e**x
       fld          st0                  ; e**x, e**x
@@ -712,7 +811,7 @@ NotBothZero:
       fld          st0               ; x x y
       fmul         st1,st0            ; x x*x y
       fmul         st0,st2            ; xy xx y
-      mov          esi, dword v     ; esi -> variables
+      mov          esi, dword [v]     ; esi -> variables
       fadd         st0,st0            ; 2xy xx y
       fxch         st2               ; y xx 2xy
       fmul         st0,st0            ; yy xx 2xy
@@ -826,7 +925,7 @@ oldwayR:
       FIXUP        StoSqr, fst, Y      ;    "     (store y)
       fmul         st0,st0            ; yy xx 2xy
    ; It is now safe to overlay si here
-      mov          esi, dword v     ; esi -> variables
+      mov          esi, dword [v]     ; esi -> variables
       fld          st1               ; xx yy xx 2xy
       fadd         st0,st1            ; xx+yy yy xx 2xy
       fstp         QWORD [esi+LASTSQR] ; yy xx 2xy
@@ -875,6 +974,7 @@ oldwayR:
 ; --------------------------------------------------------------------------
    BEGN_OPER       Clr2                ; Test ST, clear FPU
       ftst
+      xor          eax, eax
       fstsw        ax
                                        ;                      CAE 1 Dec 1998
       ALTER_RET_ADDR                   ; change return address on stack
@@ -924,7 +1024,7 @@ oldwayR:
       fmul         st0,st0            ; yy 2y ...
       FIXUP        LodSqr2, fld, X     ; x yy 2y ...
       fmul         st2,st0            ; x yy 2xy ...
-      mov          esi, dword v      ; put address of v in esi
+      mov          esi, dword [v]      ; put address of v in esi
       fmul         st0,st0            ; xx yy 2xy ...
       fld          st0               ; xx xx yy 2xy
       fadd         st0,st2            ; mod xx yy 2xy
@@ -962,13 +1062,13 @@ oldwayR:
       fdecstp                          ; roll the stack
       fdecstp                          ; ...
       fstp         tword [edi]   ; store x on overflow stack
-      fstp         tword [edi+10] ; and y (ten bytes each)
-      add          edi,20               ; adjust edi
+      fstp         tword [edi+LDBLSZ] ; and y (LDBLSZ > ten bytes each)
+      add          edi,2 * LDBLSZ      ; adjust edi
    END_INCL        Push2
 ; --------------------------------------------------------------------------
    BEGN_INCL       Pull2               ; Pull stack up from 2 to 4
-      fld          tword [edi-10] ; oldy x y
-      sub          edi,20               ; adjust di now
+      fld          tword [edi-LDBLSZ] ; oldy x y
+      sub          edi,2 * LDBLSZ     ; adjust di now
       fxch         st2               ; y x oldy
       fld          tword [edi]   ; oldx y x oldy
       fxch         st2               ; x y oldx oldy
@@ -979,11 +1079,11 @@ oldwayR:
       fdecstp
       fdecstp
       fdecstp
-      fstp         tword [edi+20] ; save the bottom four numbers
-      fstp         tword [edi+30] ; save full precision on overflow
+      fstp         tword [edi+2*LDBLSZ] ; save the bottom four numbers
+      fstp         tword [edi+3*LDBLSZ] ; save full precision on overflow
       fstp         tword [edi]
-      fstp         tword [edi+10]
-      add          edi,40                ; adjust edi
+      fstp         tword [edi+LDBLSZ]
+      add          edi,4 * LDBLSZ       ; adjust edi
    END_INCL        Push4
 ; --------------------------------------------------------------------------
    BEGN_INCL       Push2a              ; Push stack down from 6 to 4
@@ -992,8 +1092,8 @@ oldwayR:
       fdecstp
       fdecstp
       fstp         tword [edi]   ; save only two numbers
-      fstp         tword [edi+10]
-      add          edi, 20
+      fstp         tword [edi+LDBLSZ]
+      add          edi, 2 * LDBLSZ
       fincstp                          ; roll back 2 times
       fincstp
    END_INCL        Push2a
@@ -1005,14 +1105,14 @@ oldwayR:
    ; Modified to preserve 80-bit accuracy.                      CAE 10NOV93
       fldln2                           ; ln2 x y
       fdivp        st1,st0            ; x/ln2 y
-      fstp         tword [edi]   ; y
+      fstp         qword [edi]   ; y
       fsincos                          ; cosy, siny
       fld1                             ; 1 cos sin
-      fld          tword [edi]   ; x/ln2 1 cos sin
+      fld          qword [edi]   ; x/ln2 1 cos sin
       fprem                            ; prem, 1, cos, sin
       f2xm1                            ; e**prem-1, 1, cos, sin
       faddp     st1,st0            ; e**prem, cos, sin
-      fld          tword [edi]   ; x.x/ln2, e**prem, cos, sin
+      fld          qword [edi]   ; x.x/ln2, e**prem, cos, sin
       fxch                             ; e**prem, x.x/ln2, cos, sin
       fscale                           ; e**x.x, x.x/ln2, cos, sin
       fstp         st1               ; e**x.x, cos, sin
@@ -1070,7 +1170,7 @@ domainok:
    BEGN_OPER       LodRealPwr          ; lod, real, power         CAE 6NOV93
    ; First take the log of the # on st.
       INCL_OPER    LodRealPwr, Log     ; l.x l.y
-      cmp          eax,1                ; log domain error?
+      cmp          ax,1                ; log domain error?
       jne          short domainok2     ; nope
       cmp          dword [ldcheck], 1         ; user wants old lodrealpwr?
       je           short domainok2     ; yup
@@ -1215,7 +1315,9 @@ domainok2:
       fxch         st1               ; tz1.y tz1.x x y
       fchs                             ; -tz1.y tz1.x x y
       fxch         st1               ; tz1.x -tz1.y x y
-      fsubr        qword [_1_]      ; 1-tz1.x -tz1.y x y
+;;      fsubr        qword [_1_]      ; 1-tz1.x -tz1.y x y
+      fld1
+      fsubr
       GEN_SQRT                         ; tz1.x tz1.y x y
       fsubrp       st3,st0            ; tz1.y x tz1.x-y
       faddp       st1,st0             ; tz1.y+x tz1.x-y
@@ -1229,7 +1331,9 @@ domainok2:
       fld          st1               ; y x y
       fld          st1               ; x y x y
       GEN_SQR0                         ; tz1.x tz1.y x y
-      fsub        qword [_1_]        ; tz1.x-1 tz1.y x y
+;;      fsub        qword [_1_]        ; tz1.x-1 tz1.y x y
+      fld1
+      fsub
       GEN_SQRT                         ; tz.x tz.y x y
       faddp        st2,st0            ; tz.y tz.x+x y
       faddp        st2,st0            ; tz.x+x tz.y+y
@@ -1242,7 +1346,9 @@ domainok2:
       fld          st1               ; y x y
       fld          st1               ; x y x y
       GEN_SQR0                         ; tz1.x tz1.y x y
-      fadd        qword [_1_]        ; tz1.x+1 tz1.y x y
+;;      fadd        qword [_1_]        ; tz1.x+1 tz1.y x y
+      fld1
+      fadd
       GEN_SQRT                         ; tz.x tz.y x y
       faddp        st2,st0            ; tz.y tz.x+x y
       faddp        st2,st0            ; tz.x+x tz.y+y
@@ -1253,7 +1359,9 @@ domainok2:
       fld          st1               ; y x y
       fld          st1               ; x y x y
       GEN_SQR0                         ; tz1.x tz1.y x y
-      fsub         qword [_1_]       ; tz1.x+1 tz1.y x y
+;;      fsub         qword [_1_]       ; tz1.x+1 tz1.y x y
+      fld1
+      fsub
       GEN_SQRT                         ; tz.x tz.y x y
       faddp        st2,st0            ; tz.y tz.x+x y
       faddp        st2,st0            ; tz.x+x tz.y+y
@@ -1272,19 +1380,19 @@ domainok2:
       ftst
       fstsw        ax
       sahf
-      jnz          short ATanh_NotBothZero
+      jnz          short .ATanh_NotBothZero
       fxch                             ; y x
       ftst
       fstsw        ax
       sahf
       fxch                             ; x y
-      jnz          short ATanh_NotBothZero
+      jnz          short .ATanh_NotBothZero
       POP_STK      2                   ; clear two numbers
       fldz
       fldz
       jmp          SHORT End_Log_ATanh ; return (0,0)
    PARSALIGN
-ATanh_NotBothZero:
+.ATanh_NotBothZero:
       fld          st1               ; y x y
       fld          st1               ; x y x y
       fpatan                           ; z.y x y
@@ -1317,19 +1425,19 @@ End_Log_ATanh:
       ftst
       fstsw        ax
       sahf
-      jnz          short ATan_NotBothZero
+      jnz          short .ATan_NotBothZero
       fxch                             ; y x
       ftst
       fstsw        ax
       sahf
       fxch                             ; x y
-      jnz          short ATan_NotBothZero
+      jnz          short .ATan_NotBothZero
       POP_STK      2                   ; clear two numbers
       fldz
       fldz
       jmp          short End_Log_ATan  ; return (0,0)
    PARSALIGN
-ATan_NotBothZero:
+.ATan_NotBothZero:
       fld          st1               ; y x y
       fld          st1               ; x y x y
       fpatan                           ; z.y x y
@@ -1365,11 +1473,11 @@ End_Log_ATan:
    BEGN_OPER       Floor               ; Complex floor
       fstcw        word [Arg2]               ; use arg2 to hold CW
 ;      fwait
-      mov          eax,dword [Arg2]            ; Now do some integer instr.'s
+      mov          ax,word [Arg2]            ; Now do some integer instr.'s
       push         eax                  ; Save control word on stack
-      and          eax,1111001111111111b
-      or           eax,0000010000000000b
-      mov          dword [Arg2],eax
+      and          ax,1111001111111111b
+      or           ax,0000010000000000b
+      mov          word [Arg2],ax
       fldcw        word [Arg2]               ; Now set control to round toward -inf
    ; Chop toward negative infinity applies now
       frndint                          ; floor(x) y
@@ -1377,7 +1485,7 @@ End_Log_ATan:
       frndint                          ; floor(y) floor(x)
       fxch                             ; floor(x) floor(y)
       pop          eax                  ; restore old CW to AX
-      mov          dword [Arg2],eax            ; ...then move it to Arg2
+      mov          word [Arg2],ax            ; ...then move it to Arg2
       fldcw        word [Arg2]               ; Restore control word from Arg2
    ; Normal rounding is in effect again
    END_OPER        Floor
@@ -1385,11 +1493,11 @@ End_Log_ATan:
    BEGN_OPER       Ceil                ; Complex ceiling
       fstcw        word [Arg2]               ; use arg2 to hold CW
 ;      fwait
-      mov          eax,dword [Arg2]            ; Now do some integer instr.'s
+      mov          ax,word [Arg2]            ; Now do some integer instr.'s
       push         eax                  ; Save control word on stack
-      and          eax,1111001111111111b
-      or           eax,0000100000000000b
-      mov          dword [Arg2],eax
+      and          ax,1111001111111111b
+      or           ax,0000100000000000b
+      mov          word [Arg2],ax
       fldcw        word [Arg2]               ; Now set control to round toward +inf
    ; Chop toward positive infinity applies now
       frndint                          ; ceil(x) y
@@ -1397,7 +1505,7 @@ End_Log_ATan:
       frndint                          ; ceil(y) ceil(x)
       fxch                             ; ceil(x) ceil(y)
       pop          eax                  ; restore old CW to AX
-      mov          dword [Arg2],eax            ; ...then move it to Arg2
+      mov          word [Arg2],ax            ; ...then move it to Arg2
       fldcw        word [Arg2]               ; Restore control word from Arg2
    ; Normal rounding is in effect again
    END_OPER        Ceil
@@ -1405,10 +1513,10 @@ End_Log_ATan:
    BEGN_OPER       Trunc               ; Complex truncation
       fstcw        word [Arg2]               ; use arg2 to hold CW
 ;      fwait
-      mov          eax,dword [Arg2]            ; Now do some integer instr.'s
+      mov          ax,word [Arg2]            ; Now do some integer instr.'s
       push         eax                  ; Save control word on stack
-      or           eax,0000110000000000b
-      mov          dword [Arg2],eax
+      or           ax,0000110000000000b
+      mov          word [Arg2],ax
       fldcw        word [Arg2]          ; Now set control to round toward zero
    ; Chop toward zero rounding applies now
       frndint                          ; trunc(x) y
@@ -1416,7 +1524,7 @@ End_Log_ATan:
       frndint                          ; trunc(y) trunc(x)
       fxch                             ; trunc(x) trunc(y)
       pop          eax                  ; restore old CW to AX
-      mov          dword [Arg2],eax            ; ...then move it to Arg2
+      mov          word [Arg2],ax            ; ...then move it to Arg2
       fldcw        word [Arg2]               ; Restore control word from Arg2
    ; Normal rounding is in effect again
    END_OPER        Trunc
@@ -1424,11 +1532,11 @@ End_Log_ATan:
    BEGN_OPER       Round               ; Complex round to nearest
       fstcw        word [Arg2]               ; use arg2 to hold CW
 ;      fwait
-      mov          eax,dword [Arg2]            ; Now do some integer instr.'s
+      mov          ax,word [Arg2]            ; Now do some integer instr.'s
       push         eax                  ; Save control word on stack
-      and          eax,1111001111111111b
-      or           eax,0000010000000000b
-      mov          dword [Arg2],eax
+      and          ax,1111001111111111b
+      or           ax,0000010000000000b
+      mov          word [Arg2],ax
       fldcw        word [Arg2]               ; Now set control to round toward -inf
    ; Round toward negative infinity applies now
       fadd         qword [PointFive]     ; x+.5  y
@@ -1438,7 +1546,7 @@ End_Log_ATan:
       frndint                          ; round(y) round(x)
       fxch                             ; round(x) round(y)
       pop          eax                  ; restore old CW to AX
-      mov          dword [Arg2],eax            ; ...then move it to Arg2
+      mov          word [Arg2],ax            ; ...then move it to Arg2
       fldcw        word [Arg2]               ; Restore control word from Arg2
    ; Normal rounding is in effect again
    END_OPER        Round
@@ -1446,17 +1554,15 @@ End_Log_ATan:
 ; End of new functions.                                          TIW 30Jun96
 ; --------------------------------------------------------------------------
    BEGN_INCL       Jump                ;
-      mov          eax,JCSZ             ; eax = sizeof(jump control struct)
-      imul         dword [jump_index]         ; address of jump_control[jump_index]
-;      push         es
-;      les          ebx, _jump_control
-      mov          ebx, dword jump_control
-      add          ebx,eax
+;      mov          eax,JCSZ             ; eax = sizeof(jump control struct)
+;      imul         dword [jump_index]         ; address of jump_control[jump_index]
+      imul         eax, dword [jump_index], JCSZ
+      lea          ebx, [jump_control]
+      add          ebx, eax
       mov          eax, dword [ebx+4*INTSZ]; jump_index = DestJumpIndex
       mov          ebx, dword [ebx+INTSZ]; ebx = JumpOpPtr
-;      pop          es
       mov          dword [jump_index],eax
-      add          ebx, dword pfls  ;
+      add          ebx, dword [pfls]  ;
    END_INCL        Jump                ;
 ; --------------------------------------------------------------------------
    BEGN_OPER       JumpOnTrue          ;
@@ -1505,7 +1611,7 @@ LTfalse:
 ; --------------------------------------------------------------------------
    BEGN_INCL       LT2                 ; LT, set AX, clear FPU
    ; returns !(Arg2->d.x < Arg1->d.x) in ax
-      mov        eax,0
+      xor          eax, eax
       fcom         st2               ; compare arg1, arg2
       fstsw        ax
                                        ;                      CAE 1 Dec 1998
@@ -1533,7 +1639,7 @@ LodLTfalse:
 ; --------------------------------------------------------------------------
    BEGN_OPER       LodLT2              ; Lod, LT, set AX, clear FPU
    ; returns !(Arg2->d.x < Arg1->d.x) in ax
-      mov        eax,0
+      xor          eax, eax
       FIXUP        LodLT2, fcom, X     ; compare arg2, arg1
       fstsw        ax
                                        ;                      CAE 1 Dec 1998
@@ -1577,7 +1683,7 @@ GTfalse:
 ; --------------------------------------------------------------------------
    BEGN_INCL       GT2                 ; GT, set AX, clear FPU
    ; returns !(Arg2->d.x > Arg1->d.x) in ax
-      mov        eax,0
+      xor          eax, eax
       fcom         st2               ; compare arg1, arg2
       fstsw        ax
                                        ;                      CAE 1 Dec 1998
@@ -1605,7 +1711,7 @@ LodGTfalse:
 ; --------------------------------------------------------------------------
    BEGN_OPER       LodGT2              ; Lod, GT, set AX, clear FPU
    ; returns !(Arg2->d.x > Arg1->d.x) in AX
-      mov         eax,0
+      xor          eax, eax
       FIXUP        LodGT2, fcom, X     ; compare arg2, arg1
       fstsw        ax
                                        ;                      CAE 1 Dec 1998
@@ -1633,13 +1739,14 @@ LTEfalse:
 ; --------------------------------------------------------------------------
    BEGN_INCL       LTE2                ; LTE, test ST, clear
    ; return !(Arg2->d.x <= Arg1->d.x) in AX
+      xor          eax, eax
       fcom         st2               ; comp Arg1 to Arg2
       fstsw        ax
                                        ;                      CAE 1 Dec 1998
       ALTER_RET_ADDR                   ; change return address on stack
 
       fninit                           ; clear stack
-      and         eax,100000000b                ; mask cf
+      and          eax,100000000b                ; mask cf
       shr          eax,8                ; eax=1 when arg1 < arg1
    END_INCL        LTE2                ; return (Arg1 < Arg2),
 ; --------------------------------------------------------------------------
@@ -1659,7 +1766,7 @@ LodLTEfalse:
 ; --------------------------------------------------------------------------
    BEGN_OPER       LodLTE2             ; Load, LTE, test ST, clear
    ; return !(Arg2->d.x <= Arg1->d.x) in AX
-      mov         eax,0
+      xor          eax, eax
       FIXUP        LodLTE2, fcom, X    ; comp Arg2 to Arg1
       fstsw        ax
                                        ;                      CAE 1 Dec 1998
@@ -1691,6 +1798,7 @@ LodLTEMulfalse:
    ; this is for 'expression && (expression <= value)'
    ; stack has {arg2.x arg2.y logical.x junk} on entry (arg1 in memory)
    ; Arg2->d.x = (double)(Arg2->d.x <= Arg1->d.x);
+      xor          eax, eax
       FIXUP        LodLTEAnd2, fcom, X ; comp Arg2 to Arg1
       fstsw        ax
                                        ;                      CAE 1 Dec 1998
@@ -1742,6 +1850,7 @@ LodGTEfalse:
 ; --------------------------------------------------------------------------
    BEGN_OPER       LodGTE2             ; Lod, GTE, set AX, clear FPU
    ; return !(Arg2->d.x >= Arg1->d.x) in AX
+      xor          eax, eax
       FIXUP        LodGTE2, fcom, X    ; compare arg2, arg1
       fstsw        ax
                                        ;                      CAE 1 Dec 1998
@@ -1861,6 +1970,7 @@ Arg2False:
    ; for bailouts using <condition> && <condition>
    ;  Arg2->d.x = (double)(Arg2->d.x && Arg1->d.x);
    ;  Returns !(Arg1 && Arg2) in ax
+      xor          eax, eax
       ftst                             ; y.x y.y x.x x.y
       fstsw        ax
                                        ;                      CAE 1 Dec 1998
@@ -1887,6 +1997,7 @@ Arg2False2:
    ; for bailouts using <condition> || <condition>
    ;  Arg2->d.x = (double)(Arg2->d.x || Arg1->d.x);
    ;  Returns !(Arg1 || Arg2) in ax
+      xor          eax, eax
       ftst                             ; y.x y.y x.x x.y
       fstsw        ax
                                        ;                      CAE 1 Dec 1998
@@ -1906,41 +2017,36 @@ ORNeitherTrue:
 ORArg1True:
       fninit
 ORArg2True:
-      xor          eax,eax
+      xor          eax, eax
    END_INCL        ORClr2
 
 ; --------------------------------------------------------------------------
 ;   assume          ds:DGROUP, es:nothing
 ; --------------------------------------------------------------------------
 
+%ifndef  COMPILER
+
 ; --------------------------------------------------------------------------
 ; called once per image
 ; --------------------------------------------------------------------------
    CGLOBAL          Img_Setup
-   align           4
+   align           16
    ; Changed to FAR, FRAME/UNFRAME added by CAE 09OCT93
 Img_Setup:
       FRAME        esi,edi
-;;;      les          si,[_pfls]            ; es:si = &pfls[0]
-      mov          esi, dword pfls            ; esi = &pfls[0]
 
-      mov          edi, dword [LastOp]          ; load index of lastop
-      cld                                  ; ensure string moves increment
-      dec          edi                  ; flastop now points at last operator
+      mov          esi, [pfls]            ; esi = &pfls[0]
+      mov          edi, dword [LastOp]    ; load index of lastop
+      cld                                 ; ensure string moves increment
+      sub          edi, 1                 ; flastop now points at last operator
       ; above added by CAE 09OCT93 because of loop logic changes
 
-;      shl          edi,3                ; convert to offset, x8 = xPTRSZ*2
-      lea          edi, [edi*(PTRSZ*2)]
-;;      mov          ebx, fLastOp ; set ebx for store
-      add          edi,esi               ; edi = offset lastop
-;;      mov          [ebx],edi    ; save value of flastop
-      mov          dword [fLastOp],edi    ; save value of flastop
-;;;      mov          ax,es               ; es has segment value
-;;;      mov          [ebx+2],eax  ; save seg for easy reload
-      mov          eax, dword v      ; build a ptr to Z
-;      add          eax,3*CARG+CPFX
-      lea            eax, [eax+(CARG*3)+CPFX]
-      mov          dword [PtrToZ],eax          ; and save it
+      shl          edi, 3                 ; convert to offset, 2xPTRSZ = x8
+      add          edi, esi               ; edi = offset lastop
+      mov          dword [fLastOp], edi   ; save value of flastop
+      mov          eax, dword [v]         ; build a ptr to Z
+      add          eax, 3*CARG+CPFX
+      mov          dword [PtrToZ], eax    ; and save it
       UNFRAME      esi,edi
       ret
 ;_Img_Setup         endp
@@ -1978,10 +2084,11 @@ outer_loop:
       or           eax,eax               ; did bailout occur?
       jnz          short doneloop      ; yes, exit
 skipfirst:
-      dec          edx                 ; ++coloriter
+;      dec          edx                 ; ++coloriter
+      sub          edx,1
       jle          short doneloop      ; yes, exit because of maxiter
       mov          ebx,[InitOpPtr]       ; bx -> one before first token
-      mov          edi,s ; reset stk overflow ptr
+      lea          edi, [s]          ; reset stk overflow ptr
    align           16
 inner_loop2:
       cmp          ebx,ecx               ; time to quit yet?
@@ -1993,11 +2100,10 @@ inner_loop2:
    align           16
 doneloop:
    ; NOTE: edx must be preserved here.
-      mov          esi, dword [PtrToZ]          ; esi -> z
-      mov          edi, dword new ; edi -> new
-      mov          ecx,4
-      rep          movsd               ; new = z
-;      mov          ax,es
+      mov          esi, dword [PtrToZ]  ; esi -> z
+      mov          edi, [new]           ; edi -> new
+      mov          ecx, 4               ; get ready to move 4 dwords
+      rep          movsd                ; new = z
       UNFRAME    esi,edi
 ;      mov          ds,ax               ; restore ds before return
 ;   assume          ds:DGROUP, es:nothing
@@ -2011,39 +2117,30 @@ doneloop:
    align           16
 fFormula:      ;    proc far
       push         edi                  ; don't build a frame here
-      mov          edi, dword s ; reset this for stk overflow area
+      lea          edi, [s]             ; reset this for stk overflow area
       mov          ebx, dword [InitOpPtr]       ; bx -> one before first token
-      mov          eax, dword [InitJumpIndex]
-      mov          dword [jump_index],eax
-;      mov          ax,ds               ; save ds in ax
-;      lds          cx,_fLastOp         ; ds:cx -> last token
-      mov          ecx, dword fLastOp         ; ds:cx -> last token
-;      mov          es,ax               ; es -> DGROUP
-;   assume          es:DGROUP, ds:nothing
+      mov          eax, [InitJumpIndex]
+      mov          [jump_index],eax
+      mov          ecx, [fLastOp]       ; ds:cx -> last token
       push         esi
 
-   ;;;;align           8
+   align           16
 inner_loop:                            ; new loop             CAE 1 Dec 1998
-      mov          esi, dword [ebx+PTRSZ]
-      call           dword [ebx]
-;      mov          si,WORD [bx+6]  ; now set si to operand pointer
-;      call         WORD [bx+4]     ; ...and jump to operator fn
-;      add          bx,8     ; JCO removed loop unroll, 12/5/99
-      add          ebx,PTRSZ*2
+      mov          esi, dword [ebx + PTRSZ]
+      call         dword [ebx]
+      add          ebx, PTRSZ*2
       jmp          short inner_loop
 
-   ;;;;align           8
+   align           16
 past_loop:
    ; NOTE: EAX was set by the last operator fn called.
-      mov          esi, dword [PtrToZ]          ; ds:si -> z
-      mov          edi, dword new ; edi -> new
-      mov          ecx,4                ; get ready to move 4 dwords
-      rep          movsd               ; new = z
-;      mov          bx,es               ; put seg dgroup in bx
+      mov          esi, dword [PtrToZ]  ; ds:si -> z
+      lea          edi, [new]           ; edi -> new
+      mov          ecx, 4               ; get ready to move 4 dwords
+      rep          movsd                ; new = z
+
       pop          esi
       pop          edi                  ; restore si, di
-;      mov          ds,bx               ; restore ds from bx before return
-;   assume          ds:DGROUP, es:nothing
       ret                              ; return AX unmodified
 ;_fFormula          endp
 ; --------------------------------------------------------------------------
@@ -2052,135 +2149,119 @@ past_loop:
 fform_per_pixel:   ; proc far
       FRAME        esi, edi, ebx
    ;    if((row+col)&1)
-      mov          eax, dword [row]             ; ax = row
-      add          eax, dword [col]             ; ax = row+col
+      mov          eax, dword [row]     ; ax = row
+      mov          edx, dword [col]     ; edx = col
+      add          eax, edx             ; eax = row+col
       and          eax,1                ; ax = (row+col)&1
-;      les          bx,_v               ; load pointer to constants
-      mov          ebx, dword v               ; load pointer to constants
-      cmp          eax,0                ; zero?
+      mov          ebx, dword [v]       ; load pointer to constants
+      test         eax, eax             ; zero?
       je           checker_is_0
    ;      v[9].a.d.x = 1.0;            ; not zero, set whitesq.x=1.0
       fld1                             ; constant 1.0 to ST
-      fstp         QWORD [ebx+WHITESQ]  ; copy ST to whitesq.x
+      fstp         QWORD [ebx + WHITESQ]  ; copy ST to whitesq.x
       jmp          checker_is_1
 checker_is_0:                          ; is zero, set whitesq to (0,0)
    ;      v[9].a.d.y = 0.0;
       fldz                             ; load constant zero to ST
-      fstp         QWORD [ebx+WHITESQ]  ; copy ST to whitesq.x
+      fstp         QWORD [ebx + WHITESQ]  ; copy ST to whitesq.x
 checker_is_1:
       fldz
-      fstp         QWORD [ebx+WHITESQ+DBLSZ]
+      fstp         QWORD [ebx + WHITESQ + DBLSZ]
    ;    v[10].a.d.x = (double)col;
       fild         dword [col]                ; ST  = col
-      fstp         QWORD [ebx+SCRNPIX] ; scrnpix.x = col
+      fstp         QWORD [ebx + SCRNPIX] ; scrnpix.x = col
    ;    v[10].a.d.y = (double)row;
       fild         dword [row]                ; ST  = row
-      fstp         QWORD [ebx+SCRNPIX+DBLSZ] ; scrnpix.y = row
+      fstp         QWORD [ebx + SCRNPIX + DBLSZ] ; scrnpix.y = row
       mov          dword [jump_index],0        ;jump_index = 0
       cmp          dword [invert],0            ; inversion support added
       je           skip_invert          ;                        CAE 08FEB95
-;      mov          si,DGROUP:_old
-      mov          esi, dword old
+
+      lea          esi, [old]
       push         esi
-      call          dword invertz2
-      add          esp,PTRSZ
+      call         dword invertz2
+      pop          esi
       ; now copy old to v[0].a.d
-;      les          di,_v                ; ds:si already points to old
-      mov          edi, dword v                ; ds:si already points to old
-      add          edi,CPFX              ; make es:di point to v[0].a.d
-      mov          ecx,4
-      rep          movsd
+      mov          edi, dword [v]       ; esi already points to old
+      add          edi, CPFX            ; make edi point to v[0].a.d
+      mov          ecx, 4               ; get ready to move 4 dwords
+      rep          movsd                ; v[0] = old
+
       jmp          after_load
 skip_invert:
       cmp          dword [use_grid],0          ; inversion support added
       je           skip_grid
    ;   v[0].a.d.x = dx0[col]+dShiftx;
       mov          eax, dword [col]
-      shl          eax,3
-;      les          bx,_dx0
-      mov          ebx, dword dx0
-      add          ebx,eax
+      shl          eax, 3            ; x8 - size of double
+      mov          ebx, [dx0]
+      add          ebx, eax
       fld          QWORD [ebx]
       mov          eax, dword [row]
-      shl          eax,3
-;      les          bx,_dx1
-      mov         ebx, dword dx1
+      shl          eax, 3
+      mov          ebx, [dx1]
       add          ebx,eax
       fadd         QWORD [ebx]
-;      les          bx,_v
-      mov         ebx, dword v
-      fstp         QWORD [ebx+CPFX]
+      mov          ebx, dword [v]      ; load pointer to constants
+      fstp         QWORD [ebx + CPFX]
    ;  v[0].a.d.y = dy0[row]+dShifty;
       mov          eax, dword [row]
-      shl          eax,3
-;      les          bx,_dy0
-      mov         ebx, dword dy0
-      add          ebx,eax
+      shl          eax, 3
+      mov          ebx, [dy0]
+      add          ebx, eax
       fld          QWORD [ebx]
-      mov         eax, dword [col]
-      shl          eax,3
-;      les          bx,_dy1
-      mov         ebx, dword dy1
-      add          ebx,eax
+      mov          eax, dword [col]
+      shl          eax, 3
+      mov          ebx, [dy1]
+      add          ebx, eax
       fadd         QWORD [ebx]
-;      les          bx,_v
-      mov         ebx, dword v
-      fstp         QWORD [ebx+CPFX+DBLSZ]
+      mov          ebx, dword [v]      ; load pointer to constants
+      fstp         QWORD [ebx + CPFX + DBLSZ]
       jmp          after_load
 skip_grid:
    ;  v[0].a.d.x = (double)(xxmin + col*delxx + row*delxx2);
       fild         DWORD [row]
-      fld          tword [delxx2]
-      fmulp        st1,st0
+      fld          qword [delxx2]
+      fmulp        st1, st0
       fild         DWORD [col]
-      fld          tword [delxx]
-      fmulp        st1,st0
-      faddp        st1,st0
+      fld          qword [delxx]
+      fmulp        st1, st0
+      faddp        st1, st0
       fadd         QWORD [xxmin]
-;      les          bx,_v
-      mov         ebx, dword v
-      fstp         QWORD [ebx+CPFX]
+      mov          ebx, dword [v]
+      fstp         QWORD [ebx + CPFX]
 ;      fwait
    ;  v[0].a.d.y = (double)(yymax - row*delyy - col*delyy2); */
       fild         DWORD [row]
-      fld          tword [delyy]
-      fmulp        st1,st0
+      fld          qword [delyy]
+      fmulp        st1, st0
       fsubr        QWORD [yymax]
       fild         DWORD [col]
-      fld          tword [delyy2]
-      fmulp        st1,st0
-      fsubp        st1,st0
-;      les          bx,_v
-      mov         ebx, dword v
-      fstp         QWORD [ebx+CPFX+DBLSZ]
+      fld          qword [delyy2]
+      fmulp        st1, st0
+      fsubp        st1, st0
+      mov          ebx, dword [v]
+      fstp         QWORD [ebx + CPFX + DBLSZ]
 after_load:
-      mov          edi, dword s ; edi points to stack overflow area
-;      mov          eax,ds
-      mov          ebx, dword [pfls]   ; ebx -> pfls
-;      lds          cx,_fLastOp         ; cx = offset &f[LastOp],load ds
-      mov          ecx, dword [fLastOp]      ; ecx = offset &f[LastOp],load ds
-;      mov          es,ax
-;   assume          es:DGROUP, ds:nothing
-      cmp         dword [LastInitOp],0
+      lea          edi, [s           ]  ; edi points to stack overflow area
+      mov          ebx, dword [pfls]    ; ebx -> pfls
+      mov          ecx, dword [fLastOp] ; ecx = offset &f[LastOp],load ds
+      cmp          dword [LastInitOp], 0
       je           short skip_initloop ; no operators to do here
-      mov          dword [LastInitOp],ecx      ; lastinitop=lastop
+      mov          dword [LastInitOp], ecx      ; lastinitop=lastop
       jmp          short pixel_loop
    align           16
 pixel_loop:
-      mov          esi,dword [ebx+PTRSZ]  ; get address of load or store
+      mov          esi, dword [ebx + PTRSZ]  ; get address of load or store
       call          dword [ebx]       ; (*opptr)()
-      add          ebx,PTRSZ*2                ; ++opptr
-      cmp          ebx,dword [LastInitOp]
+      add          ebx, PTRSZ*2                ; ++opptr
+      cmp          ebx, dword [LastInitOp]
       jb           short pixel_loop
 skip_initloop:
       mov          esi, dword [PtrToZ]          ; esi -> z
       mov          edi, dword old ; edi -> old
-      mov          ecx,4                ; get ready to move 4 dwords
+      mov          ecx, 4              ; get ready to move 4 dwords
       rep          movsd               ; old = z
-;      mov          ax,es
-;      mov          ds,ax
-;   assume          ds:DGROUP, es:nothing ; for the rest of the program
-;
 ;                                      ; subtract removed     CAE 1 Dec 1998
       mov          dword [InitOpPtr], ebx      ; InitOptPtr = OpPtr;
       UNFRAME      esi, edi, ebx
@@ -2189,3 +2270,168 @@ skip_initloop:
 ;_fform_per_pixel   endp
 ; --------------------------------------------------------------------------
 
+%else  ; COMPILER
+
+; --------------------------------------------------------------------------
+; . . . and now for the real fun!
+; --------------------------------------------------------------------------
+   CGLOBAL          Img_Setup
+   align           16
+Img_Setup:
+      mov          eax, qword [v]        ; build a ptr to Z
+      add          eax, 3*CARG+CPFX
+      mov          dword [PtrToZ], eax   ; and save it
+      ret
+;Img_Setup         endp
+; --------------------------------------------------------------------------
+;  Hybrid orbitcalc/per-pixel routine.
+; --------------------------------------------------------------------------
+   CGLOBAL          fFormulaX
+   align           16
+fFormulaX:
+      FRAME        esi, edi
+      mov          edx,[maxit]          ; edx holds coloriter during loop
+      mov          [coloriter], edx      ; set coloriter to maxit
+      jmp          short skipfirst     ; skip bailout test first time
+   align           16
+outer_loop:
+      or           eax,eax             ; did bailout occur?
+      jnz          short doneloop      ; yes, exit
+skipfirst:
+;      dec          rdx                 ; ++coloriter, was maxiter reached?
+      sub          edx, 1
+      jle          short doneloop      ; yes, exit because of maxiter
+      push         outer_loop
+      lea          edi, qword [s]      ; reset this for stk overflow area
+      jmp          compiled_fn_2      ; call the compiled code
+doneloop:
+   ; NOTE: rdx must be preserved here.
+      mov          esi, qword [PtrToZ]  ; rsi -> z
+      lea          edi, [new]           ; rdi -> new
+      mov          ecx, 2
+      rep          movsq                ; new = z
+      UNFRAME      esi, edi
+      sub          [coloriter],edx      ; now put new coloriter back from rdx
+
+      ret
+;fFormulaX         endp
+; --------------------------------------------------------------------------
+;       orbitcalc function follows
+; --------------------------------------------------------------------------
+   CGLOBAL          fFormula
+   align           16
+fFormula:        ;  proc far
+      push         edi                 ; don't build a frame here
+      lea          edi, dword [s]      ; reset this for stk overflow area
+      push         esi                  ; compiled_fn modifies rsi
+;      sub          rsp, 8
+      call         compiled_fn_2      ; call the compiled code
+;      add          rsp, 8
+   ; NOTE: EAX was set by the compiled code and must be preserved here.
+      mov          esi, dword [PtrToZ]  ; rsi -> z
+      mov          edi, dword [new]     ; rdi -> new
+      mov          ecx, 4               ; get ready to move 4 dwords
+      rep          movsd                ; new = z
+      pop          esi
+      pop          edi                  ; restore rsi, rdi
+      ret                              ; return RAX unmodified
+;fFormula          endp
+; --------------------------------------------------------------------------
+   CGLOBAL         fform_per_pixel    ; called once per pixel
+   align           16
+fform_per_pixel:    ; proc far
+      FRAME        esi, edi
+      cmp          invert,0            ; inversion support added
+      je           skip_invert          ;                        CAE 08FEB95
+      lea          edi, [old]           ; double passed on stack
+      push         edi                  ; save address for data transfer
+      call         dword invertz2       ; invertz2(&old)
+      pop          esi                  ; put &old into esi
+      ; now copy old to v[0].a.d
+      mov          edi, [v]             ; esi already points to old
+      add          edi, CPFX            ; make edi point to v[0].a.d
+      mov          ecx, 4               ; get ready to move 4 dwords
+      rep          movsd                ; v[0] = old
+      jmp          after_load
+skip_invert:
+      cmp          dword [use_grid], 0  ; inversion support added
+      je           skip_grid
+   ;   v[0].a.d.x = dx0[col]+dShiftx;
+      mov          eax, [col]
+      shl          eax, 3            ; x8 - size of double
+      mov          ebx, [dx0]
+      add          ebx, eax
+      fld          QWORD [ebx]
+      mov          eax, dword [row]
+      shl          eax, 3
+      mov          ebx, [dx1]
+      add          ebx, eax
+      fadd         QWORD [ebx]
+      mov          ebx, dword [v]      ; load pointer to constants
+      fstp         QWORD [ebx + CPFX]
+   ;  v[0].a.d.y = dy0[row]+dShifty;
+      mov          eax, dword [row]
+      shl          eax, 3
+      mov          ebx, [dy0]
+      add          ebx, eax
+      fld          QWORD [ebx]
+      mov          eax, dword [col]
+      shl          eax, 3
+      mov          ebx, [dy1]
+      add          ebx, eax
+      fadd         QWORD [ebx]
+      mov          ebx, dword [v]      ; load pointer to constants
+      fstp         QWORD [ebx + CPFX + DBLSZ]
+      jmp          after_load
+skip_grid:
+   ;  v[0].a.d.x = (double)(xxmin + col*delxx + row*delxx2);
+      fild         DWORD [row]
+      fld          QWORD [delxx2]
+      fmulp        st1, st0
+      fild         DWORD [col]
+      fld          QWORD [delxx]
+      fmulp        st1, st0
+      faddp        st1, st0
+      fadd         QWORD [xxmin]
+      mov          ebx, dword [v]         ; rbx = &v
+      fstp         QWORD [ebx + CPFX]
+;      fwait
+   ;  v[0].a.d.y = (double)(yymax - row*delyy - col*delyy2)
+      fild         DWORD [row]
+      fld          QWORD [delyy]
+      fmulp        st1, st0
+      fsubr        QWORD [yymax]
+      fild         DWORD [col]
+      fld          QWORD [delyy2]
+      fmulp        st1, st0
+      fsubp        st1, st0
+      fstp         QWORD [ebx + CPFX + DBLSZ]
+after_load:
+      lea          edi, [s]         ; edi points to stack overflow area
+
+      call         compiled_fn_1      ; call compiled code
+
+      UNFRAME      edi, esi
+      xor          eax, eax
+      ret
+
+;fform_per_pixel   endp
+
+   align           16
+   CGLOBAL         compiled_fn_1
+compiled_fn_1:    ; proc near
+      ret                             ; compiled code will be put here
+      resw         1023
+;compiled_fn_1     endp
+
+   align           16
+   CGLOBAL          compiled_fn_2
+compiled_fn_2:    ; proc near
+      ret                             ; ...and here
+      resw         1023
+;compiled_fn_2     endp
+; --------------------------------------------------------------------------
+
+%endif  ; COMPILER
+
+; --------------------------------------------------------------------------
