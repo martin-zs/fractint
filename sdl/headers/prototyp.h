@@ -329,6 +329,7 @@ extern int TimsErrorFractal(void);
 extern int CirclefpFractal(void);
 extern int VLfpFractal(void);
 extern int EscherfpFractal(void);
+extern long calcmand_c(void);
 extern int long_julia_per_pixel(void);
 extern int long_richard8_per_pixel(void);
 extern int long_mandel_per_pixel(void);

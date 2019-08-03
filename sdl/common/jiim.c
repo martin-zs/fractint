@@ -68,7 +68,7 @@ int xd, yd;                       /* dots in the window    */
 double xcjul = BIG;
 double ycjul = BIG;
 
-void displays(int x, int y, int fg, int bg, char *str, int len)
+static void displays(int x, int y, int fg, int bg, char *str, int len)
 {
   int i;
   for (i=0;i<len; i++)
@@ -79,7 +79,7 @@ void displays(int x, int y, int fg, int bg, char *str, int len)
 int xbase, ybase;
 unsigned int xAspect, yAspect;
 
-void SetAspect(double aspect)
+static void SetAspect(double aspect)
 {
   xAspect = 0;
   yAspect = 0;
@@ -93,7 +93,7 @@ void SetAspect(double aspect)
     }
 }
 
-void c_putcolor(int x, int y, int color)
+static void c_putcolor(int x, int y, int color)
 {
   /* avoid writing outside window */
   if ( x < xc || y < yc || x >= xc + xd || y >= yc + yd )
@@ -107,7 +107,7 @@ void c_putcolor(int x, int y, int color)
 }
 
 
-int  c_getcolor(int x, int y)
+static int  c_getcolor(int x, int y)
 {
   /* avoid reading outside window */
   if ( x < xc || y < yc || x >= xc + xd || y >= yc + yd )
@@ -120,7 +120,7 @@ int  c_getcolor(int x, int y)
   return getcolor(x, y);
 }
 
-void circleplot(int x, int y, int color)
+static void circleplot(int x, int y, int color)
 {
   if (xAspect == 0)
     if (yAspect == 0)
@@ -131,7 +131,7 @@ void circleplot(int x, int y, int color)
     c_putcolor((int)(xbase + (((long) x * (long) xAspect) >> 16)), y+ybase, color);
 }
 
-void plot8(int x, int y, int color)
+static void plot8(int x, int y, int color)
 {
   circleplot(x,y,color);
   circleplot(-x,y,color);
@@ -143,7 +143,7 @@ void plot8(int x, int y, int color)
   circleplot(-y,-x,color);
 }
 
-void circle(int radius, int color)
+static void circle(int radius, int color)
 {
   int x,y,sum;
 
