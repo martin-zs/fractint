@@ -381,7 +381,7 @@ void varyinv(GENEBASE gene[], int randval, int i)
      0  minor variable changed.  No need to re-generate the image.
        1  major parms changed.  Re-generate the images.
 */
-int get_the_rest(void)
+static int get_the_rest(void)
 {
   char *evolvmodes[]={s_no,s_x,s_y,s_xplusy,s_xminusy,s_random,s_spread};
   static FCODE o_hdg[]={"Variable tweak central 2 of 2"};

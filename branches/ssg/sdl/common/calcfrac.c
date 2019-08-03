@@ -1715,8 +1715,6 @@ static int StandardCalc(int passnum)
   return(0);
 }
 
-extern long calcmand_c(void);
-
 int calcmand(void)              /* fast per pixel 1/2/b/g, called with row & col set */
 {
   /* setup values from far array to avoid using es reg in calcmand.asm */

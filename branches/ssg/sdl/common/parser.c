@@ -1490,6 +1490,7 @@ unsigned SkipWhiteSpace(char *Str)
       switch (Str[n])
         {
         case ' ':
+        case ';':
         case '\t':
         case '\n':
         case '\r':
@@ -1526,7 +1527,6 @@ struct ConstArg *isconst(char *Str, int Len)
     _CMPLX z;
     unsigned n, j;
     /* next line enforces variable vs constant naming convention */
-n = sizeof(long double);
     for (n = 0; n < vsp; n++)
       {
         if (v[n].len == Len)
@@ -1663,9 +1663,7 @@ char maxfn = 0;
 
 struct FNCT_LIST FnctList[] =     /* TIW 03-31-91 added */
   {
-    {
-      s_sin,   &StkSin
-    },
+    {s_sin,   &StkSin},
     {s_sinh,  &StkSinh},
     {s_cos,   &StkCos},
     {s_cosh,  &StkCosh},
@@ -1709,8 +1707,7 @@ struct OP_LIST
 
 struct OP_LIST OPList[] =
   {
-    {","  , &PtrStkClr
-    }, /*  0 */
+    {","  , &PtrStkClr  }, /*  0 */
     {"!=" , &StkNE      }, /*  1 */
     {"="  , &PtrStkSto  }, /*  2 */
     {"==" , &StkEQ      }, /*  3 */
@@ -2543,9 +2540,9 @@ int frmgetchar (FILE * openfile)
           linewrap = 1;
           break;
         case ';' :
-          while ((c = getc(openfile)) != '\n' && c != EOF && c != '\032')
+          while ((c = getc(openfile)) != '\n' && c != EOF /* && c != '\032' */)
             {}
-          if (c == EOF || c == '\032')
+          if (c == EOF || c == '\n')
             done = 1;
           break;
         case '\n' :
@@ -2859,8 +2856,8 @@ int frmgetalpha(FILE * openfile, struct token_st * tok)
       filepos = ftell(openfile);
       switch (c)
         {
-CASE_ALPHA:
-CASE_NUM:
+        CASE_ALPHA:
+        CASE_NUM:
         case '_':
           if (i<79)
             tok->token_str[i++] = (char) c;
@@ -2922,7 +2919,7 @@ CASE_NUM:
             }
           else if (tok->token_type == FLOW_CONTROL && (tok->token_id == 3 || tok->token_id == 4))
             {
-              if (c == ',' || c == '\n' || c == ':')
+              if (c == ',' || c == '\n' || c == ':' || c == ';')
                 return 1;
               else
                 {
@@ -2984,15 +2981,15 @@ int frmgettoken(FILE * openfile, struct token_st * this_token)
 
   switch (c = frmgetchar(openfile))
     {
-CASE_NUM:
+    CASE_NUM:
     case '.':
       this_token->token_str[0] = (char) c;
       return frmgetconstant(openfile, this_token);
-CASE_ALPHA:
+    CASE_ALPHA:
     case '_':
       this_token->token_str[0] = (char) c;
       return frmgetalpha(openfile, this_token);
-CASE_TERMINATOR:
+    CASE_TERMINATOR:
       this_token->token_type = OPERATOR; /* this may be changed below */
       this_token->token_str[0] = (char) c;
       filepos = ftell(openfile);
@@ -3587,12 +3584,13 @@ static void parser_allocate(void)
 
   big_formula = 0;
 
-  if(number_of_ops > 1500) {
+    if(number_of_ops > 1500) /* from prescan */
+  {
      big_formula = 1;
      Max_Ops = number_of_ops;
   }
   else
-    Max_Ops = 1500; /* this value uses up about 64K memory */
+     Max_Ops = 1500; /* this value uses up about 64K memory */
 
   Max_Args = (unsigned)(Max_Ops/2.5);
 
@@ -3619,16 +3617,16 @@ static void parser_allocate(void)
         {
         typespecific_workarea = (char *)malloc(1L<<16);
         }
-      else if (is_bad_form == 0 || big_formula == 1)
+      else /* if (is_bad_form == 0 || big_formula == 1) */
         {
         typespecific_workarea =
            (char *)malloc((long)(f_size+Load_size+Store_size+v_size+p_size));
         }
       f = (void(* *)(void))typespecific_workarea;
-      Store = (union Arg * *)(f + Max_Ops);
-      Load = (union Arg * *)(Store + MAX_STORES);
-      v = (struct ConstArg *)(Load + MAX_LOADS);
-      pfls = (struct fls *)(v + Max_Args);
+      Store = (union Arg * *)(f + f_size);
+      Load = (union Arg * *)(Store + Store_size);
+      v = (struct ConstArg *)(Load + Load_size);
+      pfls = (struct fls *)(v + v_size);
 
       if (pass == 0)
         {

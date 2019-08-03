@@ -300,7 +300,7 @@ void enddisk()
 BYTE readdisk(int col, int row)
 {
    int col_subscr;
-   long offset;
+   unsigned long offset;
    char buf[41];
    if (--timetodisplay < 0) {  /* time to display status? */
       if (dotmode == 11) {
@@ -355,7 +355,7 @@ void targa_readdisk(unsigned int col, unsigned int row,
 void writedisk(int col, int row, U32 color)
 {
    int col_subscr;
-   long offset;
+   unsigned long offset;
    char buf[41];
    if (--timetodisplay < 0) {  /* time to display status? */
       if (dotmode == 11) {
