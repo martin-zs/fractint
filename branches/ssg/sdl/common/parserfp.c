@@ -486,7 +486,7 @@ static int CvtFptr(void (* ffptr)(void), int MinStk, int FreeStk,
 #ifdef TESTFP
   int prevstkcnt;
 #endif
-  double dTemp;
+  LDBL dTemp;
 
   int Max_On_Stack = MAX_STACK - FreeStk;  /* max regs allowed on stack  */
   int Num_To_Push; /* number of regs to push  */
