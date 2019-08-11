@@ -1836,7 +1836,7 @@ static int ParseStr(char *Str, int pass)
   int jumptype;
   double const_pi, const_e;
   double Xctr, Yctr, Xmagfactor, Rotation, Skew;
-  double Magnification;
+  LDBL Magnification;
   SetRandom = Randomized = 0;
   uses_jump = 0;
   jump_index = 0;
