@@ -432,7 +432,7 @@ LCMPLX ComplexSqrtLong(long x, long y)
 _CMPLX ComplexSqrtFloat(LDBL x, LDBL y)
 {
     LDBL mag;
-    LDBL theta;
+    double theta;
     _CMPLX  result;
 
     if (x == 0.0 && y == 0.0)

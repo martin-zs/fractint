@@ -23,6 +23,9 @@ Fix file access.]]>
 				<Option external_deps="fractint.hlp;" />
 				<Option type="0" />
 				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O3" />
+				</Compiler>
 			</Target>
 			<Target title="debug">
 				<Option platforms="Unix;" />
@@ -33,7 +36,10 @@ Fix file access.]]>
 				<Option use_console_runner="0" />
 				<Compiler>
 					<Add option="-Winit-self" />
+					<Add option="-Wcast-align" />
+					<Add option="-Wundef" />
 					<Add option="-Wmissing-declarations" />
+					<Add option="-Wmissing-include-dirs" />
 					<Add option="-pedantic" />
 					<Add option="-Wextra" />
 					<Add option="-Wall" />
@@ -48,6 +54,7 @@ Fix file access.]]>
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Compiler>
+					<Add option="-O3" />
 					<Add option="-DPRODUCTION" />
 				</Compiler>
 				<Linker>
