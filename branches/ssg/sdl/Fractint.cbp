@@ -34,7 +34,7 @@ Fix stackscreen/unstackscreen? - look at 3d images.]]>
 				<Option projectResourceIncludeDirsRelation="0" />
 				<Option projectLibDirsRelation="0" />
 				<Compiler>
-					<Add option="-O" />
+					<Add option="-O3" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -51,6 +51,9 @@ Fix stackscreen/unstackscreen? - look at 3d images.]]>
 				<Option projectResourceIncludeDirsRelation="0" />
 				<Option projectLibDirsRelation="0" />
 				<Compiler>
+					<Add option="-Wcast-align" />
+					<Add option="-Wundef" />
+					<Add option="-pedantic" />
 					<Add option="-Wall" />
 					<Add option="-g" />
 					<Add option="-DDEBUG" />
@@ -78,7 +81,7 @@ Fix stackscreen/unstackscreen? - look at 3d images.]]>
 				<Option projectResourceIncludeDirsRelation="0" />
 				<Option projectLibDirsRelation="0" />
 				<Compiler>
-					<Add option="-O" />
+					<Add option="-O3" />
 					<Add option="-DPRODUCTION" />
 				</Compiler>
 				<Linker>
@@ -87,7 +90,6 @@ Fix stackscreen/unstackscreen? - look at 3d images.]]>
 			</Target>
 		</Build>
 		<Compiler>
-			<Add option="-std=c11" />
 			<Add option="-fno-builtin" />
 			<Add option="-D__USE_MINGW_ANSI_STDIO" />
 			<Add option="-DNASM" />

@@ -178,7 +178,13 @@ union Arg *Arg1, *Arg2;
 /* CAE fp  made some of the following non-static for PARSERA.ASM */
 /* Some of these variables should be renamed for safety */
 union Arg s[20], * *Store, * *Load;     /* static CAE fp */
+#ifdef XFRACT
 long StoPtr, LodPtr, OpPtr;      /* static CAE fp */
+long InitLodPtr, InitStoPtr, InitOpPtr, LastInitOp;      /* was static CAE fp */
+#else
+int StoPtr, LodPtr, OpPtr;      /* static CAE fp */
+int InitLodPtr, InitStoPtr, InitOpPtr, LastInitOp;      /* was static CAE fp */
+#endif
 int var_count;
 int complx_count;
 int real_count;
@@ -192,7 +198,6 @@ unsigned int posp, vsp, LastOp;     /* CAE fp made non-static */
 static unsigned int n, NextOp, InitN;
 static int paren, ExpectingArg;
 struct ConstArg *v = (struct ConstArg *)0;      /* was static CAE fp */
-long InitLodPtr, InitStoPtr, InitOpPtr, LastInitOp;      /* was static CAE fp */
 static int Delta16;
 double fgLimit;           /* TIW 05-04-91 */
 static double fg;
