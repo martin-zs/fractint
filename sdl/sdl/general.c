@@ -1207,7 +1207,7 @@ void ftimex(struct timebx *tp)
   tp->dstflag = timezp.tz_dsttime;
 }
 
-#if 1 /* def XFRACT */
+#ifdef XFRACT
 unsigned short _rotl(unsigned short num, short bits)
 {
   unsigned long ll;
