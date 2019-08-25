@@ -29,7 +29,7 @@ static LDBL fmodtest(void);
 static void perform_worklist(void);
 static int  OneOrTwoPass(void);
 static int  StandardCalc(int);
-static int  potential(double,long);
+static int  potential(LDBL,long);
 static void decomposition(void);
 static int  bound_trace_main(void);
 static void step_col_row(void);
@@ -101,7 +101,7 @@ void (*plot)(int,int,int) = putcolor_a;
 typedef void (*PLOTC)(int,int,int);
 typedef void (*GETC)(int,int,int);
 
-double magnitude, rqlim, rqlim2, rqlim_save;
+LDBL magnitude, rqlim, rqlim2, rqlim_save;
 int no_mag_calc = 0;
 int use_old_period = 0;
 int use_old_distest = 0;
@@ -1995,7 +1995,7 @@ int StandardFractal(void)       /* per pixel 1/2/b/g, called with row & col set 
 
       if (distest)
         {
-          double ftemp;
+          LDBL ftemp;
           /* Distance estimator for points near Mandelbrot set */
           /* Original code by Phil Wilson, hacked around by PB */
           /* Algorithms from Peitgen & Saupe, Science of Fractal Images, p.198 */
@@ -2003,8 +2003,8 @@ int StandardFractal(void)       /* per pixel 1/2/b/g, called with row & col set 
             ftemp = 2 * (old.x * deriv.x - old.y * deriv.y) + 1;
           else
             ftemp = 2 * (old.x * deriv.x - old.y * deriv.y);
-          deriv.y = 2 * (old.y * deriv.x + old.x * deriv.y);
-          deriv.x = ftemp;
+          deriv.y = (double)(2 * (old.y * deriv.x + old.x * deriv.y));
+          deriv.x = (double) ftemp;
           if (use_old_distest)
             {
               if (sqr(deriv.x)+sqr(deriv.y) > dem_toobig)
@@ -2125,15 +2125,15 @@ int StandardFractal(void)       /* per pixel 1/2/b/g, called with row & col set 
             }
           else if (inside == FMODI)
             {
-              double mag;
+              LDBL mag;
               if (integerfractal)
                 {
                   new.x = ((double)lnew.x) / fudge;
                   new.y = ((double)lnew.y) / fudge;
                 }
-              mag = (double)fmodtest();
-              if (mag < closeprox)
-                memvalue = mag;
+              mag = (LDBL)fmodtest();
+              if (mag < (LDBL)closeprox)
+                memvalue = (double)mag;
             }
           else if (inside <= BOF60 && inside >= BOF61)
             {
@@ -2141,15 +2141,15 @@ int StandardFractal(void)       /* per pixel 1/2/b/g, called with row & col set 
                 {
                   if (lmagnitud == 0 || no_mag_calc == 0)
                     lmagnitud = lsqr(lnew.x) + lsqr(lnew.y);
-                  magnitude = lmagnitud;
+                  magnitude = (LDBL)lmagnitud;
                   magnitude = magnitude / fudge;
                 }
               else
                 if (magnitude == 0.0 || no_mag_calc == 0)
                   magnitude = sqr(new.x) + sqr(new.y);
-              if (magnitude < min_orbit)
+              if (magnitude < (LDBL)min_orbit)
                 {
-                  min_orbit = magnitude;
+                  min_orbit = (double)magnitude;
                   min_index = coloriter + 1;
                 }
             }
@@ -2174,14 +2174,14 @@ int StandardFractal(void)       /* per pixel 1/2/b/g, called with row & col set 
             }
           else if (outside == FMOD)
             {
-              double mag;
+              LDBL mag;
               if (integerfractal)
                 {
                   new.x = ((double)lnew.x) / fudge;
                   new.y = ((double)lnew.y) / fudge;
                 }
-              mag = (double)fmodtest();
-              if (mag < closeprox)
+              mag = (LDBL)fmodtest();
+              if (mag < (LDBL)closeprox)
                 memvalue = (double)mag;
             }
         }
@@ -2881,10 +2881,10 @@ static void decomposition(void)
 /*                                                                */
 /******************************************************************/
 
-static int potential(double mag, long iterations)
+static int potential(LDBL mag, long iterations)
 {
   float f_mag,f_tmp,pot;
-  double d_tmp;
+  LDBL d_tmp;
   int i_pot;
   long l_pot;
 

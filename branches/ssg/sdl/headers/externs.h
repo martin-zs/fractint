@@ -242,11 +242,7 @@ extern int                   kbdcount;
 extern int                   keep_scrn_coords;
 extern int                   keybuffer;
 extern long                  l16triglim;
-#ifdef XFRACT
 extern long                  LastInitOp;
-#else
-extern int                   LastInitOp;
-#endif
 extern unsigned              LastOp;
 extern int                   lastorbittype;
 extern _LCMPLX               lattr[];
@@ -266,11 +262,7 @@ extern long                  lmagnitud;
 extern char                  LName[];
 extern _LCMPLX               lnew;
 extern int                   loaded3d;
-#ifdef XFRACT
 extern long                  LodPtr;
-#else
-extern int                   LodPtr;
-#endif
 extern int                   Log_Auto_Calc;
 extern int                   Log_Calc;
 extern int                   Log_Fly_Calc;
@@ -294,7 +286,7 @@ extern long (*               lypixel)(void); /* set in FRACTALS.C */
 extern int                   lzw[2];
 extern long                  l_at_rad;
 extern MATRIX                m;
-extern double                  magnitude;
+extern LDBL                  magnitude;
 extern enum Major            major_method;
 extern BYTE *                mapdacbox;
 extern int                   mapset;
@@ -437,8 +429,8 @@ extern int                   rotate_lo;
 extern LDBL                  roverd;
 extern int                   row;
 extern int                   rowcount;
-extern double                rqlim2;
-extern double                rqlim;
+extern LDBL                  rqlim2;
+extern LDBL                  rqlim;
 extern int                   rseed;
 extern long                  savebase;
 extern _CMPLX                SaveC;
@@ -475,11 +467,7 @@ extern int                   started_resaves;
 extern _CMPLX                staticroots[];
 extern char                  stdcalcmode;
 extern char                  stereomapname[];
-#ifdef XFRACT
 extern long                  StoPtr;
-#else
-extern int                   StoPtr;
-#endif
 extern int                   stoppass;
 extern unsigned int          strlocn[];
 extern BYTE                  suffix[];
