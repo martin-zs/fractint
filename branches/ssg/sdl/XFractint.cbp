@@ -23,9 +23,6 @@ Fix file access.]]>
 				<Option external_deps="fractint.hlp;" />
 				<Option type="0" />
 				<Option compiler="gcc" />
-				<Compiler>
-					<Add option="-O3" />
-				</Compiler>
 			</Target>
 			<Target title="debug">
 				<Option platforms="Unix;" />

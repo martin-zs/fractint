@@ -285,9 +285,7 @@ Version 20.5.00 is an update of Fractint 20.0 based on the developer's
 
 Version 20.5 is a Port to SDL 2.0
 
-Added default palette for cases where error occurs during startup.\
-Increased the size of several buffers.\
-Fixed ComplexSqrtFloat routine.\
+Added assembly language fast formula parser.\
 
 Known issues:\
 Random crashes\
