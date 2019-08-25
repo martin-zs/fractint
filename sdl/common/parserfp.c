@@ -123,13 +123,8 @@ struct fls *pfls = (struct fls *)0;
 extern union Arg *Arg1, *Arg2;
 extern double _1_, _2_;
 extern union Arg s[20], * *Store, * *Load;
-#ifdef XFRACT
 extern long StoPtr, LodPtr, OpPtr;
 extern long InitLodPtr, InitStoPtr, InitOpPtr, LastInitOp;
-#else
-extern int StoPtr, LodPtr, OpPtr;
-extern int InitLodPtr, InitStoPtr, InitOpPtr, LastInitOp;
-#endif
 extern unsigned int vsp, LastOp;
 extern struct ConstArg *v;
 extern void (* *f)(void);

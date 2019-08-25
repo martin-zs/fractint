@@ -178,13 +178,8 @@ union Arg *Arg1, *Arg2;
 /* CAE fp  made some of the following non-static for PARSERA.ASM */
 /* Some of these variables should be renamed for safety */
 union Arg s[20], * *Store, * *Load;     /* static CAE fp */
-#ifdef XFRACT
 long StoPtr, LodPtr, OpPtr;      /* static CAE fp */
 long InitLodPtr, InitStoPtr, InitOpPtr, LastInitOp;      /* was static CAE fp */
-#else
-int StoPtr, LodPtr, OpPtr;      /* static CAE fp */
-int InitLodPtr, InitStoPtr, InitOpPtr, LastInitOp;      /* was static CAE fp */
-#endif
 int var_count;
 int complx_count;
 int real_count;
@@ -1495,7 +1490,6 @@ unsigned SkipWhiteSpace(char *Str)
       switch (Str[n])
         {
         case ' ':
-        case ';':
         case '\t':
         case '\n':
         case '\r':
@@ -2545,12 +2539,11 @@ int frmgetchar (FILE * openfile)
           linewrap = 1;
           break;
         case ';' :
-          while ((c = getc(openfile)) != '\n' && c != EOF /* && c != '\032' */)
+          while ((c = getc(openfile)) != '\n' && c != EOF && c != '\032')
             {}
-          if (c == EOF || c == '\n')
+          if (c == EOF || c == '\032')
             done = 1;
-          break;
-        case '\n' :
+        case '\n' : /* fall through on purpose */
           if (!linewrap)
             done = 1;
           linewrap = 0;
@@ -2924,7 +2917,7 @@ int frmgetalpha(FILE * openfile, struct token_st * tok)
             }
           else if (tok->token_type == FLOW_CONTROL && (tok->token_id == 3 || tok->token_id == 4))
             {
-              if (c == ',' || c == '\n' || c == ':' || c == ';')
+              if (c == ',' || c == '\n' || c == ':' /*|| c == ';'*/)
                 return 1;
               else
                 {
@@ -3589,11 +3582,11 @@ static void parser_allocate(void)
 
   big_formula = 0;
 
-    if(number_of_ops > 1500) /* from prescan */
-  {
+  if(number_of_ops > 1500) /* from prescan */
+    {
      big_formula = 1;
      Max_Ops = number_of_ops;
-  }
+    }
   else
      Max_Ops = 1500; /* this value uses up about 64K memory */
 
@@ -3625,13 +3618,13 @@ static void parser_allocate(void)
       else /* if (is_bad_form == 0 || big_formula == 1) */
         {
         typespecific_workarea =
-           (char *)malloc((long)(f_size+Load_size+Store_size+v_size+p_size));
+           (char *)malloc((long)(total_formula_mem));
         }
       f = (void(* *)(void))typespecific_workarea;
-      Store = (union Arg * *)(f + f_size);
-      Load = (union Arg * *)(Store + Store_size);
-      v = (struct ConstArg *)(Load + Load_size);
-      pfls = (struct fls *)(v + v_size);
+      Store = (union Arg * *)(f + Max_Ops);
+      Load = (union Arg * *)(Store + MAX_STORES);
+      v = (struct ConstArg *)(Load + MAX_LOADS);
+      pfls = (struct fls *)(v + Max_Args);
 
       if (pass == 0)
         {

@@ -913,19 +913,11 @@ Palettetype;
 
 #define MAX_JUMPS 200  /* size of JUMP_CONTROL array */
 
-#ifdef XFRACT
 typedef struct frm_jmpptrs_st {
    long     JumpOpPtr;
    long     JumpLodPtr;
    long     JumpStoPtr;
 } JUMP_PTRS_ST;
-#else
-typedef struct frm_jmpptrs_st {
-   int      JumpOpPtr;
-   int      JumpLodPtr;
-   int      JumpStoPtr;
-} JUMP_PTRS_ST;
-#endif // XFRACT
 
 typedef struct frm_jump_st {
    int      type;

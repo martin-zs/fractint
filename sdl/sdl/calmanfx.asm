@@ -63,7 +63,7 @@ CEXTERN kbdcount         ;:DWORD 4 - int     ; keyboard counter
 CEXTERN dotmode          ;:DWORD 4 - int
 CEXTERN show_orbit       ;:DWORD 4 - int     ; "show-orbit" flag
 CEXTERN orbit_ptr        ;:DWORD 4 - int     ; "orbit pointer" flag
-CEXTERN magnitude        ;:QWORD  8 - DBL  ; when using potential
+CEXTERN magnitude        ;:TWORD 12 - LDBL   ; when using potential
 CEXTERN nextsavedincr    ;:QWORD 8 - double  ; for incrementing AND value
 CEXTERN firstsavedand    ;:QWORD 8 - double  ; AND value
 CEXTERN bad_outside      ;:DWORD 4 - int     ; old FPU code with bad ;: real,imag,mult,summ
@@ -231,7 +231,7 @@ nokey:
 
         fld     qword [initx]           ; Cx
         fld     qword [inity]           ; Cy Cx
-        fld     qword [rqlim]           ; b Cy Cx
+        fld     tword [rqlim]           ; b Cy Cx
         fld     st2                     ; Cx b Cy Cx
         fld     qword [parmx]           ; Px Cx b Cy Cx
         faddp   st1,st0                 ; Px+Cx b Cy Cx
@@ -315,7 +315,7 @@ dojulia_p5:
                                         ; note that init and parm are "reversed"
         fld     qword [parmx]           ; Cx
         fld     qword [parmy]           ; Cy Cx
-        fld     qword [rqlim]           ; b Cy Cx
+        fld     tword [rqlim]           ; b Cy Cx
 
         fld     qword [initx]           ; x b Cy Cx
         fld     st0                     ; x x b Cy Cx
@@ -434,7 +434,7 @@ overbailout_p5:
 
         faddp   st1,st0                       ; x^2+y^2 y x b Cy Cx
         mov     eax,ecx
-        fstp    qword [magnitude]               ; y x b Cy Cx
+        fstp    tword [magnitude]               ; y x b Cy Cx
         sub     eax,10                  ; 10 more next time before checking
 
         jns     no_fix_underflow_p5
