@@ -53,7 +53,7 @@ CEXTERN new        ;:QWORD  8 - DBL each ; declared as type complex
 CEXTERN maxit      ;:QWORD  8 - long
 CEXTERN inside     ;:DWORD  4 - int
 CEXTERN outside    ;:DWORD  4 - int
-CEXTERN rqlim      ;:QWORD  8 - DBL      ; bailout (I never did figure out
+CEXTERN rqlim      ;:TWORD  16 - LDBL      ; bailout (I never did figure out
                                 ;   what "rqlim" stands for. -Wes)
 CEXTERN coloriter      ;:QWORD 8 - long
 CEXTERN oldcoloriter      ;:QWORD 8 - long
@@ -66,7 +66,7 @@ CEXTERN kbdcount       ;:DWORD 4 - int    ; keyboard counter
 CEXTERN dotmode        ;:DWORD 4 - int
 CEXTERN show_orbit     ;:DWORD 4 - int   ; "show-orbit" flag
 CEXTERN orbit_ptr      ;:DWORD 4 - int   ; "orbit pointer" flag
-CEXTERN magnitude      ;:QWORD 8 - DBL   ; when using potential
+CEXTERN magnitude      ;:TWORD 16 - LDBL   ; when using potential
 CEXTERN nextsavedincr  ;:QWORD 8 - long  ; for incrementing AND value
 CEXTERN firstsavedand  ;:QWORD 8 - long  ; AND value
 CEXTERN bad_outside    ;:DWORD 4 - int   ; old FPU code with bad
@@ -245,7 +245,7 @@ nokey:
 
         fld     qword [initx]           ; Cx
         fld     qword [inity]           ; Cy Cx
-        fld     qword [rqlim]           ; b Cy Cx
+        fld     tword [rqlim]           ; b Cy Cx
         fld     st2                     ; Cx b Cy Cx
         fld     qword [parmx]           ; Px Cx b Cy Cx
         faddp   st1,st0                 ; Px+Cx b Cy Cx
@@ -329,7 +329,7 @@ dojulia_p5:
                                         ; note that init and parm are "reversed"
         fld     qword [parmx]           ; Cx
         fld     qword [parmy]           ; Cy Cx
-        fld     qword [rqlim]           ; b Cy Cx
+        fld     tword [rqlim]           ; b Cy Cx
 
         fld     qword [initx]           ; x b Cy Cx
         fld     st0                     ; x x b Cy Cx
