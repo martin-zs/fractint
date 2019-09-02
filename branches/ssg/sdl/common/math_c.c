@@ -726,8 +726,11 @@ void set_pixel_calc_functions(void)
 /*
  * 32 bit integer multiply with n bit shift.
  * Note that we fake integer multiplication with floating point
- * multiplication.
+ * multiplication.  Note that this causes a loss of precision and
+ * the integer math images won't necessarily match those that use
+ * the assembly routines.
  */
+#ifndef NASM
 long multiply(long x, long y, int n)
 {
     register long l;
@@ -750,6 +753,7 @@ long divide(long x, long y, int n)
 {
     return (long) ( ((float)x)/ ((float)y)*(float)(1<<n));
 }
+#endif  /* NASM  */
 
 /*
  * Generate a gaussian distributed number.

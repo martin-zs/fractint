@@ -1194,7 +1194,8 @@ void decode_orbits_info(struct orbits_info *info, int dir)
 void ftimex(struct timebx *tp)
 {
   struct timeval  timep;
-  struct timezone timezp;
+/*  struct timezone timezp; */
+  int *timezp = NULL;
 
   if ( gettimeofday(&timep,&timezp) != 0)
     {
@@ -1203,8 +1204,10 @@ void ftimex(struct timebx *tp)
     }
   tp->time = timep.tv_sec;
   tp->millitm = timep.tv_usec/1000;
+/*
   tp->timezone = timezp.tz_minuteswest;
   tp->dstflag = timezp.tz_dsttime;
+*/
 }
 
 #ifdef XFRACT

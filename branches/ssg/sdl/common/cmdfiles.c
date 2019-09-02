@@ -1193,7 +1193,8 @@ int cmdarg(char *curarg,int mode) /* process a single argument */
       if (numval>=0) save_release = numval;
       else goto badarg;
       if (save_release == 0)
-        save_release = 1730; /* before start of lyapunov wierdness */
+        save_release = release; /* Un-hijack save_release */
+/*        save_release = 1730; */ /* before start of lyapunov weirdness */
       return 9;
     }
 
