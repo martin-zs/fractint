@@ -1347,7 +1347,7 @@ void print_document(char *outfname, int (*msg_func)(int,int), int save_extraseg 
 
   if ( save_extraseg )
     {
-      if ( (temp_file=open(TEMP_FILE_NAME, O_RDWR|O_CREAT|O_TRUNC|O_BINARY, S_IREAD|S_IWRITE)) == -1 )
+      if ( (temp_file=open(TEMP_FILE_NAME, O_RDWR|O_CREAT|O_TRUNC|O_BINARY, __S_IREAD|__S_IWRITE)) == -1 )
         {
           msg = err_no_temp;
           goto ErrorAbort;

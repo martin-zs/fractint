@@ -450,7 +450,7 @@ overbailout_p5:
 
         faddp   st1,st0                       ; x^2+y^2 y x b Cy Cx
         mov     rax,rcx
-        fstp    qword [magnitude]               ; y x b Cy Cx
+        fstp    tword [magnitude]               ; y x b Cy Cx
         sub     rax,10                  ; 10 more next time before checking
 
         jns     no_fix_underflow_p5

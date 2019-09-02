@@ -412,7 +412,7 @@ IAddr_%1 EQU fStk%2
 ;   CEXTERN           kbdcount        ;:DWORD - int   ; keyboard counter
 ;   CEXTERN           dotmode         ;:DWORD - int
    CEXTERN           PointFive       ;:QWORD - LDBL treat as double
-   CEXTERN           infinity        ;:QWORD - LDBL treat as double
+   CEXTERN           infinity        ;:TWORD - LDBL
    CEXTERN           LastOp          ;:DWORD - int (unsigned)
    CEXTERN           LastInitOp      ;:QWORD - long
    CEXTERN           InitOpPtr       ;:QWORD - long
@@ -877,7 +877,7 @@ section .text
       EXIT_OPER    Div
 DivNotOk:
       POP_STK      5                   ; clear 5 from stack (!)
-      fld          qword [infinity]           ; return a very large number
+      fld          tword [infinity]           ; return a very large number
       fld          st0
       mov          eax, dword [save_release]
       cmp          eax,1920
@@ -903,12 +903,12 @@ oldwayD:
       EXIT_OPER    Recip
 RecipNotOk:
       POP_STK      3                   ; clear three from stack
-      fld          qword [infinity]           ; return a very large number
+      fld          tword [infinity]           ; return a very large number
       fld          st0
       mov          eax, dword [save_release]
       cmp          eax,1920
       jle          oldwayR
-      mov         dword [overflow], 1
+      mov          dword [overflow], 1
 oldwayR:
    END_INCL        Recip
 ; --------------------------------------------------------------------------

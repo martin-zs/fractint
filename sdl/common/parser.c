@@ -203,7 +203,7 @@ static unsigned long RandNum;
 short uses_p1, uses_p2, uses_p3, uses_p4, uses_p5, uses_jump;
 short uses_ismand;
 unsigned int chars_in_formula;
-extern double infinity;
+extern LDBL infinity;
 
 #define ChkLongDenom(denom)\
     if ((denom == 0 || overflow) && save_release > 1920) {\

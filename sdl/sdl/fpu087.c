@@ -26,7 +26,7 @@ int overflow = 0;
 double _2_ = 2.0;
 double _1_ = 1.0;
 double PointFive = 0.5;
-double infinity = 1.0E+300;
+LDBL infinity = 1.0E+300;
 
 void FPUaptan387(double *y, double *x, double *atan)
 {
@@ -62,11 +62,11 @@ void FPUcplxmul(_CMPLX *x, _CMPLX *y, _CMPLX *z)
     }
 
     if (isnan(ty) || isinf(ty))
-        z->y = infinity;
+        z->y = (double)infinity;
     else
         z->y = (double)ty;
     if (isnan(tx) || isinf(tx))
-        z->x = infinity;
+        z->x = (double)infinity;
     else
         z->x = (double)tx;
 }
@@ -79,8 +79,8 @@ void FPUcplxdiv(_CMPLX *x, _CMPLX *y, _CMPLX *z)
     mod = yx * yx + yy * yy;
     if (mod == 0.0 || fabsl(mod) <= DBL_MIN)
     {
-        z->x = infinity;
-        z->y = infinity;
+        z->x = (double)infinity;
+        z->y = (double)infinity;
         overflow = 1;
         return;
     }

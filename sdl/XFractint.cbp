@@ -60,6 +60,7 @@ Fix file access.]]>
 			</Target>
 		</Build>
 		<Compiler>
+			<Add option="-std=c99" />
 			<Add option="-fno-builtin" />
 			<Add option="`sdl2-config --cflags --libs`" />
 			<Add option="-DXFRACT" />
@@ -292,6 +293,10 @@ Fix file access.]]>
 		</Unit>
 		<Unit filename="sdl/general.c">
 			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="sdl/generalax-64.o">
+			<Option target="debug" />
+			<Option target="Production" />
 		</Unit>
 		<Unit filename="sdl/parserax-64.o" />
 		<Unit filename="sdl/sdl_scr.c">
