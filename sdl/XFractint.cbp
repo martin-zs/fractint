@@ -294,10 +294,7 @@ Fix file access.]]>
 		<Unit filename="sdl/general.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="sdl/generalax-64.o">
-			<Option target="debug" />
-			<Option target="Production" />
-		</Unit>
+		<Unit filename="sdl/generalax-64.o" />
 		<Unit filename="sdl/parserax-64.o" />
 		<Unit filename="sdl/sdl_scr.c">
 			<Option compilerVar="CC" />
