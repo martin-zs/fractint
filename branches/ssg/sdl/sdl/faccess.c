@@ -630,14 +630,22 @@ int  fr_findnext(void)  /* Find next file (or subdir) meeting above path/filespe
           strcat(tmpname,dirEntry->d_name);
           stat(tmpname,&sbuf);
           DTA.size = sbuf.st_size;
+#ifdef XFRACT
           if ((sbuf.st_mode&__S_IFMT)==__S_IFREG &&
+#else
+          if ((sbuf.st_mode&S_IFMT)==S_IFREG &&
+#endif
               (searchname[0]=='*' || stricmp(searchname,thisname)==0) &&
               (searchext[0]=='*' || stricmp(searchext,thisext)==0))
             {
               DTA.attribute = 0;
               return 0;
             }
+#ifdef XFRACT
           else if (((sbuf.st_mode&__S_IFMT)==__S_IFDIR) &&
+#else
+          else if (((sbuf.st_mode&S_IFMT)==S_IFDIR) &&
+#endif
                    ((searchname[0]=='*' || searchext[0]=='*') ||
                     (stricmp(searchname,thisname)==0)))
             {

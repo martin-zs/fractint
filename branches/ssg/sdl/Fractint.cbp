@@ -90,6 +90,7 @@ Fix stackscreen/unstackscreen? - look at 3d images.]]>
 			</Target>
 		</Build>
 		<Compiler>
+			<Add option="-std=c99" />
 			<Add option="-fno-builtin" />
 			<Add option="-D__USE_MINGW_ANSI_STDIO" />
 			<Add option="-DNASM" />
@@ -534,6 +535,11 @@ Fix stackscreen/unstackscreen? - look at 3d images.]]>
 		</Unit>
 		<Unit filename="sdl/general.c">
 			<Option compilerVar="CC" />
+			<Option target="default" />
+			<Option target="debug" />
+			<Option target="Production" />
+		</Unit>
+		<Unit filename="sdl/generalax.o">
 			<Option target="default" />
 			<Option target="debug" />
 			<Option target="Production" />
