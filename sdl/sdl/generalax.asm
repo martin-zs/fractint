@@ -45,23 +45,21 @@ align 4
         mov     eax, dword [ebp + 0x8]         ; load X into EAX
         mov     ebx, dword [ebp + 0xC]         ; load Y into EBX
         mov     ecx, dword [ebp + 0x10]        ; set up the shift
-;hlt
         imul    ebx                     ; do the multiply with Y
         cmp     cl, 32                  ; ugly klooge:  check for 32-bit shift
         jb      short fastm1            ;  < 32 bits:  no problem
-        mov     edx, eax                ;  >= 32 bits:  manual shift
+        mov     eax, edx                ;  >= 32 bits:  manual shift
+        mov     edx, 0                  ; nothing left in edx
         sub     ecx, 32                 ;  ...
 fastm1: shrd    eax, edx, cl            ; shift down 'n' bits
         js      fastm3
         sar     edx, cl
         jne     overmf
-        shld    edx, eax, 16
         UNFRAME ebx
         ret
 fastm3: sar     edx, cl
         inc     edx
         jne     overmf
-        shld    edx, eax, 16
         UNFRAME ebx
         ret
 overmf:
