@@ -7,6 +7,7 @@
 #define sqr(x) ((x)*(x))
 #endif
 
+#ifndef NASM
 void FPUcplxexp(_CMPLX *x, _CMPLX *z)
 {
     LDBL e2x, y;
@@ -18,6 +19,7 @@ void FPUcplxexp(_CMPLX *x, _CMPLX *z)
     z->x = (LDBL)(e2x * cosl(y));
     z->y = (LDBL)(e2x * sinl(y));
 }
+#endif // NASM
 
 _CMPLX ComplexPower(_CMPLX xx, _CMPLX yy)
 {

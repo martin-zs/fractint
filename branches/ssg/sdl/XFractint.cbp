@@ -291,6 +291,7 @@ Fix file access.]]>
 		<Unit filename="sdl/fpu087.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="sdl/fpu387ax-64.o" />
 		<Unit filename="sdl/general.c">
 			<Option compilerVar="CC" />
 		</Unit>

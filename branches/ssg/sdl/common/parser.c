@@ -205,8 +205,17 @@ short uses_ismand;
 unsigned int chars_in_formula;
 extern LDBL infinity;
 
+#ifdef XFRACT  /* long is 8-bytes */
+  #define LONGINFINITY 0x7fffffff
+#else          /* long is 4-bytes */
+  #define LONGINFINITY 0x7fff
+#endif // XFRACT
+
+
 #define ChkLongDenom(denom)\
     if ((denom == 0 || overflow) && save_release > 1920) {\
+        Arg1->l.x = LONGINFINITY;\
+        Arg1->l.y = LONGINFINITY;\
         overflow = 1;\
         return;\
     }\

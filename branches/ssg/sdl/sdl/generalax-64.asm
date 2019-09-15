@@ -86,16 +86,18 @@ CGLOBAL    divide   ;    x:qword, y:qword, n:dword
 divide:
 align 16
 
-        mov     cx, 32                  ; set up the shift for later
-        sub     cx, dx                  ; (for large shift counts - faster)
+        mov     ecx, 64                 ; set up to shift result
+        sub     ecx, edx                ; (64-bitshift) to the right (RDX -> RAX)
 
-        mov     rdx, rdi                ; load X into RDX (shifts to EDX:EAX)
-;        mov     rbx, rsi                ; leave Y in RSI
+        mov     rax, 0                  ; clear out the low-order bits
+        mov     rdx, rdi                ; load X into RDX (shifts to RDX:RAX)
+;        mov     rbx, rsi                ; leave Y in RSI (else must push/pop RBX)
 
         mov     dword [sign], 0         ; clear out the sign flag
         cmp     rdx, 0                  ; is X negative?
         jge     short divides1          ;  nope
         not     dword [sign]            ;  yup.  flip signs
+        neg     rax
         neg     rdx                     ;   ...
 divides1:
         cmp     rsi, 0                  ; is Y negative?
@@ -106,27 +108,19 @@ setsign1:
         not     dword [sign]            ;  yup.  flip signs
         neg     rsi                     ;   ...
 divides2:
-        mov     eax, 0                  ; clear out the low-order bits
-fastd1: cmp     cx, 0                   ; done shifting?
-        je      fastd2                  ; yup.
-        shr     edx, 1                  ; shift one bit
-        rcr     eax, 1                  ;  ...
-        loop    fastd1                  ; and try again
+        shrd    rax, rdx, cl            ; move bits into RAX
+        shr     rdx, cl                 ; move bits out of RDX
+
 fastd2:
-        cmp     edx, esi                ; umm, will the divide blow out?
+        cmp     rdx, rsi                ; umm, will the divide blow out?
         jae     overd1                  ;  yup.  better skip it.
-        div     esi                     ; do the divide
-        cmp     eax, 0                  ; did the sign flip?
+        div     rsi                     ; do the divide
+        cmp     rax, 0                  ; did the sign flip?
         jl      overd1                  ;  then we overflowed
         cmp     dword [sign], 0         ; is the sign reversed?
         je      short divides3          ;  nope
         neg     rax                     ; flip the sign
 divides3:
-;        shl     rax, 16
-;        shl     rax, 16
-;        shld    rdx, rax, 16
-;        shld    rdx, rax, 16
-;        mov     rax, rdx
         jmp     dividereturn            ; back to common code
 
 overd1:
@@ -136,42 +130,4 @@ overd1:
 dividereturn:                           ; that's all, folks!
         ret
 ;divide          endp
-
-
-CGLOBAL    divide_test   ;    x:qword, y:qword, n:dword
-;                        in RDI,  in RSI,  in EDX
-divide_test:
-align 16
-        FRAME rbx
-
-        mov     cx, 32
-        sub     cx, dx
-        mov     rax, rdi                ; load X into RAX
-;        mov     rbx, rsi                ; leave Y in RSI
-        cmp     rsi, 0
-        je      overd1a
-
-        mov     rdx, 0                  ; zero out RDX
-        cmp     rax,0                   ; is X negative?
-        jge     short divides1a          ;  nope
-        neg     rdx
-divides1a:
-
-        shrd    rdx, rax, cl
-        cmp     rax, rsi                ; umm, will the divide blow out?
-        jae     overd1a                  ;  yup.  better skip it.
-
-        idiv    rsi                     ; signed divide
-
-        jmp     dividereturna            ; back to common code
-
-overd1a:
-        mov     rax,07fffffffh          ; overflow value
-        mov     dword [overflow],1      ; flag overflow
-
-dividereturna:                           ; that's all, folks!
-        UNFRAME rbx
-        ret
-;divide          endp
-
 
