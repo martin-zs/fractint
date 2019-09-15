@@ -285,9 +285,7 @@ Version 20.5.00 is an update of Fractint 20.0 based on the developer's
 
 Version 20.5 is a Port to SDL 2.0
 
-Added assembly language integer math multiply and divide routines\
-  so that integer math image should now match what is created\
-  using the DOS version.\
+Implemented aditional complex math routines in assembly language.
 
 Known issues:\
 Random crashes\

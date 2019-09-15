@@ -28,6 +28,7 @@ double _1_ = 1.0;
 double PointFive = 0.5;
 LDBL infinity = 1.0E+300;
 
+#ifndef NASM
 void FPUaptan387(double *y, double *x, double *atan)
 {
     if (isnan(*x) || isnan(*y) || isinf(*x) || isinf(*y))
@@ -162,6 +163,7 @@ void FPUcplxlog(_CMPLX *x, _CMPLX *z)
     else
         z->y = (double)atan2l(xy,xx);
 }
+#endif // NASM
 
 /* Integer Routines */
 void SinCos086(long x, long *sinx, long *cosx)
