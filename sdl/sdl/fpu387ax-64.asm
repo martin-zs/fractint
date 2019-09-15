@@ -214,7 +214,7 @@ align 16
    jmp   StoreZX
 
 NotBothZero:
-   fld   QWORD [rdi+8]       ; x.y
+   fld   QWORD [rdi+DBLSZ]       ; x.y
    fld   QWORD [rdi]         ; x.x, x.y
 ;   mov   bx, z
    fldln2                        ; ln2, x.x, x.y
