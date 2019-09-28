@@ -88,25 +88,26 @@ CGLOBAL FPUcplxmul  ;   x:dword, y:dword, z:dword
 ; Pointers             [ebp+8], [ebp+12], [ebp+16]
 FPUcplxmul:
 align 4
-   FRAME ebx
-   mov   ebx, [ebp + 0x8]  ; load X into EBX
-   fld   QWORD [ebx]       ; x.x
-   fld   QWORD [ebx + DBLSZ] ; x.y, x.x
-   mov   ebx, [ebp + 0xC]  ; load Y into EBX
-   fld   QWORD [ebx]       ; y.x, x.y, x.x
-   fld   QWORD [ebx + DBLSZ] ; y.y, y.x, x.y, x.x
-   mov   ebx, [ebp + 0x10] ; load Z address into EBX
+   push  ebp
+   mov   ebp, esp
+   mov   eax, [ebp + 0x8]  ; load X into eax
+   fld   QWORD [eax]       ; x.x
+   fld   QWORD [eax + DBLSZ] ; x.y, x.x
+   mov   eax, [ebp + 0xC]  ; load Y into eax
+   fld   QWORD [eax]       ; y.x, x.y, x.x
+   fld   QWORD [eax + DBLSZ] ; y.y, y.x, x.y, x.x
+   mov   eax, [ebp + 0x10] ; load Z address into eax
    fld   st0               ; y.y, y.y, y.x, x.y, x.x
    fmul  st0, st3          ; y.y*x.y, y.y. y.x, x.y, x.x
    fld   st2               ; y.x, y.y*x.y, y.y, y.x, x.y, x.x
    fmul  st0, st5          ; y.x*x.x, y.y*x.y, y.y, y.x, x.y, x.x
    fsubr                   ; y.x*x.x - y.y*x.y, y.y, y.x, x.y, x.x
-   fstp  QWORD [ebx]       ; y.y, y.x, x.y, x.x
+   fstp  QWORD [eax]       ; y.y, y.x, x.y, x.x
    fmulp st3, st0          ; y.x, x.y, x.x*y.y
    fmul                    ; y.x*x.y, x.x*y.y
    fadd                    ; y.x*x.y + x.x*y.y
-   fstp  QWORD [ebx + DBLSZ]
-   UNFRAME ebx
+   fstp  QWORD [eax + DBLSZ]
+   pop   ebp
    ret
 ;FPUcplxmul     ENDP
 
@@ -115,13 +116,14 @@ CGLOBAL FPUcplxdiv  ;   x:qword, y:qword, z:qword
 ; Pointers             [ebp+8], [ebp+12], [ebp+16]
 FPUcplxdiv:
 align 4
-   FRAME ebx
-   mov   ebx, [ebp + 0x8]  ; load X into EBX
-   fld   QWORD [ebx]       ; x.x
-   fld   QWORD [ebx + DBLSZ] ; x.y, x.x
-   mov   ebx, [ebp + 0xC]  ; load Y into EBX
-   fld   QWORD [ebx]       ; y.x, x.y, x.x
-   fld   QWORD [ebx + DBLSZ] ; y.y, y.x, x.y, x.x
+   push  ebp
+   mov   ebp, esp
+   mov   eax, [ebp + 0x8]  ; load X into eax
+   fld   QWORD [eax]       ; x.x
+   fld   QWORD [eax + DBLSZ] ; x.y, x.x
+   mov   eax, [ebp + 0xC]  ; load Y into eax
+   fld   QWORD [eax]       ; y.x, x.y, x.x
+   fld   QWORD [eax + DBLSZ] ; y.y, y.x, x.y, x.x
    fld   st0               ; y.y, y.y, y.x, x.y, x.x
    fmul  st0, st0          ; y.y*y.y, y.y, y.x, x.y, x.x
    fld   st2               ; y.x, y.y*y.y, y.y, y.x, x.y, x.x
@@ -143,9 +145,9 @@ align 4
 
    fld   tword [infinity]
    fld   st0
-   mov   ebx, [ebp + 0x10] ; load Z into EBX
-   fstp  QWORD [ebx]
-   fstp  QWORD [ebx + DBLSZ]
+   mov   eax, [ebp + 0x10] ; load Z into eax
+   fstp  QWORD [eax]
+   fstp  QWORD [eax + DBLSZ]
 ;   mov   ax,save_release
 ;   cmp   ax,1920
 ;   jle   ExitDiv       ; before 19.20 overflow wasn't set
@@ -155,20 +157,20 @@ align 4
 NotZero:
    fdiv  st1, st0             ; mod, y.y=y.y/mod, y.x, x.y, x.x
    fdivp st2, st0             ; y.y, y.x=y.x/mod, x.y, x.x
-   mov   ebx, [ebp + 0x10]    ; load Z address into EBX
+   mov   eax, [ebp + 0x10]    ; load Z address into eax
    fld   st0                  ; y.y, y.y, y.x, x.y, x.x
    fmul  st0, st3             ; y.y*x.y, y.y. y.x, x.y, x.x
    fld   st2                  ; y.x, y.y*x.y, y.y, y.x, x.y, x.x
    fmul  st0, st5             ; y.x*x.x, y.y*x.y, y.y, y.x, x.y, x.x
    fadd                       ; y.x*x.x - y.y*x.y, y.y, y.x, x.y, x.x
-   fstp  QWORD [ebx]          ; y.y, y.x, x.y, x.x
+   fstp  QWORD [eax]          ; y.y, y.x, x.y, x.x
    fmulp st3, st0             ; y.x, x.y, x.x*y.y
    fmul                       ; y.x*x.y, x.x*y.y
    fsubr                      ; y.x*x.y + x.x*y.y
-   fstp  QWORD [ebx + DBLSZ]
+   fstp  QWORD [eax + DBLSZ]
 
 ExitDiv:
-   UNFRAME ebx
+   pop   ebp
    ret
 ;FPUcplxdiv     ENDP
 
@@ -177,12 +179,13 @@ CGLOBAL FPUcplxexp     ;   x:qword, z:qword
 ; Pointers                 [ebp+8], [ebp+12]
 FPUcplxexp:
 align 4
-   FRAME ebx
-   mov   ebx, [ebp + 0x8]  ; load X into EBX
-   fld   QWORD [ebx + DBLSZ] ; x.y
+   push  ebp
+   mov   ebp, esp
+   mov   eax, [ebp + 0x8]  ; load X into eax
+   fld   QWORD [eax + DBLSZ] ; x.y
    fsincos                 ; cos, sin
    fldln2                  ; ln2, cos, sin
-   fdivr QWORD [ebx]       ; x.x/ln2, cos, sin
+   fdivr QWORD [eax]       ; x.x/ln2, cos, sin
    fld1                    ; 1, x.x/ln2, cos, sin
    fld   st1               ; x.x/ln2, 1, x.x/ln2, cos, sin
    fprem                   ; prem, 1, x.x/ln2, cos, sin
@@ -192,10 +195,10 @@ align 4
    fstp  st1               ; e**x.x, cos, sin
    fmul  st2, st0          ; e**x.x, cos, z.y
    fmul                    ; z.x, z.y
-   mov   ebx, [ebp + 0xC]  ; load Z address into EBX
-   fstp  QWORD [ebx]       ; z.y
-   fstp  QWORD [ebx + DBLSZ] ; < empty>
-   UNFRAME ebx
+   mov   eax, [ebp + 0xC]  ; load Z address into eax
+   fstp  QWORD [eax]       ; z.y
+   fstp  QWORD [eax + DBLSZ] ; < empty>
+   pop   ebp
    ret
 ;FPUcplxexp  ENDP
 
@@ -204,12 +207,13 @@ CGLOBAL FPUcplxlog  ;   x:qword, z:qword
 ; Pointers              [ebp+8], [ebp+12]
 FPUcplxlog:
 align 4
-   FRAME ebx
-   mov   ebx, [ebp + 0x8]  ; load X into EBX
+   push  ebp
+   mov   ebp, esp
+   mov   eax, [ebp + 0x8]  ; load X into eax
 
-   mov   ax, WORD [ebx+DBLSZ+6]
+   mov   ax, WORD [eax+DBLSZ+6]
 ;   mov   ImagZero, ax
-   or    ax, WORD [ebx+6]
+   or    ax, WORD [eax+6]
    jnz   NotBothZero
 
    fldz
@@ -217,8 +221,8 @@ align 4
    jmp   StoreZX
 
 NotBothZero:
-   fld   QWORD [ebx + DBLSZ]     ; x.y
-   fld   QWORD [ebx]             ; x.x, x.y
+   fld   QWORD [eax + DBLSZ]     ; x.y
+   fld   QWORD [eax]             ; x.x, x.y
 ;   mov   bx, z
    fldln2                        ; ln2, x.x, x.y
    fdiv  QWORD [_2_]             ; ln2/2, x.x, x.y
@@ -233,10 +237,10 @@ NotBothZero:
    fpatan                        ; z.y, z.x
 
 StoreZX:
-   mov   ebx, [ebp + 0xC]      ; load Z address into EBX
-   fstp  QWORD [ebx + DBLSZ]   ; z.x
-   fstp  QWORD [ebx]           ; <empty>
-   UNFRAME ebx
+   mov   eax, [ebp + 0xC]      ; load Z address into eax
+   fstp  QWORD [eax + DBLSZ]   ; z.x
+   fstp  QWORD [eax]           ; <empty>
+   pop ebp
    ret
 ;FPUcplxlog     ENDP
 
@@ -245,19 +249,20 @@ CGLOBAL FPUsinhcosh  ;  x:qword, sinh:qword, cosh:qword
 ; Pointers             [ebp+8], [ebp+12], [ebp+16]
 FPUsinhcosh:
 align 4
-   FRAME ebx
+   push  ebp
+   mov   ebp, esp
    fstcw word [Control]
    push  word [Control]         ; Save control word on the stack
    or    word [Control], 0000110000000000b
    fldcw word [Control]         ; Set control to round towards zero
 
 ;   mov   [Sign], 0              ; Assume the sign is positive
-   mov   ebx, [ebp + 0x8]  ; load X into EBX
+   mov   eax, [ebp + 0x8]  ; load X into eax
 
    fldln2                  ; ln(2)
-   fdivr QWORD [ebx]       ; x/ln(2)
+   fdivr QWORD [eax]       ; x/ln(2)
 
-   cmp   BYTE [ebx + 7], 0
+   cmp   BYTE [eax + 7], 0
    jns   DuplicateX
 
    fchs                       ; x = |x|
@@ -277,7 +282,7 @@ DuplicateX:
    fscale                     ; e**|x|, int
    fstp  st1                  ; e**|x|
 
-   cmp   BYTE [ebx + 7], 0
+   cmp   BYTE [eax + 7], 0
    jns   ExitFexp
 
 ;   fdivr _1_                  ; e**x
@@ -294,14 +299,14 @@ ExitFexp:
    fadd  st2, st0             ; e**x/2,  e**-x/2, cosh(x)
    fsubr                      ; sinh(x), cosh(x)
 
-   mov   ebx, [ebp + 0xC]     ; load sinh address into EBX
-   fstp  QWORD [ebx]          ; cosh
-   mov   ebx, [ebp + 0x10]    ; load cosh address into EBX
-   fstp  QWORD [ebx]          ; <empty>
+   mov   eax, [ebp + 0xC]     ; load sinh address into eax
+   fstp  QWORD [eax]          ; cosh
+   mov   eax, [ebp + 0x10]    ; load cosh address into eax
+   fstp  QWORD [eax]          ; <empty>
 
    pop   word [Control]
    fldcw word [Control]       ; Restore control word
-   UNFRAME ebx
+   pop   ebp
    ret
 ;FPUsinhcosh    ENDP
 
@@ -310,15 +315,16 @@ CGLOBAL FPUsincos  ;    x:qword, sinx:qword, cosx:qword
 ; Pointers             [ebp+8], [ebp+12], [ebp+16]
 FPUsincos:
 align 4
-   FRAME ebx
-   mov   ebx, [ebp + 0x8]  ; load X into EBX
-   fld   QWORD [ebx]       ; x
+   push  ebp
+   mov   ebp, esp
+   mov   eax, [ebp + 0x8]  ; load X into eax
+   fld   QWORD [eax]       ; x
    fsincos                 ; cos(x), sin(x)
-   mov   ebx, [ebp + 0x10] ; load cosx address into EBX
-   fstp  QWORD [ebx]       ; sin(x)
-   mov   ebx, [ebp + 0xC]  ; load sinx address into EBX
-   fstp  QWORD [ebx]       ; <empty>
-   UNFRAME ebx
+   mov   eax, [ebp + 0x10] ; load cosx address into eax
+   fstp  QWORD [eax]       ; sin(x)
+   mov   eax, [ebp + 0xC]  ; load sinx address into eax
+   fstp  QWORD [eax]       ; <empty>
+   pop   ebp
    ret
 ;FPUsincos   ENDP
 
@@ -327,15 +333,16 @@ CGLOBAL FPUaptan387  ;  x:qword, y:qword, z:qword
 ; Pointers             [ebp+8], [ebp+12], [ebp+16]
 FPUaptan387:
 align 4
-   FRAME ebx
-   mov   ebx, [ebp + 0xC]  ; load Y into EBX
-   fld   QWORD [ebx]   ; y
-   mov   ebx, [ebp + 0x8]  ; load X into EBX
-   fld   QWORD [ebx]   ; x, y
+   push  ebp
+   mov   ebp, esp
+   mov   eax, [ebp + 0xC]  ; load Y into eax
+   fld   QWORD [eax]   ; y
+   mov   eax, [ebp + 0x8]  ; load X into eax
+   fld   QWORD [eax]   ; x, y
    fpatan                  ; ArtTan
-   mov   ebx, [ebp + 0x10] ; load Z into EBX
-   fstp  QWORD [ebx]   ; <empty>
-   UNFRAME ebx
+   mov   eax, [ebp + 0x10] ; load Z into eax
+   fstp  QWORD [eax]   ; <empty>
+   pop   ebp
    ret
 ;FPUaptan387    ENDP
 

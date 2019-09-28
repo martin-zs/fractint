@@ -533,6 +533,14 @@ Fix stackscreen/unstackscreen? - look at 3d images.]]>
 			<Option target="debug" />
 			<Option target="Production" />
 		</Unit>
+		<Unit filename="sdl/fpu387ax.asm">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="sdl/fpu387ax.o">
+			<Option target="default" />
+			<Option target="debug" />
+			<Option target="Production" />
+		</Unit>
 		<Unit filename="sdl/general.c">
 			<Option compilerVar="CC" />
 			<Option target="default" />
