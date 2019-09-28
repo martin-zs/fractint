@@ -55,16 +55,16 @@ fastm1: shrd    eax, edx, cl            ; shift down 'n' bits
         js      fastm3
         sar     edx, cl
         jne     overmf
-        UNFRAME ebx
-        ret
+        jmp     multiplyreturn
 fastm3: sar     edx, cl
         inc     edx
         jne     overmf
-        UNFRAME ebx
-        ret
+        jmp     multiplyreturn
 overmf:
         mov     eax,07fffffffh          ; overflow value
         mov     dword [overflow],1      ; flag overflow
+
+multiplyreturn:
         UNFRAME ebx
         ret
 
