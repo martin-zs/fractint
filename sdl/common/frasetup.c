@@ -188,11 +188,18 @@ MandelfpSetup(void)
         {
           calctype = calcmandfp; /* the normal case - use calcmandfp */
 #ifdef NASM
-          if (debugflag != 98)
+          if (debugflag != 98 && debugflag != 100)
           {
             calcmandfpasmstart_p5();
             calcmandfpasm = calcmandfpasm_p5;
           }
+/* for testing sse2 code
+          else if (debugflag != 98 && debugflag == 100)
+          {
+            calcmandfpasmstart_sse2();
+            calcmandfpasm = calcmandfpasm_sse2;
+          }
+*/
           else
           {
             calcmandfpasmstart();

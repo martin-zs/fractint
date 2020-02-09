@@ -2826,7 +2826,8 @@ static int parse_colors(char *value)
       temp_name[MAX_NAME-1] = 0;
       if (merge_pathnames(MAP_name,temp_name,3)<0)
         init_msg(0,"",temp_name,3);
-      if ((int)strlen(value) > FILE_MAX_PATH || ValidateLuts(MAP_name) != 0)
+      strcpy(temp_name, MAP_name);
+      if ((int)strlen(value) > FILE_MAX_PATH || ValidateLuts(temp_name) != 0)
         goto badcolor;
       if (display3d)
         {

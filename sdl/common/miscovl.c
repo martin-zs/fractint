@@ -537,7 +537,7 @@ void write_batch_parms(char *colorinf, int colorsonly, int maxcolor, int ii, int
   double Xmagfactor, Rotation, Skew;
   struct write_batch_data wb_data;
   char *sptr;
-  char buf[81];
+  char buf[255 * 3];
   bf_t bfXctr=NULL, bfYctr=NULL;
   int saved;
   saved = save_stack();
@@ -554,6 +554,7 @@ void write_batch_parms(char *colorinf, int colorsonly, int maxcolor, int ii, int
   saveshared = malloc(10000);
   memcpy(saveshared,boxx,10000);
   memset(boxx,0,10000);
+  memset(buf,0,255*3);
   wb_data.buf = (char *)boxx;
   if (colorsonly)
     goto docolors;
@@ -1018,10 +1019,10 @@ void write_batch_parms(char *colorinf, int colorsonly, int maxcolor, int ii, int
       if (rotate_lo != 1 || rotate_hi != 255)
         put_parm( s_seqdd,s_cyclerange,rotate_lo,rotate_hi);
 
+#if 0
       if (basehertz != 440)
         put_parm(s_seqd,s_hertz,basehertz);
 
-#if 0
       if (fm_vol != 63)
         put_parm(s_seqd,s_volume,fm_vol);
 
@@ -1293,7 +1294,7 @@ va_dcl
   vsprintf(bufptr,parm,args);
   while (*(bufptr++))
     ++wbdata->len;
-  while (wbdata->len > 200)
+  while (wbdata->len > maxlinelength)
     put_parm_line();
 }
 

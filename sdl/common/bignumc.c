@@ -26,6 +26,8 @@ Wesley Loewer's Big Numbers.        (C) 1994-95, Wesley B. Loewer
  32/64 bit to improve efficiency, but since many compilers don't offer
  64 bit integers, this option was not included.
 
+ The 32/64 bit option has now been included. JCO 02/09/2020
+
 *********************************************************************/
 
 /********************************************************************/
@@ -77,12 +79,25 @@ bn_t copy_bn(bn_t r, bn_t n)
   return r;
 }
 
+/********************************************************************/
+/* r < 0 ?                                      */
+/* returns 1 if negative, 0 if positive or zero */
+int is_bn_neg(bn_t n)
+{
+  return (S8)n[bnlength-1] < 0;
+}
+
+/* comment out next line if sizeof(int) is not >= 4 */
+#define USE_BIG32 1
+
+#ifndef USE_BIG32
+
 /***************************************************************************/
 /* n1 != n2 ?                                                              */
 /* RETURNS:                                                                */
 /*  if n1 == n2 returns 0                                                  */
-/*  if n1 > n2 returns a positive (bytes left to go when mismatch occured) */
-/*  if n1 < n2 returns a negative (bytes left to go when mismatch occured) */
+/*  if n1 > n2 returns a positive (bytes left to go when mismatch occurred) */
+/*  if n1 < n2 returns a negative (bytes left to go when mismatch occurred) */
 int cmp_bn(bn_t n1, bn_t n2)
 {
   int i;
@@ -130,14 +145,6 @@ int cmp_bn(bn_t n1, bn_t n2)
         }
     }
   return 0;
-}
-
-/********************************************************************/
-/* r < 0 ?                                      */
-/* returns 1 if negative, 0 if positive or zero */
-int is_bn_neg(bn_t n)
-{
-  return (S8)n[bnlength-1] < 0;
 }
 
 /********************************************************************/
@@ -604,7 +611,6 @@ bn_t unsafe_full_square_bn(bn_t r, bn_t n)
   return r;
 }
 
-
 /************************************************************************/
 /* r = n^2                                                              */
 /*   because of the symetry involved, n^2 is much faster than n*n       */
@@ -844,6 +850,785 @@ bn_t div_a_bn_int(bn_t r, U16 u)
     neg_a_bn(r);
   return r;
 }
+
+#else /* USE_BIG32 */
+
+/***************************************************************************/
+/* n1 != n2 ?                                                              */
+/* RETURNS:                                                                */
+/*  if n1 == n2 returns 0                                                  */
+/*  if n1 > n2 returns a positive (bytes left to go when mismatch occurred) */
+/*  if n1 < n2 returns a negative (bytes left to go when mismatch occurred) */
+int cmp_bn(bn_t n1, bn_t n2)
+{
+  int i;
+  S32 Svalue1, Svalue2;
+  U32 value1, value2;
+
+  /* four bytes at a time */
+  /* signed comparison for msb */
+  if ( (Svalue1=big_accessS32((S32 BIGDIST *)(n1+bnlength-4))) >
+       (Svalue2=big_accessS32((S32 BIGDIST *)(n2+bnlength-4))) )
+    {
+      /* now determine which of the four bytes was different */
+      if ( (S32)(Svalue1&0xFF000000) > (S32)(Svalue2&0xFF000000) ) /* compare just high bytes */
+        return (bnlength); /* high byte was different */
+      else if ( (S32)(Svalue1&0x00F00000) > (S32)(Svalue2&0x00FF0000) ) /* compare just third bytes */
+        return (bnlength-1); /* third byte was different */
+      else if ( (S32)(Svalue1&0x0000FF00) > (S32)(Svalue2&0x0000FF00) ) /* compare just second bytes */
+        return (bnlength-2); /* second byte was different */
+      else
+        return (bnlength-3); /* low byte was different */
+    }
+  else if (Svalue1 < Svalue2)
+    {
+      /* now determine which of the four bytes was different */
+      if ( (S16)(Svalue1&0xFF000000) < (S16)(Svalue2&0xFF000000) ) /* compare just high bytes */
+        return -(bnlength); /* high byte was different */
+      else if ( (S32)(Svalue1&0x00F00000) < (S32)(Svalue2&0x00FF0000) ) /* compare just third bytes */
+        return -(bnlength-1); /* third byte was different */
+      else if ( (S32)(Svalue1&0x0000FF00) < (S32)(Svalue2&0x0000FF00) ) /* compare just second bytes */
+        return -(bnlength-2); /* second byte was different */
+      else
+        return -(bnlength-3); /* low byte was different */
+    }
+
+  /* unsigned comparison for the rest */
+  for (i=bnlength-8; i>=0; i-=4)
+    {
+      if ( (value1=big_access32(n1+i)) > (value2=big_access32(n2+i)) )
+        {
+          /* now determine which of the four bytes was different */
+          if ( (value1&0xFF000000) > (value2&0xFF000000) ) /* compare just high bytes */
+            return (i+4); /* high byte was different */
+          else if ( (value1&0x00FF0000) > (value2&0x00FF0000) ) /* compare just third bytes */
+            return (i+3); /* third byte was different */
+          else if ( (value1&0x0000FF00) > (value2&0x0000FF00) ) /* compare just second bytes */
+            return (i+2); /* second byte was different */
+          else
+            return (i+1); /* low byte was different */
+        }
+      else if (value1 < value2)
+        {
+          /* now determine which of the two bytes was different */
+          if ( (value1&0xFF000000) < (value2&0xFF000000) ) /* compare just high bytes */
+            return -(i+4); /* high byte was different */
+          else if ( (value1&0x00FF0000) < (value2&0x00FF0000) ) /* compare just third bytes */
+            return -(i+3); /* third byte was different */
+          else if ( (value1&0x0000FF00) < (value2&0x0000FF00) ) /* compare just second bytes */
+            return -(i+2); /* second byte was different */
+          else
+            return -(i+1); /* low byte was different */
+        }
+    }
+  return 0;
+}
+
+/********************************************************************/
+/* n != 0 ?                      */
+/* RETURNS: if n != 0 returns 1  */
+/*          else returns 0       */
+int is_bn_not_zero(bn_t n)
+{
+  int i;
+
+  /* four bytes at a time */
+  for (i=0; i<bnlength; i+=4)
+    if (big_access32(n+i) != 0)
+      return 1;
+  return 0;
+}
+
+/********************************************************************/
+/* r = n1 + n2 */
+bn_t add_bn(bn_t r, bn_t n1, bn_t n2)
+{
+  int i;
+  U64 sum=0;
+
+  /* four bytes at a time */
+  for (i=0; i<bnlength; i+=4)
+    {
+      sum += (U64)big_access32(n1+i) + (U64)big_access32(n2+i); /* add 'em up */
+      big_set32(r+i, (U32)sum);   /* store the lower 4 bytes */
+      sum >>= 32; /* shift the overflow for next time */
+    }
+  return r;
+}
+
+/********************************************************************/
+/* r += n */
+bn_t add_a_bn(bn_t r, bn_t n)
+{
+  int i;
+  U64 sum=0;
+
+  /* four bytes at a time */
+  for (i=0; i<bnlength; i+=4)
+    {
+      sum += (U64)big_access32(r+i) + (U64)big_access32(n+i); /* add 'em up */
+      big_set32(r+i, (U32)sum);   /* store the lower 4 bytes */
+      sum >>= 32; /* shift the overflow for next time */
+    }
+  return r;
+}
+
+/********************************************************************/
+/* r = n1 - n2 */
+bn_t sub_bn(bn_t r, bn_t n1, bn_t n2)
+{
+  int i;
+  U64 diff=0;
+
+  /* four bytes at a time */
+  for (i=0; i<bnlength; i+=4)
+    {
+      diff = (U64)big_access32(n1+i) - ((U64)big_access32(n2+i)-(S64)(S32)diff); /* subtract with borrow */
+      big_set32(r+i, (U32)diff);   /* store the lower 4 bytes */
+      diff >>= 32; /* shift the underflow for next time */
+    }
+  return r;
+}
+
+/********************************************************************/
+/* r -= n */
+bn_t sub_a_bn(bn_t r, bn_t n)
+{
+  int i;
+  U64 diff=0;
+
+  /* four bytes at a time */
+  for (i=0; i<bnlength; i+=4)
+    {
+      diff = (U64)big_access32(r+i) - ((U64)big_access32(n+i)-(S64)(S32)diff); /* subtract with borrow */
+      big_set32(r+i, (U32)diff);   /* store the lower 4 bytes */
+      diff >>= 32; /* shift the underflow for next time */
+    }
+  return r;
+}
+
+/********************************************************************/
+/* r = -n */
+bn_t neg_bn(bn_t r, bn_t n)
+{
+  int i;
+  U32 t_short;
+  U64 neg=1; /* to get the 2's complement started */
+
+  /* four bytes at a time */
+  for (i=0; neg != 0 && i<bnlength; i+=4)
+    {
+      t_short = ~big_access32(n+i);
+      neg += ((U64)t_short); /* two's complement */
+      big_set32(r+i, (U32)neg);   /* store the lower 4 bytes */
+      neg >>= 32; /* shift the sign bit for next time */
+    }
+  /* if neg was 0, then just "not" the rest */
+  for (; i<bnlength; i+=4)
+    {
+      /* notice that big_access32() and big_set32() are not needed here */
+      *(U32 BIGDIST *)(r+i) = ~*(U32 BIGDIST *)(n+i); /* toggle all the bits */
+    }
+  return r;
+}
+
+/********************************************************************/
+/* r *= -1 */
+bn_t neg_a_bn(bn_t r)
+{
+  int i;
+  U32 t_short;
+  U64 neg=1; /* to get the 2's complement started */
+
+  /* four bytes at a time */
+  for (i=0; neg != 0 && i<bnlength; i+=4)
+    {
+      t_short = ~big_access32(r+i);
+      neg += ((U64)t_short); /* two's complement */
+      big_set32(r+i, (U32)neg);   /* store the lower 2 bytes */
+      neg >>= 32; /* shift the sign bit for next time */
+    }
+  /* if neg was 0, then just "not" the rest */
+  for (; i<bnlength; i+=4)
+    {
+      /* notice that big_access32() and big_set32() are not needed here */
+      *(U32 BIGDIST *)(r+i) = ~*(U32 BIGDIST *)(r+i); /* toggle all the bits */
+    }
+  return r;
+}
+
+/********************************************************************/
+/* r = 2*n */
+bn_t double_bn(bn_t r, bn_t n)
+{
+  int i;
+  U64 prod=0;
+
+  /* four bytes at a time */
+  for (i=0; i<bnlength; i+=4)
+    {
+      prod += (U64)big_access32(n+i)<<1 ; /* double it */
+      big_set32(r+i, (U32)prod);   /* store the lower 4 bytes */
+      prod >>= 32; /* shift the overflow for next time */
+    }
+  return r;
+}
+
+/********************************************************************/
+/* r *= 2 */
+bn_t double_a_bn(bn_t r)
+{
+  int i;
+  U64 prod=0;
+
+  /* four bytes at a time */
+  for (i=0; i<bnlength; i+=4)
+    {
+      prod += (U64)big_access32(r+i)<<1 ; /* double it */
+      big_set32(r+i, (U32)prod);   /* store the lower 4 bytes */
+      prod >>= 32; /* shift the overflow for next time */
+    }
+  return r;
+}
+
+/********************************************************************/
+/* r = n/2 */
+bn_t half_bn(bn_t r, bn_t n)
+{
+  int i;
+  U64 quot=0;
+
+  /* four bytes at a time */
+
+  /* start with an arithmetic shift */
+  i=bnlength-4;
+  quot += (U64)(((S64)(S32)big_access32(n+i)<<32)>>1) ; /* shift to upper 4 bytes and half it */
+  big_set32(r+i, (U32)(quot>>32));   /* store the upper 4 bytes */
+  quot <<= 32; /* shift the underflow for next time */
+
+  for (i=bnlength-8; i>=0; i-=4)
+    {
+      /* looks wierd, but properly sign extends argument */
+      quot += (U64)(((U64)big_access32(n+i)<<32)>>1) ; /* shift to upper 4 bytes and half it */
+      big_set32(r+i, (U32)(quot>>32));   /* store the upper 4 bytes */
+      quot <<= 32; /* shift the underflow for next time */
+    }
+
+  return r;
+}
+
+/********************************************************************/
+/* r /= 2 */
+bn_t half_a_bn(bn_t r)
+{
+  int i;
+  U64 quot=0;
+
+  /* four bytes at a time */
+
+  /* start with an arithmetic shift */
+  i=bnlength-4;
+  quot += (U64)(((S64)(S32)big_access32(r+i)<<32)>>1) ; /* shift to upper 4 bytes and half it */
+  big_set32(r+i, (U32)(quot>>32));   /* store the upper 4 bytes */
+  quot <<= 32; /* shift the underflow for next time */
+
+  for (i=bnlength-8; i>=0; i-=4)
+    {
+      /* looks wierd, but properly sign extends argument */
+      quot += (U64)(((U64)(U32)big_access32(r+i)<<32)>>1) ; /* shift to upper 4 bytes and half it */
+      big_set32(r+i, (U32)(quot>>32));   /* store the upper 4 bytes */
+      quot <<= 32; /* shift the underflow for next time */
+    }
+  return r;
+}
+
+/************************************************************************/
+/* r = n1 * n2                                                          */
+/* Note: r will be a double wide result, 2*bnlength                     */
+/*       n1 and n2 can be the same pointer                              */
+/* SIDE-EFFECTS: n1 and n2 are changed to their absolute values         */
+bn_t unsafe_full_mult_bn(bn_t r, bn_t n1, bn_t n2)
+{
+  int sign1, sign2 = 0, samevar;
+  int i, j, k, steps, doublesteps, carry_steps;
+  bn_t n1p, n2p;      /* pointers for n1, n2 */
+  bn_t rp1, rp2, rp3; /* pointers for r */
+  U64 prod, sum;
+
+  if ((sign1 = is_bn_neg(n1)) != 0) /* =, not == */
+    neg_a_bn(n1);
+  samevar = (n1 == n2);
+  if (!samevar) /* check to see if they're the same pointer */
+    if ((sign2 = is_bn_neg(n2)) != 0) /* =, not == */
+      neg_a_bn(n2);
+
+  n1p = n1;
+  steps = bnlength>>2; /* four bytes at a time */
+  carry_steps = doublesteps = (steps<<1) - 2;
+  bnlength <<= 1;
+  clear_bn(r);        /* double width */
+  bnlength >>= 1;
+  rp1 = rp2 = r;
+  for (i = 0; i < steps; i++)
+    {
+      n2p = n2;
+      for (j = 0; j < steps; j++)
+        {
+          prod = (U64)big_access32(n1p) * (U64)big_access32(n2p); /* U32*U32=U64 */
+          sum = (U64)big_access32(rp2) + prod; /* add to previous, including overflow */
+          big_set32(rp2, (U32)sum); /* save the lower 4 bytes */
+          sum >>= 32;             /* keep just the upper 4 bytes */
+          rp3 = rp2 + 4;          /* move over 4 bytes */
+          sum += big_access32(rp3);     /* add what was the upper four bytes */
+          big_set32(rp3 ,(U32)sum); /* save what was the upper four bytes */
+          sum >>= 32;             /* keep just the overflow */
+          for (k=0; sum != 0 && k<carry_steps; k++)
+            {
+              rp3 += 4;               /* move over 4 bytes */
+              sum += big_access32(rp3);     /* add to what was the overflow */
+              big_set32(rp3, (U32)sum); /* save what was the overflow */
+              sum >>= 32;             /* keep just the new overflow */
+            }
+          n2p += 4;       /* to next dword */
+          rp2 += 4;
+          carry_steps--;  /* use one less step */
+        }
+      n1p += 4;           /* to next dword */
+      rp2 = rp1 += 4;
+      carry_steps = --doublesteps; /* decrease doubles steps and reset carry_steps */
+    }
+
+  /* if they were the same or same sign, the product must be positive */
+  if (!samevar && sign1 != sign2)
+    {
+      bnlength <<= 1;         /* for a double wide number */
+      neg_a_bn(r);
+      bnlength >>= 1; /* restore bnlength */
+    }
+  return r;
+}
+
+/************************************************************************/
+/* r = n1 * n2 calculating only the top rlength bytes                   */
+/* Note: r will be of length rlength                                    */
+/*       2*bnlength <= rlength < bnlength                               */
+/*       n1 and n2 can be the same pointer                              */
+/* SIDE-EFFECTS: n1 and n2 are changed to their absolute values         */
+bn_t unsafe_mult_bn(bn_t r, bn_t n1, bn_t n2)
+{
+  int sign1, sign2 = 0, samevar;
+  int i, j, k, steps, doublesteps, carry_steps, skips;
+  bn_t n1p, n2p;      /* pointers for n1, n2 */
+  bn_t rp1, rp2, rp3; /* pointers for r */
+  U64 prod, sum;
+  int bnl; /* temp bnlength holder */
+
+  bnl = bnlength;
+  if ((sign1 = is_bn_neg(n1)) != 0) /* =, not == */
+    neg_a_bn(n1);
+  samevar = (n1 == n2);
+  if (!samevar) /* check to see if they're the same pointer */
+    if ((sign2 = is_bn_neg(n2)) != 0) /* =, not == */
+      neg_a_bn(n2);
+  n1p = n1;
+  n2 += (bnlength<<1) - rlength;  /* shift n2 over to where it is needed */
+
+  bnlength = rlength;
+  clear_bn(r);        /* zero out r, rlength width */
+  bnlength = bnl;
+
+  steps = (rlength-bnlength)>>2;
+  skips = (bnlength>>2) - steps;
+  carry_steps = doublesteps = (rlength>>2)-2;
+  rp2 = rp1 = r;
+  for (i=bnlength>>2; i>0; i--)
+    {
+      n2p = n2;
+      for (j=0; j<steps; j++)
+        {
+          prod = (U64)big_access32(n1p) * (U64)big_access32(n2p); /* U32*U32=U64 */
+          sum = (U64)big_access32(rp2) + prod; /* add to previous, including overflow */
+          big_set32(rp2, (U32)sum); /* save the lower 4 bytes */
+          sum >>= 32;             /* keep just the upper 4 bytes */
+          rp3 = rp2 + 4;          /* move over 4 bytes */
+          sum += big_access32(rp3);     /* add what was the upper four bytes */
+          big_set32(rp3, (U32)sum); /* save what was the upper four bytes */
+          sum >>= 32;             /* keep just the overflow */
+          for (k=0; sum != 0 && k<carry_steps; k++)
+            {
+              rp3 += 4;               /* move over 4 bytes */
+              sum += big_access32(rp3);     /* add to what was the overflow */
+              big_set32(rp3, (U32)sum); /* save what was the overflow */
+              sum >>= 32;             /* keep just the new overflow */
+            }
+          n2p += 4;                   /* increase by four bytes */
+          rp2 += 4;
+          carry_steps--;
+        }
+      n1p += 4;   /* increase by four bytes */
+
+      if (skips != 0)
+        {
+          n2 -= 4;    /* shift n2 back a dword */
+          steps++;    /* one more step this time */
+          skips--;    /* keep track of how many times we've done this */
+        }
+      else
+        {
+          rp1 += 4;           /* shift forward a dword */
+          doublesteps--;      /* reduce the carry steps needed next time */
+        }
+      rp2 = rp1;
+      carry_steps = doublesteps;
+    }
+
+  /* if they were the same or same sign, the product must be positive */
+  if (!samevar && sign1 != sign2)
+    {
+      bnlength = rlength;
+      neg_a_bn(r);            /* wider bignumber */
+      bnlength = bnl;
+    }
+  return r;
+}
+
+/************************************************************************/
+/* r = n^2                                                              */
+/*   because of the symmetry involved, n^2 is much faster than n*n       */
+/*   for a bignumber of length l                                        */
+/*      n*n takes l^2 multiplications                                   */
+/*      n^2 takes (l^2+l)/2 multiplications                             */
+/*          which is about 1/2 n*n as l gets large                      */
+/*  uses the fact that (a+b+c+...)^2 = (a^2+b^2+c^2+...)+2(ab+ac+bc+...)*/
+/*                                                                      */
+/* SIDE-EFFECTS: n is changed to its absolute value                     */
+bn_t unsafe_full_square_bn(bn_t r, bn_t n)
+{
+  int i, j, k, steps, doublesteps, carry_steps;
+  bn_t n1p, n2p;
+  bn_t rp1, rp2, rp3;
+  U64 prod, sum;
+
+  if (is_bn_neg(n))  /* don't need to keep track of sign since the */
+    neg_a_bn(n);   /* answer must be positive. */
+
+  bnlength <<= 1;
+  clear_bn(r);        /* zero out r, double width */
+  bnlength >>= 1;
+
+  steps = (bnlength>>2)-1;
+  carry_steps = doublesteps = (steps<<1) - 1;
+  rp2 = rp1 = r + 4;  /* start with second four-byte word */
+  n1p = n;
+  if (steps != 0) /* if zero, then skip all the middle term calculations */
+    {
+      for (i=steps; i>0; i--) /* steps gets altered, count backwards */
+        {
+          n2p = n1p + 4;  /* set n2p pointer to 1 step beyond n1p */
+          for (j=0; j<steps; j++)
+            {
+              prod = (U64)big_access32(n1p) * (U64)big_access32(n2p); /* U32*U32=U64 */
+              sum = (U64)big_access32(rp2) + prod; /* add to previous, including overflow */
+              big_set32(rp2, (U32)sum); /* save the lower 4 bytes */
+              sum >>= 32;             /* keep just the upper 4 bytes */
+              rp3 = rp2 + 4;          /* move over 4 bytes */
+              sum += big_access32(rp3);     /* add what was the upper four bytes */
+              big_set32(rp3, (U32)sum); /* save what was the upper four bytes */
+              sum >>= 32;             /* keep just the overflow */
+              for (k=0; sum != 0 && k<carry_steps; k++)
+                {
+                  rp3 += 4;               /* move over 4 bytes */
+                  sum += big_access32(rp3);     /* add to what was the overflow */
+                  big_set32(rp3, (U32)sum); /* save what was the overflow */
+                  sum >>= 32;             /* keep just the new overflow */
+                }
+              n2p += 4;       /* increase by four bytes */
+              rp2 += 4;
+              carry_steps--;
+            }
+          n1p += 4;           /* increase by four bytes */
+          rp2 = rp1 += 8;     /* increase by 2 * four bytes */
+          carry_steps = doublesteps -= 2;   /* reduce the carry steps needed */
+          steps--;
+        }
+      /* All the middle terms have been multiplied.  Now double it. */
+      bnlength <<= 1;     /* double wide bignumber */
+      double_a_bn(r);
+      bnlength >>= 1;
+      /* finished with middle terms */
+    }
+
+  /* Now go back and add in the squared terms. */
+  n1p = n;
+  steps = (bnlength>>2);
+  carry_steps = doublesteps = (steps<<1) - 2;
+  rp1 = r;
+  for (i=0; i<steps; i++)
+    {
+      /* square it */
+      prod = (U64)big_access32(n1p) * (U64)big_access32(n1p); /* U32*U32=U64 */
+      sum = (U64)big_access32(rp1) + prod; /* add to previous, including overflow */
+      big_set32(rp1, (U32)sum); /* save the lower 4 bytes */
+      sum >>= 32;             /* keep just the upper 4 bytes */
+      rp3 = rp1 + 4;          /* move over 4 bytes */
+      sum += big_access32(rp3);     /* add what was the upper four bytes */
+      big_set32(rp3, (U32)sum); /* save what was the upper four bytes */
+      sum >>= 32;             /* keep just the overflow */
+      for (k=0; sum != 0 && k<carry_steps; k++)
+        {
+          rp3 += 4;               /* move over 4 bytes */
+          sum += big_access32(rp3);     /* add to what was the overflow */
+          big_set32(rp3, (U32)sum); /* save what was the overflow */
+          sum >>= 32;             /* keep just the new overflow */
+        }
+      n1p += 4;       /* increase by 4 bytes */
+      rp1 += 8;       /* increase by 8 bytes */
+      carry_steps = doublesteps -= 2;
+    }
+  return r;
+}
+
+/************************************************************************/
+/* r = n^2                                                              */
+/*   because of the symmetry involved, n^2 is much faster than n*n       */
+/*   for a bignumber of length l                                        */
+/*      n*n takes l^2 multiplications                                   */
+/*      n^2 takes (l^2+l)/2 multiplications                             */
+/*          which is about 1/2 n*n as l gets large                      */
+/*  uses the fact that (a+b+c+...)^2 = (a^2+b^2+c^2+...)+2(ab+ac+bc+...)*/
+/*                                                                      */
+/* Note: r will be of length rlength                                    */
+/*       2*bnlength >= rlength > bnlength                               */
+/* SIDE-EFFECTS: n is changed to its absolute value                     */
+bn_t unsafe_square_bn(bn_t r, bn_t n)
+{
+  int i, j, k, steps, doublesteps, carry_steps;
+  int skips, rodd;
+  bn_t n1p, n2p, n3p;
+  bn_t rp1, rp2, rp3;
+  U64 prod, sum;
+  int bnl;
+
+  /* This whole procedure would be a great deal simpler if we could assume that */
+  /* rlength < 2*bnlength (that is, not =).  Therefore, we will take the        */
+  /* easy way out and call full_square_bn() if it is.                           */
+  if (rlength == (bnlength<<1)) /* rlength == 2*bnlength */
+    return unsafe_full_square_bn(r, n);    /* call full_square_bn() and quit */
+
+  if (is_bn_neg(n))  /* don't need to keep track of sign since the */
+    neg_a_bn(n);   /* answer must be positive. */
+
+  bnl = bnlength;
+  bnlength = rlength;
+  clear_bn(r);        /* zero out r, of width rlength */
+  bnlength = bnl;
+
+  /* determine whether r is on an odd or even four-byte word in the number */
+  rodd = (U32)(((bnlength<<1)-rlength)>>2) & 0x00000001;
+  i = (bnlength>>2)-1;
+  steps = (rlength-bnlength)>>2;
+  carry_steps = doublesteps = (bnlength>>2)+steps-2;
+  skips = (i - steps)>>1;     /* how long to skip over pointer shifts */
+  rp2 = rp1 = r;
+  n1p = n;
+  n3p = n2p = n1p + (((bnlength>>2)-steps)<<2);    /* n2p = n1p + 4*(bnlength/4 - steps) */
+  if (i != 0) /* if zero, skip middle term calculations */
+    {
+      /* i is already set */
+      for (; i>0; i--)
+        {
+          for (j=0; j<steps; j++)
+            {
+              prod = (U64)big_access32(n1p) * (U64)big_access32(n2p); /* U32*U32=U64 */
+              sum = (U64)big_access32(rp2) + prod; /* add to previous, including overflow */
+              big_set32(rp2, (U32)sum); /* save the lower 4 bytes */
+              sum >>= 32;             /* keep just the upper 4 bytes */
+              rp3 = rp2 + 4;          /* move over 4 bytes */
+              sum += big_access32(rp3);     /* add what was the upper four bytes */
+              big_set32(rp3, (U32)sum); /* save what was the upper four bytes */
+              sum >>= 32;             /* keep just the overflow */
+              for (k=0; sum != 0 && k<carry_steps; k++)
+                {
+                  rp3 += 4;               /* move over 4 bytes */
+                  sum += big_access32(rp3);     /* add to what was the overflow */
+                  big_set32(rp3, (U32)sum); /* save what was the overflow */
+                  sum >>= 32;             /* keep just the new overflow */
+                }
+              n2p += 4;       /* increase by 4-byte dword size */
+              rp2 += 4;
+              carry_steps--;
+            }
+          n1p += 4;       /* increase by 4-byte dword size */
+          if (skips > 0)
+            {
+              n2p = n3p -= 4;
+              steps++;
+              skips--;
+            }
+          else if (skips == 0)    /* only gets executed once */
+            {
+              steps -= rodd;  /* rodd is 1 or 0 */
+              doublesteps -= rodd+1;
+              rp1 += (rodd+1)<<2;
+              n2p = n1p+4;
+              skips--;
+            }
+          else /* skips < 0 */
+            {
+              steps--;
+              doublesteps -= 2;
+              rp1 += 8;           /* add two 4-byte dwords */
+              n2p = n1p + 4;
+            }
+          rp2 = rp1;
+          carry_steps = doublesteps;
+        }
+      /* All the middle terms have been multiplied.  Now double it. */
+      bnlength = rlength;
+      double_a_bn(r);
+      bnlength = bnl;
+    }
+  /* Now go back and add in the squared terms. */
+
+  /* be careful, the next dozen or so lines are confusing!       */
+  /* determine whether r is on an odd or even word in the number */
+  /* using i as a temporary variable here */
+  i = (bnlength<<1)-rlength;
+  rp1 = r + ((U32)i & (U32)0x00000004);
+  i = (U32)(((i>>2)+1) & (U32)0xFFFFFFFE)<<1;
+  n1p = n + i;
+  /* i here is no longer a temp var., but will be used as a loop counter */
+  i = (bnlength - i)>>2;
+  carry_steps = doublesteps = (i<<1)-2;
+  /* i is already set */
+  for (; i>0; i--)
+    {
+      /* square it */
+      prod = (U64)big_access32(n1p) * (U64)big_access32(n1p); /* U32*U32=U64 */
+      sum = (U64)big_access32(rp1) + prod; /* add to previous, including overflow */
+      big_set32(rp1, (U32)sum); /* save the lower 4 bytes */
+      sum >>= 32;             /* keep just the upper 4 bytes */
+      rp3 = rp1 + 4;          /* move over 4 bytes */
+      sum += big_access32(rp3);     /* add what was the upper four bytes */
+      big_set32(rp3, (U32)sum); /* save what was the upper four bytes */
+      sum >>= 32;             /* keep just the overflow */
+      for (k=0; sum != 0 && k<carry_steps; k++)
+        {
+          rp3 += 4;               /* move over 4 bytes */
+          sum += big_access32(rp3);     /* add to what was the overflow */
+          big_set32(rp3, (U32)sum); /* save what was the overflow */
+          sum >>= 32;             /* keep just the new overflow */
+        }
+      n1p += 4;
+      rp1 += 8;
+      carry_steps = doublesteps -= 2;
+    }
+  return r;
+}
+
+/********************************************************************/
+/* r = n * u  where u is an unsigned integer */
+bn_t mult_bn_int(bn_t r, bn_t n, U16 u)
+{
+  int i;
+  U64 prod=0;
+
+  /* four bytes at a time */
+  for (i=0; i<bnlength; i+=4)
+    {
+      prod += (U64)big_access32(n+i) * u ; /* n*u */
+      big_set32(r+i, (U32)prod);   /* store the lower 4 bytes */
+      prod >>= 32; /* shift the overflow for next time */
+    }
+  return r;
+}
+
+/********************************************************************/
+/* r *= u  where u is an unsigned integer */
+bn_t mult_a_bn_int(bn_t r, U16 u)
+{
+  int i;
+  U64 prod=0;
+
+  /* four bytes at a time */
+  for (i=0; i<bnlength; i+=4)
+    {
+      prod += (U64)big_access32(r+i) * u ; /* r*u */
+      big_set32(r+i, (U32)prod);   /* store the lower 4 bytes */
+      prod >>= 32; /* shift the overflow for next time */
+    }
+  return r;
+}
+
+/********************************************************************/
+/* r = n / u  where u is an unsigned integer */
+bn_t unsafe_div_bn_int(bn_t r, bn_t n,  U16 u)
+{
+  int i, sign;
+  U64 full_number;
+  U32 quot, rem=0;
+
+  sign = is_bn_neg(n);
+  if (sign)
+    neg_a_bn(n);
+
+  if (u == 0) /* division by zero */
+    {
+      max_bn(r);
+      if (sign)
+        neg_a_bn(r);
+      return r;
+    }
+
+  /* four bytes at a time */
+  for (i=bnlength-4; i>=0; i-=4)
+    {
+      full_number = ((U64)rem<<32) + (U64)big_access32(n+i);
+      quot = (U32)(full_number / u);
+      rem  = (U32)(full_number % u);
+      big_set32(r+i, quot);
+    }
+
+  if (sign)
+    neg_a_bn(r);
+  return r;
+}
+
+/********************************************************************/
+/* r /= u  where u is an unsigned integer */
+bn_t div_a_bn_int(bn_t r, U16 u)
+{
+  int i, sign;
+  U64 full_number;
+  U32 quot, rem=0;
+
+  sign = is_bn_neg(r);
+  if (sign)
+    neg_a_bn(r);
+
+  if (u == 0) /* division by zero */
+    {
+      max_bn(r);
+      if (sign)
+        neg_a_bn(r);
+      return r;
+    }
+
+  /* four bytes at a time */
+  for (i=bnlength-4; i>=0; i-=4)
+    {
+      full_number = ((U64)rem<<32) + (U64)big_access32(r+i);
+      quot = (U32)(full_number / u);
+      rem  = (U32)(full_number % u);
+      big_set32(r+i, quot);
+    }
+
+  if (sign)
+    neg_a_bn(r);
+  return r;
+}
+
+#endif
 
 /*********************************************************************/
 /*  f = b                                                            */

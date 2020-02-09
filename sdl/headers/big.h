@@ -163,7 +163,6 @@ void init_big_dec(int dec);
 void init_big_length(int bnl);
 void init_big_pi(void);
 
-
 /* functions defined in bignuma.asm or bignumc.c */
 extern bn_t clear_bn(bn_t r);
 extern bn_t max_bn(bn_t r);
@@ -205,6 +204,7 @@ extern LDBL scale_256( LDBL f, int n );
 extern U32 big_access32(BYTE BIGDIST *addr);
 extern U16 big_access16(BYTE BIGDIST *addr);
 extern S16 big_accessS16(S16 BIGDIST *addr);
+extern S32 big_accessS32(S32 BIGDIST *addr);
 extern U32 big_set32(BYTE BIGDIST *addr, U32 val);
 extern U16 big_set16(BYTE BIGDIST *addr, U16 val);
 extern S16 big_setS16(S16 BIGDIST *addr, S16 val);
@@ -213,6 +213,7 @@ extern S16 big_setS16(S16 BIGDIST *addr, S16 val);
 #define big_access32(addr)   (*(U32 BIGDIST *)(addr))
 #define big_access16(addr)   (*(U16 BIGDIST *)(addr))
 #define big_accessS16(addr)   (*(S16 BIGDIST *)(addr))
+#define big_accessS32(addr)   (*(S32 BIGDIST *)(addr))
 #define big_set32(addr, val) (*(U32 BIGDIST *)(addr) = (U32)(val))
 #define big_set16(addr, val) (*(U16 BIGDIST *)(addr) = (U16)(val))
 #define big_setS16(addr, val) (*(S16 BIGDIST *)(addr) = (S16)(val))

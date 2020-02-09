@@ -970,6 +970,8 @@ extern long calcmandfp_c(void);
 #ifdef NASM
 extern long calcmandfpasm_p5(void);
 extern void calcmandfpasmstart_p5(void);
+//extern long calcmandfpasm_sse2(void);
+//extern void calcmandfpasmstart_sse2(void);
 #endif
 
 /*  faccess -- C file prototypes */

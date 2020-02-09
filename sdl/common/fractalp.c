@@ -319,7 +319,7 @@ struct fractalspecificstuff fractalspecific[]=
    },
 
    {
-   t_newtbasin,
+   t_newtbasin+1,
       {newtdegree, stripes, ES, ES},
       {3, 0, 0, 0},
       HT_NEWTBAS, HF_NEWTBAS, WINFRAC,
@@ -352,7 +352,7 @@ struct fractalspecificstuff fractalspecific[]=
    },
 
    {
-   t_newton,
+   t_newton+1,
       {newtdegree, ES, ES, ES},
       {3, 0, 0, 0},
       HT_NEWT, HF_NEWT, WINFRAC,
@@ -1058,9 +1058,9 @@ struct fractalspecificstuff fractalspecific[]=
       NOBAILOUT
    },
 
-// FIXME (jonathan#1#): Following two are obsolete, but can't leave a hole????
+/* Can't leave a hole, but desired entry must be the +1 */
    {
-   t_newton+1,
+   t_newton,
       {newtdegree, ES, ES, ES},
       {3, 0, 0, 0},
       HT_NEWT, HF_NEWT, WINFRAC,
@@ -1071,7 +1071,7 @@ struct fractalspecificstuff fractalspecific[]=
    },
 
    {
-   t_newtbasin+1,
+   t_newtbasin,
       {newtdegree, stripes, ES, ES},
       {3, 0, 0, 0},
       HT_NEWTBAS, HF_NEWTBAS, WINFRAC,
@@ -1871,9 +1871,9 @@ struct fractalspecificstuff fractalspecific[]=
       NOBAILOUT
    },
 
-// FIXME (jonathan#1#): Can't leave a hole????
+/* Can't leave a hole, but desired entry must be the +1 */
    {
-   t_halley+1,
+   t_halley,
       {order, real_relax, epsilon, imag_relax},
       {6, 1.0, 0.0001, 0},
       HT_HALLEY, HF_HALLEY, WINFRAC,
@@ -1884,7 +1884,7 @@ struct fractalspecificstuff fractalspecific[]=
    },
 
    {
-   t_halley,
+   t_halley+1,
       {order, real_relax, epsilon, imag_relax},
       {6, 1.0, 0.0001, 0},
       HT_HALLEY, HF_HALLEY, WINFRAC,

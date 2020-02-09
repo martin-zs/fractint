@@ -285,6 +285,7 @@ Fix file access.]]>
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="sdl/calmanfx-64.o" />
+		<Unit filename="sdl/calmanfx-sse2.o" />
 		<Unit filename="sdl/faccess.c">
 			<Option compilerVar="CC" />
 		</Unit>

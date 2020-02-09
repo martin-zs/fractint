@@ -1147,7 +1147,7 @@ void set_default_parms()
 
 #define MAXFRACTALS 25
 
-int build_fractal_list(int fractals[], int *last_val, char *nameptr[])
+static int build_fractal_list(int fractals[], int *last_val, char *nameptr[])
 {
   int numfractals,i;
 
@@ -1906,7 +1906,7 @@ static struct entryinfo **gfe_choices; /* for format_getparm_line */
 static char *gfe_title;
 
 /* skip to next non-white space character and return it */
-int skip_white_space(FILE *infile, long *file_offset)
+static int skip_white_space(FILE *infile, long *file_offset)
 {
   int c;
   do
@@ -1919,7 +1919,7 @@ int skip_white_space(FILE *infile, long *file_offset)
 }
 
 /* skip to end of line */
-int skip_comment(FILE *infile, long *file_offset)
+static int skip_comment(FILE *infile, long *file_offset)
 {
   int c;
   do
