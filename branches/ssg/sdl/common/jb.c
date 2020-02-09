@@ -139,8 +139,12 @@ JulibrotSetup(void)
     mapname = GreyFile;
   if (savedac != 1)
     {
+      if (colorstate != 0) /* 0 means dacbox matches default */
+        return (r >= 0);
+      colorstate = 2;
       if (ValidateLuts(mapname) != 0)
-        return (0);
+        return (r >= 0);
+      colorstate = 0; /* treat map as default */
       spindac(0, 1);               /* load it, but don't spin */
       if (savedac == 2)
         savedac = 1;

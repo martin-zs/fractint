@@ -1330,6 +1330,15 @@ int lya_setup ()
       usr_stdcalcmode = '1';  /* doesn't use new & breaks orbits */
       stdcalcmode = '1';
     }
+
+  if (colorstate != 0) /* 0 means dacbox matches default */
+    return 1;
+  colorstate = 2;
+  if (ValidateLuts("lyapunov.map") != 0)
+    return 0;
+  colorstate = 1; /* treat map as default */
+  spindac(0,1);
+
   return 1;
 }
 
@@ -1957,6 +1966,7 @@ static void set_Froth_palette(void)
 
   if (colorstate != 0) /* 0 means dacbox matches default */
     return;
+  colorstate = 2;
   if (colors >= 16)
     {
       if (colors >= 256)
@@ -1975,7 +1985,7 @@ static void set_Froth_palette(void)
         }
       if (ValidateLuts(mapname) != 0)
         return;
-      colorstate = 0; /* treat map as default */
+      colorstate = 1; /* treat map as default */
       spindac(0,1);
     }
 }

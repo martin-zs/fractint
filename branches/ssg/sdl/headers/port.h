@@ -54,8 +54,13 @@
         typedef short          S16;
         typedef unsigned int   U32;
         typedef int            S32;
+#if __WORDSIZE == 64
+        typedef unsigned long U64;
+        typedef long          S64;
+#else /* need to use long long */
         typedef unsigned long long U64;
         typedef long long      S64;
+#endif
         typedef unsigned char  BYTE;
         typedef char           CHAR;
 

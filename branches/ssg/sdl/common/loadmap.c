@@ -40,11 +40,11 @@ char   *dummy; /* to quiet compiler */
 
         strcpy(temp,MAP_name);
         strcpy(temp_fn,fn);
-#if 0
-        merge_pathnames(temp,temp_fn,3);
-#else
+if (colorstate >= 2)
+        merge_pathnames(temp,temp_fn,2);
+else
         merge_pathnames(temp,temp_fn,0);
-#endif
+
         if (has_ext(temp) == NULL) /* Did name have an extension? */
                 strcat(temp,".map");  /* No? Then add .map */
         findpath( temp, line);        /* search the dos path */

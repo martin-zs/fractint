@@ -160,6 +160,11 @@ S16 big_accessS16(S16 BIGDIST *addr)
   return (S16)((BYTE *)addr)[0] | ((S16)((BYTE *)addr)[1]<<8);
 }
 
+S32 big_accessS32(S32 BIGDIST *addr)
+{
+  return (S32)((BYTE *)addr)[0] | ((S32)((BYTE *)addr)[1]<<8) | ((S32)((BYTE *)addr)[1]<<16) | ((S32)((BYTE *)addr)[1]<<24);
+}
+
 U32 big_set32(BYTE BIGDIST *addr, U32 val)
 {
   addr[0] = (BYTE)(val&0xff);

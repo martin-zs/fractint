@@ -1144,6 +1144,8 @@ void goodbye(void)                  /* we done.  Bail out */
     MemoryRelease(gene_handle);
   if (imgboxhandle != 0 || prmboxhandle != 0)
     ReleaseParamBox();
+  if (roots != staticroots)
+    free(roots);
   if (history != 0)
     MemoryRelease(history);
   if (oldhistory_handle != 0)
