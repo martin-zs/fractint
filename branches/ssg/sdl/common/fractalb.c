@@ -17,7 +17,7 @@ fractal routines.
 
 
 int bf_math = 0;
-double b_const;
+LDBL b_const;
 
 #ifdef DEBUG
 
@@ -374,7 +374,6 @@ int bfMODbailout()
   square_bf(bftmpsqrx, bfnew.x);
   square_bf(bftmpsqry, bfnew.y);
   add_bf(bftmp, bftmpsqrx, bftmpsqry);
-
   doublemagnitude = bftofloat(bftmp);
   if (doublemagnitude >= rqlim)
     return 1;

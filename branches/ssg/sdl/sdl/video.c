@@ -38,7 +38,7 @@ int color_dark = 0;        /* darkest color in palette */
 int color_bright = 0;      /* brightest color in palette */
 int color_medium = 0;      /* nearest to medbright grey in palette
                               Zoom-Box values (2K x 2K screens max) */
-int boxcolor = 0;          /* Zoom-Box color */
+extern int boxcolor;          /* Zoom-Box color */
 int gotrealdac = 0;        /* 1 if loaddac has a dacbox */
 int rowcount = 0;          /* row-counter for decoder and out_line */
 // NOTE (jonathan#1#): Next can be removed eventually since only one type is recognized.
@@ -918,7 +918,7 @@ Press F1 for help, "};
       unsigned long vram = (unsigned long)video_vram << 16,
                     need = (unsigned long)info->xdots * info->ydots;
       if (need <= vram) {
-         char over[25]; /* overwrite comments with original resolutions */
+         char over[40]; /* overwrite comments with original resolutions */
          int bppx;      /* bytesperpixel multiplier */
          for (i = 0; i < vidtbllen; ++i) {
             vident = &vidtbl[i];

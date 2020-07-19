@@ -750,6 +750,7 @@ bf_t unsafe_sincos_bf(bf_t s, bf_t c, bf_t n)
   /* n >= 0 */
 
   double_bf(bftmp1, bf_pi); /* 2*pi */
+
   /* this could be done with remainders, but it would probably be slower */
   while (cmp_bf(n, bftmp1) >= 0) /* while n >= 2*pi */
     {
@@ -1619,7 +1620,6 @@ bf_t double_bf(bf_t r, bf_t n)
   bnlength = bflength;
   double_bn(r, n);
   bnlength = bnl;
-
   norm_bf(r);
   return r;
 }
@@ -1818,7 +1818,6 @@ bf_t unsafe_square_bf(bf_t r, bf_t n)
 
   nexp = (S16 BIGDIST *)(n+bflength);
   rexp = (S16)(2 * big_accessS16(nexp));
-
   bnl = bnlength;
   bnlength = bflength;
   rl = rlength;

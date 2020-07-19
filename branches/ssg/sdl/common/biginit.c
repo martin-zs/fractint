@@ -60,7 +60,11 @@ static int restore_bf_vars(void);
 /* given bnlength, calc_lengths will calculate all the other lengths */
 void calc_lengths(void)
 {
+#ifndef NASM
   bnstep = 4;  /* use 4 in all cases */
+#else
+  bnstep = 8;  /* use 8 in all cases */
+#endif
 
   if (bnlength % bnstep != 0)
     bnlength = (bnlength / bnstep + 1) * bnstep;

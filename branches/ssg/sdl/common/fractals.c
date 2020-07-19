@@ -2971,7 +2971,7 @@ MandelbrotMix4fpFractal(void) /* from formula by Jim Muth */
 #undef K
 #undef L
 
-long double b_const;
+extern LDBL b_const;
 
 int DivideBrot5Setup(void)
 {

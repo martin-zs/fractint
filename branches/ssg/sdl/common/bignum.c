@@ -456,7 +456,7 @@ long bntoint(bn_t n)
 bn_t floattobn(bn_t r, LDBL f)
 {
 /* #ifndef USE_BIGNUM_C_CODE */
-#if 0
+#ifdef NASM
   /* Only use this when using the ASM code as the C version of  */
   /* floattobf() calls floattobn(), an infinite recursive loop. */
   floattobf(bftmp1, f);
@@ -1359,6 +1359,7 @@ bn_t square_bn(bn_t r, bn_t n)
   return r;
 }
 
+#ifndef NASM
 /**********************************************************************/
 bn_t div_bn_int(bn_t r, bn_t n, U16 u)
 {
@@ -1370,6 +1371,7 @@ bn_t div_bn_int(bn_t r, bn_t n, U16 u)
     neg_a_bn(n);
   return r;
 }
+#endif
 
 /**********************************************************************/
 char *bntostr(char *s, int dec, bn_t r)

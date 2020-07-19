@@ -910,6 +910,7 @@ static void adjust_to_limitsbf(double expand)
   sub_bf(bfy3rd,bcornery[2],badjy);
 
   adjust_cornerbf(); /* make 3rd corner exact if very near other co-ords */
+
   restore_stack(saved);
 }
 

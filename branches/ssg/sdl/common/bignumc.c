@@ -11,7 +11,7 @@ Wesley Loewer's Big Numbers.        (C) 1994-95, Wesley B. Loewer
 
 /********************************************************************
  The following code contains the C versions of the routines from the
- file BIGNUMA.ASM.  It is provided here for portibility and for clarity.
+ file BIGNUMA.ASM.  It is provided here for portability and for clarity.
 *********************************************************************/
 
 /********************************************************************
@@ -30,6 +30,7 @@ Wesley Loewer's Big Numbers.        (C) 1994-95, Wesley B. Loewer
 
 *********************************************************************/
 
+#ifndef NASM
 /********************************************************************/
 /* r = 0 */
 bn_t clear_bn(bn_t r)
@@ -86,6 +87,7 @@ int is_bn_neg(bn_t n)
 {
   return (S8)n[bnlength-1] < 0;
 }
+#endif
 
 /* comment out next line if sizeof(int) is not >= 4 */
 #define USE_BIG32 1
@@ -851,7 +853,8 @@ bn_t div_a_bn_int(bn_t r, U16 u)
   return r;
 }
 
-#else /* USE_BIG32 */
+#else  /* USE_BIG32 */
+#ifndef NASM
 
 /***************************************************************************/
 /* n1 != n2 ?                                                              */
@@ -1628,8 +1631,10 @@ bn_t div_a_bn_int(bn_t r, U16 u)
   return r;
 }
 
-#endif
+#endif    /* ndef NASM */
+#endif    /* USE_BIG32 */
 
+#ifndef NASM
 /*********************************************************************/
 /*  f = b                                                            */
 /*  Converts a bignumber to a double                                 */
@@ -1720,6 +1725,8 @@ bf_t floattobf(bf_t r, LDBL f)
   return r;
 }
 
+#endif
+
 /*********************************************************************/
 /*  b = f                                                            */
 /*  Converts a double to a bigfloat                                  */
@@ -1734,6 +1741,8 @@ bf_t floattobf1(bf_t r, LDBL f)
   strtobf(r,msg);
   return r;
 }
+
+#ifndef NASM
 
 /*********************************************************************/
 /*  f = b                                                            */
@@ -1777,3 +1786,4 @@ LDBL scale_256( LDBL f, int n )
 {
   return scale_value( f, 256, n );
 }
+#endif
