@@ -278,6 +278,7 @@ Fix file access.]]>
 		<Unit filename="headers/prototyp.h">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="sdl/bignumax-64.o" />
 		<Unit filename="sdl/calcmand.c">
 			<Option compilerVar="CC" />
 		</Unit>
