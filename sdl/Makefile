@@ -4,16 +4,17 @@ INSTALL = /usr/bin/install
 
 # Architecture
 # automatic detection
-ARCH = `uname -m | tr "_" "-"`
+#ARCH = `uname -m | tr "_" "-"`
 # ARCH = pentium
-# ARCH = x86_64
+ARCH = x86_64
 # ARCH = athlon64
 # ARCH = i386
 # ARCH = i686
 
 # Optimization flags
-OPT = -O2
+# OPT = -O2
 # OPT = -O
+OPT = -O0
 
 ifndef PREFIX
 PREFIX = /usr
@@ -60,7 +61,17 @@ NOBSTRING = -DNOBSTRING
 #DEBUG = -DEBUG
 # If your compiler doesn't handle void *, define -DBADVOID
 # If you get SIGFPE errors define -DFPUERR
-DEFINES = -DXFRACT $(NOBSTRING) $(HAVESTRI) $(DEBUG)
+# If you have the nasm assembler on your system add -DNASM to DEFINES
+# Note that because of the differences between the assembler syntaxes,
+#  nasm is the only one that will work.
+AS = $(wildcard /usr/bin/nasm)
+# AS =
+
+ifeq ($(AS),/usr/bin/nasm)
+DEFINES = -DXFRACT  -DBIG_ANSI_C -DNASM $(NOBSTRING) $(HAVESTRI) $(DEBUG)
+else
+DEFINES = -DXFRACT  -DBIG_ANSI_C $(NOBSTRING) $(HAVESTRI) $(DEBUG)
+endif
 
 # Uncomment this if you get errors about "stdarg.h" missing.
 #DEFINES += -DUSE_VARARGS
@@ -68,13 +79,7 @@ DEFINES = -DXFRACT $(NOBSTRING) $(HAVESTRI) $(DEBUG)
 # Uncomment this for Cygwin
 #DEFINES += -DCYGWIN -DDIRENT
 
-# For using nasm, set:
-AS = /usr/bin/nasm
-# Note that because of the differences between the assembler syntaxes,
-#  nasm is the only one that will work.
-#AS = foo
-
-# Below is for Linux with output file type of elf, turn all warnings on
+# Below is for Linux with output file type of elf or elf64, turn all warnings on
 ifeq ($(ARCH),x86_64)
 AFLAGS = -Ox -f elf64 -w+orphan-labels
 else
@@ -83,24 +88,12 @@ endif
 
 #Maybe -D_CONST will fix problems with constant type in include files?
 #If your version of Linux doesn't define SignalHandler add -DNOSIGHAND to CFLAGS
-#If you have the nasm assembler on your system add -DNASM to CFLAGS
 
-ifeq ($(AS),/usr/bin/nasm)
-
-CFLAGS = -I$(HFD) $(DEFINES) -g $(shell sdl2-config --cflags) -DBIG_ANSI_C -DNASM -fno-builtin -no-pie
+CFLAGS = -I$(HFD) $(DEFINES) -g $(shell sdl2-config --cflags) -fno-builtin -no-pie
 #CFLAGS = -I. -D_CONST $(DEFINES)
 #CFLAGS = -I$(HFD) $(DEFINES) -g $(shell sdl2-config --cflags) -DBIG_ANSI_C \
 #         -march=$(ARCH) -DNASM -fno-builtin -no-pie
 #CFLAGS = -I. $(DEFINES) -g $(shell sdl2-config --cflags) -DBIG_ANSI_C -Os -DNASM -fno-builtin -no-pie
-
-else
-
-CFLAGS = -I$(HFD) $(DEFINES) -g $(shell sdl2-config --cflags) -DBIG_ANSI_C -fno-builtin -no-pie
-#CFLAGS = -I$(HFD) $(DEFINES) -g $(shell sdl2-config --cflags) -DBIG_ANSI_C \
-#         -march=$(ARCH) -fno-builtin -no-pie
-#CFLAGS = -I. $(DEFINES) -g $(shell sdl2-config --cflags) -DBIG_ANSI_C -Os -fno-builtin -no-pie
-
-endif
 
 # Gcc is often the only compiler that works for this
 #CC = gcc
@@ -254,14 +247,14 @@ tar: clean
 tidy:
 	rm -f $(HOBJS)
 	cd common ; ${MAKE} tidy
-	cd sdl ; ${MAKE} tidy
+	cd sdl ; ${MAKE} tidy "AS=${AS}"
 
 clean:
 	rm -f build-stamp *~ */*~ core
 	rm -f $(HOBJS) fractint.doc fractint.hlp hc fractint xfractint
 	rm -f $(HFD)/helpdefs.h
 	cd $(COMDIR) ; ${MAKE} clean
-	cd $(UDIR) ; ${MAKE} clean
+	cd $(UDIR) ; ${MAKE} clean "AS=${AS}"
 
 install: xfractint fractint.hlp
 	$(STRIP) xfractint

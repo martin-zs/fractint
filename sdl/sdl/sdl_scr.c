@@ -219,7 +219,7 @@ void ResizeScreen(int mode)
   /* mode = 2 to resize the text window */
 
   Uint32 rmask, gmask, bmask, amask;
-  char msg[40];
+  char msg[80];
   int bpp; /* bits per pixel for graphics mode */
   int fontsize;
   int win_size_w;
