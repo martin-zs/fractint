@@ -30,7 +30,7 @@ Wesley Loewer's Big Numbers.        (C) 1994-95, Wesley B. Loewer
 
 *********************************************************************/
 
-#if (!defined(NASM) && !defined(XFRACT))
+#if !(defined NASM  && defined XFRACT)
 /********************************************************************/
 /* r = 0 */
 bn_t clear_bn(bn_t r)
@@ -854,7 +854,7 @@ bn_t div_a_bn_int(bn_t r, U16 u)
 }
 
 #else  /* USE_BIG32 */
-#if (!defined(NASM) && !defined(XFRACT))
+#if !(defined NASM && defined XFRACT)
 
 /***************************************************************************/
 /* n1 != n2 ?                                                              */
@@ -1634,7 +1634,7 @@ bn_t div_a_bn_int(bn_t r, U16 u)
 #endif    /* ndef NASM */
 #endif    /* USE_BIG32 */
 
-#if (!defined(NASM) && !defined(XFRACT))
+#if !(defined NASM && defined XFRACT)
 /*********************************************************************/
 /*  f = b                                                            */
 /*  Converts a bignumber to a double                                 */
@@ -1742,7 +1742,7 @@ bf_t floattobf1(bf_t r, LDBL f)
   return r;
 }
 
-#if (!defined(NASM) && !defined(XFRACT))
+#if !(defined NASM && defined XFRACT)
 
 /*********************************************************************/
 /*  f = b                                                            */
