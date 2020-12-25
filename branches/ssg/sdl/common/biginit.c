@@ -60,7 +60,7 @@ static int restore_bf_vars(void);
 /* given bnlength, calc_lengths will calculate all the other lengths */
 void calc_lengths(void)
 {
-#if (!defined(NASM) && !defined(XFRACT))
+#if !(defined NASM && defined XFRACT)
   bnstep = 4;  /* use 4 in all cases */
 #else
   bnstep = 8;  /* use 8 in all cases */
