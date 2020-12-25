@@ -235,7 +235,7 @@ xfractint: fractint.hlp $(SRCFILES)
 	          "HFD=.${HFD}"
 	cd sdl ; ${MAKE} all "CC=${CC}" "CFLAGS= -I.${HFD} ${CFLAGS} ${OPT}" "SRCDIR=${SHRDIR}" \
 	          "AS=${AS}" "AFLAGS=${AFLAGS}" "HFD=.${HFD}"
-	$(CC) -o xfractint $(CFLAGS) $(OPT) $(OBJS) $(U_OBJS) $(LIBS)
+	$(CC) -o xfractint $(CFLAGS) $(LDFLAGS) $(OPT) $(OBJS) $(U_OBJS) $(LIBS)
 #	strip xfractint
 
 # tar: $(FILES)

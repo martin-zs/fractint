@@ -286,7 +286,9 @@ Fix file access.]]>
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="sdl/calmanfx-64.o" />
-		<Unit filename="sdl/calmanfx-sse2.o" />
+		<Unit filename="sdl/calmanfx-sse2.o">
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
 		<Unit filename="sdl/faccess.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -309,8 +311,7 @@ Fix file access.]]>
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="sstools.ini">
-			<Option target="default" />
-			<Option target="Production" />
+			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Extensions>
 			<code_completion />

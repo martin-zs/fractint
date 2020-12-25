@@ -402,7 +402,7 @@ extern LDBL                  qcj;
 extern LDBL                  qck;
 extern int                   quick_calc;
 extern int                   RANDOMIZE;
-extern U16                  *ranges;
+extern S16                  *ranges;
 extern U16                   rangeslen;
 extern int                   RAY;
 extern char                  ray_name[];
