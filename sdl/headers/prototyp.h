@@ -1095,7 +1095,6 @@ extern void outtext(int, int, int);
 extern int saveimagedata(void);
 extern void restoreimagedata(void);
 extern void refreshimage(void);
-extern void push_resize_event(int);
 
 /*  sdl_snd -- C file prototypes */
 extern void setup_sdl_audio(void);

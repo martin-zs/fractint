@@ -185,8 +185,6 @@ static void my_floating_point_err(int sig)
     overflow = 1;
 }
 
-extern int resize_flag;
-
 int main(int argc, char **argv)
 {
 
@@ -250,11 +248,6 @@ restart:   /* insert key re-starts here */
 
   if (adapter < 0)
      ResizeScreen(0);
-  else
-  {
-     resize_flag = 2;
-     ResizeScreen(1);
-  }
 
   dopause(0);                  /* pause for error msg if not batch */
   init_msg(0,"",NULL,0);  /* this causes getakey if init_msg called on runup */

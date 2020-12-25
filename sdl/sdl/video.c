@@ -207,7 +207,7 @@ int setvideomode (int dotmode)
       dotread = readvideo;
       lineread = readvideoline;
       linewrite = writevideoline;
-      push_resize_event(2);
+      ResizeScreen(1);
       setforgraphics ();
       break;
     case 11:

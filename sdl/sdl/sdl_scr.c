@@ -31,7 +31,7 @@ int SDL_init_flags = SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_TIMER;
 int SDL_init_flags = SDL_INIT_VIDEO|SDL_INIT_TIMER;
 #endif
 int SDL_video_flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI;
-int SDL_renderer_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
+int SDL_renderer_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_TARGETTEXTURE;
 SDL_Cursor *mousecurser = NULL;
 
 struct dac_color_info {
@@ -132,8 +132,7 @@ void Sulock(SDL_Surface *screen)
     }
 }
 
-/* it seems faster to not use a thread for this */
-/* #define USE_THREAD 1 */
+#define USE_THREAD 1
 
 #ifdef USE_THREAD
 static int RemoveImageData(void *ptr)
@@ -262,25 +261,16 @@ void ResizeScreen(int mode)
     }
   else if (mode == 1)  /*  graphics window  */
     {
-      if (resize_flag == 2) /* not called from event Queue */
+      if (videotable[adapter].xdots > max_win_size.w || videotable[adapter].ydots > max_win_size.h)
         {
-          if (videotable[adapter].xdots > max_win_size.w || videotable[adapter].ydots > max_win_size.h)
-            {
-                sprintf(msg, "Selected video mode larger than usable display.  Fractint will crash.\n");
-                popup_error(2, msg);
-                return;
-            }
-          memcpy((char *)&videoentry,(char *)&videotable[adapter],
-                 sizeof(videoentry));  /* the selected entry now in videoentry */
+            sprintf(msg, "Selected video mode larger than usable display.  Fractint will crash.\n");
+            popup_error(2, msg);
+            return;
         }
-      else if (resize_flag == 1) /* called from event Queue */
-        {
-          memcpy((char *)&videotable[adapter],(char *)&videoentry,
-               sizeof(videoentry));
-        }
+      memcpy((char *)&videoentry,(char *)&videotable[adapter],
+             sizeof(videoentry));  /* the selected entry now in videoentry */
       SDL_SetWindowSize(sdlWindow, videotable[adapter].xdots, videotable[adapter].ydots);
       SDL_SetWindowPosition(sdlWindow, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED);
-      resize_flag = 0;
       calc_status = 0; /* make sure we recalculate */
     /* need to free the screens & texture here */
       SDL_DestroyRenderer(sdlRenderer);
@@ -432,7 +422,7 @@ void ResizeScreen(int mode)
   font = TTF_OpenFont("crystal.ttf", fontsize);
   if ( font == NULL )
     {
-      sprintf(msg, "Missing file, couldn't set font.\n");
+      sprintf(msg, "Missing file crystal.ttf, couldn't set font.  Fractint will crash.\n");
       popup_error(0, msg);
       exit(1);
     }
@@ -480,22 +470,20 @@ void SetupSDL(void)
 ;       and puts the compatible ones in vidtbl.
 ;       It sets variable dotmode.
 */
-int done_detect = 0;
+static int done_detect = 0;
 
 void adapter_detect(void)
 {
   int wdth;
   int hgth;
-  int desktop_w, desktop_h;
   int i, j, display_mode_count;
   SDL_DisplayMode mode;
+  SDL_Rect max_win_size;
 
   if (done_detect)
     return;
 
-  SDL_GetDesktopDisplayMode(display_in_use, &mode);
-  desktop_w = mode.w;
-  desktop_h = mode.h;
+  SDL_GetDisplayUsableBounds(display_in_use, &max_win_size);
 
   display_mode_count = SDL_GetNumDisplayModes(display_in_use);
   if (display_mode_count > MAXVIDEOTABLE)
@@ -512,12 +500,9 @@ void adapter_detect(void)
          sprintf(msg, "SDL_GetDisplayMode failed: %s", SDL_GetError());
          popup_error(2, msg);
         }
-      if (mode.refresh_rate == 60 && mode.h >= 600) {
-        if (mode.w == desktop_w && mode.h == desktop_h)
-           strncpy(vidtbl[j].comment, "Full Desktop Mode", 25);
-        else
-           strncpy(vidtbl[j].comment, SDL_GetPixelFormatName(mode.format), 25);
-        vidtbl[j].dotmode = SDL_BITSPERPIXEL(mode.format);
+      if (mode.refresh_rate == 60 && mode.h >= 600 && mode.h <= max_win_size.h) {
+        strncpy(vidtbl[j].comment, SDL_GetPixelFormatName(mode.format), 25);
+        vidtbl[j].dotmode = SDL_BYTESPERPIXEL(sdlPixelfmt) * 8;
         sprintf(vidtbl[j].name, "%i-bit True-Color", vidtbl[j].dotmode);
         vidtbl[j].xdots = mode.w;
         vidtbl[j].ydots = mode.h;
@@ -558,6 +543,7 @@ void adapter_detect(void)
   sydots  = ydots;
   done_detect = 1;
   dotmode = SDL_BYTESPERPIXEL(sdlPixelfmt) * 8;
+//  update_fractint_cfg();
 }
 
 int checkwindowsize(int x, int y)
@@ -723,6 +709,15 @@ void writevideo(int x, int y, U32 pixel)
 {
   BYTE red, green, blue;
   long *bufp;
+  char msg[80];
+
+#if DEBUG
+  if (x > sxdots || y > sydots)
+  {
+     sprintf(msg, "Plotting x = %l and y = %l.\n", x, y);
+     popup_error(2, msg);
+  }
+#endif // DEBUG
 
   bufp = (long *)Image_Data.color_info + Image_Data.sizex * y + x;
   *bufp = pixel;
@@ -1843,8 +1838,6 @@ int get_key_event(int block)
 {
   SDL_Event event;
   int keyispressed = 0;
-  int winx, winy;
-  int changing_win_size = 0;
 
   do
     {
@@ -1859,22 +1852,6 @@ int get_key_event(int block)
 
             switch (event.window.event) {
             case SDL_WINDOWEVENT_RESIZED:
-              if (resize_flag == 0)
-                 {
-                 winx = event.window.data1 & 0xFFFC;  /* divisible by 4 */
-                 winy = (event.window.data2 + 3) & 0xFFFC;  /* divisible by 4 */
-                 changing_win_size = 1;
-                 break;
-                 }
-              else /* resize_flag == 1 or 2 set by WM or <DEL> */
-              {
-                 if (calc_status != -1 && !browsing)
-                    keyispressed = ENTER;
-              }
-              discardscreen(); /* dump text screen if in use */
-              calc_status = 0;
-              ResizeScreen(1);
-              return (keyispressed);
               break;
             case SDL_WINDOWEVENT_EXPOSED:
             case SDL_WINDOWEVENT_SHOWN:
@@ -1915,7 +1892,8 @@ int get_key_event(int block)
             case SDL_MOUSEBUTTONUP:
              if (!screenctr)
               {
-              if (event.button.button == SDL_BUTTON_LEFT) {
+              if (event.button.button == SDL_BUTTON_LEFT)
+                {
                 if (left_mouse_button_down == 1)
                    {
                       calc_status = 0;
@@ -1923,7 +1901,7 @@ int get_key_event(int block)
                    }
                 left_mouse_button_down = 0;
                 button_held = 0;
-              }
+                }
               if (event.button.button == SDL_BUTTON_RIGHT)
                 right_mouse_button_down = 0;
               }
@@ -1938,19 +1916,6 @@ int get_key_event(int block)
               break;
             }
         }
-  if (changing_win_size && ((winx != sxdots || winy != sydots) || window_is_fullscreen))
-    {
-      videoentry.xdots = winx;
-      videoentry.ydots = winy;
-      changing_win_size = 0;
-      keyispressed = ENTER;
-      resize_flag = 1;
-      adapter = MAXVIDEOTABLE - 1;
-//      saved_adapter_mode = -2; /* force video initialization */
-      discardscreen(); /* dump text screen if in use */
-      ResizeScreen(1);
-      return (keyispressed);
-    }
   if (checkautosave())
       keyispressed = 9999; /* time to save, exit */
   if (time_to_update() && updatewindow)
@@ -1964,17 +1929,6 @@ int get_key_event(int block)
       updateimage();
     }
   return (keyispressed);
-}
-
-void push_resize_event (int flag)
-{
-  SDL_Event pushevent;
-
-  resize_flag = flag;
-  pushevent.type = SDL_WINDOWEVENT;
-  pushevent.window.event = SDL_WINDOWEVENT_RESIZED;
-
-  SDL_PushEvent(&pushevent);
 }
 
 /*
@@ -2033,7 +1987,7 @@ int time_to_update(void)
       else
         return (0);
     }
-    else if (button_held)
+  else if (button_held)
     {
       if (next_time <= now)
         {
@@ -2043,7 +1997,7 @@ int time_to_update(void)
       else
         return (0);
     }
-    else if (screenctr > 0)
+  else if (screenctr > 0)
     {
       if (next_time <= now)
         {
@@ -2054,7 +2008,7 @@ int time_to_update(void)
       else
         return (0);
     }
-    else
+  else
     {
     SDL_Delay(1);
     return (1);

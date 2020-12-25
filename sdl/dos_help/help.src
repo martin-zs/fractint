@@ -285,11 +285,8 @@ Version 20.5.00 is an update of Fractint 20.0 based on the developer's
 
 Version 20.5 is a Port to SDL 2.0
 
-Fixed creation of parameter entries (using <b>) that randomly failed.\
-  Fixed fractal type menu items that did not return to the currently\
-  selected fractal.\
-  Changed Arbitrary Precision Math C code to use 32/64 bit routines\
-  instead of 16/32 bit routines.
+Stabilized graphics resolution changes using <DEL>.\
+  Xfractint AP math now uses assembly language code.\
 
 Known issues:\
 Random crashes\

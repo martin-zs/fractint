@@ -84,7 +84,7 @@ long    bailout;                /* user input bailout value */
 enum    bailouts bailoutest;    /* test used for determining bailout */
 double  inversion[3];           /* radius, xcenter, ycenter */
 int     rotate_lo,rotate_hi;    /* cycling color range      */
-U16     *ranges;                /* iter->color ranges mapping */
+S16     *ranges;                /* iter->color ranges mapping */
 U16     rangeslen = 0;          /* size of ranges array     */
 BYTE    *mapdacbox = NULL;      /* map= (default colors)    */
 int     colorstate;             /* 0, dacbox matches default (bios or map=) */
