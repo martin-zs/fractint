@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <float.h>
 #include <math.h>
+#include <limits.h>
 
 #if (defined(__STDC__) || defined(__cplusplus)) && !defined(STDC)
 #  define STDC
@@ -54,7 +55,7 @@
         typedef short          S16;
         typedef unsigned int   U32;
         typedef int            S32;
-#if __WORDSIZE == 64
+#if (LONG_MAX == 9223372036854775807)
         typedef unsigned long U64;
         typedef long          S64;
 #else /* need to use long long */
