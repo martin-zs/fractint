@@ -211,9 +211,9 @@ align 4
    mov   ebp, esp
    mov   eax, [ebp + 0x8]  ; load X into eax
 
-   mov   ax, WORD [eax+DBLSZ+6]
+   mov   cx, WORD [eax+DBLSZ+6]
 ;   mov   ImagZero, ax
-   or    ax, WORD [eax+6]
+   or    cx, WORD [eax+6]
    jnz   NotBothZero
 
    fldz
