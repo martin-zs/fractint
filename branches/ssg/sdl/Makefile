@@ -4,12 +4,13 @@ INSTALL = /usr/bin/install
 
 # Architecture
 # automatic detection
-#ARCH = `uname -m | tr "_" "-"`
+# ARCH = `uname -m | tr "_" "-"`
 # ARCH = pentium
-ARCH = x86_64
+# ARCH = x86-64
 # ARCH = athlon64
 # ARCH = i386
 # ARCH = i686
+ARCH = native
 
 # Optimization flags
 # OPT = -O2
@@ -27,7 +28,7 @@ endif
 # SRCDIR should also hold the .par, .frm, etc. files
 SRCDIR = $(DESTDIR)/share/xfractint
 SHRDIR = $(PREFIX)/share/xfractint
-# BINDIR is where you put your X11 binaries
+# BINDIR is where you put your binaries
 BINDIR = $(DESTDIR)/bin
 # MANDIR is where you put your chapter 1 man pages
 MANDIR = $(DESTDIR)/share/man/man1
@@ -50,6 +51,10 @@ BASEDIR = $(shell basename ${PWD})
 NOBSTRING =
 HAVESTRI =
 DEBUG =
+# Use BIT64 = x86-64, if you have a 64-bit system and nasm installed
+# 32-bit assembly has not been tested. The default is to use C code.
+BIT64 =
+# BIT64 = x86-64
 
 # For Red Hat Linux, uncomment the NOBSTRING line.
 # For Cygwin, uncomment the NOBSTRING and HAVESTRI lines below.
@@ -58,14 +63,18 @@ DEBUG =
 NOBSTRING = -DNOBSTRING
 #HAVESTRI = -DHAVESTRI
 #DEBUG adds some sanity checking but will slow xfractint down
-#DEBUG = -DEBUG
+#DEBUG = -DDEBUG
 # If your compiler doesn't handle void *, define -DBADVOID
 # If you get SIGFPE errors define -DFPUERR
+
 # If you have the nasm assembler on your system add -DNASM to DEFINES
 # Note that because of the differences between the assembler syntaxes,
 #  nasm is the only one that will work.
+ifeq ($(BIT64),x86-64)
 AS = $(wildcard /usr/bin/nasm)
-# AS =
+else
+AS =
+endif
 
 ifeq ($(AS),/usr/bin/nasm)
 DEFINES = -DXFRACT  -DBIG_ANSI_C -DNASM $(NOBSTRING) $(HAVESTRI) $(DEBUG)
@@ -80,16 +89,18 @@ endif
 #DEFINES += -DCYGWIN -DDIRENT
 
 # Below is for Linux with output file type of elf or elf64, turn all warnings on
-ifeq ($(ARCH),x86_64)
+ifeq ($(BIT64),x86-64)
 AFLAGS = -Ox -f elf64 -w+orphan-labels
 else
-AFLAGS = -Ox -f elf -w+orphan-labels
+AFLAGS =
+# AFLAGS = -Ox -f elf -w+orphan-labels
 endif
 
 #Maybe -D_CONST will fix problems with constant type in include files?
 #If your version of Linux doesn't define SignalHandler add -DNOSIGHAND to CFLAGS
 
-CFLAGS = -I$(HFD) $(DEFINES) -g $(shell sdl2-config --cflags) -fno-builtin -no-pie
+CFLAGS = -I$(HFD) $(DEFINES) -g $(shell sdl2-config --cflags) -fno-builtin -no-pie \
+         -march=$(ARCH)
 #CFLAGS = -I. -D_CONST $(DEFINES)
 #CFLAGS = -I$(HFD) $(DEFINES) -g $(shell sdl2-config --cflags) -DBIG_ANSI_C \
 #         -march=$(ARCH) -DNASM -fno-builtin -no-pie
