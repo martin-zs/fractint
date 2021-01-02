@@ -1208,7 +1208,7 @@ void putstring (int row, int col, int attr, CHAR *msg)
         }
       else
         {
-#if 0
+#if 1
           if (c >= TEXT_WIDTH) c = TEXT_WIDTH - 1; /* keep going, but truncate */
           if (r >= TEXT_HEIGHT) r = TEXT_HEIGHT - 1;
 #endif

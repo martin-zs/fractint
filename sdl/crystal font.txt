@@ -1,0 +1,2 @@
+The Crystal.ttf file is a monospaced font found on www.urbanfonts.com and was designed by Jerry Fitzpatrick.
+Harold Lane modified the font to add arrows.

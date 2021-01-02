@@ -1,0 +1,24 @@
+Setting up to compile Fractint port to SDL
+
+Linux:
+
+Run: sudo apt-get install build-essential
+
+The following packages (and their dependencies) are needed:
+  libsdl2-dev
+  libsdl2-2.0-0
+  libsdl2-ttf2.0-0
+  libsdl2-ttf-dev
+
+Ubuntu 14.04 has these packages, 16.04 does not, 18.04 does.
+  On a Debian based system (like Ubuntu):
+  Need to run: sudo apt-get install libsdl2-dev
+  Need to run: sudo apt-get install libsdl2-ttf-dev
+  Need to run: sudo apt-get install libsdl2-2.0
+  Need to run: sudo apt-get install libsdl2-ttf2.0-0
+
+See wiki.libsdl.org/installation
+
+For help with SDL, start with:
+http://wiki.libsdl.org/FrontPage
+
