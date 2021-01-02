@@ -55,7 +55,6 @@ BYTE nullread (int, int);
 void setfortext (void);
 void setforgraphics (void);
 int  setvideomode (int);
-void putstring (int, int, int, CHAR *);
 void normaline (int, int, int, BYTE *);
 void normalineread (int, int, int, BYTE *);
 
