@@ -271,7 +271,8 @@ void ResizeScreen(int mode)
              sizeof(videoentry));  /* the selected entry now in videoentry */
       SDL_SetWindowSize(sdlWindow, videotable[adapter].xdots, videotable[adapter].ydots);
       SDL_SetWindowPosition(sdlWindow, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED);
-      calc_status = 0; /* make sure we recalculate */
+      if (calc_status != 4) /* if not complete */
+          calc_status = 0;  /* can't resume anyway */
     /* need to free the screens & texture here */
       SDL_DestroyRenderer(sdlRenderer);
       sdlRenderer = NULL;
