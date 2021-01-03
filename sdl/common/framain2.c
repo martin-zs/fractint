@@ -103,7 +103,6 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
               xdots = sxdots;
               ydots = sydots;
               saved_adapter_mode = adapter;
-//              calc_status = -1;
             }
           else /* clear the screen */
             {

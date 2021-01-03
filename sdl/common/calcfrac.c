@@ -546,9 +546,9 @@ int calcfract(void)
       else
         truecolor = 0;
     }
-  if (!use_grid || (xdots > OLDMAXPIXELS || ydots > OLDMAXPIXELS))
+  if (!use_grid || (xdots > OLDMAXPIXELS>>1 || ydots > OLDMAXPIXELS>>1))
     {
-      if (usr_stdcalcmode != 'o')
+      if (usr_stdcalcmode == 'g')
         usr_stdcalcmode = stdcalcmode = '1';
     }
 
@@ -1192,7 +1192,7 @@ static int diffusion_scan(void)
    x >>= dif_offset;           y >>= dif_offset
 /* end of inlined function */
 
-/* REMOVED: counter byte 3 */                                                          \
+/* REMOVED: counter byte 3 */
 /* (x) <<=4; (x)+=dif_la[tC&0(x)FF]; (y) <<=4; (y)+=dif_lb[tC&0(x)FF]; tC>>=8;
    --> eliminated this and made (*) because fractint user coordinates up to
    2048(x)2048 what means a counter of 24 bits or 3 bytes */
