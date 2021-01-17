@@ -2150,7 +2150,7 @@ int cmdarg(char *curarg,int mode) /* process a single argument */
         soundflag = soundflag | 4;
       else
         goto badarg;
-#if 0
+
       if (totparms > 1)
         {
           int i;
@@ -2158,12 +2158,8 @@ int cmdarg(char *curarg,int mode) /* process a single argument */
           for (i = 1; i < totparms; i++)
             {
               /* this is for 2 or more options at the same time */
-              if (charval[i] == 'f')   /* (try to)switch on opl3 fm synth */
-                {
-                  if (initfm())
-                    soundflag = soundflag | 16;
-                  else soundflag = (soundflag & 0xEF);
-                }
+              if (charval[i] == 'f')
+                soundflag = soundflag | 16;
               else if (charval[i] == 'p')
                 soundflag = soundflag | 8;
               else if (charval[i] == 'm')
@@ -2252,7 +2248,6 @@ int cmdarg(char *curarg,int mode) /* process a single argument */
             else if ((intval[counter] >= 0) && (intval[counter] < 13))
           scale_map[counter] = intval[counter];
          }
-#endif
       return(0);
     }
 

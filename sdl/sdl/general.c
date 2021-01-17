@@ -385,7 +385,11 @@ int getakeynohelp(void)
 int getakey(void)
 {
   int ch;
-
+/*
+  ch = soundflag & 7;
+  if (ch != 0 && ch != 7)
+      mute();
+*/
   do
     {
       ch = getkeyint(0);
@@ -478,17 +482,8 @@ int kbhit(void)
 */
 void buzzer(int buzzertype)
 {
-  if ((soundflag & 7) != 0)
-    {
-      printf("\007 \n");
-      fflush(stdout);
-    }
-  if (buzzertype==0)
-    {
-// FIXME (jonathan#1#): Need to determine what next should do.
-//      redrawscreen();
-    }
-sdl_buzzer();
+  sdl_buzzer(buzzertype);
+  return;
 }
 
 /*
@@ -513,10 +508,15 @@ int soundon(int hertz)
 }
 
 void soundoff(void)
-{}
+{
+  return;
+}
 
 void mute(void)
-{}
+{
+  sdl_mute();
+  return;
+}
 
 /* tenths of millisecond timewr routine */
 static struct timeval tv_start;
