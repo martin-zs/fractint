@@ -1097,8 +1097,10 @@ extern void restoreimagedata(void);
 extern void refreshimage(void);
 
 /*  sdl_snd -- C file prototypes */
+extern void cleanup_sdl_audio(void);
 extern void setup_sdl_audio(void);
-extern void sdl_buzzer(void);
+extern void sdl_buzzer(int);
+extern void sdl_mute(void);
 
 /*  video -- C file prototypes */
 

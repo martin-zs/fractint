@@ -546,10 +546,14 @@ int calcfract(void)
       else
         truecolor = 0;
     }
-  if (!use_grid || (xdots > OLDMAXPIXELS>>1 || ydots > OLDMAXPIXELS>>1))
+  if (!use_grid)
+    {
+      usr_stdcalcmode = stdcalcmode = '1';
+    }
+  else if (xdots > OLDMAXPIXELS || ydots > OLDMAXPIXELS)
     {
       if (usr_stdcalcmode == 'g')
-        usr_stdcalcmode = stdcalcmode = '1';
+        usr_stdcalcmode = stdcalcmode = '3';
     }
 
   init_misc();  /* set up some variables in parser.c */
