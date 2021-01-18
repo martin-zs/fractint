@@ -43,9 +43,8 @@ Fix stackscreen/unstackscreen? - look at 3d images.]]>
 			<Target title="debug">
 				<Option platforms="Windows;" />
 				<Option output="Fractint" prefix_auto="1" extension_auto="1" />
-				<Option type="1" />
+				<Option type="0" />
 				<Option compiler="gcc" />
-				<Option use_console_runner="0" />
 				<Option projectLinkerOptionsRelation="0" />
 				<Option projectIncludeDirsRelation="0" />
 				<Option projectResourceIncludeDirsRelation="0" />
