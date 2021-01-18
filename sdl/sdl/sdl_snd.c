@@ -5,6 +5,8 @@
 #include <string.h>
 #include <math.h>
 #include <SDL.h>
+#include <SDL_audio.h>
+#include <SDL_platform.h>
 
 #include "port.h"
 #include "prototyp.h"
@@ -49,6 +51,15 @@ static char offvoice = 0;
 
 static void squarewave(void *, U32, int);
 static void sinewave(void *, U32, int);
+
+void sdl_check_for_windows(void)
+{
+char whichone[7];
+  if (strncmp("Windows", SDL_GetPlatform(), 7) == 0)
+    if (getenv("SDL_AUDIODRIVER") == NULL)
+      popup_error(3, "Need Audio Driver");
+  return;
+}
 
 void setup_sdl_audio(void)
 {
