@@ -54,10 +54,10 @@ static void sinewave(void *, U32, int);
 
 void sdl_check_for_windows(void)
 {
-char whichone[7];
   if (strncmp("Windows", SDL_GetPlatform(), 7) == 0)
-    if (getenv("SDL_AUDIODRIVER") == NULL)
-      popup_error(3, "Need Audio Driver");
+    if (SDL_getenv("SDL_AUDIODRIVER") == NULL)
+      SDL_setenv("SDL_AUDIODRIVER", "directsound", 1);
+//      popup_error(3, "Need Audio Driver");
   return;
 }
 

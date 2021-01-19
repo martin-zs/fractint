@@ -5,6 +5,9 @@
 #include <string.h>
 #include <SDL.h>
 #include <SDL_ttf.h>
+#include <SDL_cpuinfo.h>
+#include <SDL_platform.h>
+#include <SDL_version.h>
 
 #include "port.h"
 #include "prototyp.h"
@@ -438,6 +441,8 @@ void SetupSDL(void)
 
   char msg[40];
 
+  sdl_check_for_windows();
+
   if ( SDL_Init(SDL_init_flags) < 0 )
     {
       sprintf(msg, "Unable to init SDL.\n");
@@ -461,6 +466,43 @@ void SetupSDL(void)
 //      exit(1);
 //    }
 
+}
+
+void showfreemem(void)
+{
+char msg[200];
+char *msgptr;
+int msglen = 0;
+SDL_version linked;
+
+msgptr = msg + msglen;
+sprintf(msgptr, "Logical cores = %d.\n", SDL_GetCPUCount());
+
+msglen = strlen(msg);
+msgptr = msg + msglen;
+sprintf(msgptr, "System RAM is %d MB.\n", SDL_GetSystemRAM());
+
+msglen = strlen(msg);
+msgptr = msg + msglen;
+sprintf(msgptr, "Operating System is %s.\n", SDL_GetPlatform());
+
+msglen = strlen(msg);
+msgptr = msg + msglen;
+SDL_GetVersion(&linked);
+sprintf(msgptr, "SDL version %d.%d.%d.\n",
+       linked.major, linked.minor, linked.patch);
+
+msglen = strlen(msg);
+msgptr = msg + msglen;
+sprintf(msgptr, "Audio driver: %s.\n", SDL_GetCurrentAudioDriver());
+
+
+SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION,
+                         "System Information",
+                         msg,
+                         NULL);
+
+return;
 }
 
 /*

@@ -669,7 +669,6 @@ extern void froth_cleanup(void);
 
 extern void make_batch_file(void);
 extern void shell_to_dos(void);
-extern void showfreemem(void);
 extern int select_video_mode(int );
 extern void format_vid_table(int choice,char *buf);
 extern void make_mig(unsigned int, unsigned int);
@@ -1062,6 +1061,7 @@ extern int strnicmp(char *, char *, int);
 extern void CleanupSDL(void);
 extern void ResizeScreen(int);
 extern void SetupSDL(void);
+extern void showfreemem(void);
 extern void adapter_detect(void);
 extern int  checkwindowsize(int, int);
 extern void startvideo(void);
@@ -1097,6 +1097,7 @@ extern void restoreimagedata(void);
 extern void refreshimage(void);
 
 /*  sdl_snd -- C file prototypes */
+extern void sdl_check_for_windows(void);
 extern void cleanup_sdl_audio(void);
 extern void setup_sdl_audio(void);
 extern void sdl_buzzer(int);
