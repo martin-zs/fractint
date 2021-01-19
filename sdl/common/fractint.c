@@ -262,6 +262,9 @@ restart:   /* insert key re-starts here */
 // NOTE (jonathan#1#): Following shows up a lot, is it really necessary??? JCO
   savedac = 0;                         /* don't save the VGA DAC */
 
+  if (debugflag == 10000)
+    showfreemem();
+
   if (badconfig < 0)                   /* fractint.cfg bad, no msg yet */
     bad_fractint_cfg_msg();
 
