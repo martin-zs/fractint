@@ -28,7 +28,7 @@ int x_close = 0;
 
 TTF_Font *font = NULL;
 SDL_Color cols[256];
-int SDL_init_flags = SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_TIMER;
+int SDL_init_flags = SDL_INIT_VIDEO|SDL_INIT_TIMER;
 int SDL_video_flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI;
 int SDL_renderer_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_TARGETTEXTURE;
 SDL_Cursor *mousecurser = NULL;
@@ -169,11 +169,12 @@ void CleanupSDL(void)
 
   SDL_FreeCursor(mousecurser);
 
+  cleanup_sdl_audio();
+  SDL_QuitSubSystem(SDL_INIT_AUDIO);
+
   TTF_CloseFont(font);
   font = NULL;
   TTF_Quit();
-
-  cleanup_sdl_audio();
 
   SDL_Quit();
   delay(250);
@@ -457,6 +458,7 @@ void SetupSDL(void)
       exit(1);
     }
 
+  SDL_InitSubSystem(SDL_INIT_AUDIO);
   setup_sdl_audio();
 
 // NOTE (jonathan#1#): May not need this once png support is added.
