@@ -476,6 +476,8 @@ char msg[200];
 char *msgptr;
 int msglen = 0;
 SDL_version linked;
+SDL_Rect max_win_size;
+SDL_DisplayMode current;
 
 msgptr = msg + msglen;
 sprintf(msgptr, "Logical cores = %d.\n", SDL_GetCPUCount());
@@ -486,13 +488,23 @@ sprintf(msgptr, "System RAM is %d MB.\n", SDL_GetSystemRAM());
 
 msglen = strlen(msg);
 msgptr = msg + msglen;
-sprintf(msgptr, "Operating System is %s.\n", SDL_GetPlatform());
+SDL_GetDisplayUsableBounds(display_in_use, &max_win_size);
+sprintf(msgptr, "Usable window = %d X %d.\n", max_win_size.w, max_win_size.h);
+
+msglen = strlen(msg);
+msgptr = msg + msglen;
+SDL_GetCurrentDisplayMode(display_in_use, &current);
+sprintf(msgptr, "Desktop = %d X %d @ %d Hz.\n", current.w, current.h, current.refresh_rate);
 
 msglen = strlen(msg);
 msgptr = msg + msglen;
 SDL_GetVersion(&linked);
 sprintf(msgptr, "SDL version %d.%d.%d.\n",
        linked.major, linked.minor, linked.patch);
+
+msglen = strlen(msg);
+msgptr = msg + msglen;
+sprintf(msgptr, "Video driver: %s.\n", SDL_GetCurrentVideoDriver());
 
 msglen = strlen(msg);
 msgptr = msg + msglen;
