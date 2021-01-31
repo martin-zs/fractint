@@ -753,8 +753,8 @@ int tab_display_2(char *msg)
       sprintf(msg,"total_formula_mem %ld Max_Ops (posp) %u Max_Args (vsp) %u",
               total_formula_mem,posp,vsp);
       putstring(s_row++,2,C_GENERAL_HI,msg);
-      sprintf(msg,"   Store ptr %d Loadptr %d Max_Ops var %u Max_Args var %u LastInitOp %d",
-              StoPtr,LodPtr,Max_Ops,Max_Args,LastInitOp);
+      sprintf(msg,"   Store ptr %d Loadptr %d Max_Ops var %u Max_Args var %u",
+              StoPtr,LodPtr,Max_Ops,Max_Args);
       putstring(s_row++,2,C_GENERAL_HI,msg);
     }
   else if (rhombus_stack[0])
@@ -857,6 +857,7 @@ top:
     putstring(s_row,16,C_GENERAL_HI,s3D_transform);
   else
     {
+      char DispName[MAX_NAME];
       putstring(s_row,16,C_GENERAL_HI,
                 curfractalspecific->name[0] == '*' ?
                 &curfractalspecific->name[1] :
@@ -864,33 +865,36 @@ top:
       i = 0;
       if (fractype == FORMULA || fractype == FFORMULA)
         {
+          extract_filename(DispName, FormFileName);
           putstring(s_row+1,3,C_GENERAL_MED,sitem_name);
           putstring(s_row+1,16,C_GENERAL_HI,FormName);
           i = strlen(FormName)+1;
           putstring(s_row+2,3,C_GENERAL_MED,sitem_file);
-          if ((int)strlen(FormFileName) >= 29)
+          if ((int)strlen(DispName) >= 29)
             addrow = 1;
-          putstring(s_row+2+addrow,16,C_GENERAL_HI,FormFileName);
+          putstring(s_row+2+addrow,16,C_GENERAL_HI,DispName);
         }
       trigdetails(msg);
       putstring(s_row+1,16+i,C_GENERAL_HI,msg);
       if (fractype == LSYSTEM)
         {
+          extract_filename(DispName, LFileName);
           putstring(s_row+1,3,C_GENERAL_MED,sitem_name);
           putstring(s_row+1,16,C_GENERAL_HI,LName);
           putstring(s_row+2,3,C_GENERAL_MED,sitem_file);
-          if ((int)strlen(LFileName) >= 28)
+          if ((int)strlen(DispName) >= 28)
             addrow = 1;
-          putstring(s_row+2+addrow,16,C_GENERAL_HI,LFileName);
+          putstring(s_row+2+addrow,16,C_GENERAL_HI,DispName);
         }
       if (fractype == IFS || fractype == IFS3D)
         {
+          extract_filename(DispName, IFSFileName);
           putstring(s_row+1,3,C_GENERAL_MED,sitem_name);
           putstring(s_row+1,16,C_GENERAL_HI,IFSName);
           putstring(s_row+2,3,C_GENERAL_MED,sitem_file);
-          if ((int)strlen(IFSFileName) >= 28)
+          if ((int)strlen(DispName) >= 28)
             addrow = 1;
-          putstring(s_row+2+addrow,16,C_GENERAL_HI,IFSFileName);
+          putstring(s_row+2+addrow,16,C_GENERAL_HI,DispName);
         }
     }
 
@@ -1163,7 +1167,7 @@ top:
         char p[50];
         if (typehasparm(fractype,i,p))
           {
-            if (k%4 == 0)
+            if (k%3 == 0)
               {
                 s_row++;
                 col = 9;
@@ -1184,7 +1188,10 @@ top:
             k++;
           }
       }
-  putstring(s_row+=2,2,C_GENERAL_MED,siteration_maximum);
+  if(s_row >= 22)
+    putstring(s_row+=1,2,C_GENERAL_MED,siteration_maximum);
+  else
+    putstring(s_row+=2,2,C_GENERAL_MED,siteration_maximum);
   sprintf(msg,"%ld (%ld)",coloriter,maxit);
   putstring(-1,-1,C_GENERAL_HI,msg);
   putstring(-1,-1,C_GENERAL_MED,seffective_bailout);
