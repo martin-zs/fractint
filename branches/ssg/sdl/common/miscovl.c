@@ -1701,7 +1701,7 @@ int select_video_mode(int curmode)
 
   oldtabmode = tabmode;
   oldhelpmode = helpmode;
-tryagain:
+//tryagain:
   modes_changed = 0;
   tabmode = 0;
   helpmode = HELPVIDSEL;
@@ -1722,13 +1722,13 @@ tryagain:
     i = -1 - i;
   else         /* picked by Enter key */
     i = entnums[i];
-
+#if 0
   if (!checkwindowsize(vidtbl[i].xdots, vidtbl[i].ydots) && vidtbl[i].dotmode != 11)
     {
     popup_error(3,"Selected video resolution not available.");
     goto tryagain;
     }
-
+#endif
   memcpy((char *)&videoentry,(char *)&vidtbl[i],
              sizeof(videoentry));  /* the selected entry now in videoentry */
 

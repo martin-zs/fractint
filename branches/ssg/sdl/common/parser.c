@@ -203,7 +203,7 @@ static unsigned long RandNum;
 short uses_p1, uses_p2, uses_p3, uses_p4, uses_p5, uses_jump;
 short uses_ismand;
 unsigned int chars_in_formula;
-extern LDBL infinity;
+extern double infinity;
 
 #ifdef XFRACT  /* long is 8-bytes */
   #define LONGINFINITY 0x7fffffff
