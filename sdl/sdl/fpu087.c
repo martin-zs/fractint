@@ -26,7 +26,7 @@ int overflow = 0;
 double _2_ = 2.0;
 double _1_ = 1.0;
 double PointFive = 0.5;
-LDBL infinity = 1.0E+300;
+double infinity = 1.0E+300;
 
 #ifndef NASM
 void FPUaptan387(double *y, double *x, double *atan)

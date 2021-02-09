@@ -223,8 +223,8 @@ void ResizeScreen(int mode)
   char msg[80];
   int bpp; /* bits per pixel for graphics mode */
   int fontsize;
-  int win_size_w;
-  int win_size_h;
+  int rend_size_w;
+  int rend_size_h;
   SDL_Rect max_win_size;
 
   SDL_GetDisplayUsableBounds(display_in_use, &max_win_size);
@@ -263,12 +263,6 @@ void ResizeScreen(int mode)
     }
   else if (mode == 1)  /*  graphics window  */
     {
-      if (videotable[adapter].xdots > max_win_size.w || videotable[adapter].ydots > max_win_size.h)
-        {
-            sprintf(msg, "Selected video mode larger than usable display.  Fractint will crash.\n");
-            popup_error(2, msg);
-            return;
-        }
       memcpy((char *)&videoentry,(char *)&videotable[adapter],
              sizeof(videoentry));  /* the selected entry now in videoentry */
       SDL_SetWindowSize(sdlWindow, videotable[adapter].xdots, videotable[adapter].ydots);
@@ -327,13 +321,15 @@ void ResizeScreen(int mode)
       exit(1);
     }
 
-  SDL_GetRendererOutputSize(sdlRenderer, &win_size_w, &win_size_h);
-  SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");  /* make the scaled rendering look smoother */
-  if (videotable[adapter].xdots != win_size_w || videotable[adapter].ydots != win_size_h)
+  if (debugflag == 10000)
+  {
+    SDL_GetRendererOutputSize(sdlRenderer, &rend_size_w, &rend_size_h);
+    if (rend_size_w > max_win_size.w || rend_size_h > max_win_size.h)
     {
-      sprintf(msg, "Selected video mode different than Window size.  Fractint will crash.\n");
+      sprintf(msg, "Selected video mode greater than Window size.\n");
       popup_error(2, msg);
      }
+  }
 
   /* initialize screen to black */
   SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
@@ -348,7 +344,6 @@ void ResizeScreen(int mode)
 
 #if DEBUG
   sprintf(msg, "%s at %dx%dx%d", Fractint, sxdots, sydots, bpp);
-  fprintf(stderr, "Set %dx%d at %d bits-per-pixel mode\n", sxdots, sydots, bpp);
 #elif PRODUCTION
   sprintf(msg, Fractint);
 #else
@@ -531,12 +526,17 @@ void adapter_detect(void)
 {
   int wdth;
   int hgth;
+  int desktop_w, desktop_h;
   int i, j, display_mode_count;
   SDL_DisplayMode mode;
   SDL_Rect max_win_size;
 
   if (done_detect)
     return;
+
+  SDL_GetDesktopDisplayMode(display_in_use, &mode);
+  desktop_w = mode.w;
+  desktop_h = mode.h;
 
   SDL_GetDisplayUsableBounds(display_in_use, &max_win_size);
 
@@ -555,8 +555,11 @@ void adapter_detect(void)
          sprintf(msg, "SDL_GetDisplayMode failed: %s", SDL_GetError());
          popup_error(2, msg);
         }
-      if (mode.refresh_rate == 60 && mode.h >= 600 && mode.h <= max_win_size.h) {
-        strncpy(vidtbl[j].comment, SDL_GetPixelFormatName(mode.format), 25);
+      if (mode.refresh_rate == 60 && mode.w >= 320) {
+        if (mode.w == desktop_w && mode.h == desktop_h)
+          strncpy(vidtbl[j].comment, "Full Desktop Mode", 25);
+        else
+          strncpy(vidtbl[j].comment, SDL_GetPixelFormatName(mode.format), 25);
         vidtbl[j].dotmode = SDL_BYTESPERPIXEL(sdlPixelfmt) * 8;
         sprintf(vidtbl[j].name, "%i-bit True-Color", vidtbl[j].dotmode);
         vidtbl[j].xdots = mode.w;
@@ -1799,13 +1802,13 @@ int check_mouse(SDL_Event mevent)
   else
        bnum = 0;
 
-  if ((lookatmouse == 3 && bnum == 0) || zoomoff == 0)
+  if ((lookatmouse == 3 && bnum != 0) /*|| zoomoff == 0 */)
     {
       dx += (mevent.button.x - lastx);
       dy += (mevent.button.y - lasty);
       lastx = mevent.button.x;
       lasty = mevent.button.y;
-      return (0);
+//      return (0);
     }
 
     if (!keyispressed && editpal_cursor && !inside_help && lookatmouse == 3 &&
