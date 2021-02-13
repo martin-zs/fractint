@@ -435,25 +435,42 @@ void SetupSDL(void)
 {
   /* called by main() routine */
 
-  char msg[40];
+  char msg[80];
+  SDL_version compiled;
+  SDL_version linked;
 
   sdl_check_for_windows();
 
   if ( SDL_Init(SDL_init_flags) < 0 )
     {
-      sprintf(msg, "Unable to init SDL.\n");
+      sprintf(msg, "Unable to initialize SDL: %s\n", SDL_GetError());
+      popup_error(0, msg);
+      exit(1);
+    }
+
+  SDL_VERSION(&compiled);
+  SDL_GetVersion(&linked);
+  if (compiled.major > linked.major)
+    {
+      sprintf(msg, "Compiled version: %d\nLinked version: %d\n",
+              compiled.major, linked.major);
       popup_error(0, msg);
       exit(1);
     }
 
   if (TTF_Init() < 0)
     {
-      sprintf(msg, "Unable to init TTF.\n");
+      sprintf(msg, "Unable to initialize SDL TTF: %s\n", SDL_GetError());
       popup_error(0, msg);
       exit(1);
     }
 
-  SDL_InitSubSystem(SDL_INIT_AUDIO);
+  if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0)
+    {
+      sprintf(msg, "Unable to initialize SDL audio: %s\n", SDL_GetError());
+      popup_error(3, msg);
+    }
+
   setup_sdl_audio();
 
 // NOTE (jonathan#1#): May not need this once png support is added.

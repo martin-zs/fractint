@@ -54,6 +54,7 @@ static void sinewave(void *, U32, int);
 
 void sdl_check_for_windows(void)
 {
+/* Check if using windows, then check for environment variable. */
   if (strncmp("Windows", SDL_GetPlatform(), 7) == 0)
     if (SDL_getenv("SDL_AUDIODRIVER") == NULL)
       SDL_setenv("SDL_AUDIODRIVER", "directsound", 1);
@@ -64,7 +65,7 @@ void setup_sdl_audio(void)
 {
 memset(&want, 0, sizeof(want)); /* or SDL_zero(want) */
 want.freq = SAMPLE_FREQ;
-want.format = AUDIO_F32;
+want.format = AUDIO_S32;
 want.channels = 2;
 want.samples = 4096;
 want.callback = NULL;  /* Use the queue instead */
@@ -149,7 +150,7 @@ U16 *BuzzPtr;
 
 memset(&want, 0, sizeof(want)); /* or SDL_zero(want) */
 want.freq = SAMPLE_FREQ;
-want.format = AUDIO_F32;
+want.format = AUDIO_S32;
 want.channels = 2;
 want.samples = 4096;
 want.callback = NULL;  /* Use the queue instead */
