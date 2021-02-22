@@ -101,6 +101,8 @@ char text_screen[TEXT_HEIGHT][TEXT_WIDTH];
 int  text_attr[TEXT_HEIGHT][TEXT_WIDTH];
 char stack_text_screen[TEXT_HEIGHT][TEXT_WIDTH];
 int  stack_text_attr[TEXT_HEIGHT][TEXT_WIDTH];
+static double mouse_scale_x = 1.0;
+static double mouse_scale_y = 1.0;
 
 /* Routines in this module */
 void Slock(SDL_Surface *);
@@ -110,6 +112,7 @@ void save_text(void);
 void restore_text(void);
 void outtext(int, int, int);
 int check_mouse(SDL_Event);
+void set_mouse_scale(void);
 void updateimage(void);
 
 void Slock(SDL_Surface *screen)
@@ -212,6 +215,32 @@ void popup_error (int num, char *msg)
   }
 }
 
+void set_mouse_scale(void)
+{
+  int rend_size_w;
+  int rend_size_h;
+  SDL_Rect max_win_size;
+
+  SDL_GetDisplayUsableBounds(display_in_use, &max_win_size);
+  SDL_GetRendererOutputSize(sdlRenderer, &rend_size_w, &rend_size_h);
+
+  if (window_is_fullscreen)
+  {
+     mouse_scale_x = (double)sxdots / (double)max_win_size.w;
+     mouse_scale_y = (double)sydots / (double)max_win_size.h;
+  }
+  else
+  {
+     if (rend_size_w > max_win_size.w)
+        mouse_scale_x = (double)rend_size_w / (double)max_win_size.w;
+     else
+        mouse_scale_x = (double)sxdots / (double)rend_size_w;
+     if (rend_size_h > max_win_size.h)
+        mouse_scale_y = (double)rend_size_h / (double)max_win_size.h;
+     else
+        mouse_scale_y = (double)sydots / (double)rend_size_h;
+  }
+}
 
 void ResizeScreen(int mode)
 {
@@ -252,7 +281,7 @@ void ResizeScreen(int mode)
           exit(1);
         }
 
-      SDL_SetWindowMinimumSize(sdlWindow, 320, 200);
+      SDL_SetWindowMinimumSize(sdlWindow, 640, 400);
       WinIcon = SDL_LoadBMP("Fractint.bmp");
       if (WinIcon != NULL)
       {
@@ -321,9 +350,9 @@ void ResizeScreen(int mode)
       exit(1);
     }
 
+  SDL_GetRendererOutputSize(sdlRenderer, &rend_size_w, &rend_size_h);
   if (debugflag == 10000)
   {
-    SDL_GetRendererOutputSize(sdlRenderer, &rend_size_w, &rend_size_h);
     if (rend_size_w > max_win_size.w || rend_size_h > max_win_size.h)
     {
       sprintf(msg, "Selected video mode greater than Window size.\n");
@@ -410,6 +439,7 @@ void ResizeScreen(int mode)
       mousecurser = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
       SDL_SetCursor(mousecurser);
     }
+  set_mouse_scale();
 
   if (font != NULL)
     {
@@ -1800,7 +1830,8 @@ int check_mouse(SDL_Event mevent)
   static int lasty = 0;
   static int dx = 0;
   static int dy = 0;
-  int bandx1, bandy1;
+  static int bandx0, bandy0;
+  static int bandx1, bandy1;
   static int banding = 0;
   int bnum = 0;
   int keyispressed = 0;
@@ -1821,10 +1852,10 @@ int check_mouse(SDL_Event mevent)
 
   if ((lookatmouse == 3 && bnum != 0) /*|| zoomoff == 0 */)
     {
-      dx += (mevent.button.x - lastx);
-      dy += (mevent.button.y - lasty);
-      lastx = mevent.button.x;
-      lasty = mevent.button.y;
+      dx += (mevent.button.x * mouse_scale_x - lastx);
+      dy += (mevent.button.y * mouse_scale_y - lasty);
+      lastx = mevent.button.x * mouse_scale_x;
+      lasty = mevent.button.y * mouse_scale_y;
 //      return (0);
     }
 
@@ -1870,8 +1901,8 @@ int check_mouse(SDL_Event mevent)
               zskew = zrotate = 0;
               button_held = 1;
               banding = 0;
-              lastx = mevent.button.x;
-              lasty = mevent.button.y;
+              lastx = bandx0 = mevent.button.x * mouse_scale_x;
+              lasty = bandy0 = mevent.button.y * mouse_scale_y;
               find_special_colors();
               boxcolor = color_bright;
             }
@@ -1880,9 +1911,9 @@ int check_mouse(SDL_Event mevent)
 
   if (left_mouse_button_down && button_held && !banding)
     {
-       bandx1 = mevent.button.x;
-       bandy1 = mevent.button.y;
-       if (abs(bandx1 - lastx) > 2 || abs(bandy1 - lasty) > 2)
+       bandx1 = mevent.button.x * mouse_scale_x;
+       bandy1 = mevent.button.y * mouse_scale_y;
+       if (ABS(bandx1 - bandx0) > 5 || ABS(bandy1 - bandy0) > 5)
         {
           banding = 1;
         }
@@ -1890,13 +1921,23 @@ int check_mouse(SDL_Event mevent)
 
   if(left_mouse_button_down && button_held && banding)
     {
+     /* get current mouse position */
+     bandx1 = mevent.button.x * mouse_scale_x;
+     bandy1 = mevent.button.y * mouse_scale_y;
+
+     /* sanity checks */
+     if (bandx1 == bandx0)
+        bandx1 = bandx0 + 1;
+     if (bandy1 == bandy0)
+        bandy1 = bandy0 + 1;
+
       /* Get the mouse offset */
-      dx = abs(mevent.button.x - lastx) / MOUSE_SCALE;
+      dx = ABS(bandx1 - bandx0);
 
       /* (zbx,zby) is upper left corner of zoom box */
       /* zwidth & zdepth are deltas to lower right corner */
-      zbx = (MIN(mevent.button.x, lastx) - sxoffs) / dxsize;
-      zby = (MIN(mevent.button.y, lasty) - syoffs) / dysize;
+      zbx = (MIN(bandx0, bandx1) - sxoffs) / dxsize;
+      zby = (MIN(bandy0, bandy1) - syoffs) / dysize;
       zwidth = dx / dxsize;
       zdepth = dx * finalaspectratio / dysize; /* maintain aspect ratio here */
 
@@ -1927,6 +1968,8 @@ int get_key_event(int block)
 
             switch (event.window.event) {
             case SDL_WINDOWEVENT_RESIZED:
+              window_is_fullscreen = 0;
+              set_mouse_scale();
               break;
             case SDL_WINDOWEVENT_EXPOSED:
             case SDL_WINDOWEVENT_SHOWN:
@@ -1934,9 +1977,11 @@ int get_key_event(int block)
               break;
             case SDL_WINDOWEVENT_RESTORED:
               window_is_fullscreen = 0;
+              set_mouse_scale();
               break;
             case SDL_WINDOWEVENT_MAXIMIZED:
               window_is_fullscreen = 1;
+              set_mouse_scale();
               break;
             case SDL_WINDOWEVENT_HIDDEN:
             case SDL_WINDOWEVENT_MINIMIZED:
