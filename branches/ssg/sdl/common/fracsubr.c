@@ -1231,29 +1231,6 @@ void end_resume(void)
     }
 }
 
-
-/* Showing orbit requires converting real co-ords to screen co-ords.
-   Define:
-       Xs == xxmax-xx3rd               Ys == yy3rd-yymax
-       W  == xdots-1                   D  == ydots-1
-   We know that:
-       realx == lx0[col] + lx1[row]
-       realy == ly0[row] + ly1[col]
-       lx0[col] == (col/width) * Xs + xxmin
-       lx1[row] == row * delxx
-       ly0[row] == (row/D) * Ys + yymax
-       ly1[col] == col * (0-delyy)
-  so:
-       realx == (col/W) * Xs + xxmin + row * delxx
-       realy == (row/D) * Ys + yymax + col * (0-delyy)
-  and therefore:
-       row == (realx-xxmin - (col/W)*Xs) / Xv    (1)
-       col == (realy-yymax - (row/D)*Ys) / Yv    (2)
-  substitute (2) into (1) and solve for row:
-       row == ((realx-xxmin)*(0-delyy2)*W*D - (realy-yymax)*Xs*D)
-                      / ((0-delyy2)*W*delxx2*D-Ys*Xs)
-  */
-
 /* sleep N * a tenth of a millisecond */
 
 static void sleepms_old(long ms)
@@ -1437,6 +1414,28 @@ void close_snd(void)
     fclose(snd_fp);
   snd_fp = NULL;
 }
+
+/* Showing orbit requires converting real co-ords to screen co-ords.
+   Define:
+       Xs == xxmax-xx3rd               Ys == yy3rd-yymax
+       W  == xdots-1                   D  == ydots-1
+   We know that:
+       realx == lx0[col] + lx1[row]
+       realy == ly0[row] + ly1[col]
+       lx0[col] == (col/width) * Xs + xxmin
+       lx1[row] == row * delxx
+       ly0[row] == (row/D) * Ys + yymax
+       ly1[col] == col * (0-delyy)
+  so:
+       realx == (col/W) * Xs + xxmin + row * delxx
+       realy == (row/D) * Ys + yymax + col * (0-delyy)
+  and therefore:
+       row == (realx-xxmin - (col/W)*Xs) / Xv    (1)
+       col == (realy-yymax - (row/D)*Ys) / Yv    (2)
+  substitute (2) into (1) and solve for row:
+       row == ((realx-xxmin)*(0-delyy2)*W*D - (realy-yymax)*Xs*D)
+                      / ((0-delyy2)*W*delxx2*D-Ys*Xs)
+  */
 
 static void plotdorbit(double dx, double dy, int color)
 {

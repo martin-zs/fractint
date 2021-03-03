@@ -11,8 +11,11 @@
 #include "port.h"
 #include "prototyp.h"
 
-#define SAMPLE_FREQ   44100
+#define SAMPLE_FREQ   22050
+#define BUFFER_SIZE   2048
 #define Pi32 3.14159265358979f
+/* temporarily set for testing mixing function */
+//#define TEST_MIX
 
 /* SDL global variables */
 SDL_AudioSpec want, have;
@@ -20,9 +23,9 @@ SDL_AudioDeviceID dev;
 
 int SamplesPerSecond = SAMPLE_FREQ;
 int ToneHz = 440;
-U16 ToneVolume = 3000;
+S16 ToneVolume = 16000;
 U32 RunningSampleIndex = 0;
-int BytesPerSample = sizeof(U16) * 2;
+int BytesPerSample = sizeof(S16) * 2;
 U32 BytesToWrite;
 
 //static void *SoundBuffer = NULL;
@@ -51,6 +54,7 @@ static char offvoice = 0;
 
 static void squarewave(void *, U32, int);
 static void sinewave(void *, U32, int);
+static void MixAudio(S16 *dst, S16 *src, U32 Length);
 
 void sdl_check_for_windows(void)
 {
@@ -65,9 +69,9 @@ void setup_sdl_audio(void)
 {
 memset(&want, 0, sizeof(want)); /* or SDL_zero(want) */
 want.freq = SAMPLE_FREQ;
-want.format = AUDIO_S32;
+want.format = AUDIO_S16;
 want.channels = 2;
-want.samples = 4096;
+want.samples = BUFFER_SIZE;
 want.callback = NULL;  /* Use the queue instead */
 
 dev = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
@@ -95,25 +99,51 @@ if (dev != 0)
 return;
 }
 
+static void MixAudio(S16 *dst, S16 *src, U32 Length)
+{
+/* src and dst are S16 based on AudioFormat AUDIO_S16 */
+/* add src to dst and reduce volume to within range */
+int MixVolume;
+int MixIndex;
+int MixCount;
+S16 *MixBuf_src;
+S16 *MixBuf_dst;
+
+MixBuf_src = (S16 *)src;
+MixBuf_dst = (S16 *)dst;
+MixCount = Length / BytesPerSample;
+
+for(MixIndex = 0; MixIndex < MixCount; ++MixIndex)
+  {
+//    MixVolume = (*MixBuf_dst + *MixBuf_src);
+//    *MixBuf_dst++ = (S16)MixVolume;
+//    *MixBuf_dst++ = (S16)MixVolume;
+    *MixBuf_dst++ += *MixBuf_src++;
+    *MixBuf_dst++ += *MixBuf_src++;
+  }
+return;
+}
+
+
 static void sinewave(void *SineBuffer, U32 Length, int Freq)
 {
 int SineIndex;
 int SineCount;
 int SineWavePeriod;
 float t, SineValue;
-U16 SampleValue;
-U16 *SineBuf;
+S16 SampleValue;
+S16 *SineBuf;
 
 SineWavePeriod = SamplesPerSecond / Freq;
 
-SineBuf = (U16 *)SineBuffer;
+SineBuf = (S16 *)SineBuffer;
 SineCount = Length/BytesPerSample;
 
 for(SineIndex = 0; SineIndex < SineCount; ++SineIndex)
   {
     t = (float)2.0 * Pi32 * SineIndex / SineWavePeriod;
     SineValue = (float)sin(t);
-    SampleValue = (U16)(SineValue * ToneVolume);
+    SampleValue = (S16)(SineValue * ToneVolume);
     *SineBuf++ = SampleValue;
     *SineBuf++ = SampleValue;
   }
@@ -126,13 +156,13 @@ int SqrIndex;
 int SqrCount;
 int SquareWavePeriod;
 int HalfSquareWavePeriod;
-U16 SampleValue;
-U16 *SqrBuf;
+S16 SampleValue;
+S16 *SqrBuf;
 
 SquareWavePeriod = SamplesPerSecond / Freq;
 HalfSquareWavePeriod = SquareWavePeriod / 2;
 
-SqrBuf = (U16 *)SquareBuffer;
+SqrBuf = (S16 *)SquareBuffer;
 SqrCount = Length/BytesPerSample;
 
 for(SqrIndex = 0; SqrIndex < SqrCount; ++SqrIndex)
@@ -146,13 +176,15 @@ return;
 
 void sdl_buzzer(int buzzertype)
 {
-U16 *BuzzPtr;
+S16 *BuzzPtr;
+S16 *BuzzPtr_1;
+S16 *BuzzPtr_2;
 
 memset(&want, 0, sizeof(want)); /* or SDL_zero(want) */
 want.freq = SAMPLE_FREQ;
-want.format = AUDIO_S32;
+want.format = AUDIO_S16;
 want.channels = 2;
-want.samples = 4096;
+want.samples = BUFFER_SIZE;
 want.callback = NULL;  /* Use the queue instead */
 
 dev = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
@@ -160,9 +192,38 @@ dev = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
 if (dev != 0)
   switch(buzzertype)
   {
+#ifdef TEST_MIX
       case 0:
-        BytesToWrite = 4096 * BytesPerSample;
-        BuzzPtr = (U16 *)malloc(BytesToWrite);
+        BytesToWrite = BUFFER_SIZE * BytesPerSample;
+        BuzzPtr = (S16 *)malloc(BytesToWrite);
+        BuzzPtr_1 = (S16 *)malloc(BytesToWrite);
+        BuzzPtr_2 = (S16 *)malloc(BytesToWrite);
+        sinewave(BuzzPtr_1, BytesToWrite, 1047);
+//        SDL_QueueAudio(dev, BuzzPtr, BytesToWrite);
+//        SDL_PauseAudioDevice(dev, 0);
+//        SDL_Delay(100);
+//        SDL_PauseAudioDevice(dev, 1);
+//        squarewave(BuzzPtr_2, BytesToWrite, 40);
+        sinewave(BuzzPtr_2, BytesToWrite, 1109);
+        MixAudio(BuzzPtr_1, BuzzPtr_2, BytesToWrite);
+        SDL_QueueAudio(dev, BuzzPtr_1, BytesToWrite);
+        SDL_PauseAudioDevice(dev, 0);
+        SDL_Delay(100);
+        SDL_PauseAudioDevice(dev, 1);
+        sinewave(BuzzPtr, BytesToWrite, 1175);
+        SDL_QueueAudio(dev, BuzzPtr, BytesToWrite);
+        SDL_PauseAudioDevice(dev, 0);
+        SDL_Delay(100);
+        SDL_PauseAudioDevice(dev, 1);
+        break;
+      case 1:
+        break;
+      default:
+        break;
+#else
+      case 0:
+        BytesToWrite = BUFFER_SIZE * BytesPerSample;
+        BuzzPtr = (S16 *)malloc(BytesToWrite);
         sinewave(BuzzPtr, BytesToWrite, 1047);
         SDL_QueueAudio(dev, BuzzPtr, BytesToWrite);
         SDL_PauseAudioDevice(dev, 0);
@@ -180,8 +241,8 @@ if (dev != 0)
         SDL_PauseAudioDevice(dev, 1);
         break;
       case 1:
-        BytesToWrite = 4096 * BytesPerSample;
-        BuzzPtr = (U16 *)malloc(BytesToWrite);
+        BytesToWrite = BUFFER_SIZE * BytesPerSample;
+        BuzzPtr = (S16 *)malloc(BytesToWrite);
         sinewave(BuzzPtr, BytesToWrite, 2093);
         SDL_QueueAudio(dev, BuzzPtr, BytesToWrite);
         SDL_PauseAudioDevice(dev, 0);
@@ -199,14 +260,15 @@ if (dev != 0)
         SDL_PauseAudioDevice(dev, 1);
         break;
       default:
-        BytesToWrite = 4096 * BytesPerSample * 2;
-        BuzzPtr = (U16 *)malloc(BytesToWrite);
+        BytesToWrite = BUFFER_SIZE * BytesPerSample * 2;
+        BuzzPtr = (S16 *)malloc(BytesToWrite);
         squarewave(BuzzPtr, BytesToWrite, 40);
         SDL_QueueAudio(dev, BuzzPtr, BytesToWrite);
         SDL_PauseAudioDevice(dev, 0);
         SDL_Delay(500);
         SDL_PauseAudioDevice(dev, 1);
         break;
+#endif // TEST_MIX
   }
 
 if (dev != 0)
@@ -220,6 +282,58 @@ void sdl_mute(void)
 {
 SDL_PauseAudioDevice(dev, 1);
 return;
+}
+
+/*
+; ****************** Function buzzer(int buzzertype) *******************
+;
+;       Sound a tone based on the value of the parameter
+;
+;       0 = normal completion of task
+;       1 = interrupted task
+;       2 = error condition
+
+;       "buzzer()" codes:  strings of two-word pairs
+;               (frequency in cycles/sec, delay in milliseconds)
+;               frequency == 0 means no sound
+;               delay     == 0 means end-of-tune
+*/
+void buzzer(int buzzertype)
+{
+  sdl_buzzer(buzzertype);
+  return;
+}
+
+/*
+; ************** Function tone(int frequency,int delaytime) **************
+;
+;       buzzes the speaker with this frequency for this amount of time
+*/
+void tone(int frequency, int delaytime)
+{
+}
+
+/*
+; ************** Function snd(int hertz) and nosnd() **************
+;
+;       turn the speaker on with this frequency (snd) or off (nosnd)
+;
+; *****************************************************************
+*/
+int soundon(int hertz)
+{
+  return(0);
+}
+
+void soundoff(void)
+{
+  return;
+}
+
+void mute(void)
+{
+  sdl_mute();
+  return;
 }
 
 

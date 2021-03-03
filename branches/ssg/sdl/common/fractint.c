@@ -561,13 +561,16 @@ va_dcl
       out = (*(int(*)(void))subrtn)();
       break;
     case 1:
+      file_IO = 1;
       i = va_arg(arg_marker,int);
       out = (int)decoder((short)i); /* not indirect, safer with overlays */
       break;
     case 2:
+      file_IO = 1;
       out = encoder();            /* not indirect, safer with overlays */
       break;
     }
+  file_IO = 0;
   /* next assumes CLK_TCK is 10^n, n>=2 */
   timer_interval = (clock_ticks() - timer_start) / (CLK_TCK/100);
 

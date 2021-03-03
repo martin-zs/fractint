@@ -73,6 +73,7 @@ Fix file access.]]>
 			<Add library="/usr/lib/x86_64-linux-gnu/libSDL2main.a" />
 			<Add library="/usr/lib/x86_64-linux-gnu/libSDL2.so" />
 			<Add library="/usr/lib/x86_64-linux-gnu/libSDL2_ttf.so" />
+			<Add library="/usr/lib/x86_64-linux-gnu/libSDL2_mixer.so" />
 		</Linker>
 		<Unit filename="common/3d.c">
 			<Option compilerVar="CC" />

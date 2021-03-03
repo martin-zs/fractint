@@ -142,6 +142,7 @@ restart:
     }
 
   busy = 1;
+  file_IO = 1;
 
   if (debugflag != 200)
     interrupted = encoder();
@@ -149,6 +150,7 @@ restart:
     interrupted = timer(2, NULL);     /* invoke encoder() via timer */
 
   busy = 0;
+  file_IO = 0;
 
   fclose(g_outfile);
 

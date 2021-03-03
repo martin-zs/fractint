@@ -25,6 +25,7 @@ int rowbytes;
 SDL_PixelFormat *sdlPixelFormat;
 static int display_in_use = 0;
 int x_close = 0;
+int file_IO = 0;
 
 TTF_Font *font = NULL;
 SDL_Color cols[256];
@@ -114,6 +115,8 @@ void outtext(int, int, int);
 int check_mouse(SDL_Event);
 void set_mouse_scale(void);
 void updateimage(void);
+void SetupSDL(void);
+void CleanupSDL(void);
 
 void Slock(SDL_Surface *screen)
 {
@@ -132,6 +135,57 @@ void Sulock(SDL_Surface *screen)
     {
       SDL_UnlockSurface(screen);
     }
+}
+
+void SetupSDL(void)
+{
+  /* called by main() routine */
+
+  char msg[80];
+  SDL_version compiled;
+  SDL_version linked;
+
+  sdl_check_for_windows();
+
+  if ( SDL_Init(SDL_init_flags) < 0 )
+    {
+      sprintf(msg, "Unable to initialize SDL: %s\n", SDL_GetError());
+      popup_error(0, msg);
+      exit(1);
+    }
+
+  SDL_VERSION(&compiled);
+  SDL_GetVersion(&linked);
+  if (compiled.major > linked.major)
+    {
+      sprintf(msg, "Compiled version: %d\nLinked version: %d\n",
+              compiled.major, linked.major);
+      popup_error(0, msg);
+      exit(1);
+    }
+
+  if (TTF_Init() < 0)
+    {
+      sprintf(msg, "Unable to initialize SDL TTF: %s\n", SDL_GetError());
+      popup_error(0, msg);
+      exit(1);
+    }
+
+  if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0)
+    {
+      sprintf(msg, "Unable to initialize SDL audio: %s\n", SDL_GetError());
+      popup_error(3, msg);
+    }
+
+  setup_sdl_audio();
+
+// NOTE (jonathan#1#): May not need this once png support is added.
+//  if ( IMG_Init(IMG_INIT_PNG) < 0 )
+//    {
+//      fprintf(stderr, "Unable to init IMG: %s\n", SDL_GetError());
+//      exit(1);
+//    }
+
 }
 
 #define USE_THREAD 1
@@ -173,6 +227,7 @@ void CleanupSDL(void)
   SDL_FreeCursor(mousecurser);
 
   cleanup_sdl_audio();
+
   SDL_QuitSubSystem(SDL_INIT_AUDIO);
 
   TTF_CloseFont(font);
@@ -459,57 +514,6 @@ void ResizeScreen(int mode)
   TTF_SizeText(font,"H",&txt_wt,&txt_ht);
 
   return;
-}
-
-void SetupSDL(void)
-{
-  /* called by main() routine */
-
-  char msg[80];
-  SDL_version compiled;
-  SDL_version linked;
-
-  sdl_check_for_windows();
-
-  if ( SDL_Init(SDL_init_flags) < 0 )
-    {
-      sprintf(msg, "Unable to initialize SDL: %s\n", SDL_GetError());
-      popup_error(0, msg);
-      exit(1);
-    }
-
-  SDL_VERSION(&compiled);
-  SDL_GetVersion(&linked);
-  if (compiled.major > linked.major)
-    {
-      sprintf(msg, "Compiled version: %d\nLinked version: %d\n",
-              compiled.major, linked.major);
-      popup_error(0, msg);
-      exit(1);
-    }
-
-  if (TTF_Init() < 0)
-    {
-      sprintf(msg, "Unable to initialize SDL TTF: %s\n", SDL_GetError());
-      popup_error(0, msg);
-      exit(1);
-    }
-
-  if (SDL_InitSubSystem(SDL_INIT_AUDIO) < 0)
-    {
-      sprintf(msg, "Unable to initialize SDL audio: %s\n", SDL_GetError());
-      popup_error(3, msg);
-    }
-
-  setup_sdl_audio();
-
-// NOTE (jonathan#1#): May not need this once png support is added.
-//  if ( IMG_Init(IMG_INIT_PNG) < 0 )
-//    {
-//      fprintf(stderr, "Unable to init IMG: %s\n", SDL_GetError());
-//      exit(1);
-//    }
-
 }
 
 void showfreemem(void)
@@ -2014,7 +2018,7 @@ int get_key_event(int block)
               {
               if (event.button.button == SDL_BUTTON_LEFT)
                 {
-                if (left_mouse_button_down == 1)
+                if (left_mouse_button_down == 1 && button_held == 1)
                    {
                       calc_status = 0;
                       keyispressed = ENTER;
@@ -2107,7 +2111,7 @@ int time_to_update(void)
       else
         return (0);
     }
-  else if (button_held)
+  else if (button_held || file_IO)
     {
       if (next_time <= now)
         {

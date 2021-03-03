@@ -156,6 +156,7 @@ extern double                fiddlefactor;
 extern double                fiddle_reduction;
 extern float                 fileaspectratio;
 extern int                   filecolors;
+extern int                   file_IO;
 extern int                   filetype;
 extern int                   filexdots;
 extern int                   fileydots;
