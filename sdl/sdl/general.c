@@ -466,58 +466,6 @@ int kbhit(void)
   return 0;
 }
 
-/*
-; ****************** Function buzzer(int buzzertype) *******************
-;
-;       Sound a tone based on the value of the parameter
-;
-;       0 = normal completion of task
-;       1 = interrupted task
-;       2 = error condition
-
-;       "buzzer()" codes:  strings of two-word pairs
-;               (frequency in cycles/sec, delay in milliseconds)
-;               frequency == 0 means no sound
-;               delay     == 0 means end-of-tune
-*/
-void buzzer(int buzzertype)
-{
-  sdl_buzzer(buzzertype);
-  return;
-}
-
-/*
-; ************** Function tone(int frequency,int delaytime) **************
-;
-;       buzzes the speaker with this frequency for this amount of time
-*/
-void tone(int frequency, int delaytime)
-{
-}
-
-/*
-; ************** Function snd(int hertz) and nosnd() **************
-;
-;       turn the speaker on with this frequency (snd) or off (nosnd)
-;
-; *****************************************************************
-*/
-int soundon(int hertz)
-{
-  return(0);
-}
-
-void soundoff(void)
-{
-  return;
-}
-
-void mute(void)
-{
-  sdl_mute();
-  return;
-}
-
 /* tenths of millisecond timewr routine */
 static struct timeval tv_start;
 

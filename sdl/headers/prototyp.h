@@ -1032,10 +1032,6 @@ extern int waitkeypressed(int);
 extern int getakeynohelp(void);
 extern int getakey(void);
 extern int kbhit(void);
-extern void buzzer(int);
-extern int soundon(int);
-extern void soundoff(void);
-extern void mute(void);
 extern long readticker(void);
 extern int  checkautosave(void);
 extern long stackavail(void);
@@ -1102,6 +1098,10 @@ extern void cleanup_sdl_audio(void);
 extern void setup_sdl_audio(void);
 extern void sdl_buzzer(int);
 extern void sdl_mute(void);
+extern void buzzer(int);
+extern int soundon(int);
+extern void soundoff(void);
+extern void mute(void);
 
 /*  video -- C file prototypes */
 
