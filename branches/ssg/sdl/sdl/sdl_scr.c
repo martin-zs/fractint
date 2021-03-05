@@ -25,7 +25,7 @@ int rowbytes;
 SDL_PixelFormat *sdlPixelFormat;
 static int display_in_use = 0;
 int x_close = 0;
-int file_IO = 0;
+int file_IO = 0; /* kludge to indicate saving/restoring an image */
 
 TTF_Font *font = NULL;
 SDL_Color cols[256];
@@ -823,7 +823,7 @@ void writevideo(int x, int y, U32 pixel)
 #if DEBUG
   if (x > sxdots || y > sydots)
   {
-     sprintf(msg, "Plotting x = %l and y = %l.\n", x, y);
+     sprintf(msg, "Plotting x = %li and y = %li.\n", x, y);
      popup_error(2, msg);
   }
 #endif // DEBUG
@@ -2089,23 +2089,35 @@ long clock_ticks(void)
 #define TICK_INTERVAL    50
 #define TICK_INTERVAL2   100
 #define BLINK_INTERVAL   200
+#define BF_MATH_INTERVAL 500
 
 static U32 next_time = 0;
 
 int time_to_update(void)
 {
-// FIXME (jonathan#1#): Need to adjust this for bf math.
-  /* return a 1 every 50 milliseconds if calculating */
-  /* return a 1 every 100  milliseconds if not calculating */
+  /* return a 1 every 50 milliseconds if calculating && !bf_math */
+  /* return a 1 every 100  milliseconds if mousing or saving/restoring image */
+  /* return a 1 every 200 milliseconds if on text screen and blink cursor */
+  /* return a 1 every 500 milliseconds if calculating && bf_math */
 
   U32 now;
 
   now = SDL_GetTicks();
-  if (calc_status == 1) /* calculating */
+  if (calc_status == 1 && !bf_math) /* calculating */
     {
       if (next_time <= now)
         {
           next_time = SDL_GetTicks() + TICK_INTERVAL;
+          return (1);
+        }
+      else
+        return (0);
+    }
+  else if (calc_status == 1 && bf_math) /* calculating && bf_math */
+    {
+      if (next_time <= now)
+        {
+          next_time = SDL_GetTicks() + BF_MATH_INTERVAL;
           return (1);
         }
       else
@@ -2134,7 +2146,7 @@ int time_to_update(void)
     }
   else
     {
-    SDL_Delay(1);
+    SDL_Delay(10);
     return (1);
     }
 }
