@@ -285,8 +285,8 @@ Version 20.5.00 is an update of Fractint 20.0 based on the developer's
 
 Version 20.5 is a Port to SDL 2.0
 
-Stabilized graphics resolution changes using <DEL>.\
-  Xfractint AP math now uses assembly language code.\
+Speed up for saving/restoring images.\
+  Fix for where zoom box appears relative to mouse pointer.\
 
 Known issues:\
 Random crashes\
