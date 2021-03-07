@@ -23,7 +23,7 @@ SDL_AudioDeviceID dev;
 
 int SamplesPerSecond = SAMPLE_FREQ;
 int ToneHz = 440;
-S16 ToneVolume = 16000;
+S16 ToneVolume = 9000;
 U32 RunningSampleIndex = 0;
 int BytesPerSample = sizeof(S16) * 2;
 U32 BytesToWrite;
