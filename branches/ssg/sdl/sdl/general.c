@@ -733,9 +733,10 @@ void decode_fractal_info(struct fractal_info *info, int dir)
     }
   if (bufPtr-buf != FRACTAL_INFO_SIZE)
     {
-      printf("Warning: loadfile miscount on fractal_info structure.\n");
-      printf("Components add up to %d bytes, but FRACTAL_INFO_SIZE = %d\n",
+      char msg[120];
+      sprintf(msg, "Warning: loadfile miscount on fractal_info structure.\nComponents add up to %d bytes, but FRACTAL_INFO_SIZE = %d",
              bufPtr-buf, FRACTAL_INFO_SIZE);
+      popup_error(2, msg);
     }
   if (dir==0)
     {
