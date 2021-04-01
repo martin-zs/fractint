@@ -58,6 +58,39 @@ Fix file access.]]>
 					<Add option="-s" />
 				</Linker>
 			</Target>
+			<Target title="C only">
+				<Option platforms="Unix;" />
+				<Option output="XFractint" prefix_auto="1" extension_auto="1" />
+				<Option external_deps="fractint.hlp;" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Option projectCompilerOptionsRelation="1" />
+				<Compiler>
+					<Add option="-std=c99" />
+					<Add option="-fno-builtin" />
+					<Add option="`sdl2-config --cflags --libs`" />
+					<Add option="-DXFRACT" />
+				</Compiler>
+			</Target>
+			<Target title="C only Debug">
+				<Option platforms="Unix;" />
+				<Option output="XFractint" prefix_auto="1" extension_auto="1" />
+				<Option external_deps="fractint.hlp;" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Option projectCompilerOptionsRelation="1" />
+				<Compiler>
+					<Add option="-pedantic" />
+					<Add option="-Wextra" />
+					<Add option="-Wall" />
+					<Add option="-std=c99" />
+					<Add option="-g" />
+					<Add option="-fno-builtin" />
+					<Add option="`sdl2-config --cflags --libs`" />
+					<Add option="-DXFRACT" />
+					<Add option="-DDEBUG" />
+				</Compiler>
+			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-std=c99" />
@@ -230,22 +263,32 @@ Fix file access.]]>
 		<Unit filename="dos_help/help.src">
 			<Option target="default" />
 			<Option target="Production" />
+			<Option target="C only" />
+			<Option target="C only Debug" />
 		</Unit>
 		<Unit filename="dos_help/help2.src">
 			<Option target="default" />
 			<Option target="Production" />
+			<Option target="C only" />
+			<Option target="C only Debug" />
 		</Unit>
 		<Unit filename="dos_help/help3.src">
 			<Option target="default" />
 			<Option target="Production" />
+			<Option target="C only" />
+			<Option target="C only Debug" />
 		</Unit>
 		<Unit filename="dos_help/help4.src">
 			<Option target="default" />
 			<Option target="Production" />
+			<Option target="C only" />
+			<Option target="C only Debug" />
 		</Unit>
 		<Unit filename="dos_help/help5.src">
 			<Option target="default" />
 			<Option target="Production" />
+			<Option target="C only" />
+			<Option target="C only Debug" />
 		</Unit>
 		<Unit filename="headers/HELPDEFS.H" />
 		<Unit filename="headers/big.h">
@@ -278,14 +321,22 @@ Fix file access.]]>
 		<Unit filename="headers/prototyp.h">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="sdl/bignumax-64.o" />
+		<Unit filename="sdl/bignumax-64.o">
+			<Option target="default" />
+			<Option target="debug" />
+			<Option target="Production" />
+		</Unit>
 		<Unit filename="sdl/calcmand.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="sdl/calmanfp.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="sdl/calmanfx-64.o" />
+		<Unit filename="sdl/calmanfx-64.o">
+			<Option target="default" />
+			<Option target="debug" />
+			<Option target="Production" />
+		</Unit>
 		<Unit filename="sdl/calmanfx-sse2.o">
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
@@ -295,12 +346,24 @@ Fix file access.]]>
 		<Unit filename="sdl/fpu087.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="sdl/fpu387ax-64.o" />
+		<Unit filename="sdl/fpu387ax-64.o">
+			<Option target="default" />
+			<Option target="debug" />
+			<Option target="Production" />
+		</Unit>
 		<Unit filename="sdl/general.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="sdl/generalax-64.o" />
-		<Unit filename="sdl/parserax-64.o" />
+		<Unit filename="sdl/generalax-64.o">
+			<Option target="default" />
+			<Option target="debug" />
+			<Option target="Production" />
+		</Unit>
+		<Unit filename="sdl/parserax-64.o">
+			<Option target="default" />
+			<Option target="debug" />
+			<Option target="Production" />
+		</Unit>
 		<Unit filename="sdl/sdl_scr.c">
 			<Option compilerVar="CC" />
 		</Unit>

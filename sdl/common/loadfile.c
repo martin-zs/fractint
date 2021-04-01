@@ -461,7 +461,7 @@ int read_overlay()      /* read overlay/3D files, if reqr'd */
 
   if (blk_4_info.got_data == 1)
     {
-      ranges = (U16 *)blk_4_info.range_data;
+      ranges = (S16 *)blk_4_info.range_data;
       rangeslen = blk_4_info.length;
 #if 1 /* XFRACT */
       fix_ranges(ranges,rangeslen,1);
@@ -470,10 +470,14 @@ int read_overlay()      /* read overlay/3D files, if reqr'd */
 
   if (blk_5_info.got_data == 1)
     {
+      int save_bnstep = bnstep;
       bf_math = 1;
+      bnstep = 4; /* restore data based on bnstep = 4 */
       init_bf_length(read_info.bflength);
       memcpy((char *)bfxmin,blk_5_info.apm_data,blk_5_info.length);
       free(blk_5_info.apm_data);
+      bnstep = save_bnstep; /* Restore so next works */
+      convert_for_bnstep(1); /* If needed, convert to bnstep = 8 */
     }
   else
     bf_math = 0;

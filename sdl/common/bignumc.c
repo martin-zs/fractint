@@ -30,20 +30,12 @@ Wesley Loewer's Big Numbers.        (C) 1994-95, Wesley B. Loewer
 
 *********************************************************************/
 
-#if !(defined NASM  && defined XFRACT)
+#if !(defined NASM  && defined USE_U64)
 /********************************************************************/
 /* r = 0 */
 bn_t clear_bn(bn_t r)
 {
-#ifdef BIG_BASED
   memset( r, 0, bnlength); /* set array to zero */
-#else
-#ifdef BIG_FAR
-  memset( r, 0, bnlength); /* set array to zero */
-#else
-  memset( r, 0, bnlength); /* set array to zero */
-#endif
-#endif
   return r;
 }
 
@@ -51,15 +43,7 @@ bn_t clear_bn(bn_t r)
 /* r = max positive value */
 bn_t max_bn(bn_t r)
 {
-#ifdef BIG_BASED
   memset( r, 0xFF, bnlength-1); /* set to max values */
-#else
-#ifdef BIG_FAR
-  memset( r, 0xFF, bnlength-1); /* set to max values */
-#else
-  memset( r, 0xFF, bnlength-1); /* set to max values */
-#endif
-#endif
   r[bnlength-1] = 0x7F;  /* turn off the sign bit */
   return r;
 }
@@ -68,15 +52,7 @@ bn_t max_bn(bn_t r)
 /* r = n */
 bn_t copy_bn(bn_t r, bn_t n)
 {
-#ifdef BIG_BASED
   memcpy( r, n, bnlength);
-#else
-#ifdef BIG_FAR
-  memcpy( r, n, bnlength);
-#else
-  memcpy( r, n, bnlength);
-#endif
-#endif
   return r;
 }
 
@@ -87,12 +63,11 @@ int is_bn_neg(bn_t n)
 {
   return (S8)n[bnlength-1] < 0;
 }
-#endif
+#endif /* !(defined NASM  && defined USE_U64) */
 
-/* comment out next line if sizeof(int) is not >= 4 */
-#define USE_BIG32 1
+/* If sizeof(long) is not 8, use 16/32 bit code */
 
-#ifndef USE_BIG32
+#ifndef USE_U64
 
 /***************************************************************************/
 /* n1 != n2 ?                                                              */
@@ -853,8 +828,9 @@ bn_t div_a_bn_int(bn_t r, U16 u)
   return r;
 }
 
-#else  /* USE_BIG32 */
-#if !(defined NASM && defined XFRACT)
+#else  /* USE_U64 */
+/* If sizeof(long) is 8, use 32/64 bit code */
+#if !(defined NASM)
 
 /***************************************************************************/
 /* n1 != n2 ?                                                              */
@@ -876,7 +852,7 @@ int cmp_bn(bn_t n1, bn_t n2)
       /* now determine which of the four bytes was different */
       if ( (S32)(Svalue1&0xFF000000) > (S32)(Svalue2&0xFF000000) ) /* compare just high bytes */
         return (bnlength); /* high byte was different */
-      else if ( (S32)(Svalue1&0x00F00000) > (S32)(Svalue2&0x00FF0000) ) /* compare just third bytes */
+      else if ( (S32)(Svalue1&0x00FF0000) > (S32)(Svalue2&0x00FF0000) ) /* compare just third bytes */
         return (bnlength-1); /* third byte was different */
       else if ( (S32)(Svalue1&0x0000FF00) > (S32)(Svalue2&0x0000FF00) ) /* compare just second bytes */
         return (bnlength-2); /* second byte was different */
@@ -888,7 +864,7 @@ int cmp_bn(bn_t n1, bn_t n2)
       /* now determine which of the four bytes was different */
       if ( (S16)(Svalue1&0xFF000000) < (S16)(Svalue2&0xFF000000) ) /* compare just high bytes */
         return -(bnlength); /* high byte was different */
-      else if ( (S32)(Svalue1&0x00F00000) < (S32)(Svalue2&0x00FF0000) ) /* compare just third bytes */
+      else if ( (S32)(Svalue1&0x00FF0000) < (S32)(Svalue2&0x00FF0000) ) /* compare just third bytes */
         return -(bnlength-1); /* third byte was different */
       else if ( (S32)(Svalue1&0x0000FF00) < (S32)(Svalue2&0x0000FF00) ) /* compare just second bytes */
         return -(bnlength-2); /* second byte was different */
@@ -1048,7 +1024,7 @@ bn_t neg_a_bn(bn_t r)
     {
       t_short = ~big_access32(r+i);
       neg += ((U64)t_short); /* two's complement */
-      big_set32(r+i, (U32)neg);   /* store the lower 2 bytes */
+      big_set32(r+i, (U32)neg);   /* store the lower 4 bytes */
       neg >>= 32; /* shift the sign bit for next time */
     }
   /* if neg was 0, then just "not" the rest */
@@ -1632,9 +1608,9 @@ bn_t div_a_bn_int(bn_t r, U16 u)
 }
 
 #endif    /* ndef NASM */
-#endif    /* USE_BIG32 */
+#endif    /* USE_U64*/
 
-#if !(defined NASM && defined XFRACT)
+#if !(defined NASM && defined USE_U64)
 /*********************************************************************/
 /*  f = b                                                            */
 /*  Converts a bignumber to a double                                 */
@@ -1742,7 +1718,7 @@ bf_t floattobf1(bf_t r, LDBL f)
   return r;
 }
 
-#if !(defined NASM && defined XFRACT)
+#if !(defined NASM && defined USE_U64)
 
 /*********************************************************************/
 /*  f = b                                                            */

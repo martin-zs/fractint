@@ -1543,7 +1543,7 @@ int cmdarg(char *curarg,int mode) /* process a single argument */
           tmpranges[entries++] = prev = j;
         }
       if (prev == 0) goto badarg;
-      if ((ranges = (U16 *)malloc(sizeof(int)*entries)) == (U16 *)NULL)
+      if ((ranges = (S16 *)malloc(sizeof(int)*entries)) == (S16 *)NULL)
         {
           static FCODE msg[] = {"Insufficient memory for ranges="};
           stopmsg(1,msg);

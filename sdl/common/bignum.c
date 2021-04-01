@@ -162,7 +162,7 @@ S16 big_accessS16(S16 BIGDIST *addr)
 
 S32 big_accessS32(S32 BIGDIST *addr)
 {
-  return (S32)((BYTE *)addr)[0] | ((S32)((BYTE *)addr)[1]<<8) | ((S32)((BYTE *)addr)[1]<<16) | ((S32)((BYTE *)addr)[1]<<24);
+  return (S32)((BYTE *)addr)[0] | ((S32)((BYTE *)addr)[1]<<8) | ((S32)((BYTE *)addr)[2]<<16) | ((S32)((BYTE *)addr)[3]<<24);
 }
 
 U32 big_set32(BYTE BIGDIST *addr, U32 val)
@@ -456,7 +456,7 @@ long bntoint(bn_t n)
 bn_t floattobn(bn_t r, LDBL f)
 {
 /* #ifndef USE_BIGNUM_C_CODE */
-#if (defined (NASM) && defined (XFRACT))
+#if (defined (NASM) && defined (USE_U64))
   /* Only use this when using the ASM code as the C version of  */
   /* floattobf() calls floattobn(), an infinite recursive loop. */
   floattobf(bftmp1, f);
@@ -1359,7 +1359,7 @@ bn_t square_bn(bn_t r, bn_t n)
   return r;
 }
 
-#if !(defined NASM && defined XFRACT)
+#if !(defined NASM && defined USE_U64)
 /**********************************************************************/
 bn_t div_bn_int(bn_t r, bn_t n, U16 u)
 {

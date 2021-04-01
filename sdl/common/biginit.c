@@ -14,7 +14,13 @@ is in the allocations of memory for the big numbers.
 #include "fractype.h"
 
 /* globals */
-int bnstep, bnlength, intlength, rlength, padding, shiftfactor, decimals;
+/* If sizeof(long) is not 8, use 16/32 bit code */
+#ifndef USE_U64
+  int bnstep = 4;  /* use 4 in all cases */
+#else
+  int bnstep = 8;  /* use 8 in all cases */
+#endif
+int bnlength, intlength, rlength, padding, shiftfactor, decimals;
 int bflength, rbflength, bfdecimals;
 
 /* used internally by bignum.c routines */
@@ -60,11 +66,8 @@ static int restore_bf_vars(void);
 /* given bnlength, calc_lengths will calculate all the other lengths */
 void calc_lengths(void)
 {
-#if !(defined NASM && defined XFRACT)
-  bnstep = 4;  /* use 4 in all cases */
-#else
-  bnstep = 8;  /* use 8 in all cases */
-#endif
+  /* Moved bnstep initialization to declaration to allow changing it */
+  /* when converting for saving/restoring images. */
 
   if (bnlength % bnstep != 0)
     bnlength = (bnlength / bnstep + 1) * bnstep;
@@ -393,7 +396,7 @@ static int restore_bf_vars(void)
 void free_bf_vars()
 {
   bf_save_len = bf_math = 0;
-  bnstep=bnlength=intlength=rlength=padding=shiftfactor=decimals=0;
+  bnlength=intlength=rlength=padding=shiftfactor=decimals=0;
   bflength=rbflength=bfdecimals=0;
   maxptr = startstack = maxstack = 0;
 }
@@ -498,6 +501,38 @@ void init_bf_length(int bnl)
   init_bf_2();
 }
 
+/************************************************************************/
+/* bnstep is 4 for legacy gif's.  Convert bnstep=8 to/from bnstep=4 to  */
+/* maintain backwards and forwards compatibility.                       */
+/*   Takes dir=0 to convert for saving images                           */
+/*      Calling routine needs to call convert_for_bnstep(1) to restore  */
+/*      bignumber variables.                                            */
+/*   Takes dir=1 for restoring images                                   */
+void convert_for_bnstep(int dir)
+{
+  int bnl = bnlength;
+  int saved_bnstep = bnstep;
+
+  if (bnstep == 4)  /* no conversion needed */
+    return;
+
+  if (dir == 0) /* Convert data to save to image with bnstep=4 */
+  {
+    bnstep = 4;
+    init_bf_length(bnlength);
+    bnstep = saved_bnstep;
+  }
+
+  if (dir == 1) /* Convert data to restore from image */
+  {
+  /* bignumber global variables set for bnstep = 4 by */
+  /*   call to init_bf_length() in loadfile.c */
+  /* Reset bignumber global variables for bnstep = 8  */
+    init_bf_length(bnlength);
+  }
+
+  return;
+}
 
 void init_big_pi(void)
 {

@@ -155,13 +155,13 @@ extern big_t big_pi;
 
 /* functions defined in biginit.c */
 
-big_t big_alloc(size_t size);
+extern big_t big_alloc(size_t size);
 /* void big_free(big_t memblock); now defined as a macro above */
 
-void calc_lengths(void);
-void init_big_dec(int dec);
-void init_big_length(int bnl);
-void init_big_pi(void);
+extern void calc_lengths(void);
+extern void init_big_dec(int dec);
+extern void init_big_length(int bnl);
+extern void init_big_pi(void);
 
 /* functions defined in bignuma.asm or bignumc.c */
 extern bn_t clear_bn(bn_t r);
