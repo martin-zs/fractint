@@ -430,11 +430,16 @@ int encoder()
       /* Extended parameters block 005 */
       if (bf_math)
         {
+          convert_for_bnstep(0); /* If needed, convert to bnstep = 4 */
           save_info.tot_extend_len += extend_blk_len(22 * (bflength + 2));
           /* note: this assumes variables allocated in order starting with
            * bfxmin in init_bf2() in BIGNUM.C */
           if (!put_extend_blk(5, 22 * (bflength + 2), (char *) bfxmin))
-            goto oops;
+            {
+              convert_for_bnstep(1); /* Convert back to bnstep = 8 */
+              goto oops;
+            }
+          convert_for_bnstep(1); /* Convert back to bnstep = 8 */
         }
 
       /* Extended parameters block 006 */

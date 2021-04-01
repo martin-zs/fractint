@@ -35,14 +35,14 @@ extern int longvmult(LVECTOR,LMATRIX,LVECTOR,int );
 
 /* CAE removed static functions from header 28 Jan 95  */
 
-void free_bf_vars(void);
-bn_t alloc_stack(size_t size);
-int save_stack(void);
-void restore_stack(int old_offset);
-void init_bf_dec(int dec);
-void init_bf_length(int bnl);
-void init_big_pi(void);
-
+extern void free_bf_vars(void);
+extern bn_t alloc_stack(size_t size);
+extern int save_stack(void);
+extern void restore_stack(int old_offset);
+extern void init_bf_dec(int dec);
+extern void init_bf_length(int bnl);
+extern void init_big_pi(void);
+extern void convert_for_bnstep(int dir);
 
 /*  calcfrac -- C file prototypes */
 
@@ -518,9 +518,9 @@ extern void end_help(void );
 
 /*  history -- C file prototypes */
 
-void InitHistory(void);
-void restore_history_info(int);
-void save_history_info(void);
+extern void InitHistory(void);
+extern void restore_history_info(int);
+extern void save_history_info(void);
 
 /*  intro -- C file prototypes */
 
@@ -1037,7 +1037,7 @@ extern int  checkautosave(void);
 extern long stackavail(void);
 #if 1 /* XFRACT */
 extern void decode_fractal_info(struct fractal_info *, int);
-extern void fix_ranges(U16 *, U16, int);
+extern void fix_ranges(S16 *, U16, int);
 extern void decode_evolver_info(struct evolution_info *, int);
 extern void decode_orbits_info(struct orbits_info *, int);
 #endif

@@ -387,7 +387,7 @@ int getakey(void)
   int ch;
 /*
   ch = soundflag & 7;
-  if (ch != 0 && ch != 7)
+  if (ch != 0 || ch != 7)
       mute();
 */
   do
@@ -1006,7 +1006,7 @@ static void getFloat(float *dst, unsigned char **src, int dir)
 /*
  * Fix up the ranges data.
  */
-void fix_ranges(U16 *ranges, U16 num, int dir)
+void fix_ranges(S16 *ranges, U16 num, int dir)
 {
   unsigned char *buf;
   unsigned char *bufPtr;

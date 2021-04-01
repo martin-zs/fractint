@@ -56,6 +56,7 @@
         typedef unsigned int   U32;
         typedef int            S32;
 #if (LONG_MAX == 9223372036854775807)
+#define USE_U64       1
         typedef unsigned long U64;
         typedef long          S64;
 #else /* need to use long long */
