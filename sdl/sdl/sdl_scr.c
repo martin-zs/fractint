@@ -1959,6 +1959,11 @@ int get_key_event(int block)
   SDL_Event event;
   int keyispressed = 0;
 
+  if(screenctr != 0)             /* On a text screen:   */
+    SDL_ShowCursor(SDL_DISABLE); /*   Hide the mouse cursor */
+  else                           /* On an image screen: */
+    SDL_ShowCursor(SDL_ENABLE);  /*   Show the mouse cursor */
+
   do
     {
       /* look for an event */
