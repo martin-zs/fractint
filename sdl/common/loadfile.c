@@ -470,13 +470,13 @@ int read_overlay()      /* read overlay/3D files, if reqr'd */
 
   if (blk_5_info.got_data == 1)
     {
-      int save_bnstep = bnstep;
+      int saved_bnstep = bnstep;
       bf_math = 1;
       bnstep = 4; /* restore data based on bnstep = 4 */
       init_bf_length(read_info.bflength);
       memcpy((char *)bfxmin,blk_5_info.apm_data,blk_5_info.length);
       free(blk_5_info.apm_data);
-      bnstep = save_bnstep; /* Restore so next works */
+      bnstep = saved_bnstep; /* Restore so next works */
       convert_for_bnstep(1); /* If needed, convert to bnstep = 8 */
     }
   else
@@ -1279,6 +1279,7 @@ int fgetwindow(void)
       calc_status = oldcalc_status;
     }
   saved = save_stack();
+
   bt_a = alloc_stack(rbflength+2);
   bt_b = alloc_stack(rbflength+2);
   bt_c = alloc_stack(rbflength+2);
@@ -1633,12 +1634,13 @@ rescan:  /* entry for changed browse parms */
   boxxhandle = 0;
   boxyhandle = 0;
   boxvalueshandle = 0;
+
   restore_stack(saved);
+
   if (!oldbf_math)
     free_bf_vars();
   bf_math = oldbf_math;
   floatflag = usr_floatflag;
-
   return(c);
 }
 
@@ -1756,6 +1758,7 @@ static char is_visible_window
       two_di_len = di_bflength + 2;
       two_rbf = rbflength + 2;
 
+      /* Allocate here, use in bftransform() */
       n_a     = alloc_stack(two_rbf);
       n_b     = alloc_stack(two_rbf);
       n_c     = alloc_stack(two_rbf);

@@ -1439,7 +1439,7 @@ static int translate_key(SDL_KeyboardEvent *key)
 #endif
 
   /* This is the SDL key mapping */
-  if (key->keysym.mod & KMOD_CTRL) /* Control key down */
+  if (SDL_GetModState() & KMOD_CTRL) /* Control key down */
     {
       switch (key->keysym.sym)
         {
@@ -1523,7 +1523,7 @@ static int translate_key(SDL_KeyboardEvent *key)
             return (tmp - 'a' + 1);
         }
     }
-  else if (key->keysym.mod & KMOD_SHIFT) /* Shift key down */
+  else if (SDL_GetModState() & KMOD_SHIFT) /* Shift key down */
     {
       switch (key->keysym.sym)
         {
@@ -1642,7 +1642,7 @@ static int translate_key(SDL_KeyboardEvent *key)
           break;
         }
     }
-  else if (key->keysym.mod & KMOD_ALT) /* Alt key down */
+  else if (SDL_GetModState() & KMOD_ALT) /* Alt key down */
     {
       switch (key->keysym.sym)
         {
@@ -1710,7 +1710,7 @@ static int translate_key(SDL_KeyboardEvent *key)
           break;
         }
     }
-  else if (key->keysym.mod & KMOD_NUM) /* Num Lock key down */
+  else if (SDL_GetModState() & KMOD_NUM) /* Num Lock key down */
     {
       switch (key->keysym.sym)
         {
@@ -2025,8 +2025,9 @@ int get_key_event(int block)
                 {
                 if (left_mouse_button_down == 1 && button_held == 1)
                    {
-                      calc_status = 0;
-                      keyispressed = ENTER;
+                      init_pan_or_recalc(0);
+                      if(SDL_GetModState() & KMOD_CTRL) /* Control key down */
+                        keyispressed = ENTER;
                    }
                 left_mouse_button_down = 0;
                 button_held = 0;
