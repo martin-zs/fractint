@@ -556,6 +556,10 @@ msglen = strlen(msg);
 msgptr = msg + msglen;
 sprintf(msgptr, "Audio driver: %s.\n", SDL_GetCurrentAudioDriver());
 
+msglen = strlen(msg);
+msgptr = msg + msglen;
+sprintf(msgptr, "Size of Long: %d.\n", sizeof(long));
+
 
 SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION,
                          "System Information",
