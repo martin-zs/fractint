@@ -285,8 +285,16 @@ Version 20.5.00 is an update of Fractint 20.0 based on the developer's
 
 Version 20.5 is a Port to SDL 2.0
 
-Speed up for saving/restoring images.\
-  Fix for where zoom box appears relative to mouse pointer.\
+Made zoom box created with mouse not automatically generate an image.\
+  This allows use of the keyboard keys to manipulate the zoom box prior\
+  to generating the image by pressing ENTER.  Press and hold the control\
+  key when creating the zoom box with the mouse to auto generate images\
+  as before.
+
+Hid mouse cursor on text screens.
+
+Fixed arbitrary precision save/restore to GIFs for backwards compatibility.\
+  The image browser does not work for the 64-bit compile.
 
 Known issues:\
 Random crashes\
