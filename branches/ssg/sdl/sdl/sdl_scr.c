@@ -1824,6 +1824,8 @@ static int translate_key(SDL_KeyboardEvent *key)
     return 0;
 }
 
+static int lastx = 0;
+static int lasty = 0;
 int left_mouse_button_down = 0;
 int right_mouse_button_down = 0;
 int button_held = 0;
@@ -1834,8 +1836,6 @@ extern int editpal_cursor;
 
 int check_mouse(SDL_Event mevent)
 {
-  static int lastx = 0;
-  static int lasty = 0;
   static int dx = 0;
   static int dy = 0;
   static int bandx0, bandy0;
@@ -1847,25 +1847,32 @@ int check_mouse(SDL_Event mevent)
   if (screenctr) /* don't do it, we're on a text screen */
     return (0);
 
-  if (mevent.button.state & SDL_BUTTON_MMASK ||
+  if (editpal_cursor && !inside_help)
+  {
+    if (mevent.button.state & SDL_BUTTON_MMASK ||
         (mevent.button.state & SDL_BUTTON_LMASK &&
          mevent.button.state & SDL_BUTTON_RMASK))
        bnum = 3;
-  else if (mevent.button.state & SDL_BUTTON_LMASK)
+    else if (mevent.button.state & SDL_BUTTON_LMASK)
        bnum = 1;
-  else if (mevent.button.state & SDL_BUTTON_RMASK)
+    else if (mevent.button.state & SDL_BUTTON_RMASK)
        bnum = 2;
-  else
+    else
        bnum = 0;
 
-  if ((lookatmouse == 3 && bnum != 0) /*|| zoomoff == 0 */)
+    if ((lookatmouse == 3 && bnum != 0) /*|| zoomoff == 0 */)
     {
       dx += (mevent.button.x * mouse_scale_x - lastx);
       dy += (mevent.button.y * mouse_scale_y - lasty);
       lastx = mevent.button.x * mouse_scale_x;
       lasty = mevent.button.y * mouse_scale_y;
-//      return (0);
     }
+    else
+    {
+      Cursor_SetPos(mevent.button.x, mevent.button.y);
+      keyispressed = ENTER;
+    }
+  }
 
     if (!keyispressed && editpal_cursor && !inside_help && lookatmouse == 3 &&
     (dx != 0 || dy != 0))
@@ -1955,7 +1962,7 @@ int check_mouse(SDL_Event mevent)
 
   if (right_mouse_button_down)
     (*plot)(mevent.button.x - sxoffs, mevent.button.y - syoffs, 4);
-  return (0);
+  return (keyispressed);
 }
 
 int get_key_event(int block)
@@ -1963,7 +1970,7 @@ int get_key_event(int block)
   SDL_Event event;
   int keyispressed = 0;
 
-  if(screenctr != 0)             /* On a text screen:   */
+  if(screenctr != 0 || editpal_cursor) /* On a text screen or palette editor: */
     SDL_ShowCursor(SDL_DISABLE); /*   Hide the mouse cursor */
   else                           /* On an image screen: */
     SDL_ShowCursor(SDL_ENABLE);  /*   Show the mouse cursor */
@@ -2013,13 +2020,19 @@ int get_key_event(int block)
             case SDL_MOUSEBUTTONDOWN:
              if (!screenctr)
               {
+              if (lookatmouse == 3 || zoomoff == 0)
+                {
+                  lastx = event.button.x * mouse_scale_x;
+                  lasty = event.button.y * mouse_scale_y;
+                  break;
+                }
               if (event.button.button == SDL_BUTTON_LEFT && left_mouse_button_down == 1)
                 button_held = 1;
               if (event.button.button == SDL_BUTTON_LEFT)
                 left_mouse_button_down = 1;
               if (event.button.button == SDL_BUTTON_RIGHT)
                 right_mouse_button_down = 1;
-              keyispressed = 255;
+//              keyispressed = 255;
               }
               break;
             case SDL_MOUSEBUTTONUP:
@@ -2029,7 +2042,7 @@ int get_key_event(int block)
                 {
                 if (left_mouse_button_down == 1 && button_held == 1)
                    {
-                      init_pan_or_recalc(0);
+//                      init_pan_or_recalc(0);
                       if(SDL_GetModState() & KMOD_CTRL) /* Control key down */
                         keyispressed = ENTER;
                    }
