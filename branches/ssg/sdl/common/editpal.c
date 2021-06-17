@@ -617,10 +617,10 @@ VOIDPTR mem_alloc(unsigned size)
 
   if (mem_avail < size)   /* don't let this happen! */
     {
-      static FCODE msg[] = "editpal.c: Out of memory!\n";
+      static FCODE msg[] = "editpal.c: Out of memory!  Fractint will crash\n";
 
       stopmsg(0, msg);
-      exit(1);
+      goodbye(); /* Changed from exit(1) to eliminate lockup. */
     }
 
   block = mem_block;
@@ -1922,6 +1922,7 @@ static void PalTable__PutBand(PalTable *this, PALENTRY *pal)
 static void PalTable__SaveUndoData(PalTable *this, int first, int last)
 {
   int num;
+  int value;
 
   if ( this->undo_file == NULL )
     return ;
@@ -1938,7 +1939,9 @@ static void PalTable__SaveUndoData(PalTable *this, int first, int last)
       putc(UNDO_DATA_SINGLE, this->undo_file);
       putc(first, this->undo_file);
       fwrite(this->pal+first, 3, 1, this->undo_file);
-      putw( 1 + 1 + 3 + sizeof(int), this->undo_file);
+      value = 1 + 1 + 3 + sizeof(int);
+/*      putw( 1 + 1 + 3 + sizeof(int), this->undo_file); */
+      fwrite(&value, sizeof(int), 1, this->undo_file);
     }
   else
     {
@@ -1946,7 +1949,9 @@ static void PalTable__SaveUndoData(PalTable *this, int first, int last)
       putc(first, this->undo_file);
       putc(last,  this->undo_file);
       fwrite(this->pal+first, 3, num, this->undo_file);
-      putw(1 + 2 + (num*3) + sizeof(int), this->undo_file);
+      value = 1 + 2 + (num*3) + sizeof(int);
+/*      putw(1 + 2 + (num*3) + sizeof(int), this->undo_file); */
+      fwrite(&value, sizeof(int), 1, this->undo_file);
     }
 
   this->num_redo = 0;
@@ -1955,6 +1960,8 @@ static void PalTable__SaveUndoData(PalTable *this, int first, int last)
 
 static void PalTable__SaveUndoRotate(PalTable *this, int dir, int first, int last)
 {
+  int value;
+
   if ( this->undo_file == NULL )
     return ;
 
@@ -1966,15 +1973,19 @@ static void PalTable__SaveUndoRotate(PalTable *this, int dir, int first, int las
   putc(UNDO_ROTATE, this->undo_file);
   putc(first, this->undo_file);
   putc(last,  this->undo_file);
-  putw(dir, this->undo_file);
-  putw(1 + 2 + sizeof(int), this->undo_file);
-
+/*  putw(dir, this->undo_file); */
+  fwrite(&dir, sizeof(int), 1, this->undo_file);
+  value = 1 + 2 + sizeof(int);
+/*  putw(1 + 2 + sizeof(int), this->undo_file); */
+  fwrite(&value, sizeof(int), 1, this->undo_file);
   this->num_redo = 0;
 }
 
 
 static void PalTable__UndoProcess(PalTable *this, int delta)   /* undo/redo common code */
 {
+  int size;
+
   /* delta = -1 for undo, +1 for redo */
   int cmd = getc(this->undo_file);
 
@@ -2019,9 +2030,12 @@ static void PalTable__UndoProcess(PalTable *this, int delta)   /* undo/redo comm
 
     case UNDO_ROTATE:
     {
-      int first = (unsigned char)getc(this->undo_file);
-      int last  = (unsigned char)getc(this->undo_file);
-      int dir   = getw(this->undo_file);
+      int      first, last, dir;
+
+      first = (unsigned char)getc(this->undo_file);
+      last  = (unsigned char)getc(this->undo_file);
+/*      dir   = getw(this->undo_file); */
+      fread(&dir, sizeof(int), 1, this->undo_file);
 
 #ifdef DEBUG_UNDO
       mprintf("          Reading ROTATE of %d from %d to %d", dir, first, last);
@@ -2038,7 +2052,8 @@ static void PalTable__UndoProcess(PalTable *this, int delta)   /* undo/redo comm
     }
 
   fseek(this->undo_file, 0, SEEK_CUR);  /* to put us in read mode */
-  getw(this->undo_file);  /* read size */
+/*  getw(this->undo_file);  read size */
+  fread(&size, sizeof(int), 1, this->undo_file);
 }
 
 
@@ -2055,7 +2070,8 @@ static void PalTable__Undo(PalTable *this)
 
   fseek(this->undo_file, -(int)sizeof(int), SEEK_CUR);  /* go back to get size */
 
-  size = getw(this->undo_file);
+/*  size = getw(this->undo_file); */
+  fread(&size, sizeof(int), 1, this->undo_file);
   fseek(this->undo_file, -size, SEEK_CUR);   /* go to start of undo */
 
 #ifdef DEBUG_UNDO
