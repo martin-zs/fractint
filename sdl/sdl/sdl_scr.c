@@ -1860,7 +1860,7 @@ int check_mouse(SDL_Event mevent)
     else
        bnum = 0;
 
-    if ((lookatmouse == 3 && bnum != 0) /*|| zoomoff == 0 */)
+    if (lookatmouse == 3 && bnum != 0)
     {
       dx += (mevent.button.x * mouse_scale_x - lastx);
       dy += (mevent.button.y * mouse_scale_y - lasty);
@@ -1869,7 +1869,7 @@ int check_mouse(SDL_Event mevent)
     }
     else
     {
-      Cursor_SetPos(mevent.button.x, mevent.button.y);
+      Cursor_SetPos(mevent.button.x * mouse_scale_x, mevent.button.y * mouse_scale_y);
       keyispressed = ENTER;
     }
   }
@@ -2032,7 +2032,6 @@ int get_key_event(int block)
                 left_mouse_button_down = 1;
               if (event.button.button == SDL_BUTTON_RIGHT)
                 right_mouse_button_down = 1;
-//              keyispressed = 255;
               }
               break;
             case SDL_MOUSEBUTTONUP:
