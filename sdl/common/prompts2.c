@@ -9,6 +9,7 @@
 #include <dirent.h>
 #include <malloc.h>
 #include <fcntl.h>
+#include <stdlib.h>
 
 /* see Fractint.c for a description of the "include"  hierarchy */
 #include "port.h"
@@ -1181,9 +1182,9 @@ void goodbye(void)                  /* we done.  Bail out */
     ret = 2;
   else if (initbatch == 4)
     ret = 1;
-  /* Use _exit() to avoid loop since goodbye() is registered with atexit()
+  /* Use _Exit() to avoid loop since goodbye() is registered with atexit()
    * and would be called again if exit() were used. */
-  _exit(ret);
+  _Exit(ret);
 }
 
 /* --------------------------------------------------------------------- */
