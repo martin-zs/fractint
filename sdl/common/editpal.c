@@ -617,7 +617,7 @@ VOIDPTR mem_alloc(unsigned size)
 
   if (mem_avail < size)   /* don't let this happen! */
     {
-      static FCODE msg[] = "editpal.c: Out of memory!  Fractint will crash\n";
+      static FCODE msg[] = "editpal.c: Out of memory! Use lower image resolution. Fractint will crash\n";
 
       stopmsg(0, msg);
       goodbye(); /* Changed from exit(1) to eliminate lockup. */
