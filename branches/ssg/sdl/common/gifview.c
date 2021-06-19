@@ -36,7 +36,7 @@ static unsigned int gifview_image_twidth; /* (for migs) */
 
 int get_byte(void)
 {
-    return (getc(fpin)); /* EOF is -1, as desired */
+    return (fgetc(fpin)); /* EOF is -1, as desired */
 }
 
 int get_bytes(BYTE *where,int how_many)
@@ -72,7 +72,7 @@ int gifview(void)
   BYTE buffer[16];
   unsigned top, left, width, finished;
   char temp1[FILE_MAX_DIR];
-  BYTE byte_buf[257]; /* for decoder */
+  BYTE byte_buf[DECODERLINE_WIDTH]; /* for decoder */
   int status;
   int i, j, k, planes;
   BYTE linebuf[DECODERLINE_WIDTH];
@@ -104,7 +104,7 @@ int gifview(void)
       strcat(temp1,DEFAULTFRACTALTYPE);
       if ((fpin = fopen(temp1,"rb")) != NULL)
         {
-          fclose(fpin);
+          close_file();
         }
       else
         {

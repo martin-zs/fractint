@@ -286,22 +286,22 @@ Version 20.5.00 is an update of Fractint 20.0 based on the developer's
 Version 20.5 is a Port to SDL 2.0
 
 Palette editor now works with the mouse.\
-
-
-  
+Fixed buffer overrun when loading images. 3D image genaration\
+  no longer crashes.\
+Zooming with the mouse is no longer allowed while an image is\
+  still generating.  The PGUP/PGDN keys respond normally.\
+Speedup to make jiim usable.  Press SPACE on a Mandelbrot image so see.\
 
 Known issues:\
 Random crashes\
 Resizing images using the window border doesn't work very well\
-No sound\
+No reliable sound.  Buzzer kind of works\
 Colors still limited to 256\
 The image browser does not work with arbitrary precision for the\
   64-bit compile (Linux).\
 2-color disk video modes are broken (windows)\
 Interrupting disk video initialization and canceling it\
-causes a crash\
-Zooming with mouse before image is finished doesn't create desired
-image\
+  causes a crash\
 Help docs are not updated\
 
 Patch 14 to Version 20.4.0\

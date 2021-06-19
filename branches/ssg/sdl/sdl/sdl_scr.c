@@ -2117,7 +2117,7 @@ static U32 next_time = 0;
 
 int time_to_update(void)
 {
-  /* return a 1 every 50 milliseconds if calculating && !bf_math */
+  /* return a 1 every 50 milliseconds if (calculating && !bf_math) or using_jiim */
   /* return a 1 every 100  milliseconds if mousing or saving/restoring image */
   /* return a 1 every 200 milliseconds if on text screen and blink cursor */
   /* return a 1 every 500 milliseconds if calculating && bf_math */
@@ -2125,7 +2125,7 @@ int time_to_update(void)
   U32 now;
 
   now = SDL_GetTicks();
-  if (calc_status == 1 && !bf_math) /* calculating */
+  if ((calc_status == 1 && !bf_math) || using_jiim) /* calculating or using_jiim */
     {
       if (next_time <= now)
         {
