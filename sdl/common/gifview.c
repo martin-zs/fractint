@@ -207,6 +207,7 @@ int gifview(void)
 
           finished = 1;
           status = 0;
+          updateimage(); /* Update now, instead of waiting for loop */
           break;
 
         case '!':                               /* GIF Extension Block */

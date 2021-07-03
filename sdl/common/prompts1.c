@@ -3009,12 +3009,12 @@ static int check_mapfile()
   if (dontreadcolor)
     return(0);
   strcpy(temp1,"*");
-  if (mapset)
+  if (mapset || *MAP_name != 0)
     strcpy(temp1,MAP_name);
   if (!(glassestype == 1 || glassestype == 2))
     askflag = 1;
   else
-    merge_pathnames(temp1,funnyglasses_map_name,0);
+    merge_pathnames(temp1,funnyglasses_map_name,2);
 
   for (;;)
     {
