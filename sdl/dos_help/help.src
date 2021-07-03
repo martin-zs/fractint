@@ -286,8 +286,7 @@ Version 20.5.00 is an update of Fractint 20.0 based on the developer's
 Version 20.5 is a Port to SDL 2.0
 
 Palette editor now works with the mouse.\
-Fixed buffer overrun when loading images. 3D image generation\
-  no longer crashes.\
+3D image generation no longer crashes.\
 Zooming with the mouse is no longer allowed while an image is\
   still generating.  This eliminates the problem where the new\
   image generates over the old one.  The PGUP/PGDN keys respond normally\
