@@ -94,6 +94,7 @@ Fix file access.]]>
 		</Build>
 		<Compiler>
 			<Add option="-std=c99" />
+			<Add option="-m64" />
 			<Add option="-fno-builtin" />
 			<Add option="`sdl2-config --cflags --libs`" />
 			<Add option="-DXFRACT" />
@@ -102,6 +103,7 @@ Fix file access.]]>
 			<Add directory="/usr/include/SDL2" />
 		</Compiler>
 		<Linker>
+			<Add option="-m64" />
 			<Add option="-no-pie" />
 			<Add library="/usr/lib/x86_64-linux-gnu/libSDL2main.a" />
 			<Add library="/usr/lib/x86_64-linux-gnu/libSDL2.so" />

@@ -451,12 +451,12 @@ int merge_pathnames(char *oldfullpath, char *newfilename, int mode)
     isafile=1;
   if ((isadir = isadirectory(newfilename)) != 0)
     fix_dirname(newfilename);
-#if 0
+#if 1
   /* if slash by itself, it's a directory */
   if (strcmp(newfilename,SLASH)==0)
     isadir = 1;
 #endif
-#ifndef XFRACT
+#if 1
   /* if drive, colon, slash, is a directory */
   if (strlen(newfilename) == 3 &&
       newfilename[1] == ':' &&
