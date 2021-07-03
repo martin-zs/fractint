@@ -1055,6 +1055,7 @@ extern int strnicmp(char *, char *, int);
 /*  sdl_src -- C file prototypes */
 
 extern void CleanupSDL(void);
+extern void popup_error (int, char *);
 extern void ResizeScreen(int);
 extern void SetupSDL(void);
 extern void showfreemem(void);
@@ -1088,6 +1089,7 @@ extern void delay(int);
 extern long clock_ticks(void);
 extern int time_to_update(void);
 extern void outtext(int, int, int);
+extern void updateimage(void);
 extern int saveimagedata(void);
 extern void restoreimagedata(void);
 extern void refreshimage(void);
@@ -1125,6 +1127,5 @@ extern void spindac (int, int);
 extern int get_video_mode(struct fractal_info *,struct ext_blk_3 *);
 extern void blink_cursor(void);
 extern void unblink_cursor(void);
-extern void popup_error (int, char *);
 
 #endif
