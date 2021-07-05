@@ -898,7 +898,7 @@ static int compress(int rowlimit)
   int tempkey;
   char accum_stack[256];
   accum = accum_stack;
-  htab = (long *)malloc(65536);
+  htab = (long *)extraseg;
 
   outcolor1 = 0;               /* use these colors to show progress */
   outcolor2 = 1;               /* (this has nothing to do with GIF) */
@@ -1034,7 +1034,6 @@ nomatch:
    */
   output((int)ent);
   output((int) EOFCode);
-  free(htab);
   return (interrupted);
 }
 

@@ -3578,6 +3578,7 @@ void init_misc()
         */
 
 long total_formula_mem;
+BYTE used_extra = 0;
 
 static void parser_allocate(void)
 {
@@ -3586,8 +3587,10 @@ static void parser_allocate(void)
   /* Somewhat more memory is now allocated than in v17 here */
   /* however Store and Load were reduced in size to help make up for it */
 
-  long f_size,Store_size,Load_size,v_size, p_size;
-  int pass, is_bad_form=0;
+  long f_size, Store_size, Load_size, v_size, p_size;
+  int pass;
+  int is_bad_form = 0;
+  int end_dx_array;
 
   big_formula = 0;
 
@@ -3600,6 +3603,11 @@ static void parser_allocate(void)
      Max_Ops = 1500; /* this value uses up about 64K memory */
 
   Max_Args = (unsigned)(Max_Ops/2.5);
+
+  if(use_grid)
+      end_dx_array = 2L*(long)(xdots+ydots)*sizeof(double);
+   else
+      end_dx_array = 0;
 
   /* TW Jan 1 1996 Made two passes to determine actual values of
      Max_Ops and Max_Args. Now use the end of extraseg if possible, so
@@ -3615,19 +3623,23 @@ static void parser_allocate(void)
       p_size = sizeof(struct fls *) * Max_Ops;
       total_formula_mem = f_size+Load_size+Store_size+v_size+p_size /*+ jump_size*/
                           + sizeof(struct PEND_OP) * Max_Ops;
+      used_extra = 0;
 
       if ((pass == 0 || is_bad_form) && big_formula == 0)
         {
-        typespecific_workarea = (char *)malloc(1L<<16);
+        typespecific_workarea = (char *)extraseg;
+        used_extra = 1;
         }
-      else if((1L<<16 > (total_formula_mem)) && big_formula == 0)
+      else if((1L<<16 > (end_dx_array + total_formula_mem)) && big_formula == 0)
         {
-        typespecific_workarea = (char *)malloc(1L<<16);
+        typespecific_workarea = (char *)(extraseg + end_dx_array);
+        used_extra = 1;
         }
       else /* if (is_bad_form == 0 || big_formula == 1) */
         {
         typespecific_workarea =
            (char *)malloc((long)(total_formula_mem));
+        used_extra = 0;
         }
       f = (void(* *)(void))typespecific_workarea;
       Store = (union Arg * *)(f + Max_Ops);
@@ -3650,7 +3662,7 @@ static void parser_allocate(void)
 
 void free_workarea()
 {
-  if (typespecific_workarea)
+  if (typespecific_workarea && used_extra == 0)
     {
       free(typespecific_workarea);
     }
@@ -3661,6 +3673,12 @@ void free_workarea()
   f = (void( * *)(void))0;      /* CAE fp */
   pfls = (struct fls * )0;   /* CAE fp */
 /*  total_formula_mem = 0; Leave this set so value can display on secret TAB screen */
+
+   /* restore extraseg */
+   if(integerfractal && !invert)
+      fill_lx_array();
+   else
+      fill_dx_array();
 }
 
 

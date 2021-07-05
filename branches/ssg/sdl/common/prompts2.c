@@ -22,6 +22,7 @@
 static  int check_f6_key(int curkey,int choice);
 static  int filename_speedstr(int, int, int, char *, int);
 static  int get_screen_corners(void);
+int cmpdbl(double, double);
 
 /* speed key state values */
 #define MATCHING         0      /* string matches list - speed key mode */
@@ -1011,7 +1012,7 @@ int get_rds_params(void)
           uvalues[k++].type = 'y';
 
           uvalues[k++].type = '*';
-          for (i=0;i<sizeof(rds6);i++)
+          for (i=0;i<(int)sizeof(rds6);i++)
             rds6[i] = ' ';
           if ((p = strrchr(stereomapname,SLASHC))==NULL ||
               strlen(stereomapname) < sizeof(rds6)-2)
@@ -1157,6 +1158,8 @@ void goodbye(void)                  /* we done.  Bail out */
     free(extraseg);
   if (extraseg2)
     free(extraseg2);
+  if (LogTable)
+    free(LogTable);
   if (x_close == 1)
     freetempmsg();
   enddisk();
