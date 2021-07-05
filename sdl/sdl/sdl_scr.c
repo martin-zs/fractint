@@ -11,6 +11,7 @@
 
 #include "port.h"
 #include "prototyp.h"
+#include "fractype.h"
 
 /* SDL global variables */
 SDL_Surface *mainscrn = NULL;
@@ -2125,7 +2126,8 @@ int time_to_update(void)
   U32 now;
 
   now = SDL_GetTicks();
-  if ((calc_status == 1 && !bf_math) || using_jiim) /* calculating or using_jiim */
+  if ((calc_status == 1 && !bf_math) || using_jiim || fractype == ANT)
+    /* calculating or using_jiim or fractype == ANT */
     {
       if (next_time <= now)
         {

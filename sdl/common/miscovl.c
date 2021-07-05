@@ -551,7 +551,7 @@ void write_batch_parms(char *colorinf, int colorsonly, int maxcolor, int ii, int
 
   /* Using near string boxx for buffer after saving */
 
-  saveshared = malloc(10000);
+  saveshared = (char *)extraseg;
   memcpy(saveshared,boxx,10000);
   memset(boxx,0,10000);
   memset(buf,0,255*3);
@@ -1254,7 +1254,6 @@ docolors:
     put_parm_line();
   /* restore previous boxx data from extraseg */
   memcpy(boxx, saveshared, 10000);
-  free(saveshared);
   restore_stack(saved);
 }
 
