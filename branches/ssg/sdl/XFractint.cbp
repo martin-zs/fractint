@@ -323,6 +323,7 @@ Fix file access.]]>
 		<Unit filename="headers/prototyp.h">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="headers/unix.h" />
 		<Unit filename="sdl/bignumax-64.o">
 			<Option target="default" />
 			<Option target="debug" />

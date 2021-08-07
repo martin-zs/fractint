@@ -157,7 +157,7 @@ line. Autokey files can contain the following:
   Quoted strings. Fractint reads whatever is between the quotes just as if
   you had typed it. For example,
       "t" "ifs"
-  issues the "t" (type) command and then enters the letters i", "f", and
+  issues the "t" (type) command and then enters the letters "i", "f", and
   "s" to select the ifs type.
 
   Symbols for function keys used to select a video mode. Examples:\

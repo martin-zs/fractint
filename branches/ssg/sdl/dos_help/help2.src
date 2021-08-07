@@ -285,7 +285,6 @@ SUMMARY OF FRACTAL TYPES
       y(n+1) = a - x(n)
     Parameters are a, b, and c.
 
-~FF
 {=HT_HYPERC hypercomplex}
 ~Label=HF_HYPERC
     HyperComplex Mandelbrot set.
@@ -1354,12 +1353,11 @@ for a smoothed-out, cloud-like effect. The more colors your video mode
 supports, the better.  The result, believe it or not, is a fractal
 landscape viewed as a contour map, with colors indicating constant
 elevation.  To see this, save and view with the <3> command
-(see {\"3D\" Images})
+(see {"3D" Images})
 and your "cloud" will be converted to a mountain!
 
 You've GOT to try {=@ColorCycling color cycling} on these (hit "+" or "-").
-If you
-haven't been hypnotized by the drawing process, the writhing colors will
+If you haven't been hypnotized by the drawing process, the writhing colors will
 do it for sure. We have now implemented subliminal messages to exploit the
 user's vulnerable state; their content varies with your bank balance,
 politics, gender, accessibility to a Fractint programmer, and so on. A
@@ -1399,7 +1397,7 @@ floating-point math. The algorithm was modified starting with version 18
 so that the plasma effect is independent of screen resolution.
 
 Saved plasma-cloud screens are EXCELLENT starting images for fractal
-"landscapes" created with the {\"3D\" commands}.
+"landscapes" created with the {"3D" commands}.
 ;
 ;
 ~Topic=Lambdafn, Label=HT_LAMBDAFN
