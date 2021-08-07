@@ -107,7 +107,7 @@ static void help_seek(long pos)
 
 static void displaycc(int row, int col, int color, int ch)
 {
-  static char s[] = "?";
+  static char s[2] = "?";
 
   if (text_type == 1)   /* if 640x200x2 mode */
     {
@@ -855,7 +855,7 @@ int help(int action)
         {
           if ( curr.topic_num == -100 )
             {
-              print_document("FRACTINT.DOC", print_doc_msg_func, 0);
+              print_document("FRACTINT.DOC", print_doc_msg_func, 1);
               action = ACTION_PREV2;
             }
 
@@ -902,7 +902,7 @@ int help(int action)
     }
   while (action != ACTION_QUIT);
 
-  free((BYTE *)buffer);
+  free(buffer);
 
   unstackscreen();
   lookatmouse = oldlookatmouse;
@@ -1030,7 +1030,7 @@ int read_help_topic(int label_num, int off, int len, VOIDFARPTR buf)
   return ( ret );
 }
 
-#define PRINT_BUFFER_SIZE  (0x10000)       /* max. size of help topic in doc. */
+#define PRINT_BUFFER_SIZE  (32767)       /* max. size of help topic in doc. */
 #define TEMP_FILE_NAME     "HELP.$$$"    /* temp file for storing extraseg  */
 /*    while printing document      */
 #define MAX_NUM_TOPIC_SEC  (10)          /* max. number of topics under any */
@@ -1054,7 +1054,7 @@ typedef struct PRINT_DOC_INFO
     char      id[81];        /* buffer to store id in */
     char      title[81];     /* buffer to store title in */
 
-#if 0
+#if 1
     int     (*msg_func)(int pnum, int num_page);
 #else
     int     (*msg_func)();
@@ -1331,7 +1331,7 @@ void print_document(char *outfname, int (*msg_func)(int,int), int save_extraseg 
   char          *msg = NULL;
   int            dummy; /* to quiet compiler */
 
-  info.buffer = malloc(0x10000);
+  info.buffer = (char *)extraseg;
 
   /*   help_seek((long)sizeof(int)+sizeof(long));         Strange -- should be 8 -- CWM */
   help_seek(8L);                               /* indeed it should - Bert */
@@ -1409,7 +1409,6 @@ ErrorAbort:
 
   else if ( msg_func != NULL )
     msg_func((success) ? -1 : -2, info.num_page );
-  free(info.buffer);
 }
 
 int init_help(void)
@@ -1502,7 +1501,7 @@ void end_help(void)
   if (help_file != -1)
     {
       close(help_file);
-      free((BYTE *)topic_offset);
+      free(topic_offset);
       help_file = -1;
     }
 }

@@ -4,159 +4,33 @@ Of course, Fractint would never stoop to having a "common" problem.  These
 notes describe some, ahem, "special situations" which come up occasionally
 and which even we haven't the gall to label as "features".
 
-Fractint (alas!) is still a DOS program. It runs well under windows, but there
-can be problems. Here are some tips from some expert users.
-
-Jay Hill's Windows tips:\
-  For starters, make sure the DOS window properties are set to
-  'Misc | Always suspend' = off." Unless you want the task to stop when it
-  does not have focus. Also, you can put the Idle Sensitivity to high. Make
-  settings on any other DOS windows you have open according to what they
-  should be (or what you prefer).
-
-  If your DOS window is full screen, press Alt-Enter to make it a Window window.
-  Then click on the MSDOS icon in the upper left. WARNING, don't do this in a
-  high res graphics mode or in text mode (sometimes). The safest is F3 320x200
-  graphics mode. Windows likes that mode. If you have a high res image, hit 'X'
-  to get the text screen and then Alt-ENTER to get the DOS Windows window...
-  POW...your task will likely die. So ... don't do that:
-
-  Some DOS programs eat up to 50% or 80% CPU time just sitting watching for
-  key strokes. Clearly, these should be suspended when they don't have the
-  focus. A simple DOS prompt, I have found, eats little time.
-
-  Some web pages eat lots of time (watching prompt boxes) while others eat
-  little (plain text or graphics with no links).
-
-  It has been noted here before, you can make a shortcut to Fractint.exe and
-  tailor its properties. I use in the program tab: command line:
-
-  FRACTINT.EXE textsafe=save sound=off\
-
-  Under the screen tab: Usage: Full screen.
-  Under Misc: Allow screen saver=off.
-
-  You should coordinate your DOS windows according to what you are doing.
-  I often change the settings for a short time, just to do some other task.
-
-Damien M. Jones Windows tips:\
-  This is what works for me. Your mileage may vary.
-
-  Create a shortcut to FRACTINT.EXE, right-click it, choose Properties.
-  On the Memory tab: set all five drop-downs to "Auto".
-  On the Screen tab: choose Full-screen and Fast ROM emulation, leave
-  Dynamic memory allocation OFF.
-  Under the Misc tab: turn OFF Allow screen saver. Turn ON Always suspend.
-  Set the Idle sensitivity to about 1/4, closest to Low.
-
-  In the SSTOOLS.INI file, put textsafe=save on a line by itself in the
-  [fractint] section. (This helps preserve your screen when you switch away
-  from FractInt, but only works if Always suspend is turned ON.)
-
-  Having more than 8M of RAM helps too, that way Windows and FractInt aren't
-  fighting over the same memory.
+Fractint (alas!) is still a DOS program. It runs well in this SDL port, but there
+can be problems.
 
 Hang during startup:\
-  There might be a problem with Fractint's video detection logic and your
-  particular video adapter. Try running with "fractint adapter=xxx" where
-  xxx is cga, ega, egamono, mcga, or vga.  If "adapter=vga" works, and you
-  really have a SuperVGA adapter capable of higher video modes, there are
-  other "adapter=" options for a number of SuperVGA chipsets - please see
-  the full selection in {Video Parameters} for details.  If this solves the
-  problem, create an SSTOOLS.INI file with the "adapter=xxx" command in it
-  so that the fix will apply to every run.\
-  Another possible cause:  If you install the latest Fractint in say
+  There might be a problem if you install the latest Fractint in say
   directory "newfrac", then run it from another directory with the command
   "\\newfrac\\fractint", *and* you have an older version of fractint.exe
-  somewhere in your DOS PATH, a silent hang is all you'll get.  See the
+  somewhere in your PATH, a silent hang is all you'll get.  See the
   notes under the "Cannot find FRACTINT.EXE message" problem for the reason.\
   Another possibility: try one of the "textsafe" parameter choices
   described in {Video Parameters}.
 
-Scrambled image when returning from a text mode display:\
-  If an image which has been partly or completely generated gets partly
-  destroyed when you return to it from the menu, help, or the information
-  display, please try the various "textsafe" parameter options - see
-  {Video Parameters} for details.  If this cures the problem, create
-  an SSTOOLS.INI file with the "textsafe=xxx" command so that the fix will
-  apply to every run.
-
 "Holes" in an image while it is being drawn:\
   Little squares colored in your "inside" color, in a pattern of every
   second square of that size, in solid guessing mode, both across and down
-  (i.e., 1 out of 4), are
-  a symptom of an image which should be calculated with more conservative
-  periodicity checking than the default.  See the Periodicity parameter
-  under {Image Calculation Parameters}.
-
-Black bar at top of screen during color cycling on 8086/8088 machines:\
-  (This might happen intermittently, not every run.)\
-  "fractint cyclelimit=10" might cure the problem.  If so, increase
-  the cyclelimit value (try increasing by 5 or 10 each time) until the
-  problem reappears, then back off one step and add that cyclelimit value
-  to your SSTOOLS.INI file.
-
-Other video problems:
-
-  If you are using a VESA driver with your video adapter, the first thing
-  to try is the "vesadetect=no" parameter. If that fixes the problem, add
-  it to your SSTOOLS.INI file to make the fix permanent.
-
-  It may help to explicitly specify your type of adapter - see the
-  "adapter=" parameter in {Video Parameters}.
-
-  We've had one case where a video driver for Windows does not work
-  properly with Fractint.  If running under Windows, DesqView, or some
-  other layered environment, try running Fractint directly from DOS to see
-  if that avoids the problem.\
-  We've also had one case of a problem co-existing with "386 to the Max".
-
-  We've had one report of an EGA adapter which got scrambled images in
-  all modes until "textsafe=no" was used (see {Video Parameters}).
-
-  Also, see {Video Adapter Notes} for information
-  about enhanced video modes - Fractint makes only limited attempts to
-  verify that a video mode you request is actually supported by your
-  adapter.
-~OnlineFF
-
-Other Hangs and Strange Behavior:\
-  We've had some problems (hangs and solid beeps) on an FPU equipped
-  machine when running under Windows 3's enhanced mode.  The only ways
-  around the problem we can find are to either run the Fractint image
-  involved outside Windows, or to use the DOS command "SET NO87=nofpu"
-  before running Fractint.  (This SET command makes Fractint ignore your
-  fpu, so things might be a lot slower as a result.)
-
-Insufficient memory:\
-  Fractint requires a fair bit of memory to run.  Most machines with at
-  least 640k (ok sticklers, make that "PC-compatible machines") will have
-  no problem.  Machines with 512k and machines with many TSR utilities
-  and/or a LAN interface may have problems.  Some Fractint features
-  allocate memory when required during a run.  If you get a message about
-  insufficient memory, or suspect that some problem is due to a memory
-  shortage, you could try commenting out some TSR utilities in your
-  AUTOEXEC.BAT file, some non-critical drivers in your CONFIG.SYS file, or
-  reducing the BUFFERS parameter in your CONFIG.SYS.
-~OnlineFF
-
-"Cannot find FRACTINT.EXE" message:\
-  Fractint is an overlayed program - some parts of it are brought from
-  disk into memory only when used.  The overlay manager needs to know
-  where to find the program.  It must be named FRACTINT.EXE (which it is
-  unless somebody renamed it), and you should either be in the directory
-  containing it when you start Fractint, or that directory should be in
-  your DOS PATH.
+  (i.e., 1 out of 4), are a symptom of an image which should be calculated
+  with more conservative periodicity checking than the default.  See the
+  Periodicity parameter under {Image Calculation Parameters}.
 
 "File FRACTINT.CFG is missing or invalid" message:\
   You should either start Fractint while you are in the directory
-  containing it, or should have that directory in your DOS PATH variable.
+  containing it, or should have that directory in your PATH variable.
   If that isn't the problem, maybe you have a FRACTINT.CFG file from an
   older release of Fractint lying around? If so, best rename or delete it.
   If that isn't the problem either, then the FRACTINT.CFG included in the
   FRAINT.EXE release file has probably been changed or deleted. Best
   reinstall Fractint to get a fresh copy.
-~OnlineFF
 
 Some other program doesn't like GIF files created by Fractint:\
   Fractint generates nice clean GIF89A spec files, honest! But telling
@@ -173,35 +47,6 @@ Disk video mode performance:\
   This won't be blindingly fast at the best of times, but there are things
   which can slow it down and can be tuned.  See {"Disk-Video" Modes}
   for details.
-
-Sound card output isn't working:\
-  If you get the message "FM hardware not present" when trying to switch on
-  output from your sound card then check that the drivers you installed with
-  the card have set the BLASTER environment variable. To do this go to a DOS
-  prompt and type SET, this command will list a bunch of lines like this:\
-  VARIABLE=VALUE\
-  ANOTHERVARIABLE=ANOTHER VALUE\
-  \
-  one of these should look like:\
-  BLASTER=A:220 I:5 D:3\
-  or similar, it's the A: entry that's important. If you don't have the variable
-  set then try putting the line:\
-  SET BLASTER=A:220\
-  in your autoexec.bat file, though be warned that if your sound hardware isn't
-  compatable or has its base i/o address set differently to the 220H, then unexpected
-  things may happen as fractint tries to write to hardware that isn't there.
-
-  If you get no warning message but still can't hear anything then try to
-  alter the volume of your card's output using whatever utility came with the
-  card. For windows 95 doubleclick on the small loudspeaker icon on your
-  task bar and play with the sliders, you may have to go to the mixer properties
-  menu and enable the control for the FM output to appear, this may be called
-  'synthesizer', 'FM', 'midi', or 'legacy' depending on your hardware.
-  Also fractint is unlikely to be able to continue sounding notes when running
-  in the background under windows 95, so you'll need to keep switching back and
-  forth until things are set right.
-
-
 
 ;
 ;
@@ -1673,7 +1518,7 @@ the organ, holding down each new note for as long as possible but with the
 polyphony value controlling how many fingers you have.
 
 WAVETYPE=nn\
-~Format-
+~Format-,Doc-
  WaveForm 0: Sine       WaveForm 1: Half-Sine
   | /^\\                   | /^\\         /^\\
   |/   \\       /          |/   \\       /   \\
@@ -1713,7 +1558,7 @@ WAVETYPE=nn\
  �|--__컴컴|컴컴\\------__컴컴|컴컴\\------
   |    \\  |              \\  |
   |     \\|                \\|
-~Format+
+~Format+,Doc+
 
 ~OnlineFF
 ATTACK=nn\
@@ -2069,23 +1914,9 @@ Added new fractal types {=HT_ESCHER escher_julia} and {=HT_VL volterra-lotka}
   courtesy Michael Sargent.
 
 Expanded formula parser capability to recognize "if..else" flow control
-  instructions. The format of an "if block" of instructions is:
-         IF(boolean)
-            statements
-         ELSEIF(boolean) [any number of these are permitted in a block]
-            statements
-         ELSE            [if used, only one is permitted in a block]
-            statements
-         ENDIF
-  Note that ELSEIF() does not require a separate ENDIF. Each branching
-  instruction must be a separate formula statement, separated from other
-  statements by a comma or an end of line. There is a limit of 200 branching
-  instructions per formula (ELSEIF counts as two branching instructions).
-  Unlimited nesting is permitted; each ELSEIF, ELSE, and ENDIF relates to
-  the immediately preceding "non endif'ed" IF. An IF() and its ENDIF cannot
-  traverse the end of the initialization section of the formula.
-
-Added tutorials to the distribution package: Bradley
+  instructions.  See {Formula}.
+  
+  Added tutorials to the distribution package: Bradley
   Beacham's basic formula tutorial, Sylvie Gallet's PHC and PTC formula
   tutorial, and George Martin's tutorial on the new if..else feature
   of the formula parser. Required reading for formula writers.
@@ -2108,45 +1939,9 @@ Added text scrolling capability in <z> and F2 screens. Scroll keys for
   does not need to be depressed.
 
 Added capability to place ifs, formula, and lsys entries in PAR files.
-  If not found in the file named in the parameter entry, formulas, ifs, and
-  lsystem entries called for in entries are looked for in the .par file
-  itself. The referenced entry must have the appropriate prefix in the
-  PAR file as follows:\
+  See {Parameter Files and the <@> Command}.
 
-       formulas  frm:\
-       lsystem   lsys:\
-       ifs       ifs:\
-
-  for example:\
-
-  frm:mandel \{\
-    z=c=pixel:\
-    z = z*z + c\
-    |z| < 4\
-  \}\
-
-  The prefix is an identifier, not part of the name itself. Thus, the
-  parameter in the image entry would read "formulaname=mandel". The
-  formulafile= parameter need not, and probably should not, name the
-  PAR file itself - the search of the PAR file is automatic.
-
-  Formulas, ifs, and lsys entries in a PAR file will not be shown on the
-  menu screen for the PAR file, and are accessible only in connection with
-  running the parameter entry which calls for the formula. Also, PAR
-  files are not searched when looking for a formula, ifs, or lsystem entry in
-  connection with restoring a .gif file. You will need to copy these entries
-  from the PAR file into .frm, .ifs, and .l files as applicable (taking
-  care, of course, to delete the identifier prefixes) in order to make
-  general use of them.
-
-Added command line option fastrestore=yes|no. Default is NO. When YES,
-  causes viewwindows to be set to NO before each restore, so that otherwise
-  normal gifs will not be drawn at the reduced aspect when viewwindows was
-  previously set to YES; and bypasses the warning which is displayed when a
-  restore is to be viewed in a video mode other than the one at which the gif
-  was saved. Combined with askvideo=no, all restores will automatically be
-  made at the user's default video mode. This feature will be helpful when
-  cycling through a group of gifs in autokey mode.
+Added command line option fastrestore=yes|no.  See {Video Parameters}.
 
 Ctrl-Right used in file selection screens now skips over directory listings,
   and if the cursor is on the last file, moves the cursor to the first file.
@@ -2244,29 +2039,9 @@ Added Adrian Mariano's diffusion fixes - a new color option, several bug
 Finally, we've added two undocumented commands to give expert users
    workarounds for math type precision and GIF encoder problems.
 
-Added the mathtolerance=.05/.05 command. The first number controls the
-  integer/float transition, and the second number controls the float/arbitrary
-  precision transition. The default value of .05 means that the ratio between
-  the exact and calculated width and height is between .95 and 1.05. A larger
-  value than .05 (say .10) makes the test looser so that the lower precision
-  math is used longer. A value <= 0 means the test is always failed and the
-  higher precision math type is used. A value >= 1 means that the test is
-  always passed and the lower precision math type is used.
+Added the mathtolerance=.05/.05 command. See {Calculation Mode Parameters}
 
-  The automatic precision toggle is resolution dependent. The same image may
-  use float at 320x200 and arbitrary precision at 640x480. This is not a bug;
-  it has to work this way. At a given magnification more pixels require more
-  precision. There are other tests so even with mathtolerance=1/.05,
-  eventually Fractint will have to use float. The same is not true for
-  mathtolerance=.05/1. If you keep zooming Fractint will not rescue you;
-  eventually you'll get a nasty error message and the corners will be lost.
-
-Added the tweaklzw=nnn/nnn command. Fractint's GIF encoder occasionally
-  fails and produces bad GIF files. Tweaking encoder parameters might
-  allow saving in such a situation. The parameters reduce the
-  maximum size of the current string and maximum total length of the string
-  table, respectively. The default values are 0, which gives the old
-  encoder performance.
+Added the tweaklzw=nnn/nnn command. See {File Parameters}.
 
 
 Version 19.5 is a bug-fix release for version 19.4 based on the developer's
@@ -2426,12 +2201,7 @@ Fixed a bug that caused saved partial images that used logmap to use the
 
 Made the solid guessing stop pass parameter save to GIFs and PARS.
 
-Added truecolor=yes command. This causes the iterations for each point to
-  be written to a 24-bit Targa truecolor file called iterates.tga. Maxiter
-  is also written to the file. This allows a simple outboard program to
-  assign truecolors to iterations. Passes=1 is forced, but symmetry works.
-  (This function may go away in the future when real truecolor support is
-  implemented.)
+Added truecolor=yes command.  See {Color Parameters}.
 
 Fixed bug that caused PARs to have incorrect number of parameters when
   a formula based GIF was loaded and a PAR made immediately.
@@ -2615,25 +2385,9 @@ Increased maximum iterations to 2,147,483,647 and maximum bailout to 2,100,000,0
 
 New path/directory management. Fractint now remembers the pathname of
   command-line filenames. This means that you can specifiy directories where
-  your files reside in SSTOOLS.INI. In what follows, <path> can be a directory,
-  a filename, or a full path.
-
-  File                      SSTOOLS.INI Command       Comments\
-  ==========================================================================\
-  PAR directory             parmfile=<path>\
-  GIF files for reading     filename=<path>\
-  MAP files                 map=<path>\
-  Autokey files             autokeyname=<path>\
-  GIF files for saving      savename=<path>\
-  Print file                printfile=<path>\
-  Formula files             formulafile=<path>\
-  Lsystem file              lfile=<path>\
-  IFS file                  ifsfile=<path>\
-  Miscellaneous files       workdir=<path>\           new command\
-  Temporary files           tempdir=<path>\           new command\
-
-  If the directories do not exist, Fractint gives an error message on runup
-  with the option to continue.
+  your files reside in SSTOOLS.INI.  If the directories do not exist, Fractint
+  gives an error message on runup with the option to continue.  See
+  {Setting Defaults (SSTOOLS.INI File)}.
 
 Fractint now searches all FRM, IFS, LSYS, and PAR files in the designated
   directory for entries. The number of entries in files has been greatly

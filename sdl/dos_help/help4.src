@@ -35,7 +35,6 @@
   batch=yes                Batch mode run (display image, save-to-disk, exit)
   autokey=play|record      Playback or record keystrokes
   autokeyname=<path>\\filename  File for autokey mode, default AUTO.KEY
-  fpu=387                  Assume 387 fpu is present
   makedoc=filename         Create Fractint documentation file
   maxhistory=<nnn>         Set image capacity of history feature. A higher
                            number stores more images but uses more memory.
@@ -47,6 +46,7 @@
                            files in the current directory.
   comment=comment1/comment2/comment3/comment4
                            Inserts comments into PAR files.
+  exitnoask=yes            bypasses the final "are you sure?" exit screen
 ~FF
 {Calculation Mode Parameters}
   passes=1|2|3|g|b|d|t|g1..g6|s|o  Select Single-Pass, Dual-Pass, Triple-Pass
@@ -87,7 +87,7 @@
   lname=name               Lsystem name for 'type=lsystem' fractals
   ifs=name                 IFS name for 'type=ifs' fractals
   3dmode=monocular|left|right|red-blue  Sets the 3D mode used with Julibrot
-  julibrot3d=nn[/nn[/nn[/nn[/nn[/nn]]]]]")  Sets Julibrot 3D parameters zdots,
+  julibrot3d=nn[/nn[/nn[/nn[/nn[/nn]]]]]  Sets Julibrot 3D parameters zdots,
                            origin, depth, height, width, and distance
   julibroteyes=nn          Distance between the virtual eyes for Julibrot
   julibrotfromto=nn/nn[/nn/nn] "From-to" parameters used for Julibrot
@@ -172,7 +172,6 @@
   potential=nn[/nn[/nn[/16bit]]]  Continuous Potential
   invert=nn/nn/nn          Turns on inversion - turns images 'inside out'
   finattract=yes           Look for finite attractor in julia types
-  exitnoask=yes            bypasses the final "are you sure?" exit screen
 ~OnLineFF
 {Sound Parameters}
   sound=off|beep|x|y|z     Nobody ever plays with fractals at work, do they?
@@ -348,6 +347,31 @@ Fractint will use only the second and third lines of the file.
 of that uses an SSTOOLS.INI file?  Because there are other programs (such
 as Lee Crocker's PICLAB) that now use the same file, and there may one day
 be other, sister programs to Fractint using that file.)
+
+Fractint remembers the pathname of command-line filenames. This means that
+you can specifiy directories where your files reside in SSTOOLS.INI. In what
+follows, <path> can be a directory, a filename, or a full path.
+
+  File                      SSTOOLS.INI Command       Comments\
+  ==========================================================================\
+  PAR directory             parmfile=<path>\
+  GIF files for reading     filename=<path>\
+  MAP files                 map=<path>\
+  Autokey files             autokeyname=<path>\
+  GIF files for saving      savename=<path>\
+  Print file                printfile=<path>\
+  Formula files             formulafile=<path>\
+  Lsystem file              lfile=<path>\
+  IFS file                  ifsfile=<path>\
+  Miscellaneous files       workdir=<path>\           new command\
+  Temporary files           tempdir=<path>\           new command\
+
+  If the directories do not exist, Fractint gives an error message on runup
+  with the option to continue.
+
+Fractint now searches all FRM, IFS, LSYS, and PAR files in the designated
+  directory for entries.
+
 ;
 ;
 ~Topic=Parameter Files and the <@> Command
@@ -390,16 +414,41 @@ some examples:
 
   o To save image parameters for later use in batch mode - see
     {Batch Mode}.
-
+~ONLINEFF
 Formulas, ifs, and lsystem entries referred to in a parameter entry can\
-be included in a .par file by adding the prefix frm:, ifs:, or lsys:\
-respectively, for example frm:myformula \{rest of that formula}.\
-Note that the prefix is a label, not part of the formula name, so the\
-reference in the image entry would be formulaname=myformula. The\
-formula, ifs, and lsystem entries added to a parfile are accessed only\
-when the image entry in the parfile is run. To make these formulas generally\
-accessible, they must be added to a .frm, .ifs or .l file (without the\
-identifier prefix, of course).
+be included in a .par file by adding the prefix frm:, ifs:, or lsys:,\
+respectively:\
+
+    formulas	frm:\
+    lsystem	lsys:\
+    ifs		ifs:\
+
+for example:\
+
+  frm:mandel \{\
+    z=c=pixel:\
+    z = z*z + c\
+    |z| < 4\
+  \}\
+
+If not found in the file named in the parameter entry, formulas, ifs, and
+lsystem entries called for in entries are looked for in the .par file
+itself. 
+
+The prefix is an identifier, not part of the name itself. Thus, the
+parameter in the image entry would read "formulaname=mandel". The
+formulafile= parameter need not, and probably should not, name the
+PAR file itself - the search of the PAR file is automatic.
+
+Formulas, ifs, and lsys entries in a PAR file will not be shown on the
+menu screen for the PAR file, and are accessible only in connection with
+running the parameter entry which calls for the formula. Also, PAR
+files are not searched when looking for a formula, ifs, or lsystem entry in
+connection with restoring a .gif file. You will need to copy these entries
+from the PAR file into .frm, .ifs, and .l files as applicable (taking
+care, of course, to delete the identifier prefixes) in order to make
+general use of them.
+
 
 See {"Parameter Save/Restore Commands"} for details about the <@> and
 <B> commands.
@@ -462,7 +511,7 @@ On the DOS command line you may omit FILENAME= and just give the file name.
 CURDIR=yes\
 Fractint uses directories set by various commands, possibly in the
 SSTOOLS.INI file. If you want to try out some files in the current directory,
-such as a modified copy of FRACTINT.FRM, you won't Fractint to read the copy
+such as a modified copy of FRACTINT.FRM, you don't want Fractint to read the copy
 in your official FRM directory. Setting curdir=yes at the command line will
 cause Fractint to look in the current directory for requested files first
 before looking in the default directory set by the other commands. Warning:
@@ -554,6 +603,11 @@ default value of ten images uses up 12,000 bytes of memory. Keep
 in mind that every time you color cycle or change from integer to float or
 back, another image parameter set is saved, so the default ten images are
 used up quickly.
+
+EXITNOASK=yes\
+This option forces Fractint to bypass the final "are you sure?" exit
+screen when the ESCAPE key is pressed from the main image-generation
+screen.  Added at the request of Ward Christensen.  It's his funeral <grin>.
 ;
 ;
 ~Topic=Calculation Mode Parameters
@@ -598,6 +652,14 @@ calculated width and height is between .95 and 1.05. A larger value than .05
 longer. A value <= 0 means the test is always failed and the higher precision
 math type is used. A value >= 1 means that the test is always passed and the 
 lower precision math type is used.
+
+The automatic precision toggle is resolution dependent. The same image may
+use float at 320x200 and arbitrary precision at 640x480. This is not a bug;
+it has to work this way. At a given magnification more pixels require more
+precision. There are other tests so even with mathtolerance=1/.05,
+eventually Fractint will have to use float. The same is not true for
+mathtolerance=.05/1. If you keep zooming Fractint will not rescue you;
+eventually you'll get a nasty error message and the corners will be lost.
 
 MINSTACK=<nnn>\
 This sets the minimum number of stack bytes required for passes=s in order to 
@@ -732,7 +794,7 @@ the size of the traveling pointer in units of pixels of 1/1024th of a screen.
 
 The travelling pointer strobes with fast fractals because of interaction with
 the monitor's vertical refresh. The orbitdelay parameter can be used to
-introduce a per-pixel delay when showdot is turned on. Try orbitdelay=1000
+introduce a per-pixel delay when showdot is turned on. Try orbitdelay=10
 with showdot=b/20 to get a feel for how the showdot triangle works.
 
 ASPECTDRIFT=<nn>\
@@ -766,12 +828,12 @@ are displayed on the screen when using the "passes=o" option, or the
 fractal types mandelcloud and dynamic.  This allows the orbits to settle
 down before plotting starts.
 
-This option also slows down the display of orbits using the <O> command
-for folks with hot new computers. Units are in 1/10000 seconds per
-orbit point.  ORBITDELAY=10 therefore allows you to see each pixel's
-orbit point for about one millisecond. For best display of orbits,
-try passes=1 and a moderate resolution such as 320x200.  Note that
-the first time you press the 'O' key with the 'orbitdelay' function
+This option also slows down the "showdot=" option and the display of orbits
+using the <O> command for folks with hot new computers. Units are
+in 1/10000 seconds per orbit point.  ORBITDELAY=10 therefore allows
+you to see each pixel's orbit point for about one millisecond. For best
+display of orbits, try passes=1 and a moderate resolution such as 320x200.
+Note that the first time you press the 'O' key with the 'orbitdelay' function
 active, your computer will pause for a half-second or so to calibrate
 a high-resolution timer.
 
@@ -974,14 +1036,15 @@ Sets the coloring scheme used with the distance estimator method to the
 pre-version 16 scheme.
 
 TRUECOLOR=yes\
-You can save either the default color scheme or the iteration escape value
-to a file called FRACTxxx.TGA.  This will allow experimentation with
-truecolor algorithms.  A C language source file that reads the file when
-iterates are used, is provided. Someday we'll have REAL truecolor support ...
+This causes either the default color scheme or the iteration escape value,
+determined by the value of TRUEMODE=, to be saved to a 24-bit Targa truecolor
+file called FRACTxxx.TGA.  This will allow experimentation with truecolor
+algorithms.  Passes=1 is forced, but symmetry works.  (This function may
+go away in the future when real truecolor support is implemented.)
 
 TRUEMODE=def|iter\
-Determines whether the FRACTxxx.TGA file produced when TRUECOLOR=yes contains
-the iteration value or the default coloring scheme.
+Determines whether the FRACTxxx.TGA file produced when using
+TRUECOLOR=yes contains the iteration value or the default coloring scheme.
 
 NOBOF=yes|no\
 Setting this parameter to yes causes the bof60 and bof61 inside options to
@@ -1075,11 +1138,6 @@ FINATTRACT=no|yes\
 Another option to show coloring inside some Julia "lakes" to show escape
 time to finite attractors. Works with lambda, magnet types, and possibly
 others.  See {Finite Attractors} for more information.
-
-EXITNOASK=yes\
-This option forces Fractint to bypass the final "are you sure?" exit
-screen when the ESCAPE key is pressed from the main image-generation
-screen.  Added at the request of Ward Christensen.  It's his funeral <grin>.
 ;
 ;
 ~Topic=File Parameters
@@ -1165,6 +1223,13 @@ by the Acrospin program which can rotate and scale the image rapidly in
 response to cursor-key commands. The filename ORBITS.RAW is fixed and will
 be overwritten each time a new fractal is generated with this option.\
 (see {Barnsley IFS Fractals} {Orbit Fractals} {=@ACROSPIN Acrospin}).
+
+TWEAKLZW=nnn/nnn\
+Fractint's GIF encoder occasionally fails and produces bad GIF files. 
+Tweaking encoder parameters might allow saving in such a situation. 
+The parameters reduce the maximum size of the current string and maximum
+total length of the string table, respectively. The default values are 0, which
+gives the old encoder performance.
 ;
 ~Topic=Video Parameters
 

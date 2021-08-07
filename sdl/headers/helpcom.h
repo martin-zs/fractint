@@ -172,11 +172,30 @@ int process_document(PD_FUNC get_info, PD_FUNC output, VOIDPTR info);
 #ifdef INCLUDE_COMMON
 
 
+#if 1 /* ndef XFRACT */
 #define getint(ptr) (*(int *)(ptr))
 #define setint(ptr,n) (*(int *)(ptr)) = n
+#else
+/* Get an int from an unaligned pointer
+ * This routine is needed because this program uses unaligned 2 byte
+ * pointers all over the place.
+ */
+int getint(char *ptr)
+{
+    int s;
+    bcopy(ptr,&s,sizeof(int));
+    return s;
+}
+
+/* Set an int to an unaligned pointer */
+void setint(char *ptr, int n)
+{
+    bcopy(&n,ptr,sizeof(int));
+}
+#endif
 
 static int is_hyphen(char *ptr)   /* true if ptr points to a real hyphen */
-   {                           /* checkes for "--" and " -" */
+   {                           /* checks for "--" and " -" */
    if ( *ptr != '-' )
       return (0);    /* that was easy! */
 

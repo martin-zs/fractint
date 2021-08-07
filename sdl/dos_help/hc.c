@@ -269,7 +269,7 @@ int include_stack_top = -1;
 
 #define CHK_BUFFER(off) { if ((long)(curr+(off)) - (long)buffer >= (BUFFER_SIZE-1024)) fatal(0,"Buffer overflowed -- Help topic too large."); }
 
-#if 0
+#if 1
 #define putw( x1, x2 )  fwrite( &(x1), 1, sizeof(int), x2);
 #endif
 
@@ -3683,7 +3683,7 @@ void delete_hlp_from_exe(char *exe_fname)
 
    /* see if any help is currently installed */
 
-#if 1 /* ndef XFRACT */
+#ifndef XFRACT
    lseek(exe, filelength(exe) - 10, SEEK_SET);
    read(exe, (char *)&hs, 10);
 #else
