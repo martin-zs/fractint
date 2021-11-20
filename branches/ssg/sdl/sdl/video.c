@@ -281,7 +281,7 @@ void movecursor (int row, int col)
   if (textrow == 25 && textcol == 80)
   {
       text_attr[textrow][textcol] = 0;
-      text_screen[textrow][textcol] = ' ';
+      text_screen[textrow][textcol] = '\0';
   }
 }
 
