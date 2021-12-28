@@ -221,17 +221,6 @@ Graphs             { ; Better than a graphic calculator!
   colors=000hhhzK0zzz0zKzzzzzzzzz0Kzzzz<5>zzzww0zzz<236>zzz000
   }
 
-G-3-03-M           { ; Uses the new round function.
-                     ; (c) Sylvie Gallet [101324,3444], 1996
-  reset=1940 type=formula formulafile=fractint.frm formulaname=G-3-03-M
-  function=sinh/atanh passes=1
-  center-mag=-0.292907/-0.345016/0.1164033/1/44.999 params=10/0/5/15
-  float=y outside=atan decomp=256 periodicity=0
-  colors=bbb<11>xxx<30>N22L00M11<30>xxx<31>3D8<11>OVQQWSSYUUZWW`Y<4>cgeehf\
-  gjhilj<7>xxx<31>33D<18>bbdddeffghhi<8>zzz<32>333<18>```
-  cyclerange=0/255
-  }
-
 Spirals            { ; Uses the new trunc function.
                      ; (c) Sylvie Gallet [101324,3444], 1996
   reset=1940 type=lambda(fn||fn) function=sin/trunc passes=1
