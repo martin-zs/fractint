@@ -12,9 +12,7 @@ Hang during startup:\
   directory "newfrac", then run it from another directory with the command
   "\\newfrac\\fractint", *and* you have an older version of fractint.exe
   somewhere in your PATH, a silent hang is all you'll get.  See the
-  notes under the "Cannot find FRACTINT.EXE message" problem for the reason.\
-  Another possibility: try one of the "textsafe" parameter choices
-  described in {Video Parameters}.
+  notes under the "Cannot find FRACTINT.EXE message" problem for the reason.
 
 "Holes" in an image while it is being drawn:\
   Little squares colored in your "inside" color, in a pattern of every
@@ -963,12 +961,12 @@ DISTRIBUTION OF FRACTINT
 ~Format+,Online+
 
 New versions of FRACTINT are uploaded to the Fractint developer's web site at
-www.fractint.org, and make
+www.fractint.net, and make
 their way to other systems from that point.  FRACTINT is available as
 two self-extracting archive files - FRAINT.EXE (executable & documentation)
 and FRASRC.EXE (source code).
 
-The latest developer's version can also be found at www.fractint.org.
+The latest developer's version can also be found at www.fractint.net.
 
 Many other sites tend to carry
 these files shortly after their initial release (although sometimes
@@ -977,19 +975,9 @@ package) and frasrnnn.zip (source), where nnn is the release number. Major
 releases with two digit numbers have names such as fraintnn.zip and
 frasrcnn.zip.
 
-On the Internet, try the Noel Giffin's Spanky Fractal Database. Using a
-Web browser, go to: \
-http://spanky.triumf.ca/pub/fractals/programs/ibmpc/frainxxx.zip\
-where xxx is the release number.
-
-Via FTP, login to spanky.triumf.ca as ANONYMOUS, and change directories
-to [pub.fractals.programs.ibmpc], then download frainxxx.zip. (The directory
-syntax is in VAX format.)
-
 The X Windows port of Fractint was written by Ken Shirriff and is available
-via FTP from http://spanky.triumf.ca/pub/fractals/programs/unix/XFRACTxxx.zip\
-where xxx is the Xfractint release number.  Developer's versions of
-Xfractint are available at the Fractint developer's web site.
+from www.fractint.net.  Developer's versions of
+Xfractint are also available at the Fractint developer's web site.
 ;
 ;
 ~Topic=Contacting the Authors
@@ -1003,8 +991,6 @@ Fractint takes place in the fractint mailing list.
 
 
 The following authors have agreed to the distribution of their addresses.
-Usenet/Internet/Bitnet/Whatevernet users can reach CIS users directly if
-they know the user ID.
 
 Postal addresses are listed below
 so that you have a way to send bug reports
@@ -1031,9 +1017,7 @@ just let us know and we'll add it back.)
 
 ~FF
 Current main authors:
-
 ~Format-
-
 Timothy Wegner          twegner@fractint.org
 4714 Rockwood
 Houston, TX 77004
@@ -1054,8 +1038,6 @@ NSW 2250
 Australia
 +61-2-8293-3055 (Work)
 +61-2-4329-0870 (Home)
-
-
 ~OnlineFF
 Sylvie Gallet           sylvie.gallet1@libertysurf.fr
 
@@ -1196,7 +1178,7 @@ tests, the increase in both the maximum iteration count and bailout value,
 and bug fixes too numerous to count. Jonathan worked closely with Robin
 Bussell to implement Robin's browser mechanism in Fractint.
 
-Jonathan has a B.S. in Physics from the University of Dubuque and a B.S. in
+Jonathan has a BS in Physics from the University of Dubuque and a BS in
 Computer Science from Mount Mercy College, both in Iowa.  He is currently
 working as a consultant in the nuclear power industry.
 
@@ -1207,8 +1189,8 @@ frothybasin fractal.  His most significant contribution is the addition of
 the arbitrary precision library which allows Fractint to perform
 incredibly deep zooms.
 
-Wes has a B.S. in Physics from Wheaton College in Illinois.  He also holds
-an M.S. in Physics and an M.Ed. in Education from Texas A&M University.
+Wes has a BS in Physics from Wheaton College in Illinois.  He also holds
+an MS in Physics and an M.Ed. in Education from Texas A&M University.
 Wes teaches physics and math at McCullough High School in The Woodlands,
 Texas where his pupils inspire him to keep that sense of amazement that
 students get when they understand a physical or mathematical principle for
@@ -2947,14 +2929,14 @@ Version 16.0, 6/91
     (instead of a separate xxx.ifs file per type); the <z> command brings up
     IFS editor (used to be <i> command).  See {=HT_IFS Barnsley IFS Fractals}.
 
-  Much improved support for PaintJet printers; see {PaintJet Parameters}\
+  Much improved support for PaintJet printers; (Removed)\
 
   From Scott Taylor:\
-    Support for plotters using HP-GL; see {Plotter Parameters}\
-    Lots of new PostScript halftones; see {PostScript Parameters}\
-    "printer=PS[L]/0/..." for full page PostScript; see {PostScript Parameters}\
-    Option to drive printer ports directly (faster); see {Printer Parameters}\
-    Option to change printer end of line control chars; see {Printer Parameters}
+    Support for plotters using HP-GL; (Removed)\
+    Lots of new PostScript halftones; (Removed)\
+    "printer=PS[L]/0/..." for full page PostScript; (Removed)\
+    Option to drive printer ports directly (faster); (Removed)\
+    Option to change printer end of line control chars; (Removed)
 
   Support for XGA video adapter\
   Support for Targa+ video adapter\
@@ -3438,7 +3420,7 @@ Version 1.0, 9/88
 
 
  SPACEBAR toggles scrolling off/on
-  Copyright (C) 1990-2021 The Stone Soup Group.  Fractint may be freely copied
+  Copyright (C) 1990-2022 The Stone Soup Group.  Fractint may be freely copied
   and distributed but may not be sold.  See help for more information.
 ;
 ;

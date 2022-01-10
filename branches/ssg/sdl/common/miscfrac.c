@@ -375,7 +375,7 @@ int plasma()
   srand(rseed);
   if (!rflag) ++rseed;
 
-  if (colors == 256)                   /* set the (256-color) palette */
+  if (colors >= 256)                   /* set the (256-color) palette */
     set_Plasma_palette();             /* skip this if < 256 colors */
 
   if (colors > 16)

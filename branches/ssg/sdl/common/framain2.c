@@ -87,7 +87,7 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
          if (dotmode == 11)             /* default assumption is disk */
             diskvideo = 2;
 
-          memcpy(olddacbox,dacbox,256*3); /* save the DAC */
+          memcpy(olddacbox,dacbox,DACSIZE*3); /* save the DAC */
           diskisactive = 1;              /* flag for disk-video routines */
 
           if (overlay3d && !initbatch)
@@ -112,7 +112,7 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
           diskisactive = 0;              /* flag for disk-video routines */
           if (savedac || colorpreloaded)
             {
-              memcpy(dacbox,olddacbox,256*3); /* restore the DAC */
+              memcpy(dacbox,olddacbox,DACSIZE*3); /* restore the DAC */
               spindac(0,1);
               colorpreloaded = 0;
             }
@@ -120,7 +120,7 @@ int big_while_loop(int *kbdmore, char *stacked, int resumeflag)
             {
               if (mapdacbox)   /* but there's a map=, so load that */
                 {
-                  memcpy((char *)dacbox,mapdacbox,256*3);
+                  memcpy((char *)dacbox,mapdacbox,DACSIZE*3);
                   spindac(0,1);
                 }
             else if ((dotmode == 11 && colors == 256) || !colors) {
@@ -1037,9 +1037,9 @@ int main_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stacked)
     case '+':                    /* rotate palette               */
     case '-':                    /* rotate palette               */
       clear_zoombox();
-      memcpy(olddacbox, dacbox, 256 * 3);
+      memcpy(olddacbox, dacbox, DACSIZE * 3);
       rotate((*kbdchar == 'c') ? 0 : ((*kbdchar == '+') ? 1 : -1));
-      if (memcmp(olddacbox, dacbox, 256 * 3))
+      if (memcmp(olddacbox, dacbox, DACSIZE * 3))
         {
           /*         colorstate = 1;  Move to rotate.c to more precisely define when */
           /*                          colorstate is changed. JCO 11/18/2007 */
@@ -1063,11 +1063,11 @@ int main_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stacked)
         {
           int oldhelpmode;
           oldhelpmode = helpmode;
-          memcpy(olddacbox, dacbox, 256 * 3);
+          memcpy(olddacbox, dacbox, DACSIZE * 3);
           helpmode = HELPXHAIR;
           EditPalette();
           helpmode = oldhelpmode;
-          if (memcmp(olddacbox, dacbox, 256 * 3))
+          if (memcmp(olddacbox, dacbox, DACSIZE * 3))
             {
               /*           colorstate = 1;  Move to editpal.c to more precisely define when */
               /*                            colorstate is changed. JCO 11/18/2007 */
@@ -1228,21 +1228,6 @@ do_3d_transform:
       intro();
       unstackscreen();
       break;
-    case 16:                    /* print current image          */
-// NOTE (jonathan#1#): Next should be done by windows manager
-#if 0
-      note_zoom();
-      Print_Screen();
-      restore_zoom();
-      if (!keypressed())
-        buzzer(0);
-      else
-        {
-          buzzer(1);
-          getakey();
-        }
-      return(CONTINUE);
-#endif
     case ENTER:                  /* Enter                        */
     case ENTER_2:                /* Numeric-Keypad Enter         */
       if (zwidth != 0.0)
@@ -1494,9 +1479,9 @@ int evolver_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stack
     case '+':                    /* rotate palette               */
     case '-':                    /* rotate palette               */
       clear_zoombox();
-      memcpy(olddacbox, dacbox, 256 * 3);
+      memcpy(olddacbox, dacbox, DACSIZE * 3);
       rotate((*kbdchar == 'c') ? 0 : ((*kbdchar == '+') ? 1 : -1));
-      if (memcmp(olddacbox, dacbox, 256 * 3))
+      if (memcmp(olddacbox, dacbox, DACSIZE * 3))
         {
           colorstate = 1;
           save_history_info();
@@ -1519,11 +1504,11 @@ int evolver_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stack
         {
           int oldhelpmode;
           oldhelpmode = helpmode;
-          memcpy(olddacbox, dacbox, 256 * 3);
+          memcpy(olddacbox, dacbox, DACSIZE * 3);
           helpmode = HELPXHAIR;
           EditPalette();
           helpmode = oldhelpmode;
-          if (memcmp(olddacbox, dacbox, 256 * 3))
+          if (memcmp(olddacbox, dacbox, DACSIZE * 3))
             {
               colorstate = 1;
               save_history_info();

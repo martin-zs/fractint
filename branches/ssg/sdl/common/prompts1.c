@@ -412,7 +412,7 @@ int fullscreen_prompt(  /* full-screen prompting routine */
       putstringcenter(instrrow,0,80,C_PROMPT_BKGRD,
                       (helpmode > 0) ? instr0b : instr0a);
       movecursor(25,80);
-      textcbase = 2;
+      textcbase = 0;
       for (;;)
         {
           if (rewrite_extrainfo)
@@ -2226,6 +2226,7 @@ static int check_gfe_key(int curkey,int choice)
       {
         static FCODE msg[]  = {"\n\n Use "UPARR1", "DNARR1", "RTARR1", "LTARR1", PgUp, PgDown, Home, and End to scroll text\nAny other key to return to selection list"};
         putstring(-1,0,C_GENERAL_LO,msg);
+        movecursor(25,80);
       }
 
       while (!done)
@@ -2238,6 +2239,7 @@ static int check_gfe_key(int curkey,int choice)
               for (i = 4; i < (lines_in_entry < 17 ? lines_in_entry + 4 : 21); i++)
                 putstring(i,0,C_GENERAL_MED,blanks);
               putstring(4,0,C_GENERAL_MED,infbuf);
+              movecursor(25,80);
             }
           if ((i = getakeynohelp()) == DOWN_ARROW || i == DOWN_ARROW_2
               || i == UP_ARROW || i == UP_ARROW_2
@@ -3033,9 +3035,9 @@ static int check_mapfile()
               break;
             }
         }
-      memcpy(olddacbox,dacbox,256*3); /* save the DAC */
+      memcpy(olddacbox,dacbox,DACSIZE*3); /* save the DAC */
       i = ValidateLuts(temp1);
-      memcpy(dacbox,olddacbox,256*3); /* restore the DAC */
+      memcpy(dacbox,olddacbox,DACSIZE*3); /* restore the DAC */
       if (i != 0)   /* Oops, somethings wrong */
         {
           askflag = 1;

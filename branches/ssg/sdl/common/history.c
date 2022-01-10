@@ -154,7 +154,7 @@ void save_history_info()
   current.oy3rd           = oy3rd                     ;
   current.keep_scrn_coords= (short)keep_scrn_coords   ;
   current.drawmode        = drawmode                  ;
-  memcpy(current.dac,dacbox,256*3);
+  memcpy(current.dac,dacbox,DACSIZE*3);
   switch (fractype)
     {
     case FORMULA:
@@ -334,10 +334,10 @@ void restore_history_info(int i)
   if (keep_scrn_coords) set_orbit_corners = 1;
   drawmode = last.drawmode;
   usr_floatflag = (char)((curfractalspecific->isinteger) ? 0 : 1);
-  memcpy(dacbox,last.dac,256*3);
-  memcpy(olddacbox,last.dac,256*3);
+  memcpy(dacbox,last.dac,DACSIZE*3);
+  memcpy(olddacbox,last.dac,DACSIZE*3);
   if (mapdacbox)
-    memcpy(mapdacbox,last.dac,256*3);
+    memcpy(mapdacbox,last.dac,DACSIZE*3);
   spindac(0,1);
   if (fractype == JULIBROT || fractype == JULIBROTFP)
     savedac = 0;

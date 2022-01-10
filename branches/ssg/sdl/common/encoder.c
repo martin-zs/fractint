@@ -321,14 +321,14 @@ int encoder()
       if (gotrealdac || fake_lut)
         {
           /* got a DAC - must be a VGA */
-          if (!shftwrite((BYTE *) dacbox, 256))
+          if (!shftwrite((BYTE *) dacbox, DACSIZE))
             goto oops;
 #endif
         }
       else
         {
           /* uh oh - better fake it */
-          for (i = 0; i < 256; i += 16)
+          for (i = 0; i < DACSIZE; i += 16)
             if (!shftwrite((BYTE *)paletteEGA, 16))
               goto oops;
         }

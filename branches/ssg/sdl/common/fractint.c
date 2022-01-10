@@ -61,7 +61,7 @@ int     sxdots,sydots;          /* # of dots on the physical screen    */
 int     sxoffs,syoffs;          /* physical top left of logical screen */
 int     xdots, ydots;           /* # of dots on the logical screen     */
 double  dxsize, dysize;         /* xdots-1, ydots-1         */
-int     colors = 256;           /* maximum colors available */
+int     colors = DACSIZE;       /* maximum colors available */
 long    maxit;                  /* try this many iterations */
 int     boxcount;               /* 0 if no zoom-box yet     */
 int     zrotate;                /* zoombox rotation         */
@@ -253,7 +253,7 @@ restart:   /* insert key re-starts here */
   init_msg(0,"",NULL,0);  /* this causes getakey if init_msg called on runup */
   if (debugflag==450 && initbatch==1)  /* abort if savename already exists */
     check_samename();
-  memcpy(olddacbox,dacbox,256*3);      /* save in case colors= present */
+  memcpy(olddacbox,dacbox,DACSIZE*3);  /* save in case colors= present */
 
   diskisactive = 0;                    /* disk-video is inactive */
   diskvideo = 0;                       /* disk driver is not in use */
@@ -290,7 +290,7 @@ restart:   /* insert key re-starts here */
   stacked = 0;
 restorestart:
   if (colorpreloaded)
-    memcpy(dacbox,olddacbox,256*3);   /* restore in case colors= present */
+    memcpy(dacbox,olddacbox,DACSIZE*3); /* restore in case colors= present */
 
   lookatmouse = 0;                     /* ignore mouse */
 
@@ -410,7 +410,7 @@ imagestart:                             /* calc/display a new image */
           if (kbdchar == '3' || kbdchar == '#' || kbdchar == F3)
             display3d = 1;
           if(colorpreloaded)
-            memcpy(olddacbox,dacbox,256*3);     /* save in case colors= present */
+            memcpy(olddacbox,dacbox,DACSIZE*3); /* save in case colors= present */
           setvideotext(); /* switch to text mode */
           showfile = -1;
           goto restorestart;

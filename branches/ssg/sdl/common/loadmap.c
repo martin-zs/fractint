@@ -63,7 +63,7 @@ else
         dac[0].red   = (BYTE)((r%256) >> 2);/* maps default to 8 bits */
         dac[0].green = (BYTE)((g%256) >> 2);/* DAC wants 6 bits */
         dac[0].blue  = (BYTE)((b%256) >> 2);
-        for( index = 1; index < 256; index++ ) {
+        for( index = 1; index < DACSIZE; index++ ) {
                 if (fgets(line,100,f) == NULL)
                         break;
                 sscanf( line, "%u %u %u", &r, &g, &b );
@@ -73,7 +73,7 @@ else
                 dac[index].blue  = (BYTE)((b%256) >> 2);
         }
         fclose( f );
-        while (index < 256)  { /* zap unset entries */
+        while (index < DACSIZE)  { /* zap unset entries */
                 dac[index].red = dac[index].blue = dac[index].green = 40;
                 ++index;
         }

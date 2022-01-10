@@ -139,8 +139,11 @@ int
 UnitySetup(void)
 {
   periodicitycheck = 0;
-  FgOne = (1L << bitshift);
-  FgTwo = FgOne + FgOne;
+  if (curfractalspecific->isinteger)
+  {
+    FgOne = (1L << bitshift);
+    FgTwo = FgOne + FgOne;
+  }
   return(1);
 }
 

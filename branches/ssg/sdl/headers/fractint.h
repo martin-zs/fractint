@@ -26,6 +26,7 @@ typedef BYTE BOOLEAN;
 #define MINPIXELS 10            /* Minimum pixel count across/down the screen */
 #define DEFAULTASPECT ((float)0.75)/* Assumed overall screen dimensions, y/x  */
 #define DEFAULTASPECTDRIFT ((float)0.02) /* drift of < 2% is forced to 0% */
+#define DACSIZE 256
 
 struct videoinfo {              /* All we need to know about a Video Mode */
         char    name[26];       /* Mode description                     */
@@ -33,11 +34,9 @@ struct videoinfo {              /* All we need to know about a Video Mode */
         int     keynum;         /* key number used to invoked this mode */
                                 /* 2-10 = F2-10, 11-40 = S,C,A{F1-F10}  */
         int     dotmode;        /* video access method                  */
-                                /*      1 == 1-bit palette based        */
-                                /*      2 == 2-bit palette based        */
-                                /*      4 == 4-bit palette based        */
                                 /*      8 == 8-bit palette based        */
                                 /*      11 = "disk video" (no screen)   */
+                                /*      15 = 15-bit True Color          */
                                 /*      16 = 16-bit True Color          */
                                 /*      24 = 24-bit True Color          */
                                 /*      32 = 32-bit True Color          */
@@ -275,7 +274,7 @@ struct history_info
     short old_demm_colors;
     char filename[FILE_MAX_PATH];
     char itemname[ITEMNAMELEN+1];
-    unsigned char dac[256][3];
+    unsigned char dac[DACSIZE][3];
     char  maxfn;
     char stdcalcmode;
     char three_pass;

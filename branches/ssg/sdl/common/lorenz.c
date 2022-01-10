@@ -1418,7 +1418,7 @@ int orbit2dfloat()
       if ( col >= 0 && col < xdots && row >= 0 && row < ydots )
       {
          if ((soundflag&7) > 1)
-            w_snd((int)(*soundvar*100+basehertz));
+            w_snd((int)(*soundvar*100)+basehertz);
 	 if((fractype!=ICON) && (fractype!=LATOO))
          {
          if(oldcol != -1 && connect)
