@@ -2560,17 +2560,10 @@ The general format is:
 
 When initially selected from the fractal type formula screen, the Symmetry and
 any Per Image Settings are enforced.  The Per Image Settings will be saved to
-PARs and GIFs, and can be changed from the appropriate screen.
-For every pixel, Initial Conditions are set, then the Iterations performed
-while the Bailout Criteria remains true or until 'z' turns into a periodic
-loop.  All variables are created automatically by their usage and treated as
-complex.  If you declare 'v = 2' then the variable 'v' is treated as a
-complex with an imaginary value of zero.  Variables must start with a letter
-or an underscore.
-
-NOTE: For periodicity checking, inside options, outside options, and
-the passes=o option to work correctly it is necessary to leave the result
-of the orbit calculation in the variable z.
+PARs and GIFs, and can be changed from the appropriate screen.  The possible
+values for per image settings are the same as the parameters that appear in
+PAR files, with the exception of 'params='.  Params can't be set in the per
+image settings section, because they get set to zero when the formula is parsed.
 ~OnlineFF
 The possible values for Symmetry are:\
 XAXIS,  XAXIS_NOPARM,  XAXIS_NOREAL, XAXIS_NOIMAG\
@@ -2598,6 +2591,17 @@ setting periodicity=0\
 Certain values cannot be set with the Per Image Settings.  These include
 'params=', 'corners=', and 'center-mag='.  There may be others.  These values
 get reset after the formula is parsed and before the iteration starts.
+
+For every pixel, Initial Conditions are set, then the Iterations performed
+while the Bailout Criteria remains true or until 'z' turns into a periodic
+loop.  All variables are created automatically by their usage and treated as
+complex.  If you declare 'v = 2' then the variable 'v' is treated as a
+complex with an imaginary value of zero.  Variables must start with a letter
+or an underscore.
+
+NOTE: For periodicity checking, inside options, outside options, and
+the passes=o option to work correctly it is necessary to leave the result
+of the orbit calculation in the variable z.
 
 Sequential processing of the formula can be altered with the flow control\
 instructions

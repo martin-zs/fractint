@@ -1033,7 +1033,7 @@ int read_help_topic(int label_num, int off, int len, VOIDFARPTR buf)
 #define PRINT_BUFFER_SIZE  (32767)       /* max. size of help topic in doc. */
 #define TEMP_FILE_NAME     "HELP.$$$"    /* temp file for storing extraseg  */
 /*    while printing document      */
-#define MAX_NUM_TOPIC_SEC  (10)          /* max. number of topics under any */
+#define MAX_NUM_TOPIC_SEC  (20)          /* max. number of topics under any */
 /*    single section (CONTENT)     */
 
 typedef struct PRINT_DOC_INFO
@@ -1211,7 +1211,7 @@ static int print_doc_output(int cmd, PD_INFO *pd, PRINT_DOC_INFO *info)
 
       printerc(info, '\n', 1);
       printers(info, line, width);
-      printerc(info, '\n', 2);
+      printerc(info, '\n', 1);
 
       info->margin = PAGE_INDENT;
 

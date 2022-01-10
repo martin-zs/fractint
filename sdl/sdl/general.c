@@ -20,10 +20,10 @@
 int boxx[10000], boxy[10000];
 int boxvalues[10000];
 char tstack[4096];
-BYTE olddacbox[256][3];
+BYTE olddacbox[DACSIZE][3];
 
 /* fill with the default VGA color map */
-BYTE dacbox[256][3] = {
+BYTE dacbox[DACSIZE][3] = {
 {  0,   0,   0},
 {  0,   0, 168},
 {  0, 168,   0},
@@ -466,7 +466,7 @@ int kbhit(void)
   return 0;
 }
 
-/* tenths of millisecond timewr routine */
+/* tenths of millisecond timer routine */
 static struct timeval tv_start;
 
 void restart_uclock(void)
@@ -1182,6 +1182,7 @@ unsigned short _rotl(unsigned short num, short bits)
  *
  *----------------------------------------------------------------------
  */
+
 int ltoa(long num, char *str, int len)
 {
   sprintf(str,"%10d",(int)num);

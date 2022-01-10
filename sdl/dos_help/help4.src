@@ -18,7 +18,6 @@
     { File Parameters }
     { Sound Parameters }
     { Video Parameters }
-    { Printer Parameters }
     { 3D Parameters }
 ;
 ;
@@ -224,8 +223,6 @@
 {Video Parameters}
   video=xxx                Begin with this video mode (Example: Video=F2)
   askvideo=no              Skip the prompt for video mode when restoring files
-  textsafe=yes|no|bios|save  For use when images are not restored correctly on
-                           return from a text display
   viewwindows=xx[/xx[/yes|no[/nn[/nn]]]]
                            Set the reduction factor, final media aspect ratio,
                            crop starting coordinates (y/n), explicit x size,
@@ -1251,54 +1248,7 @@ the above two parameters in a command file to be used with future versions
 of Fractint.
 
 TEXTSAFE=yes|no|bios|save\
-When you switch from a graphics image to text mode (e.g. when you use <F1>
-while a fractal is on display), Fractint remembers the graphics image, and
-restores it when you return from the text mode.
-This should be no big deal - there are a number of well-defined ways
-Fractint could do this which *should* work on any video adapter.  They
-don't - every fast approach we've tried runs into a bug on one video
-adapter or another.  So, we've implemented a fast way which works on most
-adapters in most modes as the default, and added this parameter for use
-when the default approach doesn't work.\
-If you experience the following problems, please fool around with this
-parameter to try to fix the problem:\
-  o Garbled image, or lines or dashes on image, when returning to image
-    after going to menu, <tab> display, or help.\
-  o Blank screen when starting Fractint.\
-The problems most often occur in higher resolution modes. We have not
-encountered them at all in modes under 320x200x256 - for those modes
-Fractint always uses a fast image save/restore approach.\
-Textsafe options:\
-  yes: This is the default. When switching to/from graphics, Fractint
-    saves just that part of video memory which EGA/VGA adapters are
-    supposed to modify during the mode changes.
-  no: This forces use of monochrome 640x200x2 mode for text displays (when
-    there is a high resolution graphics image to be saved.) This choice is
-    fast but uses chunky and colorless characters. If it turns out to be
-    the best choice for you, you might want to also specify
-    "textcolors=mono" for a more consistent appearance in text screens.
-  bios: This saves memory in the same way as textsafe=yes, but uses the
-    adapter's BIOS routines to save/restore the graphics state.  This
-    approach is fast and ought to work on all adapters. Sadly, we've found
-    that very few adapters implement this function perfectly.
-  save: It should work on all adapters in
-    all modes but it can be slow. It tells Fractint to save/restore the entire
-    image. Expanded or extended memory is used for the save if you have
-    enough available; otherwise a temporary disk file is used. The speed
-    of textsafe=save will be acceptable on some machines but not others.
-    If this method is too slow, try the other textsafe modes.
-    The speed depends on:\
-      o Cpu and video adapter speed.\
-      o Whether enough expanded or extended memory is available.\
-      o Video mode of image being remembered. A few special modes are *very*
-        slow compared to the rest. The slow ones are: 2 and 4 color modes
-        with resolution higher than 640x480; custom modes for ATI EGA Wonder,
-        Paradise EGA-480, STB, Compaq portable 386, AT&T 6300, and roll your
-        own video modes implemented with customized YOURVID.C code.
-If you want to tune Fractint to use different "textsafe" options for
-different video modes, see {"Customized Video Modes\, FRACTINT.CFG"}.
-(E.g. you might want to use the slower textsafe=save approach just for a
-few high-resolution modes which have problems with textsafe=yes.)
+Removed. See {"Customized Video Modes\, FRACTINT.CFG"}.
 
 VIEWWINDOWS=xx[/xx[/yes|no[/nn[/nn]]]]\
 Set the reduction factor, final media aspect ratio, crop starting
@@ -1376,249 +1326,6 @@ ORBITSAVE=sound\
 This option causes the hertz value played through the PC speaker with
 sound=x|y|z option to be written to a file "sound.txt" in the current
 directory. Bill Jemison has made some intriguing music with this option.
-;
-;
-~Topic=Printer Parameters
-
-~Doc-
-General printer parameters are described below.\
-Additional parameters for specific types of printers are described in:\
-     {PostScript Parameters}\
-     {PaintJet Parameters}\
-     {Plotter Parameters}\
-
-~Doc+
-PRINTER=type[/resolution[/port#]]\
-Defines your printer setup. The SSTOOLS.INI file is a REAL handy place to
-put this option, so that it's available whenever you have that sudden,
-irresistible urge for hard copy.
-~Format-
-Printer types:
-  IB  IBM-compatible (default)
-  EP  Epson-compatible
-  HP  LaserJet
-  CO  Star Micronics Color printer, supposedly Epson-color-compatible
-  PA  Paintjet
-  PS  PostScript
-  PSL Postscript, landscape mode
-  PL  Plotter using HP-GL
-Resolution:
-  In dots per inch.
-  Epson/IBM: 60, 120, 240
-  LaserJet: 75, 150, 300
-  PaintJet: 90, 180
-  PostScript: 10 through 600, or special value 0 to print full page to
-  within about .4" of the edges (in portrait mode, width is full page and
-  height is adjusted to 3:4 aspect ratio)
-  Plotter: 1 to 10 for 1/Nth of page (e.g. 2 for 1/2 page)
-Port:
-  1, 2, 3 for LPT1-3 via BIOS
-  11, 12, 13, 14 for COM1-4 via BIOS
-  21, 22 for LPT1 or LPT2 using direct port access (faster when it works)
-  31, 32 for COM1 or COM2 using direct port access
-~Format+
-
-COMPORT=port/baud/options\
-Serial printer port initialization.\
-Port=1,2,3,etc.\
-Baud=115,150,300,600,1200,2400,4800,9600\
-Options: 7,8 | 1,2 | e,n,o (any order).\
-Example: comport=1/9600/n81 for COM1 set to 9600, no parity, 8 bits per
-character, 1 stop bit.
-
-LINEFEED=crlf|lf|cr\
-Specifies the control characters to emit at end of each line:  carriage
-return and linefeed, just linefeed, or just carriage return.  The default
-is crlf.
-
-TITLE=yes\
-If specified, title information is added to printouts.
-
-PRINTFILE=[<path>\\]filename\
-Causes output data for the printer to be written to the named file on disk
-instead of to a printer port. The filename is incremented by 1 each time
-an image is printed - e.g. if the name is FRAC01.PRN, the second print
-operation writes to FRAC02.PRN, etc. Existing files are not overwritten -
-if the file exists, the filename is incremented to a new name.
-;
-;
-~Topic=PostScript Parameters
-
-EPSF=1|2|3\
-Forces print-to-file and PostScript. If PRINTFILE is not specified, the
-default filename is FRACT001.EPS. The number determines how 'well-behaved'
-a .EPS file is. 1 means by-the-book. 2 allows some EPS 'no-nos' like
-settransfer and setscreen - BUT includes code that should make the code
-still work without affecting the rest of the non-EPS document. 3 is a
-free-for-all.
-
-COLORPS=yes|no - Enable or disable the color extensions.
-
-RLEPS=yes|no\
-Enable or disable run length encoding of the PostScript file.  Run length
-encoding will make the PostScript file much smaller, but it may take longer
-to print.  The run length encoding code is based on pnmtops, which is
-copyright (C) 1989 by Jef Poskanzer, and carries the following notice:
-"Permission to use, copy, modify, and distribute this software and its
-documentation for any purpose and without fee is hereby granted, provided
-that the above copyright notice appear in all copies and that both that
-copyright notice and this permission notice appear in supporting
-documentation.  This software is provided "as is" without express or
-implied warranty."
-
-TRANSLATE=yes|-n|n\
-Translate=yes prints the negative image of the fractal.
-Translate=n reduces the image to that many colors. A negative value causes
-a color reduction as well as a negative image.
-
-HALFTONE=frq/ang/sty[/f/a/s/f/a/s/f/a/s]\
-Tells the PostScript printer how to define its halftone screen. The first
-value, frequency, defines the number of halftone lines per inch. The
-second chooses the angle (in degrees) that the screen lies at. The third
-option chooses the halftone 'spot' style. Good default frequencies are
-between 60 and 80; Good default angles are 45 and 0; the default style is
-0. If the halftone= option is not specified, Fractint will print using the
-printer's default halftone screen, which should have been already set to
-do a fine job on the printer.
-
-These are the only three used when colorps=no. When color PS printing is
-being used, the other nine options specify the red, green, then blue
-screens. A negative number in any of these places will cause it to use
-the previous (or default) value for that parameter. NOTE: Especially when
-using color, the built-in screens in the printer's ROM may be the best
-choice for printing.
-
-~OnlineFF
-The default values are as follows: halftone=45/45/1/45/75/1/45/15/1/45/0/1
-and these will be used if Fractint's halftone is chosen over the printer's
-built-in screen.
-~Format-
-
-Current halftone styles:
-    0 Dot
-    1 Dot (Smoother)
-    2 Dot (Inverted)
-    3 Ring (Black)
-    4 Ring (White)
-    5 Triangle (Right)
-    6 Triangle (Isosceles)
-    7 Grid
-    8 Diamond
-    9 Line
-   10 Microwaves
-   11 Ellipse
-   12 Rounded Box
-   13 Custom
-   14 Star
-   15 Random
-   16 Line (slightly different)
-~Format+
-~OnlineFF
-
-A note on device-resolution black and white printing\
-----------------------------------------------------\
-
-This mode of printing can now be done much more quickly, and takes a
-lot less file space. Just set EPSF=0 PRINTER=PSx/nnn COLORPS=NO
-RLEPS=YES TRANSLATE=m, where x is P or L for portrait/landscape, nnn is
-your printer's resolution, m is 2 or -2 for positive or negative
-printing respectively. This combination of parameters will print
-exactly one printer pixel per each image pixel and it will keep the
-proportions of the picture, if both your screen and printer have
-square pixels (or the same pixel-aspect). Choose a proper (read large)
-window size to fill as much of the paper as possible for the most
-spectacular results.  2048 by 2048 is barely enough to fill the width
-of a letter size page with 300 dpi printer resolution.  For higher
-resolution printers, you can use fractint's new larger disk video sizes,
-up to 32k x 32k.
-~OnlineFF
-
-A word from the author (Scott Taylor)\
--------------------------------------\
-
-Color PostScript printing is new to me. I don't even have a color printer to
-test it on. (Don't want money. Want a Color PostScript printer!) The initial
-tests seem to have worked. I am still testing and don't know whether or not
-some sort of gamma correction will be needed. I'll have to wait and see about
-that one.
-;
-;
-~Topic=PaintJet Parameters
-Note that the pixels printed by the PaintJet are square.
-Thus, a printout of an image
-created in a video mode with a 4:3 pixel ratio (such as 640x480 or
-800x600) will come out matching the screen; other modes (such as 320x200)
-will come out stretched.
-
-Black and white images, or images using the 8 high resolution PaintJet
-colors, come out very nicely.  Some images using the full spectrum of
-PaintJet colors are very nice, some are disappointing.
-
-When 180 dots per inch is selected (in PRINTER= command), high resolution
-8 color printing is done.  When 90 dpi is selected, low resolution
-printing using the full 330 dithered color palette is done.  In both
-cases, Fractint starts by finding the nearest color supported by the
-PaintJet for each color in your image.  The translation is then
-displayed (unless the current display mode is disk video).  This display
-*should* be a fairly good match to what will be printed
-- it won't be perfect most of the time but should give some idea
-of how the output will look.  At this point you can <Enter> to go ahead
-and print, <Esc> to cancel, or <k> to cancel and keep the
-adjusted colors.
-
-Note that you can use the color map PAINTJET.MAP to create images which
-use the 8 high resolution colors available on the PaintJet.  Also, two
-high-resolution disk video modes are available for creating full page
-images.
-
-If you find that the preview image seems very wrong (doesn't match what
-actually gets printed) or think that Fractint could be doing a better job
-of picking PaintJet colors to match your image's colors, you can try
-playing with the following parameter.  Fair warning: this is a very
-tricky business and you may find it a very frustrating business trying to
-get it right.
-
-HALFTONE=r/g/b\
-(The parameter name is not appropriate - we appropriated a PostScript
-parameter for double duty here.)\
-This separately sets the "gamma" adjustment for each of the red, green,
-and blue color components.  Think of "gamma" as being
-like the contrast adjustment on your screen.  Higher gamma values for all
-three components results in colors with more contrast being produced
-on the printer.  Since each color component can have its gamma separately
-adjusted, you can change the resulting color mix subtly (or drastically!)\
-Each gamma value entered has one implied decimal digit.\
-The default is "halftone=21/19/16", for red 2.1, green 1.9, and blue 1.6.
-(A note from Pieter Branderhorst: I wrote this stuff to come out reasonably
-on my monitor/printer.  I'm a bit suspicious of the guns on my monitor;
-if the colors seem ridiculously wrong on your system you might start by
-trying halftone=17/17/17.)
-;
-;
-~Topic=Plotter Parameters
-
-Plotters which understand HP-GL commands are supported. To use a plotter,
-draw a SMALL image (32x20 or 64x40) using the <v>iew screen options.  Put
-a red pen in the first holder in the plotter, green in the second, blue in
-the third.  Now press <P> to start plotting.  Now get a cup of coffee...
-or two... or three.  It'll take a while to plot.  Experiment with
-different resolutions, plot areas, plotstyles, and even change pens to
-create weird-colored images.
-
-PLOTSTYLE=0|1|2\
-0: 3 parallel lines (red/green/blue) are drawn for each pixel, arranged
-  like "///".  Each bar is scaled according to the intensity of the
-  corresponding color in the pixel.  Using different pen colors (e.g.
-  blue, green, violet) can come out nicely.  The trick is to not tell
-  anyone what color the bars are supposed to represent and they will
-  accept these plotted colors because they do look nice...
-1: Same as 0, but the lines are also twisted.  This removes some of the
-  'order' of the image which is a nice effect.  It also leaves more
-  whitespace making the image much lighter, but colors such as yellow are
-  actually visible.
-2: Color lines are at the same angle and overlap each other.  This type
-  has the most whitespace.  Quality improves as you increase the number of
-  pixels squeezed into the same size on the plotter.
 ;
 ;
 ~Topic=3D Parameters
@@ -1744,7 +1451,7 @@ parameter file unchanged and add these parameters by using a command like:
 
 "BATCH=yes" tells Fractint to run in batch mode -- that is, Fractint draws
 the image using whatever other parameters you specified, then acts as if
-you had hit <S> to save the image, then exits to DOS.
+you had hit <S> to save the image, then exits.
 
 "FILENAME=" can be used with "BATCH=yes" to resume calculation of an
 incomplete image.  For instance, you might interactively find an image you
@@ -1793,10 +1500,32 @@ work with fractal types which can be resumed.  See
 ;
 ;
 ;
-~Topic=Video Adapter Notes
+~Topic=Video Notes
 Fractint uses the Simple DirectMedia Layer (SDL 2.0) cross-platform development
 library designed to provide low level access to audio, keyboard, mouse,
-joystick, and graphics hardware.  See https://ligsdl.org/. 
+joystick, and graphics hardware.  See https://libsdl.org/. 
+
+The maximum video window size is limited by SDL to 16384 X 16384.  When the
+selected video size exceeds the physical monitor size, because not all pixels are
+being displayed, the zoom box does not display correctly.  With window sizes above
+2048 X 2048, passes=1 is forced.
+
+Although the window size can be changed using the window border or maximizing
+the window, the actual image resolution will not change.  For calculating an image
+that is larger than the available screen size, add an entry to Fractint.cfg.
+See {Customized Video Modes\, FRACTINT.CFG}.  If the window is minimized,
+the calculation of the image will continue until complete.
+
+The minimum video window size is limited to 640 X 400 to allow reading of the text
+screens.  Although you can create Fractint.cfg entries with a size smaller than this,
+the window size will still be 640 X 400 and the image and text pixels will be blocky.
+Below 640 X 350, the text screens are illegible.  The easiest way around this
+limitation is to pick a window size that allows reading the text screens and then
+use the <V>iew window option.  See {View Window}.
+
+The Fractint window is created with a color depth that matches the color depth of
+the system Fractint is running on.  Currently, only 256 colors are implemented.  Higher
+color modes can be used, but only 256 colors will be displayed.
 ;
 ;
 ~Doc-
@@ -1804,12 +1533,12 @@ joystick, and graphics hardware.  See https://ligsdl.org/.
 ;
 ~Topic="Disk-Video" Modes
 
-These "video modes" do not involve a video adapter at all. They use (in
-order or preference) your computer memory or your
-disk drive (as file FRACTINT.$$$) to store the fractal image. These modes
-are useful for creating images beyond the capacity of your video adapter
-right up to the current internal limit of 46340 x 46340 x 256,
-e.g. for subsequent printing.
+These "video modes" do not involve a video adapter at all, although a suitable
+window size must be selected for the display of the text screens. They use (in
+order or preference) your computer memory or your disk drive (as file
+FRACTINT.$$$) to store the fractal image. These modes are useful for
+creating images beyond the capacity of your video adapter right up to the
+current internal limit of 46340 x 46340 x 256, e.g. for subsequent printing.
 
 While you are using a disk-video mode, your screen will display text
 information indicating whether memory or your disk drive is being used,
@@ -1822,9 +1551,9 @@ it is anyway).  So is the orbit display feature.
 {=@ColorCycling Color Cycling} can be used during disk-video modes,
 but only to load or save a color palette.
 
-When using real disk for your disk-video, Fractint previously would not
+When using a real disk for your disk-video, Fractint previously would not
 generate some "attractor" types (e.g. Lorenz) nor "IFS" images.  These stress
-disk drives with intensive reads and writes, but with the caching algorithm
+disk drives with intensive reads and writes, but with the caching algorithm,
 performance may be acceptable. Currently Fractint gives you a warning message
 but lets you proceed. You can end the calculation with <Esc> if you think your
 hard disk is getting too strenuous a workout.
@@ -1833,112 +1562,51 @@ hard disk is getting too strenuous a workout.
 ;
 ~Topic=Customized Video Modes\, FRACTINT.CFG
 
-If you have a favorite adapter/video mode that you would like to add to
-Fractint... if you want some new sizes of disk-video modes... if you want
-to remove table entries that do not apply to your system... if you want to
-specify different "textsafe=" options for different video modes... relief
+If you have a favorite video mode that you would like to add to
+Fractint... if you want some new sizes of video or disk-video modes... if you
+want to remove table entries that do not apply to your system... relief
 is here, and without even learning "C"!
 
 You can do these things by modifying the FRACTINT.CFG file with your text
 editor. Saving a backup copy of FRACTINT.CFG first is of course highly
 recommended!
 
-Fractint uses a video adapter table for most of what it needs to know
-about any particular adapter/mode combination. The table is loaded from
+Fractint uses a video mode table for most of what it needs to know
+about any particular mode combination. The table is loaded from
 FRACTINT.CFG each time Fractint is run. It can contain information for
-up to 300 adapter/mode combinations. The table entries, and the function
+up to 300 mode combinations. The table entries, and the function
 keys they are tied to, are displayed in the "select video mode" screen.
 
-This table makes adding support for various third-party video cards and
-their modes much easier, at least for the ones that pretend to be
-standard with extra dots and/or colors. There is even a special
-"roll-your-own" video mode (mode 19) enabling those of you with "C"
-compilers and a copy of the Fractint source to generate video modes
-supporting whatever adapter you may have.
-
-The table as currently distributed begins with nine standard and several
-non-standard IBM video modes that have been exercised successfully with a
-PS/2 model 80. These entries, coupled with the descriptive comments in the
-table definition and the information supplied (or that should have been
-supplied!) with your video adapter, should be all you need to add your own
-entries.
-
-After the IBM and quasi-pseudo-demi-IBM modes, the table contains an ever-
-increasing number of entries for other adapters. Almost all of these
-entries have been added because someone like you sent us spec sheets, or
-modified Fractint to support them and then informed us about it.
+The table as currently distributed begins with, for historical purposes, nine standard
+and several non-standard video modes that have been exercised successfully. These
+entries, coupled with the descriptive comments in the table definition,
+should be all you need to add your own entries.  To see the video modes that
+your system supports, temporarily rename Fractint.cfg, run Fractint, then press <DEL>
+to see the list of available video modes.  This list will NOT be saved, so make a note of
+the video modes of interest.  Then return the file name to Fractint.cfg.
 
 Lines in FRACTINT.CFG which begin with a semi-colon are treated as comments.
-The rest of the lines must have eleven fields separated by commas.
+The rest of the lines must have seven fields separated by commas.
 The fields are defined as:
 
 ~Format-
 1. Key assignment. F2 to F10, SF1 to SF10, CF1 to CF10, or AF1 to AF10.
    Blank if no key is assigned to the mode.
-2. The name of the adapter/video mode (25 chars max, no leading blanks).
-   The adapter is set up for that mode via INT 10H, with:
-3. AX = this,
-4. BX = this,
-5. CX = this, and
-6. DX = this (hey, having all these registers wasn't OUR idea!)
-7. An encoded value describing how to write to your video memory in that
+2. The name of the video mode (25 chars max, no leading blanks).
+3. An encoded value describing how to write to your video memory in that
    mode. Currently available codes are:
-  1) Use the BIOS (INT 10H, AH=12/13, AL=color) (last resort - SLOW!)
-  2) Pretend it's a (perhaps super-res) EGA/VGA
-  3) Pretend it's an MCGA
-  4) SuperVGA 256-Color mode using the Tseng Labs chipset
-  5) SuperVGA 256-Color mode using the Paradise chipset
-  6) SuperVGA 256-Color mode using the Video-7 chipset
-  7) Non-Standard IBM VGA 360 x 480 x 256-Color mode
-  8) SuperVGA 1024x768x16 mode for the Everex chipset
-  9) TARGA video modes
- 10) HERCULES video mode
+  8) 256 color modes (8 bit pixels, used for emulation of 2, 4, & 16 color modes)
  11) Non-Video, i.e. "disk-video"
- 12) 8514/A video modes
- 13) CGA 320x200x4-color and 640x200x2-color modes
- 14) Reserved for Tandy 1000 video modes
- 15) SuperVGA 256-Color mode using the Trident chipset
- 16) SuperVGA 256-Color mode using the Chips & Tech chipset
- 17) SuperVGA 256-Color mode using the ATI VGA Wonder chipset
- 18) SuperVGA 256-Color mode using the EVEREX chipset
- 19) Roll-your-own video mode (as you've defined it in YOURVID.C)
- 20) SuperVGA 1024x768x16 mode for the ATI VGA Wonder chipset
- 21) SuperVGA 1024x768x16 mode for the Tseng Labs chipset
- 22) SuperVGA 1024x768x16 mode for the Trident chipset
- 23) SuperVGA 1024x768x16 mode for the Video 7 chipset
- 24) SuperVGA 1024x768x16 mode for the Paradise chipset
- 25) SuperVGA 1024x768x16 mode for the Chips & Tech chipset
- 26) SuperVGA 1024x768x16 mode for the Everex Chipset
- 27) SuperVGA Auto-Detect mode (we poke around looking for your adapter)
- 28) VESA modes
- 29) True Color Auto-Detect (currently only Targa+ supported)
-Add 100, 200, 300, or 400 to this code to specify an over-ride "textsafe="
- option to be used with the mode.  100=yes, 200=no, 300=bios, 400=save.
- E.g. 428 for a VESA mode with textsafe=save forced.
-8. The number of pixels across the screen (X - 2 to 2048)
-9. The number of pixels down the screen (Y - 2 to 2048)
-10. The number of available colors (2, 4, 16, or 256)
-11. A comment describing the mode (25 chars max, leading blanks are OK)
+ 15) 32K color modes (15 bit pixels)
+ 16) 64K color modes (16 bit pixels)
+ 24) 16M color modes (24 bit pixels)
+ 32) 4G color modes (32 bit pixels)
+4. The number of pixels across the screen
+5. The number of pixels down the screen
+6. The number of available colors (2, 4, 16, 256, 32k, 64k, 16m, 4g)
+    Due to GIF file limitations the maximum number of colors is limited to 256. 
+7. A comment describing the mode (25 chars max, leading blanks are OK)
 ~Format+
-
-NOTE that the AX, BX, CX, and DX fields use hexadecimal notation (fifteen
-==> 'f', sixteen ==> '10'), because that's the way most adapter
-documentation describes it. The other fields use standard decimal
-notation.
-
-If you look closely at the default entries, you will notice that the IBM
-VGA entries labeled "tweaked" and "non standard" have entries in the table
-with AX = BX = CX = 0, and DX = some other number. Those are special flags
-that we used to tell the program to custom-program the VGA adapter, and
-are NOT undocumented BIOS calls. Maybe they should be, but they aren't.
-
-If you have a fancy adapter and a new video mode that works on it, and it
-is not currently supported, PLEASE GET THAT INFORMATION TO US!  We will
-add the video mode to the list on our next release, and give you credit
-for it. Which brings up another point: If you can confirm that a
-particular video adapter/mode works (or that it doesn't), and the program
-says it is UNTESTED, please get that information to us also.  Thanks in
-advance!
 ;
 ;
 ;

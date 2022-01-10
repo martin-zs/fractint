@@ -141,8 +141,8 @@ void make_batch_file()
         maxcolor = decomp[0] - 1;
       if (potflag && potparam[0] >= maxcolor)
         maxcolor = (int)potparam[0];
-      if (++maxcolor > 256)
-        maxcolor = 256;
+      if (++maxcolor > DACSIZE)
+        maxcolor = DACSIZE;
       if (colorstate == 0)
         {
           /* default colors */
@@ -257,7 +257,7 @@ prompt_user:
         strncpy(CommandComment[i], inpcomment[i], MAXCMT);
       if ((gotrealdac) || (istruecolor && !truemode) || fake_lut)
         if (paramvalues[maxcolorindex].uval.ival > 0 &&
-            paramvalues[maxcolorindex].uval.ival <= 256)
+            paramvalues[maxcolorindex].uval.ival <= DACSIZE)
           maxcolor = paramvalues[maxcolorindex].uval.ival;
       promptnum = piecespromts;
       {
@@ -320,7 +320,7 @@ skip_UI:
           else
             strcpy(colorspec, "n");
           if (s_makepar[1] == 0)
-            maxcolor = 256;
+            maxcolor = DACSIZE;
           else
             maxcolor = filecolors;
         }

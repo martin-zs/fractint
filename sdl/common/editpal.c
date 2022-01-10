@@ -385,13 +385,16 @@ static void rect(int x, int y, int width, int depth, int color)
 
 void displayc(int x, int y, int fg, int bg, int ch)
 {
-  int                xc, yc;
-  BYTE      t;
+  int  xc, yc;
+  BYTE t;
   BYTE *ptr;
 
   if ( font8x8 == NULL)
     if ( (font8x8 = findfont(0)) == NULL )
-      return ;
+      return;
+
+  if (ch > 127 || ch < 0)
+    return;
 
   ptr = ((BYTE *)font8x8) + ch*FONT_DEPTH;
 
@@ -1817,7 +1820,7 @@ struct  _PalTable
     BOOLEAN       done;
     BOOLEAN       exclude;
     BOOLEAN       auto_select;
-    PALENTRY      pal[256];
+    PALENTRY      pal[DACSIZE];
     FILE         *undo_file;
     BOOLEAN       curr_changed;
     int           num_redo;
@@ -1995,7 +1998,7 @@ static void PalTable__UndoProcess(PalTable *this, int delta)   /* undo/redo comm
     case UNDO_DATA_SINGLE:
     {
       int      first, last, num;
-      PALENTRY temp[256];
+      PALENTRY temp[DACSIZE];
       int dummy; /* to quiet compiler */
 
       if ( cmd == UNDO_DATA )
@@ -2620,7 +2623,7 @@ static void PalTable__UpdateDAC(PalTable *this)
 {
   if ( this->exclude )
     {
-      memset(dacbox, 0, 256*3);
+      memset(dacbox, 0, DACSIZE*3);
       if (this->exclude == 1)
         {
           int a = this->curr[this->active];
@@ -3109,7 +3112,7 @@ static void PalTable__other_key(int key, RGBEditor *rgb, VOIDPTR info)
           Cursor_Hide();
 
           PalTable__SaveUndoData(this, 0, 255);
-          memcpy(this->pal,this->save_pal[which],256*3);
+          memcpy(this->pal,this->save_pal[which],DACSIZE*3);
           PalTable__UpdateDAC(this);
 
           PalTable__SetCurr(this, -1, 0);
@@ -3135,7 +3138,7 @@ static void PalTable__other_key(int key, RGBEditor *rgb, VOIDPTR info)
 
       if ( this->save_pal[which] != NULL )
         {
-          memcpy(this->save_pal[which],this->pal,256*3);
+          memcpy(this->save_pal[which],this->pal,DACSIZE*3);
         }
       else
         buzzer(3); /* oops! short on memory! */
@@ -3145,11 +3148,11 @@ static void PalTable__other_key(int key, RGBEditor *rgb, VOIDPTR info)
     case 'L':     /* load a .map palette */
     case 'l':
     {
-      PalTable__SaveUndoData(this, 0, 255);
+      PalTable__SaveUndoData(this, 0, DACSIZE-1);
 
       load_palette();
 
-      getpalrange(0, 256, this->pal);
+      getpalrange(0, DACSIZE, this->pal);
 
       PalTable__UpdateDAC(this);
       RGBEditor_SetRGB(this->rgb[0], this->curr[0], &(this->pal[this->curr[0]]));
@@ -3162,7 +3165,7 @@ static void PalTable__other_key(int key, RGBEditor *rgb, VOIDPTR info)
     case 'S':     /* save a .map palette */
     case 's':
     {
-      setpalrange(0, 256, this->pal);
+      setpalrange(0, DACSIZE, this->pal);
 
       save_palette();
       PalTable__UpdateDAC(this);
@@ -3326,7 +3329,7 @@ static void PalTable__MkDefaultPalettes(PalTable *this)  /* creates default Fkey
     {
       if (this->save_pal[i] != NULL)
         {
-          memcpy(this->save_pal[i], this->pal, 256*3);
+          memcpy(this->save_pal[i], this->pal, DACSIZE*3);
         }
     }
 }
@@ -3345,7 +3348,7 @@ static PalTable *PalTable_Construct(void)
 
   if ( temp != NULL )
     {
-      mem_block = (PALENTRY *)malloc(256L*3 * 8);
+      mem_block = (PALENTRY *)malloc(DACSIZE*3 * 8);
 
       if ( mem_block == NULL )
         {
@@ -3355,7 +3358,7 @@ static PalTable *PalTable_Construct(void)
       else
         {
           for (ctr=0; ctr<8; ctr++)
-            this->save_pal[ctr] = mem_block + (256*ctr);
+            this->save_pal[ctr] = mem_block + (DACSIZE*ctr);
         }
       free(temp);
     }

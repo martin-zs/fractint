@@ -86,7 +86,7 @@ static struct static_vars
    0 to 255.
 */
 
-typedef BYTE (*DACBOX)[256][3];
+typedef BYTE (*DACBOX)[DACSIZE][3];
 #define dac   (*((DACBOX)(pv->savedac)))
 
 static int getdepth(int xd, int yd)
@@ -222,7 +222,7 @@ int outline_stereo(BYTE * pixels, int linelen)
 int do_AutoStereo(void)
 {
   struct static_vars v;
-  BYTE savedacbox[256*3];
+  BYTE savedacbox[DACSIZE*3];
   int oldhelpmode, ret=0;
   int i, j, done;
   int bars, ct, kbdchar, barwidth;
@@ -244,7 +244,7 @@ int do_AutoStereo(void)
   oldhelpmode = helpmode;
   helpmode = RDSKEYS;
   savegraphics();                      /* save graphics image */
-  memcpy(savedacbox, dacbox, 256 * 3);  /* save colors */
+  memcpy(savedacbox, dacbox, DACSIZE * 3);  /* save colors */
 
   if (xdots > OLDMAXPIXELS)
     {
@@ -365,7 +365,7 @@ int do_AutoStereo(void)
 exit_stereo:
   helpmode = oldhelpmode;
   restoregraphics();
-  memcpy(dacbox, savedacbox, 256 * 3);
+  memcpy(dacbox, savedacbox, DACSIZE * 3);
   spindac(0,1);
   free(same);
   return (ret);

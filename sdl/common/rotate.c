@@ -174,44 +174,7 @@ void rotate(int direction)      /* rotate-the-palette routine */
         case F8:
         case F9:
         case F10:
-// NOTE (jonathan#1#): Shouldn't need next for function keys.
-#if 0
           fkey = kbdchar-1058;
-#else
-          switch (kbdchar)
-            {
-            case F1:
-              fkey = 1;
-              break;
-            case F2:
-              fkey = 2;
-              break;
-            case F3:
-              fkey = 3;
-              break;
-            case F4:
-              fkey = 4;
-              break;
-            case F5:
-              fkey = 5;
-              break;
-            case F6:
-              fkey = 6;
-              break;
-            case F7:
-              fkey = 7;
-              break;
-            case F8:
-              fkey = 8;
-              break;
-            case F9:
-              fkey = 9;
-              break;
-            case F10:
-              fkey = 10;
-              break;
-            }
-#endif
           fstep = 1;
           incr = 999;
           break;
@@ -238,12 +201,12 @@ void rotate(int direction)      /* rotate-the-palette routine */
         case 'B':                      /* color changes */
           if (changecolor    == -1) changecolor = 2;
           if (changedirection == 0) changedirection = 1;
-          for (i = 1; i < 256; i++)
+          for (i = 1; i < DACSIZE; i++)
             {
               dacbox[i][changecolor] = (BYTE)(dacbox[i][changecolor] + changedirection);
               if (dacbox[i][changecolor] == 64)
                 dacbox[i][changecolor] = 63;
-              if (dacbox[i][changecolor] == 255)
+              if (dacbox[i][changecolor] == DACSIZE-1)
                 dacbox[i][changecolor] = 0;
             }
           changecolor    = -1;        /* clear flags for next time */
@@ -312,7 +275,7 @@ void rotate(int direction)      /* rotate-the-palette routine */
           more = 0;                   /* time to bail out */
           break;
         case HOME:                     /* restore palette */
-          memcpy(dacbox,olddacbox,256*3);
+          memcpy(dacbox,olddacbox,DACSIZE*3);
           pauserotate();              /* pause */
           colorstate = oldcolorstate;
           break;
@@ -370,7 +333,7 @@ static void pauserotate()               /* pause-the-rotate routine */
       olddac0 = dacbox[0][0];
       olddac1 = dacbox[0][1];
       olddac2 = dacbox[0][2];
-      daccount = 256;
+      daccount = DACSIZE;
       dacbox[0][0] = 48;
       dacbox[0][1] = 48;
       dacbox[0][2] = 48;
@@ -389,9 +352,9 @@ static void set_palette(BYTE start[3], BYTE finish[3])
 {
   int i, j;
   dacbox[0][0] = dacbox[0][1] = dacbox[0][2] = 0;
-  for (i=1;i<=255;i++)                 /* fill the palette     */
+  for (i=1;i<DACSIZE;i++)                 /* fill the palette     */
     for (j = 0; j < 3; j++)
-      dacbox[i][j] = (BYTE)((i*start[j] + (256-i)*finish[j])/255);
+      dacbox[i][j] = (BYTE)((i*start[j] + (DACSIZE-i)*finish[j])/(DACSIZE-1));
 }
 
 static void set_palette2(BYTE start[3], BYTE finish[3])
@@ -463,7 +426,7 @@ void save_palette()
                     dacbox[i][0] << 2,
                     dacbox[i][1] << 2,
                     dacbox[i][2] << 2);
-          memcpy(olddacbox,dacbox,256*3);
+          memcpy(olddacbox,dacbox,DACSIZE*3);
           colorstate = 2;
           strcpy(colorfile,temp1);
         }
@@ -486,7 +449,7 @@ int load_palette(void)
   if (i >= 0)
     {
       if (ValidateLuts(filename) == 0)
-        memcpy(olddacbox,dacbox,256*3);
+        memcpy(olddacbox,dacbox,DACSIZE*3);
       merge_pathnames(MAP_name,filename,0);
     }
   helpmode = oldhelpmode;

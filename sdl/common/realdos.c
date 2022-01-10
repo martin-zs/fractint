@@ -1653,19 +1653,19 @@ int load_fractint_cfg(int options)
       colors      = atoi(&tempstring[commas[4]]);
       if(colors == 4 && strchr(strlwr(&tempstring[commas[4]]),'g'))
         {
-          colors = 256; /* 32 bits */
+          colors = DACSIZE; /* 32 bits */
         }
       else if(colors == 16 && strchr(&tempstring[commas[4]],'m'))
         {
-          colors = 256; /* 24 bits */
+          colors = DACSIZE; /* 24 bits */
         }
       else if(colors == 64 && strchr(&tempstring[commas[4]],'k'))
         {
-          colors = 256; /* 16 bits */
+          colors = DACSIZE; /* 16 bits */
         }
       else if(colors == 32 && strchr(&tempstring[commas[4]],'k'))
         {
-          colors = 256; /* 15 bits */
+          colors = DACSIZE; /* 15 bits */
         }
 
       if (j < 5 ||
@@ -1674,7 +1674,7 @@ int load_fractint_cfg(int options)
           xdots < MINPIXELS || xdots > MAXPIXELS ||
           ydots < MINPIXELS || ydots > MAXPIXELS ||
           (colors != 0 && colors != 2 && colors != 4 && colors != 16 &&
-           colors != 256)
+           colors != 256 && colors != DACSIZE)
          )
         goto bad_fractint_cfg;
       cfglinenums[vidtbllen] = linenum; /* for update_fractint_cfg */

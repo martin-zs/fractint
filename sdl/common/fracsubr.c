@@ -1518,7 +1518,7 @@ void scrub_orbit(void)
     }
   sxoffs = save_sxoffs;
   syoffs = save_syoffs;
-  soundoff();
+//  soundoff();
 }
 
 

@@ -366,7 +366,6 @@ char s_usegrayscale[] =     "usegrayscale";
 char s_monitorwidth[] =     "monitorwidth";
 char s_targa_overlay[] =    "targa_overlay";
 char s_textcolors[] =       "textcolors";
-char s_textsafe[] =         "textsafe";
 char s_title[] =            "title";
 char s_tplus[] =            "tplus";
 char s_translate[] =        "translate";
@@ -1446,7 +1445,7 @@ int cmdarg(char *curarg,int mode) /* process a single argument */
 
       else if (numval == NONNUMERIC)
         goto badarg;
-      else if (numval < TDIS || numval > 255) goto badarg;
+      else if (numval < TDIS || numval > DACSIZE-1) goto badarg;
       else outside = numval;
       return 1;
     }
@@ -1516,7 +1515,7 @@ int cmdarg(char *curarg,int mode) /* process a single argument */
       if (totparms < 2) intval[1] = 255;
       if (totparms < 1) intval[0] = 1;
       if (totparms != intparms
-          || intval[0] < 0 || intval[1] > 255 || intval[0] > intval[1])
+          || intval[0] < 0 || intval[1] > DACSIZE-1 || intval[0] > intval[1])
         goto badarg;
       rotate_lo = intval[0];
       rotate_hi = intval[1];
@@ -2841,7 +2840,7 @@ static int parse_colors(char *value)
       i = smooth = 0;
       while (*value)
         {
-          if (i >= 256) goto badcolor;
+          if (i >= DACSIZE) goto badcolor;
           if (*value == '<')
             {
               if (i == 0 || smooth
@@ -2888,7 +2887,7 @@ static int parse_colors(char *value)
             }
         }
       if (smooth) goto badcolor;
-      while (i < 256)    /* zap unset entries */
+      while (i < DACSIZE)    /* zap unset entries */
         {
           dacbox[i][0] = dacbox[i][1] = dacbox[i][2] = 40;
           ++i;
@@ -2899,7 +2898,7 @@ static int parse_colors(char *value)
         colorstate = 1;
     }
   colorpreloaded = 1;
-  memcpy(olddacbox,dacbox,256*3);
+  memcpy(olddacbox,dacbox,DACSIZE*3);
   return(0);
 badcolor:
   return(-1);

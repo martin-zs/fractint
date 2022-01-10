@@ -22,7 +22,7 @@
    { Display Mode Commands }
    { Color Cycling Commands }               { Fractint on Unix }
    { Palette Editing Commands }             { Using Fractint With a Mouse }
-                                          { Video Adapter Notes }
+                                          { Video Notes }
    { Summary of Fractal Types }             { GIF Save File Format }
 
    { Doodads\, Bells\, and Whistles }         { Common Problems }
@@ -142,10 +142,9 @@
 {4.6  , 1, "Light Source Parameters"}
 {4.7  , 1, "Spherical Projection"}
 {4.8  , 1, "3D Overlay Mode"}
-{4.9  , 1, "Special Note for CGA or Hercules Users"}
-{4.10 , 1, "Making Terrains"}
-{4.11 , 1, "Making 3D Slides"}
-{4.12 , 1, "Interfacing with Ray Tracing Programs"}
+{4.9  , 1, "Making Terrains"}
+{4.10 , 1, "Making 3D Slides"}
+{4.11 , 1, "Interfacing with Ray Tracing Programs"}
 
 {5.   , 0, Command Line Parameters\, Parameter Files\, Batch Mode, "Introduction to Parameters", FF}
 {5.1  , 1, "Using the Command Line"}
@@ -164,20 +163,16 @@
 {5.13.1,2, "Sound Controls"}
 {5.13.2,2, "Advanced Sound Controls"}
 {5.13.3,2, "Envelopes"}
-{5.14 , 1, "Printer Parameters"}
-{5.15 , 1, "PostScript Parameters"}
-{5.16 , 1, "PaintJet Parameters"}
-{5.17 , 1, "Plotter Parameters"}
-{5.18 , 1, "3D Parameters"}
-{5.19 , 1, "Batch Mode"}
-{5.20 , 1, "Browser Parameters"}
-{5.21 , 1, "Passes Parameters"}
-{5.22 , 1, "Screen Coordinates Screen"}
-{5.23 , 1, "Image Coordinates Screen"}
+{5.14 , 1, "3D Parameters"}
+{5.15 , 1, "Batch Mode"}
+{5.16 , 1, "Browser Parameters"}
+{5.17 , 1, "Passes Parameters"}
+{5.18 , 1, "Screen Coordinates Screen"}
+{5.19 , 1, "Image Coordinates Screen"}
 
 {6.   , 0, Hardware Support, FF}
 {6.1  , 1, Notes on Video Modes\, \"Standard\" and Otherwise,
-                    "Video Adapter Notes"}
+                    "Video Notes"}
 {6.2  , 1, "\"Disk-Video\" Modes"}
 {6.3  , 1, "Customized Video Modes\, FRACTINT.CFG"}
 
@@ -285,26 +280,29 @@ Version 20.5.00 is an update of Fractint 20.0 based on the developer's
 
 Version 20.5 is a Port to SDL 2.0
 
-Palette editor now works with the mouse.\
-3D image generation no longer crashes.\
-Zooming with the mouse is no longer allowed while an image is\
-  still generating.  This eliminates the problem where the new\
-  image generates over the old one.  The PGUP/PGDN keys respond normally\
-  while an image is generating.\
-Speedup to make jiim usable.  Press SPACE on a Mandelbrot image to see.\
+Fixed palette editor font.\
+Fixed prompt/tab screen borders when a fractal type or formula has no parameters.\
+Enabled orbits window.\
+Fixed sound routines so emulation of PC speaker mostly works and turns off when\
+  sound=no is used.
 
 Known issues:\
 Random crashes\
-Resizing images using the window border or maximizing the window doesn't\
-  change the actual image resolution.\
+The Alt-function keys get grabbed by the system.  Selecting the Alt-Fn keys
+  won't work, but using video=AFn in your sstools.ini file or from the
+  command line will.\
+Starting up in a disk video mode creates a window sized based on the size
+  of the disk video mode selected instead of a reasonable size such as 
+  1024x768.\
+Resizing images using the window border or maximizing the window
+  doesn't change the actual image resolution.\
 No reliable sound.  Buzzer kind of works.\
-Colors still limited to 256\
+Colors still limited to 256.  Work started on expanding to 512 colors.\
 The image browser does not work with arbitrary precision for the\
   64-bit compile (Linux).\
-2-color disk video modes are broken (windows)\
-Interrupting disk video initialization and canceling it\
-  causes a crash\
-Help docs are not updated\
+2-color disk video modes are broken (windows).\
+Interrupting disk video initialization and canceling it causes a crash.\
+Help docs are not completely updated.  Printing docs causes crash.\
 
 Patch 14 to Version 20.4.0\
 
@@ -420,14 +418,7 @@ Added feature to write the base map name to the first line of the file when
 
 Patch 6 to Version 20.4.0\
 
-Added Per Image Settings to the {formula} parser.
-  When initially selected from the fractal type formula screen, the symmetry and
-  any per image settings are enforced.  The per image settings will be saved to
-  PARs and GIFs, and can be changed from the appropriate screen.
-  The possible values for per image settings are the same as the parameters
-  that appear in PAR files, with the exception of 'params='.  Params can't
-  be set in the per image settings section, because they get set to
-  zero when the formula is parsed.
+Added Per Image Settings to the formula parser.  See {formula}.
 
 Patch 5 to Version 20.4.0\
 
@@ -503,15 +494,7 @@ Added the mathtolerance and orbit_delay parameters to values written
   Stole the <p> key for use by passes options.  If you are brave enough to
   try it, printing is still available using <ctl-p>.
 
-  Put periodicity and orbit delay on the new <p> screen.  There are currently
-  two drawing modes available for the passes=orbits option.  The rect(angle)
-  method plots the orbits in a rectangle that can be zoomed, rotated, and
-  skewed using the <F6> corner parameter screen, and the straight line method
-  plots the orbits between two points specified on the <F6> corner parameter
-  screen.  The orbit interval parameter plots every nth orbit.  The maintain
-  screen coordinates parameter lets you zoom into an image changing the
-  coordinates of the line or rectangle used to generate the image, but keeps
-  the display coordinates, set on the <F2> screen, the same.
+  Put periodicity and orbit delay on the new <p> screen.  See {Passes Parameters}.
 
   Updated the docs for center-mag and corners because center-mag is now the
   default.
@@ -616,15 +599,8 @@ Made changes to allow Xfractint to find files that use upper case letters.
   evolving on, even though evolving was actually turned off.
 
   Added Charlie Chernohorsky's truecolor speed up and his implementation
-  of virtual screen sizes for the VESA modes (dotmode=28).  This feature
-  does not work consistently between different video cards, so it may be
-  turned off by using the startup command "virtual=n".
-  Use the <V> screen to set the desired virtual screen size.  See
-  {View Window}.  Please remember that if either X or Y is greater than 2048,
-  solid guessing is turned off.  This is for multiple reasons, so it is
-  likely it will NOT get fixed soon.  There is also a problem with the
-  colorbars that appear when saving an image leaving bits of corruption
-  on the screen.  This occurs in all the VESA truecolor modes.
+  of virtual screen sizes for the VESA modes (dotmode=28).  (Removed, but 
+  see {Video Notes} )
 
   Added Charlie to the scrolling list of contributors.
 
@@ -879,10 +855,7 @@ Added a prompt for the periodicity= option to the <y> Extended Options
   screen reflect the full screen dimensions.
 
   The <v> screen can now be used to set the resolution of disk video
-  modes.  The limit is 32767x32767.  First select a disk video mode using
-  <del>.  Then on the <v> screen enter both an X and a Y value.  If you go
-  back to the <del> screen to see if the entry has been modified (it hasn't),
-  you will get strange results if you don't select a video mode.
+  modes.  (Removed: See {Video Notes})
 
 Patch 14\
 Fixed the generation of random numbers used by the evolver subimages.
@@ -1150,7 +1123,7 @@ Commands marked with an '*' are also available at the credits screen.
 
 {Image Save/Restore Commands}
    s               Save the current screen image to disk
- * r               Restore a saved (or .GIF) image ('3' or 'o' for 3-D)
+ * r               Restore a saved (or .GIF) image ('3' for 3-D)
 
 {Orbits Window}
    o               Turns on Orbits Window mode after image generation
@@ -1951,12 +1924,7 @@ To unassign a key (so that it doesn't invoke any video
 mode), highlight the mode currently selected by the key and press the
 keypad (gray) <-> key.
 
-A note about the "select video modes" screen:
-the video modes which are displayed with a 'B' suffix in the number
-of colors are modes which have no custom programming - they use the BIOS
-and are S-L-O-W ones.
-
-See {"Video Adapter Notes"} for comments about particular adapters.
+See {"Video Notes"} for comments about window sizes.
 
 See {"Disk-Video" Modes} for a description of these non-display modes.
 
@@ -2174,66 +2142,15 @@ command to re-plot it.
 ;
 ~Topic=Fractint on Unix
 
-Fractint has been ported to Unix to run under X Windows.  This version is
+Fractint has been ported to Unix to run under X Windows using the
+Simple DirectMedia Layer (SDL 2.0) cross-platform development library
+designed to provide low level access to audio, keyboard, mouse, joystick,
+and graphics hardware.  See https://libsdl.org/.  This version is
 called "Xfractint".  Xfractint may be obtained by anonymous ftp,
 see {Distribution of Fractint}.
 
-Xfractint is still under development and is not as reliable as the IBM PC
-version.
-
-Contact xfractint@fractint.org for more information on Xfractint.
+Contact xfractint@fractint.net for more information on Xfractint.
 ~FF
-Xfractint is a straight port of the IBM PC version.  Thus, it uses the
-IBM user interface.  If you do not have function keys, or Xfractint does
-not accept them from your keyboard, use the following key mappings:
-
-     IBM             Unix\
-     F1 to F10       Shift-1 to Shift-0\
-     INSERT          I\
-     DELETE          D\
-     PAGE_UP         U\
-     PAGE_DOWN       N\
-     LEFT_ARROW      H\
-     RIGHT_ARROW     L\
-     UP_ARROW        K\
-     DOWN_ARROW      J\
-     HOME            O\
-     END             E\
-     CTL_PLUS        \}\
-     CTL_MINUS       \{
-
-Xfractint takes the following options:
-
--onroot\
-Puts the image on the root window.
-
--fast\
-Uses a faster drawing technique.
-
--disk\
-Uses disk video.
-
--geometry WxH[\{+-X}\{+-Y}]\
-Changes the geometry of the image window.
-
--display displayname\
-Specifies the X11 display to use.
-
--private\
-Allocates the entire colormap (i.e. more colors).
-
--share\
-Shares the current colormap.
-
--fixcolors n\
-Uses only n colors.
-
--slowdisplay\
-Prevents Xfractint from hanging on the title page with slow displays.
-
--simple\
-Uses simpler keyboard handling, which makes debugging easier.
-
 Common problems:
 
 If you get the message "Couldn't find fractint.hlp", you can\
@@ -2256,9 +2173,6 @@ OpenWindows.FocusLenience:      True
 If you cannot view the GIFs that Xfractint creates, the problem is that
 Xfractint creates GIF89a format and your viewer probably only handles
 GIF87a format.  Run "xfractint gif87a=y" to produce GIF87a format.
-
-Because many shifted characters are used to simulate IBM keys, you can't
-enter capitalized filenames.
 ;
 ;
 ;
@@ -2271,17 +2185,11 @@ See {=HELPCYCLING Color Cycling Command Summary} for a summary of commands.
 Color-cycling mode is entered with the 'c', '+', or '-' keys from an image,
 or with the 'c' key from Palette-Editing mode.
 
-The color-cycling commands are available ONLY for VGA adapters and EGA
-adapters in 640x350x16 mode.  You can also enter color-cycling while
-using a disk-video mode, to load or save a palette - other functions are
-not supported in disk-video.
+The color-cycling commands are available ONLY for video modes with 16 or more colors. 
+You can also enter color-cycling while using a disk-video mode, to load or save a
+palette - other functions are not supported in disk-video.
 
-Note that the colors available on an EGA adapter (16 colors at a
-time out of a palette of 64) are limited compared to those of VGA, super-
-VGA, and MCGA (16 or 256 colors at a time out of a palette of 262,144). So
-color-cycling in general looks a LOT better in the latter modes. Also,
-because of the EGA palette restrictions, some commands are not available
-with EGA adapters.
+Color-cycling looks a LOT better in 256 color modes.
 
 Color cycling applies to the color numbers selected by the "cyclerange="
 command line parameter (also changeable via the <Y> options screen and via
@@ -2290,7 +2198,7 @@ cycled.  On some images you might want to set "inside=0" (<X> options or
 command line parameter) to exclude the "lake" from color cycling.
 
 When you are in color-cycling mode, you will either see the screen colors
-cycling, or will see a white "overscan" border when paused, as a reminder
+cycling, or will see "lakes" as white when paused, as a reminder
 that you are still in this mode.  The keyboard commands available once
 you've entered color-cycling. are described below.
 
@@ -2329,18 +2237,18 @@ screen colors prior to displaying them for instant, random colors.  Hit
 this over and over again (we do).
 
 <Spacebar>\
-Pause cycling with white overscan area. Cycling restarts with any command
+Pause cycling with white "lake" areas. Cycling restarts with any command
 key (including another spacebar).
 
 <Shift><F1>-<F10>\
 Pause cycling and reset the palette to a preset two color "straight"
-assignment, such as a spread from black to white. (Not for EGA)
+assignment, such as a spread from black to white.
 
 <Ctrl><F1>-<F10>\
-Pause & set a 2-color cyclical assignment, e.g. red->yellow->red (not EGA).
+Pause & set a 2-color cyclical assignment, e.g. red->yellow->red.
 
 <Alt><F1>-<F10>\
-Pause & set a 3-color cyclical assignment, e.g. green->white->blue (not EGA).
+Pause & set a 3-color cyclical assignment, e.g. green->white->blue.
 
 <R>, <G>, <B>\
 Pause and increase the red, green, or blue component of all colors by a
@@ -2348,7 +2256,7 @@ small amount (not for EGA). Note the case distinction of this vs:
 
 <r>, <g>, <b>\
 Pause and decrease the red, green, or blue component of all colors by a
-small amount (not for EGA).
+small amount.
 
 <D> or <A>\
 Pause and load an external color map from the files DEFAULT.MAP or
@@ -2402,12 +2310,14 @@ See {=HELPXHAIR Palette Editing Command Summary} for a summary of commands.
 
 ~Doc+
 Palette-editing mode provides a number of tools for modifying the colors
-in an image.  It can be used only with MCGA or higher adapters, and only
-with 16 or 256 color video modes.
+in an image.  It can only be used with video modes with 16 or 256 colors.
 Many thanks to Ethan Nagel for creating the palette editor.
 
 Use the <E> key to enter palette-editing mode from a displayed image or
-from the main menu.
+from the main menu.  Window sizes up to 1900 X 1425 won't crash Fractint
+when <E> is pressed.  For larger windows (exact limit was not determined), the
+palette editor runs out of memory, displaying an error message, and then
+crashes Fractint.
 
 When this mode is entered, an empty palette frame is displayed. You can
 use the cursor keys to position the frame outline, and <Pageup> and

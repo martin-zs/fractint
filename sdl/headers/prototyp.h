@@ -842,10 +842,6 @@ extern void plotIFS3dsuperimpose256(int ,int ,int );
 extern void plot3dalternate(int ,int ,int );
 extern void plot_setup(void);
 
-/*  printer -- C file prototypes */
-
-extern void Print_Screen(void);
-
 /*  prompts1 -- C file prototypes */
 
 extern int fullscreen_prompt(char *,int ,char **,struct fullscreenvalues *,int ,char *);
@@ -1098,8 +1094,6 @@ extern void refreshimage(void);
 extern void sdl_check_for_windows(void);
 extern void cleanup_sdl_audio(void);
 extern void setup_sdl_audio(void);
-extern void sdl_buzzer(int);
-extern void sdl_mute(void);
 extern void buzzer(int);
 extern int soundon(int);
 extern void soundoff(void);

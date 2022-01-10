@@ -401,7 +401,7 @@ void plot_setup()
       break;
 
     case 2:
-      if (colors == 256)
+      if (colors >= 256)
         if (fractype != IFS3D)
           standardplot = plot3dsuperimpose256;
         else
@@ -469,7 +469,7 @@ void plot_setup()
       ValidateLuts(MAP_name); /* read the palette file */
       if (glassestype==1 || glassestype==2)
         {
-          if (glassestype == 2 && colors < 256)
+          if (glassestype == 2 && colors < DACSIZE)
             {
               dacbox[PAL_RED  ][0] = 63;
               dacbox[PAL_RED  ][1] =  0;
@@ -480,10 +480,10 @@ void plot_setup()
               dacbox[PAL_BLUE ][2] = 63;
 
               dacbox[PAL_MAGENTA][0] = 63;
-              dacbox[PAL_MAGENTA][1] =    0;
+              dacbox[PAL_MAGENTA][1] =  0;
               dacbox[PAL_MAGENTA][2] = 63;
             }
-          for (i=0;i<256;i++)
+          for (i=0;i<DACSIZE;i++)
             {
               dacbox[i][0] = (BYTE)(dacbox[i][0] * d_red_bright);
               dacbox[i][2] = (BYTE)(dacbox[i][2] * d_blue_bright);

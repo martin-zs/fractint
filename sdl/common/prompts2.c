@@ -377,8 +377,7 @@ int get_toggles()
 
 int get_toggles2()
 {
-  static FCODE o_hdg[]={"Extended Options\n\
-                        (not all combinations make sense)"
+  static FCODE o_hdg[]={"Extended Options\n\(not all combinations make sense)"
                        };
   char hdg[sizeof(o_hdg)];
   char *ptr;
@@ -531,11 +530,9 @@ int get_toggles2()
 
 int passes_options(void)
 {
-  static FCODE o_hdg[]={"Passes Options\n\
-                        (not all combinations make sense)"
-                       };
-  static FCODE pressf2[] = {"\n(Press "FK_F2" for corner parameters)"};
-  static FCODE pressf6[] = {"\n(Press "FK_F6" for calculation parameters)"};
+  static FCODE o_hdg[]={"Passes Options\n(not all combinations make sense)\n"};
+  static FCODE pressf2[] = {"\n(Press "FK_F2" for screen coordinates)"};
+  static FCODE pressf6[] = {"\n(Press "FK_F6" for image coordinates)"};
   char hdg[sizeof(o_hdg)+sizeof(pressf2)+sizeof(pressf6)];
   char *ptr;
   char *choices[20];

@@ -220,8 +220,12 @@ int setvideomode (int dotmode)
       linewrite = normaline;
       break;
     default:
-      printf ("Bad video mode %d\n", dotmode);
+      {
+      char msg[30];
+      sprintf (msg, "Bad video mode %d", dotmode);
+      popup_error (4, msg);
       exit (-1);
+      }
     }
 
   loaddac ();

@@ -29,7 +29,7 @@ int x_close = 0;
 int file_IO = 0; /* kludge to indicate saving/restoring an image */
 
 TTF_Font *font = NULL;
-SDL_Color cols[256];
+SDL_Color cols[DACSIZE];
 int SDL_init_flags = SDL_INIT_VIDEO|SDL_INIT_TIMER;
 int SDL_video_flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI;
 int SDL_renderer_flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_TARGETTEXTURE;
@@ -115,6 +115,7 @@ void restore_text(void);
 void outtext(int, int, int);
 int check_mouse(SDL_Event);
 void set_mouse_scale(void);
+void updatepixel(int, int);
 void updateimage(void);
 void SetupSDL(void);
 void CleanupSDL(void);
@@ -268,6 +269,12 @@ void popup_error (int num, char *msg)
                          msg,
                          NULL);
       break;
+   case 4:
+      SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,
+                         "Critical error",
+                         msg,
+                         NULL);
+      break;
   }
 }
 
@@ -328,8 +335,16 @@ void ResizeScreen(int mode)
       memcpy((char *)&videoentry,(char *)&videotable[adapter],
              sizeof(videoentry));  /* the selected entry now in videoentry */
       if ( sdlWindow == NULL ) /* Don't create one if we already have one */
-         sdlWindow = SDL_CreateWindow(0, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                     videoentry.xdots, videoentry.ydots, SDL_video_flags);
+        {
+         if (videoentry.dotmode == 11)
+            {
+            sdlWindow = SDL_CreateWindow(0, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                        1024, 768, SDL_video_flags);
+            }
+         else
+            sdlWindow = SDL_CreateWindow(0, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+                        videoentry.xdots, videoentry.ydots, SDL_video_flags);
+        }
 
       if ( sdlWindow == NULL ) /* No luck, bail out */
         {
@@ -519,9 +534,10 @@ void ResizeScreen(int mode)
 
 void showfreemem(void)
 {
-char msg[200];
+char msg[300];
 char *msgptr;
 int msglen = 0;
+SDL_version compiled;
 SDL_version linked;
 SDL_Rect max_win_size;
 SDL_DisplayMode current;
@@ -545,8 +561,14 @@ sprintf(msgptr, "Desktop = %d X %d @ %d Hz.\n", current.w, current.h, current.re
 
 msglen = strlen(msg);
 msgptr = msg + msglen;
+SDL_VERSION(&compiled);
+sprintf(msgptr, "SDL compiled version %d.%d.%d.\n",
+       compiled.major, compiled.minor, compiled.patch);
+
+msglen = strlen(msg);
+msgptr = msg + msglen;
 SDL_GetVersion(&linked);
-sprintf(msgptr, "SDL version %d.%d.%d.\n",
+sprintf(msgptr, "SDL linked version %d.%d.%d.\n",
        linked.major, linked.minor, linked.patch);
 
 msglen = strlen(msg);
@@ -684,10 +706,10 @@ void startvideo(void)
   else /* truecolor modes */
     {
       gotrealdac = 0;
-      istruecolor = 1;
+      istruecolor = 0;  /* seems this is no longer needed */
       fake_lut = 1;
 // FIXME (jonathan#1#): Need to have more colors for truecolor modes
-      colors = 256;
+      colors = videoentry.colors;
     }
 
 /* initialize mainscrn, backscrn, and backtext surfaces to inside color */
@@ -803,10 +825,10 @@ void puttruecolor_SDL(SDL_Surface *screen, int x, int y, Uint8 R, Uint8 G, Uint8
     break;
     }
   Sulock(screen);
-#if 1
-  if (show_orbit) /* Do it slow, one pixel at a time */
+#if 0
+  if (show_orbit && calc_status == 1) /* Do it slow, one pixel at a time */
   {
-     updateimage();
+       updatepixel(x, y);
   }
 #endif
 }
@@ -837,6 +859,20 @@ void writevideo(int x, int y, U32 pixel)
   *bufp = pixel;
   dac_to_rgb((BYTE)(pixel & andcolor), &red, &green, &blue);
   puttruecolor(x, y, red, green, blue);
+}
+
+void updatepixel(int x, int y)
+{
+  SDL_Rect dst;
+
+  dst.x = x;
+  dst.y = y;
+  dst.w = 1;
+  dst.h = 1;
+
+  SDL_UpdateTexture( sdlTexture, &dst, mainscrn->pixels, rowbytes );
+  SDL_RenderCopy(sdlRenderer, sdlTexture, &dst, &dst);
+  SDL_RenderPresent(sdlRenderer);
 }
 
 void updateimage(void)
@@ -1036,19 +1072,19 @@ void writevideopalette(void)
 #endif
     }
   /* Set palette */
-  SDL_SetPaletteColors(mainscrn->format->palette, cols, 0, 256);
-  SDL_SetPaletteColors(backscrn->format->palette, cols, 0, 256);
+  SDL_SetPaletteColors(mainscrn->format->palette, cols, 0, DACSIZE);
+  SDL_SetPaletteColors(backscrn->format->palette, cols, 0, DACSIZE);
   refreshimage();
 }
 
 void savevideopalette(void)
 {
-  memcpy(olddacbox, dacbox, 256*3);
+  memcpy(olddacbox, dacbox, DACSIZE*3);
 }
 
 void restorevideopalette(void)
 {
-  memcpy(dacbox, olddacbox, 256*3);
+  memcpy(dacbox, olddacbox, DACSIZE*3);
 }
 
 /* start of text processing routines */
@@ -1815,6 +1851,10 @@ static int translate_key(SDL_KeyboardEvent *key)
       return ENTER_2;
     case SDLK_RETURN:
       return ENTER;
+    case SDLK_KP_PLUS:
+      return '+';
+    case SDLK_KP_MINUS:
+      return '-';
     default:
       break;
     }
@@ -1846,6 +1886,9 @@ int check_mouse(SDL_Event mevent)
   int keyispressed = 0;
 
   if (screenctr) /* don't do it, we're on a text screen */
+    return (0);
+
+  if (lookatmouse == 0)
     return (0);
 
   if (editpal_cursor && !inside_help)
@@ -1988,33 +2031,36 @@ int get_key_event(int block)
               {
 
             switch (event.window.event) {
-            case SDL_WINDOWEVENT_RESIZED:
-              window_is_fullscreen = 0;
-              set_mouse_scale();
+               case SDL_WINDOWEVENT_RESIZED:
+                 window_is_fullscreen = 0;
+                 set_mouse_scale();
+                 break;
+               case SDL_WINDOWEVENT_EXPOSED:
+               case SDL_WINDOWEVENT_SHOWN:
+                 updatewindow = 1;
+                 break;
+               case SDL_WINDOWEVENT_RESTORED:
+                 window_is_fullscreen = 0;
+                 set_mouse_scale();
+                 break;
+               case SDL_WINDOWEVENT_MAXIMIZED:
+                 window_is_fullscreen = 1;
+                 set_mouse_scale();
+                 break;
+               case SDL_WINDOWEVENT_HIDDEN:
+               case SDL_WINDOWEVENT_MINIMIZED:
+                 updatewindow = 0;
+                 break;
+               case SDL_WINDOWEVENT_CLOSE:
+                 x_close = 1;
+                 goodbye();
+                 break;
+               default:
+                 break;
+               }
+
+              }
               break;
-            case SDL_WINDOWEVENT_EXPOSED:
-            case SDL_WINDOWEVENT_SHOWN:
-              updatewindow = 1;
-              break;
-            case SDL_WINDOWEVENT_RESTORED:
-              window_is_fullscreen = 0;
-              set_mouse_scale();
-              break;
-            case SDL_WINDOWEVENT_MAXIMIZED:
-              window_is_fullscreen = 1;
-              set_mouse_scale();
-              break;
-            case SDL_WINDOWEVENT_HIDDEN:
-            case SDL_WINDOWEVENT_MINIMIZED:
-              updatewindow = 0;
-              break;
-            case SDL_WINDOWEVENT_CLOSE:
-              x_close = 1;
-              goodbye();
-            default:
-              break;
-            }
-           }
             case SDL_MOUSEMOTION:
               keyispressed = check_mouse(event);
               break;

@@ -1365,7 +1365,7 @@ struct fractalspecificstuff fractalspecific[]=
       HT_UNITY, HF_UNITY, WINFRAC,
       (float)-2.0, (float)2.0, (float)-1.5, (float)1.5,
       0, NOFRACTAL, NOFRACTAL, UNITY, XYAXIS,
-      UnityfpFractal, otherjuliafp_per_pixel, StandardSetup, StandardFractal,
+      UnityfpFractal, otherjuliafp_per_pixel, UnitySetup, StandardFractal,
       NOBAILOUT
    },
 
