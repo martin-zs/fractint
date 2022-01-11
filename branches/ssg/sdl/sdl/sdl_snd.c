@@ -208,12 +208,18 @@ want.channels = 2;
 want.samples = BUFFER_SIZE;
 want.callback = NULL;  /* Use the queue instead */
 #endif
-if (BuzzPtr == NULL)
-  BuzzPtr = (S16 *)malloc(BytesToWrite);
 
 if (soundflag & 7)
 {
-  dev = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
+  if (dev == 0)
+    dev = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
+
+  if (BuzzPtr == NULL)
+    BuzzPtr = (S16 *)malloc(BytesToWrite);
+
+#ifndef XFRACT
+  SDL_Delay(500); /* Delay so windows audio device stabilizes */
+#endif // XFRACT
 
   if (dev != 0)
     switch(buzzertype)
@@ -311,11 +317,11 @@ int soundon(int hertz)
   if (hertz < 20)
      return (0);
 
-  if (BuzzPtr == NULL)
-     BuzzPtr = (S16 *)malloc(BytesToWrite);
-
   if (dev == 0)
      dev = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
+
+  if (BuzzPtr == NULL)
+     BuzzPtr = (S16 *)malloc(BytesToWrite);
 
   tone(hertz, 55);
 
