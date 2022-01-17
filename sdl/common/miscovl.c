@@ -642,7 +642,7 @@ void write_batch_parms(char *colorinf, int colorsonly, int maxcolor, int ii, int
               /*          convert 1000 fudged long to double, 1000/1<<24 = 6e-5 */
               put_parm(ddelmin > 6e-5 ? "%g/%g" : "%+20.17lf/%+20.17lf", Xctr, Yctr);
             }
-#ifndef NO_LDBL_IO
+#ifdef USE_LONG_DOUBLE
           put_parm("/%.7Lg",Magnification); /* precision of magnification not critical, but magnitude is */
 #else
           put_parm("/%.7lg",(double)Magnification); /* precision of magnification not critical, but magnitude is */
@@ -727,24 +727,24 @@ void write_batch_parms(char *colorinf, int colorsonly, int maxcolor, int ii, int
             put_parm(" %s=%.1f",s_params,param[0]);
           else
             {
-#ifndef NO_LDBL_IO
+#ifdef USE_LONG_DOUBLE
               if (debugflag == 750)
                 put_parm(" %s=%.17Lg",s_params,(long double)param[0]);
               else
 #endif
-                put_parm(" %s=%.17g",s_params,param[0]);
+                put_parm(" %s=%.16g",s_params,param[0]);
             }
           for (j = 1; j <= i; ++j)
             if (fractype == CELLULAR || fractype == ANT)
               put_parm("/%.1f",param[j]);
             else
               {
-#ifndef NO_LDBL_IO
+#ifdef USE_LONG_DOUBLE
                 if (debugflag == 750)
                   put_parm("/%.17Lg",(long double)param[j]);
                 else
 #endif
-                  put_parm("/%.17g",param[j]);
+                  put_parm("/%.16g",param[j]);
               }
         }
 
