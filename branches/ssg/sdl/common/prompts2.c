@@ -377,7 +377,7 @@ int get_toggles()
 
 int get_toggles2()
 {
-  static FCODE o_hdg[]={"Extended Options\n\(not all combinations make sense)"
+  static FCODE o_hdg[]={"Extended Options\n(not all combinations make sense)"
                        };
   char hdg[sizeof(o_hdg)];
   char *ptr;
@@ -1159,6 +1159,7 @@ void goodbye(void)                  /* we done.  Bail out */
     free(LogTable);
   if (x_close == 1)
     freetempmsg();
+  soundoff();
   enddisk();
   free_bf_vars();
   ExitCheck();
