@@ -466,7 +466,7 @@ int kbhit(void)
   return 0;
 }
 
-/* tenths of millisecond timer routine */
+/* microsecond timer routine */
 static struct timeval tv_start;
 
 void restart_uclock(void)
@@ -481,7 +481,7 @@ uclock_t usec_clock(void)
   struct timeval tv, elapsed;
   gettimeofday(&tv, NULL);
 
-  elapsed.tv_usec  = tv.tv_usec -  tv_start.tv_sec;
+  elapsed.tv_usec  = tv.tv_usec -  tv_start.tv_usec;
   elapsed.tv_sec   = tv.tv_sec -   tv_start.tv_sec;
 
   if (elapsed.tv_usec < 0)
@@ -490,7 +490,7 @@ uclock_t usec_clock(void)
       elapsed.tv_usec += 1000000;
       elapsed.tv_sec--;
     }
-  result  = (unsigned long)(elapsed.tv_sec*10000 +  elapsed.tv_usec/100);
+  result  = (unsigned long)(elapsed.tv_sec*1000000 +  elapsed.tv_usec);
   return(result);
 }
 
