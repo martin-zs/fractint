@@ -1505,10 +1505,13 @@ void scrub_orbit(void)
 {
   int i,j,c;
   int save_sxoffs,save_syoffs;
+  int save_show_orbit;
   mute();
   save_sxoffs = sxoffs;
   save_syoffs = syoffs;
+  save_show_orbit = show_orbit;
   sxoffs = syoffs = 0;
+  show_orbit = 0;
   while (orbit_ptr > 0)
     {
       c = *(save_orbit + --orbit_ptr);
@@ -1518,6 +1521,7 @@ void scrub_orbit(void)
     }
   sxoffs = save_sxoffs;
   syoffs = save_syoffs;
+  show_orbit = save_show_orbit;
 //  soundoff();
 }
 

@@ -446,14 +446,11 @@ imagestart:                             /* calc/display a new image */
           get_browse_params();
           goto imagestart;
         }
-// FIXME (jonathan#1#): Need next for sound parameters
-#if 0
       if (kbdchar == 6)                         /* ctrl f = sound parms*/
         {
           get_sound_params();
           goto imagestart;
         }
-#endif
       if (kbdchar == 'f')                       /* floating pt toggle */
         {
           if (usr_floatflag == 0)

@@ -1019,10 +1019,10 @@ void write_batch_parms(char *colorinf, int colorsonly, int maxcolor, int ii, int
       if (rotate_lo != 1 || rotate_hi != 255)
         put_parm( s_seqdd,s_cyclerange,rotate_lo,rotate_hi);
 
-#if 0
       if (basehertz != 440)
         put_parm(s_seqd,s_hertz,basehertz);
 
+#if 0
       if (fm_vol != 63)
         put_parm(s_seqd,s_volume,fm_vol);
 
