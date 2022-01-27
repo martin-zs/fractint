@@ -1113,15 +1113,12 @@ top:
       attributes[nextleft] = MENU_ITEM;
       LOADPROMPTSCHOICES(nextleft,"evolver parms...     <ctl-e>");
     }
-// FIXME (jonathan#1#): Need to use next when sound is implemented
-#if 0 /* #ifndef XFRACT */
   if (fullmenu)
     {
       choicekey[nextleft+=2] = 6;
       attributes[nextleft] = MENU_ITEM;
       LOADPROMPTSCHOICES(nextleft,"sound parms...       <ctl-f>");
     }
-#endif
   LOADPROMPTSCHOICES(nextright+=2,"        FILE                  ");
   attributes[nextright] = 256+MENU_HDG;
   choicekey[nextright+=2] = '@';
@@ -1147,11 +1144,6 @@ top:
       choicekey[nextright+=2] = 'b';
       attributes[nextright] = MENU_ITEM;
       LOADPROMPTSCHOICES(nextright,"save current parameters..<b>  ");
-#if 0
-      choicekey[nextright+=2] = 16;
-      attributes[nextright] = MENU_ITEM;
-      LOADPROMPTSCHOICES(nextright,"print image            <ctl-p>  ");
-#endif
     }
   choicekey[nextright+=2] = 'g';
   attributes[nextright] = MENU_ITEM;

@@ -648,8 +648,7 @@ int main_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stacked)
     case 'v':
     case 2:
     case 5:
-// FIXME (jonathan#1#): Need next for sound parameters
-//    case 6:
+    case 6:
       old_maxit = maxit;
       clear_zoombox();
       if (fromtext_flag == 1)
@@ -678,11 +677,8 @@ int main_menu_switch(int *kbdchar, int *frommandel, int *kbdmore, char *stacked)
               Log_Auto_Calc = 0; /* turn it off */
             }
         }
-// FIXME (jonathan#1#): Need next for sound parameters
-#if 0
       else if (*kbdchar == 6)
         i = get_sound_params();
-#endif
       else
         i = get_cmd_string();
       unstackscreen();

@@ -1098,6 +1098,7 @@ extern void buzzer(int);
 extern int soundon(int);
 extern void soundoff(void);
 extern void mute(void);
+extern int get_sound_params(void);
 
 /*  video -- C file prototypes */
 

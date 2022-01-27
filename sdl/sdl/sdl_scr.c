@@ -398,6 +398,11 @@ void ResizeScreen(int mode)
 }
     }
 
+#if SDL_VERSION_ATLEAST(2, 0, 16)
+  /*  this next needs SDL 2.0.16 */
+  SDL_SetWindowKeyboardGrab(sdlWindow, SDL_TRUE);
+#endif
+
   sxdots = videoentry.xdots;
   sydots = videoentry.ydots;
   screenaspect = (float)sydots / (float)sxdots;
@@ -825,7 +830,7 @@ void puttruecolor_SDL(SDL_Surface *screen, int x, int y, Uint8 R, Uint8 G, Uint8
     break;
     }
   Sulock(screen);
-#if 0
+#if 1
   if (show_orbit && calc_status == 1) /* Do it slow, one pixel at a time */
   {
        updatepixel(x, y);
@@ -2172,7 +2177,7 @@ int time_to_update(void)
   U32 now;
 
   now = SDL_GetTicks();
-  if ((calc_status == 1 && !bf_math) || using_jiim || fractype == ANT)
+  if ((calc_status == 1 && !bf_math && !show_orbit) || using_jiim || fractype == ANT)
     /* calculating or using_jiim or fractype == ANT */
     {
       if (next_time <= now)

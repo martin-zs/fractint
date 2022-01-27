@@ -10,10 +10,13 @@
 
 #include "port.h"
 #include "prototyp.h"
+#include "helpdefs.h"
 
 #define SAMPLE_FREQ   22050
 #define BUFFER_SIZE   2048
-#define Pi32 3.14159265358979f
+#ifndef M_PI
+  #define M_PI 3.14159265358979323846
+#endif
 /* temporarily set for testing mixing function */
 //#define TEST_MIX
 
@@ -22,11 +25,11 @@ SDL_AudioSpec want, have;
 SDL_AudioDeviceID dev;
 
 int SamplesPerSecond = SAMPLE_FREQ;
-int ToneHz = 440;
-S16 ToneVolume = 9000;
+S16 ToneVolume = 5000;
 U32 RunningSampleIndex = 0;
 int BytesPerSample = sizeof(S16) * 2;
 U32 BytesToWrite;
+int menu2;
 
 //static void *SoundBuffer = NULL;
 //static U16 *SampleOut = NULL;
@@ -132,22 +135,17 @@ static void sinewave(void *SineBuffer, U32 Length, int Freq)
 {
 int SineIndex;
 int SineCount;
-int SineWavePeriod;
-double t, SineValue, temp;
+float temp;
 S16 SampleValue;
 S16 *SineBuf;
 
-SineWavePeriod = SamplesPerSecond / Freq;
-
 SineBuf = (S16 *)SineBuffer;
 SineCount = Length/BytesPerSample;
-temp = (double)2.0 * Pi32  / SineWavePeriod;
+temp = (float)2.0 * M_PI * (float)Freq / (float)SamplesPerSecond;
 
 for(SineIndex = 0; SineIndex < SineCount; ++SineIndex)
   {
-    t = temp * SineIndex;
-    SineValue = (double)sin(t);
-    SampleValue = (S16)(SineValue * ToneVolume);
+    SampleValue = (S16)(ToneVolume * (float)sin(temp * SineIndex));
     *SineBuf++ = SampleValue;
     *SineBuf++ = SampleValue;
   }
@@ -210,7 +208,7 @@ want.callback = NULL;  /* Use the queue instead */
 #endif
 
 if (soundflag & 7)
-{
+  {
   if (dev == 0)
     dev = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
 
@@ -268,10 +266,15 @@ if (soundflag & 7)
         tone(40, 500);
         break;
 #endif // TEST_MIX
-  }
+    }
 
-  soundoff();
-}
+  SDL_PauseAudioDevice(dev, 1);
+  SDL_ClearQueuedAudio(dev);
+  SDL_CloseAudioDevice(dev);
+  dev = 0;
+  free(BuzzPtr);
+  BuzzPtr = NULL;
+  }
 
 return;
 }
@@ -279,7 +282,8 @@ return;
 /*
 ; ************** Function tone(int frequency,int delaytime) **************
 ;
-;       Buzzes the speaker with this frequency for this amount of time.
+;       Buzzes the speaker with this frequency for this amount of time
+;       (in milliseconds).
 ;       The audio device (dev) is opened and closed in the routine that
 ;       calls this function.
 ;       BytesToWrite and BuzzPtr are set in calling function.
@@ -287,8 +291,9 @@ return;
 static void tone(int frequency, int delaytime)
 {
 
-  if (frequency != 0) /* Only do the delay if frequency == 0*/
+  if (frequency != 0) /* If frequency == 0, only do the delay */
      {
+      SDL_PauseAudioDevice(dev, 1);             /* Pause audio device */
       sinewave(BuzzPtr, BytesToWrite, frequency);
       SDL_QueueAudio(dev, BuzzPtr, BytesToWrite);
       SDL_Delay(1);                             /* Wait 1 ms for queue to fill */
@@ -296,7 +301,8 @@ static void tone(int frequency, int delaytime)
      }
 
   SDL_Delay(delaytime);
-//  SDL_PauseAudioDevice(dev, 1);             /* Pause audio device after delaytime ms */
+//  SDL_PauseAudioDevice(dev, 1);             /* Pause audio device */
+//  SDL_ClearQueuedAudio(dev);
 
   return;
 }
@@ -323,7 +329,7 @@ int soundon(int hertz)
   if (BuzzPtr == NULL)
      BuzzPtr = (S16 *)malloc(BytesToWrite);
 
-  tone(hertz, 55);
+  tone(hertz, 100);
 
   return(1);
 }
@@ -331,7 +337,8 @@ int soundon(int hertz)
 void soundoff(void)
 {
   SDL_PauseAudioDevice(dev, 1);
-
+  SDL_ClearQueuedAudio(dev);
+#if 0
   if (dev != 0)
      {
       SDL_CloseAudioDevice(dev);
@@ -343,6 +350,7 @@ void soundoff(void)
       free(BuzzPtr);
       BuzzPtr = NULL;
      }
+#endif
   return;
 }
 
@@ -351,6 +359,146 @@ void mute(void)
   SDL_PauseAudioDevice(dev, 1);
 
   return;
+}
+
+#define SYNTH_IMPLEMENTED  0 /* Change to 1 when implemented */
+
+#define LOADCHOICES(X)     {\
+   static FCODE tmp[] = { X };\
+   strcpy(ptr,(char *)tmp);\
+   choices[++k]= ptr;\
+   ptr += sizeof(tmp);\
+   }
+
+int get_sound_params(void)
+{
+/* routine to get sound settings  */
+static FCODE o_hdg[] = {"Sound Control Screen"};
+char *soundmodes[] = {s_off,s_beep,s_x,s_y,s_z};
+int old_soundflag,old_orbit_delay;
+char hdg[sizeof(o_hdg)];
+char *choices[15];
+char *ptr;
+struct fullscreenvalues uvalues[15];
+int k;
+int i;
+int oldhelpmode;
+char old_start_showorbit;
+
+oldhelpmode = helpmode;
+old_soundflag = soundflag;
+old_orbit_delay = orbit_delay;
+old_start_showorbit = start_showorbit;
+
+/* soundflag bits 0..7 used as thus:
+   bit 0,1,2 controls sound beep/off and x,y,z
+      (0 == off 1 == beep, 2 == x, 3 == y, 4 == z)
+   bit 3 controls PC speaker
+   bit 4 controls sound card OPL3 FM sound
+   bit 5 controls midi output
+   bit 6 controls pitch quantise
+   bit 7 free! */
+get_sound_restart:
+   menu2 = 0;
+   k = -1;
+   strcpy(hdg,o_hdg);
+   ptr = (char *)extraseg;
+
+   LOADCHOICES("Sound (off, beep, x, y, z)");
+   uvalues[k].type = 'l';
+   uvalues[k].uval.ch.vlen = 4;
+   uvalues[k].uval.ch.llen = 5;
+   uvalues[k].uval.ch.list = soundmodes;
+   uvalues[k].uval.ch.val = soundflag&7;
+#if SYNTH_IMPLEMENTED
+   LOADCHOICES("Use PC internal speaker?");
+   uvalues[k].type = 'y';
+   uvalues[k].uval.ch.val = (soundflag & 8)?1:0;
+
+   LOADCHOICES("Use soundcard output?");
+   uvalues[k].type = 'y';
+   uvalues[k].uval.ch.val = (soundflag & 16)?1:0;
+/*
+   LOADCHOICES("Midi...not implemented yet");
+   uvalues[k].type = 'y';
+   uvalues[k].uval.ch.val = (soundflag & 32)?1:0;
+*/
+   LOADCHOICES("Quantize note pitch ?");
+   uvalues[k].type = 'y';
+   uvalues[k].uval.ch.val = (soundflag & 64)?1:0;
+#endif
+   LOADCHOICES("Orbit delay in ms (0 = none)");
+   uvalues[k].type = 'i';
+   uvalues[k].uval.ival = orbit_delay;
+
+   LOADCHOICES("Base Hz Value");
+   uvalues[k].type = 'i';
+   uvalues[k].uval.ival = basehertz;
+
+   LOADCHOICES("Show orbits?");
+   uvalues[k].type = 'y';
+   uvalues[k].uval.ch.val = start_showorbit;
+
+   LOADCHOICES("");
+   uvalues[k].type = '*';
+#if SYNTH_IMPLEMENTED
+   LOADCHOICES("Press F6 for FM synth parameters, F7 for scale mappings");
+   uvalues[k].type = '*';
+#endif
+   LOADCHOICES("Press F4 to reset to default values");
+   uvalues[k].type = '*';
+
+   oldhelpmode = helpmode;
+   helpmode = HELPSOUND;
+   i = fullscreen_prompt(hdg,k+1,choices,uvalues,255,NULL);
+   helpmode = oldhelpmode;
+   if (i <0) {
+      soundflag = old_soundflag;
+      orbit_delay = old_orbit_delay;
+      start_showorbit = old_start_showorbit;
+      return(-1); /*escaped */
+   }
+
+   k = -1;
+
+   soundflag = uvalues[++k].uval.ch.val;
+#if SYNTH_IMPLEMENTED
+   soundflag = soundflag + (uvalues[++k].uval.ch.val * 8);
+   soundflag = soundflag + (uvalues[++k].uval.ch.val * 16);
+ /*  soundflag = soundflag + (uvalues[++k].uval.ch.val * 32); */
+   soundflag = soundflag + (uvalues[++k].uval.ch.val * 64);
+#endif
+   orbit_delay = uvalues[++k].uval.ival;
+   basehertz = uvalues[++k].uval.ival;
+   start_showorbit = (char)uvalues[++k].uval.ch.val;
+#if SYNTH_IMPLEMENTED
+   /* now do any intialization needed and check for soundcard */
+   if ((soundflag & 16) && !(old_soundflag & 16)) {
+     initfm();
+   }
+
+   if (i == F6) {
+      get_music_parms();/* see below, for controling fmsynth */
+      goto get_sound_restart;
+   }
+
+   if (i == F7) {
+      get_scale_map();/* see below, for setting scale mapping */
+      goto get_sound_restart;
+   }
+#endif
+   if (i == F4) {
+      soundflag = 1; /* reset to default */
+      orbit_delay = 0;
+      basehertz = 440;
+      start_showorbit = 0;
+      goto get_sound_restart;
+   }
+
+   if (soundflag != old_soundflag && ((soundflag&7) > 1 || (old_soundflag&7) > 1))
+      return (1);
+   else
+      return (0);
 }
 
 
