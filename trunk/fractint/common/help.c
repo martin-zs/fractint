@@ -374,7 +374,7 @@ static void display_page(char far *title, char far *text, unsigned text_len, int
    helpinstr();
    setattr(2, 0, C_HELP_BODY, 80*22);
    putstringcenter(1, 0, 80, C_HELP_HDG, title);
-   sprintf(temp, "%2d of %d", page+1, num_pages);
+   sprintf(temp, "%2u of %u", page+1, num_pages);
 #ifndef XFRACT
    putstring(1, 79-(6 + ((num_pages>=10)?2:1)), C_HELP_INSTR, temp);
 #else
