@@ -2153,9 +2153,9 @@ int cmdarg(char *curarg,int mode) /* process a single argument */
 
    if (far_strcmp(variable,s_orbitsave) == 0 ) {     /* orbitsave=? */
       if(charval[0] == 's')
-         orbitsave |= 2;
+         ; /* placeholder to get past badarg */
       else if (yesnoval[0] < 0) goto badarg;
-      orbitsave |= yesnoval[0];
+      orbitsave = yesnoval[0]; /* n=0, y=1, s=-1 */
       return 1;
       }
 

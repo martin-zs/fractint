@@ -282,8 +282,13 @@ typically have a short life and are updated frequently. They may have
 bug fixes, and thus be more stable, but they may also have new features
 which very likely have new bugs.
 
-Version 20.4.16 is an update of Fractint 20.0 based on the developer's
-  version 20.4.15.  New features include:
+Version 20.4.17 is an update of Fractint 20.0 based on the developer's
+  version 20.4.16.  New features include:
+
+Patch 17 to Version 20.4.0\
+
+Fixed functionality of orbitsave=yes/no/sound so that it will now turn off\
+  when orbitsave=no is used at the command prompt screen <G>.
 
 Patch 16 to Version 20.4.0\
 
