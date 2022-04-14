@@ -366,7 +366,7 @@ static void display_page(char *title, char *text, unsigned text_len, int page, i
   helpinstr();
   setattr(2, 0, C_HELP_BODY, 80*22);
   putstringcenter(1, 0, 80, C_HELP_HDG, title);
-  sprintf(temp, "%2d of %d", page+1, num_pages);
+  sprintf(temp, "%2u of %u", page+1, num_pages);
   putstring(1, 79-(6 + ((num_pages>=10)?2:1)), C_HELP_INSTR, temp);
 
   if (text != NULL)
@@ -1202,11 +1202,11 @@ static int print_doc_output(int cmd, PD_INFO *pd, PRINT_DOC_INFO *info)
       info->margin = 0;
 
       memset(line, ' ', 81);
-      sprintf(buff, "Fractint Version %d.%01d%c",release/100, (release%100)/10,
+      sprintf(buff, "Fractint Version %u.%01u%c",release/100, (release%100)/10,
               ( (release%10) ? '0'+(release%10) : ' ') );
       memmove(line + ((width-(int)(strlen(buff))) / 2)-4, buff, strlen(buff));
 
-      sprintf(buff, "Page %d", pd->pnum);
+      sprintf(buff, "Page %u", pd->pnum);
       memmove(line + (width - (int)strlen(buff)), buff, strlen(buff));
 
       printerc(info, '\n', 1);
@@ -1292,7 +1292,7 @@ static int print_doc_msg_func(int pnum, int num_pages)
       movecursor(25,80);   /* hide cursor */
     }
 
-  sprintf(temp, "%d%%", (int)( (100.0 / num_pages) * pnum ) );
+  sprintf(temp, "%u%%", (int)( (100.0 / num_pages) * pnum ) );
   putstring(7, 41, C_HELP_LINK, temp);
 
   while ( keypressed() )
@@ -1309,7 +1309,7 @@ int makedoc_msg_func(int pnum, int num_pages)
 {
   if (pnum >= 0)
     {
-      printf("\rcompleted %d%%", (int)( (100.0 / num_pages) * pnum ) );
+      printf("\rcompleted %u%%", (int)( (100.0 / num_pages) * pnum ) );
       return (1);
     }
   if ( pnum == -2 )

@@ -830,8 +830,8 @@ void puttruecolor_SDL(SDL_Surface *screen, int x, int y, Uint8 R, Uint8 G, Uint8
     break;
     }
   Sulock(screen);
-#if 1
-  if (show_orbit && calc_status == 1) /* Do it slow, one pixel at a time */
+#if 0
+  if (show_orbit && calc_status == 1 && soundflag&6) /* Do it slow, one pixel at a time */
   {
        updatepixel(x, y);
   }
@@ -2176,8 +2176,11 @@ int time_to_update(void)
 
   U32 now;
 
+  if (calc_status == 1 && show_orbit && soundflag&6)
+    return (1);
+
   now = SDL_GetTicks();
-  if ((calc_status == 1 && !bf_math && !show_orbit) || using_jiim || fractype == ANT)
+  if ((calc_status == 1 && !bf_math) || using_jiim || fractype == ANT)
     /* calculating or using_jiim or fractype == ANT */
     {
       if (next_time <= now)
