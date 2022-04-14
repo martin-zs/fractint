@@ -285,6 +285,8 @@ Fixed prompt/tab screen borders when a fractal type or formula has no parameters
 Enabled orbits window.\
 Fixed sound routines so emulation of PC speaker mostly works and turns off when\
   sound=no is used.
+Fixed functionality of orbitsave=yes/no/sound so that it will now turn off\
+  when orbitsave=no is used at the command prompt screen <G>.
 
 Known issues:\
 Random crashes\
@@ -296,7 +298,6 @@ Starting up in a disk video mode creates a window sized based on the size
   1024x768.\
 Resizing images using the window border or maximizing the window
   doesn't change the actual image resolution.\
-No reliable sound.  Buzzer kind of works.\
 Colors still limited to 256.  Work started on expanding to 512 colors.\
 The image browser does not work with arbitrary precision for the\
   64-bit compile (Linux).\
