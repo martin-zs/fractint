@@ -382,7 +382,7 @@ void dac_to_rgb(BYTE color, BYTE *red, BYTE *green, BYTE *blue)
     {
     default:
     case 0:
-#if BYTE_ORDER == BIG_ENDIAN
+#if 1 //BYTE_ORDER == BIG_ENDIAN
       *red   = dacbox[color][2] << 2; /* red */
       *green = dacbox[color][1] << 2; /* green */
       *blue  = dacbox[color][0] << 2; /* blue */

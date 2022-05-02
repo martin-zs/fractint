@@ -337,6 +337,11 @@ int keypressed(void)
     {
       keybuffer = 0;
       inside_help = 1;
+      if (show_orbit)
+      {
+        scrub_orbit();
+        taborhelp = 1;
+      }
       help(0);
       inside_help = 0;
       return 0;
@@ -344,6 +349,11 @@ int keypressed(void)
   else if (ch==TAB && tabmode)
     {
       keybuffer = 0;
+      if (show_orbit)
+      {
+        scrub_orbit();
+        taborhelp = 1;
+      }
       tab_display();
       return 0;
     }

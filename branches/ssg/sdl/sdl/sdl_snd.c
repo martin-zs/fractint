@@ -13,7 +13,7 @@
 #include "helpdefs.h"
 
 #define SAMPLE_FREQ   44100
-#define BUFFER_SIZE   2048
+#define BUFFER_SIZE   1024
 #ifndef M_PI
   #define M_PI 3.14159265358979323846
 #endif
@@ -53,6 +53,7 @@ int polyphony;
 int hi_atten;
 static char offvoice = 0;
 
+static void buzzerpcspkr(int);
 static void tone(int, int);
 static void squarewave(void *, U32, int);
 static void sinewave(void *, U32, int);
@@ -148,9 +149,6 @@ for(SineIndex = 0; SineIndex < SineCount; ++SineIndex)
     *SineBuf++ = SampleValue;
     *SineBuf++ = SampleValue;
   }
-//  SampleValue = (S16)(ToneVolume * (float)sin(temp));
-//  *SineBuf++ = SampleValue;
-//  *SineBuf++ = SampleValue;
 return;
 }
 
@@ -188,7 +186,7 @@ return;
 ;       2 = error condition
 
 ;       "buzzer()" codes:  strings of two-word pairs
-;               (frequency in cycles/sec, delay in milliseconds)
+;               (frequency in cycles/sec, delay in 0.1 milliseconds)
 ;               frequency == 0 means no sound
 ;               delay     == 0 means end-of-tune
 */
@@ -209,23 +207,35 @@ if (soundflag & 7)
     switch(buzzertype)
     {
       case 0:
-        tone(1047, 100);
-        tone(1109, 100);
-        tone(1175, 100);
+        buzzerpcspkr(1047);
+        sleepms(500);
+        soundoff();
+        buzzerpcspkr(1109);
+        sleepms(500);
+        soundoff();
+        buzzerpcspkr(1175);
+        sleepms(500);
+        soundoff();
         break;
       case 1:
-        tone(2093, 100);
-        tone(1976, 100);
-        tone(1857, 100);
+        buzzerpcspkr(2093);
+        sleepms(500);
+        soundoff();
+        buzzerpcspkr(1976);
+        sleepms(500);
+        soundoff();
+        buzzerpcspkr(1857);
+        sleepms(500);
+        soundoff();
         break;
       case 2:
       default:
-        tone(40, 500);
+        buzzerpcspkr(40);
+        sleepms(1000);
+        soundoff();
         break;
     }
 
-  SDL_PauseAudioDevice(dev, 1);
-  SDL_ClearQueuedAudio(dev);
   SDL_CloseAudioDevice(dev);
   dev = 0;
   }
@@ -237,15 +247,13 @@ return;
 ; ************** Function tone(int frequency,int delaytime) **************
 ;
 ;       Buzzes the speaker with this frequency for this amount of time
-;       (in milliseconds).
+;       (in 0.1 milliseconds).
 ;       The audio device (dev) is opened and closed in the routine that
 ;       calls this function.
 */
 static void tone(int frequency, int delaytime)
 {
-  double timeticks; /* in seconds */
-  double cycle_fraction;    /* addition fraction of a cycle to send to audio device */
-  int BufSize = BytesPerSample * SamplesPerSecond * 0.1; /* 1 tenth second */
+  int BufSize = BytesPerSample * SamplesPerSecond * 0.2; /* 0.2 second of sound */
   void *BuzzPtr;
 
   if (delaytime < 1)
@@ -253,25 +261,43 @@ static void tone(int frequency, int delaytime)
   if (frequency != 0) /* If frequency == 0, only do the delay */
      {
       SDL_PauseAudioDevice(dev, 1);             /* Pause audio device */
-//      timeticks = (double)(frequency * (double)delaytime / 1000.0);
-//      timeticks -= (int) timeticks;
-//      cycle_fraction =  (1.0 - timeticks) / (double)frequency;
-//cycle_fraction = 0;
-//      BufSize = BytesPerSample * (int)(SamplesPerSecond * (cycle_fraction + ((double)delaytime / 1000.0)));
       BuzzPtr = (void *)malloc(BufSize);
-memset(BuzzPtr, 0, BufSize);
+//      memset(BuzzPtr, 0, BufSize);
       squarewave(BuzzPtr, BufSize, frequency);
       SDL_QueueAudio(dev, BuzzPtr, BufSize);
 //      SDL_Delay(1);                             /* Wait 1 ms for queue to fill */
+//sleepms(1);
       free(BuzzPtr);
       SDL_PauseAudioDevice(dev, 0);             /* Unpause audio device */
      }
 
   sleepms(delaytime);
-//  SDL_Delay(delaytime);
-//  wait_until(0, delaytime);
-//  SDL_PauseAudioDevice(dev, 1);             /* Pause audio device */
-//  SDL_ClearQueuedAudio(dev);
+
+  return;
+}
+
+/*
+; ************** Function buzzerpcspkr(int frequency) **************
+;
+;       Buzzes the speaker with this frequency .
+;       The audio device (dev) is opened and closed in the routine that
+;       calls this function.
+*/
+static void buzzerpcspkr(int frequency)
+{
+  int BufSize = BytesPerSample * SamplesPerSecond * 0.2; /* 0.2 second of sound */
+  void *BuzzPtr;
+
+  SDL_PauseAudioDevice(dev, 1);             /* Pause audio device */
+  BuzzPtr = (void *)malloc(BufSize);
+//  memset(BuzzPtr, 0, BufSize);
+  squarewave(BuzzPtr, BufSize, frequency);
+  SDL_QueueAudio(dev, BuzzPtr, BufSize);
+//      SDL_Delay(1);                             /* Wait 1 ms for queue to fill */
+//sleepms(1);
+  free(BuzzPtr);
+  SDL_PauseAudioDevice(dev, 0);             /* Unpause audio device */
+  sleepms(1);                              /* play for at least 1 milli-second */
 
   return;
 }
@@ -299,8 +325,7 @@ int soundon(int hertz)
   if (dev == 0)
      dev = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
 
-//  tone(hertz, 100);
-  tone(hertz, orbit_delay);
+  buzzerpcspkr(hertz);
 
   return(1);
 }
@@ -322,7 +347,14 @@ void soundoff(void)
 void mute(void)
 {
   SDL_PauseAudioDevice(dev, 1);
-
+  SDL_ClearQueuedAudio(dev);
+#if 0
+  if (dev != 0)
+     {
+      SDL_CloseAudioDevice(dev);
+      dev = 0;
+     }
+#endif
   return;
 }
 
@@ -392,7 +424,7 @@ get_sound_restart:
    uvalues[k].type = 'y';
    uvalues[k].uval.ch.val = (soundflag & 64)?1:0;
 #endif
-   LOADCHOICES("Orbit delay in ms (0 = none)");
+   LOADCHOICES("Orbit delay in 0.1 ms (0 = none)");
    uvalues[k].type = 'i';
    uvalues[k].uval.ival = orbit_delay;
 

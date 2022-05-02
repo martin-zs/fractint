@@ -109,13 +109,11 @@ static double mouse_scale_y = 1.0;
 /* Routines in this module */
 void Slock(SDL_Surface *);
 void Sulock(SDL_Surface *);
-void puttruecolor_SDL(SDL_Surface*, int, int, Uint8, Uint8, Uint8);
 void save_text(void);
 void restore_text(void);
 void outtext(int, int, int);
 int check_mouse(SDL_Event);
 void set_mouse_scale(void);
-void updatepixel(int, int);
 void updateimage(void);
 void SetupSDL(void);
 void CleanupSDL(void);
@@ -221,7 +219,8 @@ void CleanupSDL(void)
     free(save_color_info);
 #endif
   SDL_DestroyRenderer(sdlRenderer);
-  SDL_DestroyTexture(sdlTexture);
+  if (sdlTexture != NULL)
+    SDL_DestroyTexture(sdlTexture);
   SDL_FreeSurface(mainscrn);
   SDL_FreeSurface(backscrn);
   SDL_FreeSurface(backtext);
@@ -416,6 +415,7 @@ void ResizeScreen(int mode)
       Image_Data.sizey = sydots;
       Image_Data.color_info = (long *)malloc(sxdots * sydots * sizeof(long));
   }
+
   if ( sdlRenderer != NULL ) /* Don't create two with same name */
       SDL_DestroyRenderer(sdlRenderer);
   sdlRenderer = SDL_CreateRenderer(sdlWindow, -1, SDL_renderer_flags);
@@ -777,70 +777,23 @@ void gettruecolor(int x, int y, BYTE *R, BYTE *G, BYTE *B)
 /*  gettruecolor_SDL(mainscrn, x, y, (Uint8 *)R, (Uint8 *)G, (Uint8 *)B); */
 }
 
-void puttruecolor_SDL(SDL_Surface *screen, int x, int y, Uint8 R, Uint8 G, Uint8 B)
-{
-#if BYTE_ORDER == BIG_ENDIAN
-  Uint32 color = SDL_MapRGB(screen->format, R, G, B);
-#else
-  Uint32 color = SDL_MapRGB(screen->format, B, G, R);
-#endif
-  Slock(screen);
-  switch (screen->format->BytesPerPixel)
-    {
-    case 1: /* Assuming 8-bpp */
-    {
-      Uint8 *bufp;
-      bufp = (Uint8 *)screen->pixels + y*screen->pitch + x;
-      *bufp = color;
-    }
-    break;
-    case 2: /* Probably 15-bpp or 16-bpp */
-    {
-      Uint16 *bufp;
-      bufp = (Uint16 *)screen->pixels + y*screen->pitch*2 + x;
-      *bufp = color;
-    }
-    break;
-    case 3: /* Slow 24-bpp mode, usually not used !!! Probably doesn't work !!! look at pitch */
-    {
-      Uint8 *bufp;
-      bufp = (Uint8 *)screen->pixels + y*screen->pitch + x * 3;
-#if BYTE_ORDER == BIG_ENDIAN
-        {
-          bufp[2] = color;
-          bufp[1] = color >> 8;
-          bufp[0] = color >> 16;
-        }
-#else
-        {
-          bufp[0] = color;
-          bufp[1] = color >> 8;
-          bufp[2] = color >> 16;
-        }
-#endif
-    }
-    break;
-    default:
-    case 4: /* Probably 32-bpp */
-    {
-      Uint32 *bufp;
-      bufp = (Uint32 *)screen->pixels + y*screen->pitch/4 + x;
-      *bufp = color;
-    }
-    break;
-    }
-  Sulock(screen);
-#if 0
-  if (show_orbit && calc_status == 1 && soundflag&6) /* Do it slow, one pixel at a time */
-  {
-       updatepixel(x, y);
-  }
-#endif
-}
-
 void puttruecolor(int x, int y, BYTE R, BYTE G, BYTE B)
 {
-  puttruecolor_SDL(mainscrn, x, y, (Uint8)R, (Uint8)G, (Uint8)B);
+  Uint32 color = SDL_MapRGB(mainscrn->format, R, G, B);
+  SDL_Rect dst;
+
+  dst.x = x;
+  dst.y = y;
+  dst.w = 1;
+  dst.h = 1;
+
+  /* put the pixel color on the screen */
+  SDL_FillRect(mainscrn, &dst, color);
+
+  if (show_orbit && calc_status == 1 && soundflag&6) /* Do it slow, update after each pixel */
+  {
+       updateimage();
+  }
 }
 
 /*
@@ -866,23 +819,17 @@ void writevideo(int x, int y, U32 pixel)
   puttruecolor(x, y, red, green, blue);
 }
 
-void updatepixel(int x, int y)
-{
-  SDL_Rect dst;
-
-  dst.x = x;
-  dst.y = y;
-  dst.w = 1;
-  dst.h = 1;
-
-  SDL_UpdateTexture( sdlTexture, &dst, mainscrn->pixels, rowbytes );
-  SDL_RenderCopy(sdlRenderer, sdlTexture, &dst, &dst);
-  SDL_RenderPresent(sdlRenderer);
-}
-
 void updateimage(void)
 {
-  SDL_UpdateTexture( sdlTexture, NULL, mainscrn->pixels, rowbytes );
+#if 0
+  SDL_UpdateTexture( sdlTexture, &dst, mainscrn->pixels, rowbytes );
+#else
+  void *pixels;
+
+  SDL_LockTexture(sdlTexture, NULL, &pixels, &rowbytes);
+  memcpy(pixels, mainscrn->pixels, rowbytes*sydots);
+  SDL_UnlockTexture(sdlTexture);
+#endif
   SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
   SDL_RenderPresent(sdlRenderer);
 }
@@ -978,12 +925,9 @@ void writevideoline(int y, int x, int lastx, BYTE *pixels)
   line.y = y;
   line.h = 1;
   line.w = width;
-  pixel = (int) &pixels;
-#if BYTE_ORDER == BIG_ENDIAN
+  pixel = (int) *pixels;
+
   dac_to_rgb((BYTE)(pixel & andcolor), &red, &green, &blue);
-#else
-  dac_to_rgb((BYTE)(pixel & andcolor), &blue, &green, &red);
-#endif
 
   SDL_FillRect(mainscrn, &line, SDL_MapRGB(mainscrn->format, red, green, blue));
 #endif
@@ -1176,8 +1120,11 @@ void outtext(int row, int col, int max_c)
   }
   text_rect.x = col * txt_wt;   /* starting column */
   text_rect.y = row * txt_ht;   /* starting row */
+#if 0
+  /* for SDL_BlitSurface, the destination width and height are ignored */
   text_rect.w = max_c * txt_wt; /* output this many columns */
   text_rect.h = 1 * txt_ht;     /* output one row at a time */
+#endif
 
   for (i = 0; i <= TEXT_WIDTH; i++) /* clear the text buffer */
     buf[i] = 0;
@@ -1239,11 +1186,13 @@ void restore_text(void)
  * For example, looking at a parameter entry using F2.
  */
 
-// NOTE (jonathan#1#): Don't need next.  Never checked.
 #define MAXSCREENS 3
-// May need something if two text screens isn't enough
-//static BYTE *savescreen[MAXSCREENS];
-//static int saverc[MAXSCREENS+1];
+/*
+ * Don't need next.  Never checked.
+ * May need something if two text screens isn't enough
+static BYTE *savescreen[MAXSCREENS];
+static int saverc[MAXSCREENS+1];
+*/
 
 void stackscreen(void)
 {
@@ -2176,8 +2125,8 @@ int time_to_update(void)
 
   U32 now;
 
-  if (calc_status == 1 && show_orbit && soundflag&6)
-    return (1);
+  if (calc_status == 1 && show_orbit && soundflag&6 && !taborhelp)
+    return (0); /* we will update the image at each pixel */
 
   now = SDL_GetTicks();
   if ((calc_status == 1 && !bf_math) || using_jiim || fractype == ANT)

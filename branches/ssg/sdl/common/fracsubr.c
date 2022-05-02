@@ -1393,7 +1393,7 @@ void w_snd(int tone)
       /*   if(10 < tone && tone < 5000)  better limits? */
       if (soundon(tone))
         {
-//          wait_until(0,orbit_delay);
+          wait_until(0,orbit_delay);
           if (!taborhelp) /* kludge because wait_until() calls keypressed */
             soundoff();
         }
@@ -1469,10 +1469,10 @@ static void plotdorbit(double dx, double dy, int color)
         w_snd((int)(i*1000/xdots+basehertz));
       else if ((soundflag&7) > 2) /* sound = y or z */
         w_snd((int)(j*1000/ydots+basehertz));
-//      else if (orbit_delay > 0)
-//        {
-//          wait_until(0,orbit_delay);
-//        }
+      else if (orbit_delay > 0)
+        {
+          wait_until(0,orbit_delay);
+        }
     }
   else
     {
@@ -1482,10 +1482,10 @@ static void plotdorbit(double dx, double dy, int color)
         w_snd((int)(j+basehertz));
       else if ((soundflag&7) == 4) /* sound = z */
         w_snd((int)(i+j+basehertz));
-//      else if (orbit_delay > 0)
-//        {
-//          wait_until(0,orbit_delay);
-//        }
+      else if (orbit_delay > 0)
+        {
+          wait_until(0,orbit_delay);
+        }
     }
 
   /* placing sleepms here delays each dot */
