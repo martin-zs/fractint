@@ -562,7 +562,7 @@ pass_option_restart:
   uvalues[k].type = 'i';
   uvalues[k].uval.ival = old_periodicity = usr_periodicitycheck;
 
-  LOADCHOICES("Orbit delay (0 = none)");
+  LOADCHOICES("Orbit delay in 0.1 ms (0 = none)");
   uvalues[k].type = 'i';
   uvalues[k].uval.ival = old_orbit_delay = orbit_delay;
 

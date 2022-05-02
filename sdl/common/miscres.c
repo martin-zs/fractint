@@ -1076,7 +1076,7 @@ top:
   if (bf_math==0)
     {
       sprintf(msg,"Video: %dx%dx%d",
-              xdots, ydots, colors);
+              sxdots, sydots, colors);
       putstring(s_row++,2,C_GENERAL_MED,msg);
     }
   if (!(curfractalspecific->flags&NOZOOM))
