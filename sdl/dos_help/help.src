@@ -283,13 +283,14 @@ Version 20.5 is a Port to SDL 2.0
 Fixed palette editor font.\
 Fixed prompt/tab screen borders when a fractal type or formula has no parameters.\
 Enabled orbits window.\
-Fixed sound routines so emulation of PC speaker mostly works and turns off when\
-  sound=no is used.
+Fixed sound routines so emulation of PC speaker works and turns off when\
+  sound=no is used.\
 Fixed functionality of orbitsave=yes/no/sound so that it will now turn off\
   when orbitsave=no is used at the command prompt screen <G>.
 
 Known issues:\
 Random crashes\
+Advanced Sound Controls have not been implemented.\
 The Alt-function keys get grabbed by the system.  Selecting the Alt-Fn keys
   won't work, but using video=AFn in your sstools.ini file or from the
   command line will.\

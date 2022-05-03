@@ -24,6 +24,7 @@ Fix file access.]]>
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Linker>
+					<Add option="-O1" />
 					<Add option="-s" />
 				</Linker>
 			</Target>
