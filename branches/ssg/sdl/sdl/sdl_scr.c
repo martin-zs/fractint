@@ -821,15 +821,16 @@ void writevideo(int x, int y, U32 pixel)
 
 void updateimage(void)
 {
-#if 0
-  SDL_UpdateTexture( sdlTexture, &dst, mainscrn->pixels, rowbytes );
-#else
-  void *pixels;
+  if (dotmode == 11)
+    SDL_UpdateTexture( sdlTexture, NULL, mainscrn->pixels, rowbytes );
+  else
+  {
+    void *pixels;
 
-  SDL_LockTexture(sdlTexture, NULL, &pixels, &rowbytes);
-  memcpy(pixels, mainscrn->pixels, rowbytes*sydots);
-  SDL_UnlockTexture(sdlTexture);
-#endif
+    SDL_LockTexture(sdlTexture, NULL, &pixels, &rowbytes);
+    memcpy(pixels, mainscrn->pixels, rowbytes*sydots);
+    SDL_UnlockTexture(sdlTexture);
+  }
   SDL_RenderCopy(sdlRenderer, sdlTexture, NULL, NULL);
   SDL_RenderPresent(sdlRenderer);
 }
